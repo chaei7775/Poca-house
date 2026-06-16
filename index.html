@@ -2,779 +2,1130 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>🏠 POCA HOUSE</title>
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>POCA HOUSE BURGER</title>
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&family=Noto+Sans+KR:wght@400;700;900&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
   :root {
-    --pink: #ff85a1;
-    --pink-light: #ffc2d0;
-    --pink-pale: #fff0f3;
-    --pink-deep: #e85480;
-    --gem: #c084fc;
-    --gem-light: #e9d5ff;
-    --cream: #fff8f9;
-    --dark: #3d2c35;
-    --mid: #7c5c68;
-    --border: #ffd6e0;
+    --pink: #FF6B9D;
+    --pink-light: #FFB3CC;
+    --pink-pale: #FFF0F5;
+    --purple: #C084FC;
+    --gold: #F59E0B;
+    --dark: #1a1a2e;
+    --white: #fff;
   }
 
   body {
-    font-family: 'Nunito', sans-serif;
-    background: var(--cream);
-    color: var(--dark);
+    font-family: 'Noto Sans KR', sans-serif;
+    background: var(--pink-pale);
     min-height: 100vh;
+    max-width: 430px;
+    margin: 0 auto;
     overflow-x: hidden;
   }
 
-  /* 상단 HUD */
-  .hud {
-    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
-    background: rgba(255,255,255,0.92);
-    backdrop-filter: blur(8px);
-    border-bottom: 2px solid var(--border);
-    padding: 10px 16px;
-    display: flex; align-items: center; justify-content: space-between;
-  }
-  .hud-title {
-    font-size: 16px; font-weight: 800; color: var(--pink-deep);
-    letter-spacing: 1px;
-  }
-  .hud-title span { color: var(--dark); }
-  .hud-gems {
-    display: flex; align-items: center; gap: 6px;
-    background: var(--gem-light);
-    padding: 6px 14px; border-radius: 20px;
-    font-weight: 800; font-size: 15px; color: #7c3aed;
-  }
+  /* ── SCREENS ── */
+  .screen { display: none; min-height: 100vh; flex-direction: column; }
+  .screen.active { display: flex; }
 
-  /* 탭 네비 */
-  .nav {
-    position: fixed; bottom: 0; left: 0; right: 0; z-index: 100;
-    background: #fff;
-    border-top: 2px solid var(--border);
+  /* ── TOP BAR ── */
+  .topbar {
+    background: linear-gradient(135deg, #FF6B9D, #C084FC);
+    padding: 12px 16px;
     display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky; top: 0; z-index: 100;
+    box-shadow: 0 2px 12px #FF6B9D44;
   }
-  .nav-btn {
-    flex: 1; padding: 10px 0 8px;
-    border: none; background: none; cursor: pointer;
+  .topbar-logo {
     font-family: 'Nunito', sans-serif;
-    font-size: 10px; font-weight: 700;
-    color: #ccc;
-    display: flex; flex-direction: column; align-items: center; gap: 3px;
-    transition: color 0.2s;
-  }
-  .nav-btn.active { color: var(--pink-deep); }
-  .nav-icon { font-size: 22px; }
-
-  /* 화면 */
-  .screen {
-    display: none;
-    padding: 72px 16px 80px;
-    min-height: 100vh;
-  }
-  .screen.active { display: block; }
-
-  /* ── 알바 화면 ── */
-  .alba-wrap {
-    display: flex; flex-direction: column; align-items: center; gap: 16px;
-  }
-  .alba-char {
-    width: 100%; max-width: 360px;
-    border-radius: 20px; overflow: hidden;
-    box-shadow: 0 8px 30px rgba(255,133,161,0.25);
-    position: relative;
-  }
-  .alba-char img { width: 100%; display: block; }
-  .alba-char-overlay {
-    position: absolute; bottom: 0; left: 0; right: 0;
-    background: linear-gradient(transparent, rgba(61,44,53,0.7));
-    padding: 20px 16px 16px;
+    font-weight: 900;
+    font-size: 18px;
     color: #fff;
+    letter-spacing: -0.5px;
   }
-  .alba-char-name { font-size: 13px; font-weight: 700; opacity: 0.8; }
-  .alba-char-msg { font-size: 15px; font-weight: 800; }
+  .topbar-logo span { color: #FFE4EF; }
+  .coins {
+    background: rgba(255,255,255,0.25);
+    border-radius: 20px;
+    padding: 4px 12px;
+    font-size: 14px;
+    font-weight: 700;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
 
-  .alba-btn {
-    width: 100%; max-width: 360px;
+  /* ── HOME SCREEN ── */
+  #screen-home {
+    background: linear-gradient(180deg, #FFF0F5 0%, #FFE4EF 100%);
+  }
+  .home-banner {
+    position: relative;
+    width: 100%;
+    height: 260px;
+    overflow: hidden;
+    background: #FFD6E8;
+  }
+  .home-banner img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center top;
+  }
+  .home-banner-overlay {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    padding: 20px 16px 12px;
+    background: linear-gradient(to top, #FFF0F5ee, transparent);
+  }
+  .home-banner-title {
+    font-size: 22px;
+    font-weight: 900;
+    color: var(--pink);
+    text-shadow: 0 1px 8px #fff8;
+  }
+  .home-banner-sub {
+    font-size: 12px;
+    color: #FF6B9D99;
+    margin-top: 2px;
+  }
+
+  .home-actions {
     padding: 16px;
-    background: linear-gradient(135deg, var(--pink), var(--pink-deep));
-    border: none; border-radius: 16px;
-    color: #fff; font-family: 'Nunito', sans-serif;
-    font-size: 18px; font-weight: 800; letter-spacing: 1px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .btn-main {
+    width: 100%;
+    padding: 16px;
+    border: none;
+    border-radius: 16px;
+    font-size: 16px;
+    font-weight: 900;
+    font-family: 'Noto Sans KR', sans-serif;
     cursor: pointer;
-    box-shadow: 0 4px 20px rgba(232,84,128,0.4);
-    transition: transform 0.15s, box-shadow 0.15s;
-    display: flex; align-items: center; justify-content: center; gap: 8px;
+    transition: transform 0.1s, box-shadow 0.1s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
   }
-  .alba-btn:active { transform: scale(0.97); }
-  .alba-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+  .btn-main:active { transform: scale(0.97); }
 
-  .alba-timer {
-    font-size: 13px; color: var(--mid); font-weight: 700;
-    text-align: center;
+  .btn-alba {
+    background: linear-gradient(135deg, #FF6B9D, #FF8FAB);
+    color: #fff;
+    box-shadow: 0 4px 20px #FF6B9D55;
   }
-
-  .alba-log {
-    width: 100%; max-width: 360px;
-    background: #fff; border-radius: 16px;
-    border: 1.5px solid var(--border);
-    padding: 14px 16px;
+  .btn-gacha {
+    background: linear-gradient(135deg, #C084FC, #A855F7);
+    color: #fff;
+    box-shadow: 0 4px 20px #C084FC55;
   }
-  .alba-log-title { font-size: 12px; color: var(--mid); font-weight: 700; margin-bottom: 8px; }
-  .log-item {
-    font-size: 13px; color: var(--dark); padding: 4px 0;
-    border-bottom: 1px dashed var(--border);
-    display: flex; justify-content: space-between;
-  }
-  .log-item:last-child { border-bottom: none; }
-  .log-gem { color: #7c3aed; font-weight: 800; }
-
-  /* ── 포카샵 화면 ── */
-  .shop-header {
-    text-align: center; margin-bottom: 20px;
-  }
-  .shop-header img {
-    width: 100%; max-width: 360px; border-radius: 20px;
-    box-shadow: 0 8px 30px rgba(255,133,161,0.2);
+  .btn-collection {
+    background: #fff;
+    color: var(--pink);
+    border: 2px solid var(--pink-light);
+    box-shadow: 0 2px 12px #FF6B9D22;
   }
 
-  .pack-grid {
-    display: grid; grid-template-columns: 1fr 1fr;
-    gap: 12px; max-width: 360px; margin: 0 auto;
+  /* 보유 아이돌 미리보기 */
+  .idol-preview {
+    padding: 0 16px 16px;
   }
-  .pack-card {
-    background: #fff; border-radius: 16px;
-    border: 2px solid var(--border);
-    padding: 16px 12px;
-    text-align: center; cursor: pointer;
-    transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s;
-  }
-  .pack-card:hover { transform: translateY(-3px); border-color: var(--pink); box-shadow: 0 6px 20px rgba(255,133,161,0.2); }
-  .pack-emoji { font-size: 36px; margin-bottom: 8px; }
-  .pack-name { font-size: 14px; font-weight: 800; color: var(--dark); margin-bottom: 4px; }
-  .pack-desc { font-size: 11px; color: var(--mid); margin-bottom: 10px; line-height: 1.4; }
-  .pack-price {
-    display: inline-flex; align-items: center; gap: 4px;
-    background: var(--gem-light); padding: 4px 12px;
-    border-radius: 20px; font-size: 14px; font-weight: 800; color: #7c3aed;
-  }
-  .pack-card.premium { border-color: #fbbf24; background: linear-gradient(135deg, #fffbeb, #fff); }
-  .pack-card.premium .pack-price { background: #fef3c7; color: #b45309; }
-
-  /* 구매 모달 */
-  .modal-overlay {
-    display: none; position: fixed; inset: 0; z-index: 200;
-    background: rgba(61,44,53,0.6);
-    align-items: flex-end; justify-content: center;
-  }
-  .modal-overlay.open { display: flex; }
-  .modal {
-    background: #fff; border-radius: 24px 24px 0 0;
-    padding: 24px 20px 40px;
-    width: 100%; max-width: 480px;
-    animation: slideUp 0.3s ease;
-  }
-  @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-  .modal-title { font-size: 18px; font-weight: 800; margin-bottom: 6px; }
-  .modal-sub { font-size: 13px; color: var(--mid); margin-bottom: 20px; }
-  .modal-confirm {
-    width: 100%; padding: 14px;
-    background: linear-gradient(135deg, var(--gem), #7c3aed);
-    border: none; border-radius: 14px;
-    color: #fff; font-family: 'Nunito', sans-serif;
-    font-size: 16px; font-weight: 800; cursor: pointer;
+  .section-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: #FF6B9D99;
+    letter-spacing: 1px;
+    text-transform: uppercase;
     margin-bottom: 10px;
   }
-  .modal-cancel {
-    width: 100%; padding: 12px;
-    background: none; border: 1.5px solid var(--border);
-    border-radius: 14px; font-family: 'Nunito', sans-serif;
-    font-size: 15px; font-weight: 700; color: var(--mid); cursor: pointer;
+  .idol-chips {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .idol-chip {
+    background: #fff;
+    border: 1.5px solid var(--pink-light);
+    border-radius: 20px;
+    padding: 6px 14px;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--pink);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .idol-chip .grade {
+    font-size: 10px;
+    background: linear-gradient(135deg, #C084FC, #A855F7);
+    color: #fff;
+    border-radius: 6px;
+    padding: 1px 5px;
+  }
+  .empty-idol {
+    font-size: 13px;
+    color: #FFB3CC;
+    padding: 8px 0;
   }
 
-  /* 팩 오픈 연출 */
-  .open-overlay {
-    display: none; position: fixed; inset: 0; z-index: 300;
-    background: rgba(20,10,20,0.92);
-    flex-direction: column; align-items: center; justify-content: center;
+  /* ── ALBA SCREEN ── */
+  #screen-alba {
+    background: #1a1a2e;
+    position: relative;
+    overflow: hidden;
+  }
+  .alba-bg {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-image: url('https://raw.githubusercontent.com/chaei7775/Poca-house/main/Alba.png');
+    background-size: cover;
+    background-position: center;
+    opacity: 0.35;
+  }
+  .alba-content {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px 16px;
+    gap: 16px;
+    min-height: 100vh;
+  }
+
+  .alba-title {
+    font-size: 20px;
+    font-weight: 900;
+    color: #fff;
+    text-align: center;
+  }
+  .alba-subtitle {
+    font-size: 12px;
+    color: #FFB3CC;
+    text-align: center;
+    margin-top: -12px;
+  }
+
+  /* 게이지바 게임 */
+  .gauge-container {
+    width: 100%;
+    background: rgba(255,255,255,0.1);
+    border: 2px solid rgba(255,255,255,0.2);
+    border-radius: 16px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .gauge-label {
+    font-size: 13px;
+    color: #FFB3CC;
+    font-weight: 700;
+    letter-spacing: 1px;
+  }
+
+  .gauge-track {
+    width: 100%;
+    height: 36px;
+    background: rgba(255,255,255,0.15);
+    border-radius: 18px;
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+    border: 2px solid rgba(255,255,255,0.2);
+  }
+
+  /* 퍼펙트 존 */
+  .gauge-perfect {
+    position: absolute;
+    top: 0; bottom: 0;
+    background: linear-gradient(90deg, #FFD700aa, #FFD700, #FFD700aa);
+    border-radius: 4px;
+    width: 18%;
+    left: 41%;
+    transition: none;
+  }
+  .gauge-great {
+    position: absolute;
+    top: 0; bottom: 0;
+    background: linear-gradient(90deg, #FF6B9Daa, #FF6B9D, #FF6B9Daa);
+    border-radius: 4px;
+    width: 30%;
+    left: 35%;
+  }
+
+  /* 움직이는 마커 */
+  .gauge-marker {
+    position: absolute;
+    top: 4px; bottom: 4px;
+    width: 6px;
+    background: #fff;
+    border-radius: 3px;
+    box-shadow: 0 0 12px #fff, 0 0 4px #FFD700;
+    left: 0;
+    transition: none;
+  }
+
+  .gauge-zones {
+    display: flex;
+    gap: 12px;
+    font-size: 11px;
+    font-weight: 700;
+  }
+  .zone { display: flex; align-items: center; gap: 4px; }
+  .zone-dot { width: 10px; height: 10px; border-radius: 50%; }
+
+  .tap-btn {
+    width: 100%;
+    padding: 18px;
+    background: linear-gradient(135deg, #FF6B9D, #C084FC);
+    border: none;
+    border-radius: 16px;
+    color: #fff;
+    font-size: 20px;
+    font-weight: 900;
+    font-family: 'Noto Sans KR', sans-serif;
+    cursor: pointer;
+    box-shadow: 0 4px 20px #FF6B9D55;
+    letter-spacing: 1px;
+    transition: transform 0.08s;
+  }
+  .tap-btn:active { transform: scale(0.96); }
+
+  /* 결과 팝업 */
+  .result-popup {
+    position: fixed;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%) scale(0);
+    background: rgba(26,26,46,0.95);
+    border: 2px solid;
+    border-radius: 20px;
+    padding: 24px 32px;
+    text-align: center;
+    z-index: 200;
+    transition: transform 0.2s cubic-bezier(0.34,1.56,0.64,1);
+    min-width: 200px;
+  }
+  .result-popup.show { transform: translate(-50%, -50%) scale(1); }
+  .result-grade {
+    font-size: 36px;
+    font-weight: 900;
+    font-family: 'Nunito', sans-serif;
+    letter-spacing: 2px;
+  }
+  .result-coins {
+    font-size: 16px;
+    color: var(--gold);
+    font-weight: 700;
+    margin-top: 4px;
+  }
+  .result-sub {
+    font-size: 12px;
+    color: #888;
+    margin-top: 4px;
+  }
+
+  /* 알바 횟수 */
+  .alba-count {
+    background: rgba(255,255,255,0.1);
+    border-radius: 12px;
+    padding: 10px 20px;
+    text-align: center;
+    width: 100%;
+  }
+  .alba-count-num {
+    font-size: 28px;
+    font-weight: 900;
+    color: #fff;
+  }
+  .alba-count-label {
+    font-size: 11px;
+    color: #FFB3CC;
+    margin-top: 2px;
+  }
+
+  /* 자동 알바 아이돌 */
+  .auto-idols {
+    width: 100%;
+    background: rgba(255,255,255,0.08);
+    border-radius: 12px;
+    padding: 12px;
+  }
+  .auto-idol-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    font-size: 13px;
+    color: #eee;
+  }
+  .auto-idol-row:last-child { border-bottom: none; }
+  .auto-idol-name { font-weight: 700; color: #C084FC; }
+  .auto-coin { color: var(--gold); font-weight: 700; font-size: 12px; }
+
+  .back-btn {
+    width: 100%;
+    padding: 14px;
+    background: rgba(255,255,255,0.1);
+    border: 1.5px solid rgba(255,255,255,0.2);
+    border-radius: 14px;
+    color: #fff;
+    font-size: 15px;
+    font-weight: 700;
+    font-family: 'Noto Sans KR', sans-serif;
+    cursor: pointer;
+  }
+
+  /* ── GACHA SCREEN ── */
+  #screen-gacha {
+    background: linear-gradient(180deg, #1a1a2e 0%, #2d1b4e 100%);
+    padding: 0 0 32px;
+  }
+  .gacha-header {
+    padding: 20px 16px 0;
+    text-align: center;
+  }
+  .gacha-title {
+    font-size: 24px;
+    font-weight: 900;
+    font-family: 'Nunito', sans-serif;
+    background: linear-gradient(135deg, #C084FC, #FF6B9D);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: 2px;
+  }
+  .gacha-sub {
+    font-size: 12px;
+    color: #C084FC88;
+    margin-top: 4px;
+  }
+  .gacha-coins-display {
+    background: rgba(192,132,252,0.15);
+    border: 1.5px solid #C084FC44;
+    border-radius: 12px;
+    padding: 10px 16px;
+    margin: 16px;
+    text-align: center;
+    font-size: 15px;
+    color: var(--gold);
+    font-weight: 700;
+  }
+
+  /* 카드 뽑기 결과 */
+  .gacha-card-area {
+    padding: 0 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+  }
+  .gacha-card {
+    width: 100%;
+    max-width: 280px;
+    aspect-ratio: 3/4;
+    border-radius: 16px;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 8px 40px #C084FC44;
+    background: #2d1b4e;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .gacha-card img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .gacha-card-back {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #2d1b4e, #1a1a2e);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+  }
+  .gacha-card-back-logo {
+    font-size: 32px;
+    font-weight: 900;
+    font-family: 'Nunito', sans-serif;
+    color: #C084FC44;
+    letter-spacing: 4px;
+  }
+  .gacha-card-back-icon {
+    font-size: 48px;
+    opacity: 0.3;
+  }
+
+  .gacha-btn-row {
+    display: flex;
+    gap: 10px;
+    padding: 0 16px;
+    width: 100%;
+  }
+  .gacha-btn {
+    flex: 1;
+    padding: 14px;
+    border: none;
+    border-radius: 14px;
+    font-size: 14px;
+    font-weight: 900;
+    font-family: 'Noto Sans KR', sans-serif;
+    cursor: pointer;
+    transition: transform 0.1s;
+  }
+  .gacha-btn:active { transform: scale(0.97); }
+  .gacha-btn-1 {
+    background: rgba(192,132,252,0.2);
+    border: 1.5px solid #C084FC;
+    color: #C084FC;
+  }
+  .gacha-btn-3 {
+    background: linear-gradient(135deg, #C084FC, #A855F7);
+    color: #fff;
+    box-shadow: 0 4px 16px #C084FC44;
+  }
+  .gacha-cost {
+    font-size: 11px;
+    opacity: 0.8;
+    font-weight: 400;
+  }
+
+  /* 뽑기 결과 오버레이 */
+  .gacha-result-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(26,26,46,0.9);
+    z-index: 300;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
     gap: 20px;
+    padding: 24px;
   }
-  .open-overlay.show { display: flex; }
-  .open-pack-emoji { font-size: 80px; animation: packShake 0.4s ease; }
-  @keyframes packShake {
-    0%,100% { transform: rotate(0); }
-    25% { transform: rotate(-8deg) scale(1.1); }
-    75% { transform: rotate(8deg) scale(1.1); }
+  .gacha-result-overlay.show { display: flex; }
+  .gacha-result-card {
+    width: 240px;
+    aspect-ratio: 3/4;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 0 60px #C084FC88;
+    animation: cardReveal 0.5s cubic-bezier(0.34,1.56,0.64,1);
   }
-  .open-cards {
-    display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;
-    max-width: 340px;
+  .gacha-result-card img { width: 100%; height: 100%; object-fit: cover; }
+  @keyframes cardReveal {
+    from { transform: rotateY(90deg) scale(0.8); opacity: 0; }
+    to { transform: rotateY(0deg) scale(1); opacity: 1; }
   }
-  .open-card {
-    width: 80px; background: #fff; border-radius: 12px;
-    overflow: hidden; text-align: center;
-    box-shadow: 0 4px 20px rgba(255,133,161,0.3);
-    animation: cardPop 0.4s ease both;
+  .gacha-result-grade {
+    font-size: 28px;
+    font-weight: 900;
+    font-family: 'Nunito', sans-serif;
+    text-align: center;
   }
-  .open-card:nth-child(1) { animation-delay: 0.1s; }
-  .open-card:nth-child(2) { animation-delay: 0.2s; }
-  .open-card:nth-child(3) { animation-delay: 0.3s; }
-  .open-card:nth-child(4) { animation-delay: 0.4s; }
-  .open-card:nth-child(5) { animation-delay: 0.5s; }
-  @keyframes cardPop {
-    from { opacity: 0; transform: scale(0.5) rotate(-10deg); }
-    to   { opacity: 1; transform: scale(1) rotate(0deg); }
+  .gacha-result-name {
+    font-size: 18px;
+    font-weight: 700;
+    color: #fff;
+    text-align: center;
   }
-  .open-card-img { width: 100%; aspect-ratio: 2/3; object-fit: cover; background: var(--pink-pale); display: flex; align-items: center; justify-content: center; font-size: 28px; }
-  .open-card-name { font-size: 9px; font-weight: 800; padding: 4px 2px; color: var(--dark); }
-  .open-close {
-    margin-top: 8px; padding: 12px 40px;
-    background: var(--pink); border: none; border-radius: 30px;
-    color: #fff; font-family: 'Nunito', sans-serif;
-    font-size: 15px; font-weight: 800; cursor: pointer;
-  }
-
-  /* ── 방 꾸미기 화면 ── */
-  .room-wrap { max-width: 480px; margin: 0 auto; }
-  .room-scene {
-    position: relative; width: 100%;
-    background: linear-gradient(180deg, #ffe4ec 0%, #fff0f5 60%, #ffd6e7 100%);
-    border-radius: 20px; overflow: hidden;
-    border: 2px solid var(--border);
-    min-height: 320px;
-    margin-bottom: 16px;
-  }
-  /* 방 배경 데코 */
-  .room-wall-deco {
-    position: absolute; top: 8px; left: 8px;
-    font-size: 18px; opacity: 0.4;
-  }
-  .room-neon {
-    position: absolute; top: 12px; right: 16px;
-    font-size: 28px; filter: drop-shadow(0 0 8px #ff85a1);
-  }
-  /* 포카 붙이는 영역 */
-  .room-poca-wall {
-    position: absolute; top: 16px; left: 16px;
-    width: calc(100% - 32px);
-    display: flex; flex-wrap: wrap; gap: 6px;
-    min-height: 140px;
-  }
-  .room-poca-slot {
-    width: 56px; height: 76px;
-    border: 1.5px dashed rgba(255,133,161,0.4);
-    border-radius: 8px;
-    background: rgba(255,255,255,0.3);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 20px; cursor: pointer;
-    transition: background 0.2s;
-    position: relative; overflow: hidden;
-  }
-  .room-poca-slot.filled { border-color: transparent; }
-  .room-poca-slot img { width: 100%; height: 100%; object-fit: cover; border-radius: 6px; }
-  .room-poca-slot .slot-emoji {
-    font-size: 24px; opacity: 0.3;
-  }
-  /* 하나 캐릭터 */
-  .room-hana {
-    position: absolute; bottom: 0; right: 8px;
-    width: 120px;
-  }
-  .room-hana img { width: 100%; }
-  /* 방 굿즈 */
-  .room-goods {
-    position: absolute; bottom: 8px; left: 12px;
-    display: flex; gap: 8px; font-size: 22px;
+  .gacha-close-btn {
+    padding: 14px 40px;
+    background: linear-gradient(135deg, #FF6B9D, #C084FC);
+    border: none;
+    border-radius: 14px;
+    color: #fff;
+    font-size: 16px;
+    font-weight: 900;
+    font-family: 'Noto Sans KR', sans-serif;
+    cursor: pointer;
   }
 
-  /* 보유 포카 */
+  /* ── COLLECTION SCREEN ── */
+  #screen-collection {
+    background: var(--pink-pale);
+    padding-bottom: 24px;
+  }
+  .collection-header {
+    padding: 20px 16px 12px;
+    background: linear-gradient(135deg, #FF6B9D, #C084FC);
+  }
   .collection-title {
-    font-size: 14px; font-weight: 800; color: var(--dark);
-    margin-bottom: 10px; display: flex; align-items: center; gap: 6px;
+    font-size: 20px;
+    font-weight: 900;
+    color: #fff;
+    font-family: 'Nunito', sans-serif;
+  }
+  .collection-sub {
+    font-size: 12px;
+    color: rgba(255,255,255,0.7);
+    margin-top: 2px;
   }
   .collection-grid {
-    display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    padding: 16px;
   }
-  .coll-card {
-    background: #fff; border-radius: 12px;
-    border: 1.5px solid var(--border);
-    padding: 8px 4px; text-align: center;
-    cursor: pointer; transition: all 0.15s;
+  .card-item {
+    background: #fff;
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 2px 12px #FF6B9D22;
     position: relative;
   }
-  .coll-card:hover { border-color: var(--pink); transform: scale(1.05); }
-  .coll-card.selected { border-color: var(--pink-deep); box-shadow: 0 0 0 2px var(--pink-deep); }
-  .coll-card-emoji { font-size: 28px; }
-  .coll-card-name { font-size: 9px; font-weight: 700; color: var(--mid); margin-top: 4px; }
-  .coll-card-count {
-    position: absolute; top: -4px; right: -4px;
-    background: var(--pink-deep); color: #fff;
-    font-size: 9px; font-weight: 800;
-    width: 18px; height: 18px; border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
+  .card-item img {
+    width: 100%;
+    aspect-ratio: 3/4;
+    object-fit: cover;
   }
-  .place-btn {
-    width: 100%; padding: 12px; margin-top: 12px;
-    background: linear-gradient(135deg, var(--pink), var(--pink-deep));
-    border: none; border-radius: 14px;
-    color: #fff; font-family: 'Nunito', sans-serif;
-    font-size: 15px; font-weight: 800; cursor: pointer;
+  .card-item-info {
+    padding: 8px 10px;
   }
-  .place-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .card-item-name {
+    font-size: 13px;
+    font-weight: 700;
+    color: #333;
+  }
+  .card-item-grade {
+    font-size: 11px;
+    font-weight: 700;
+    margin-top: 2px;
+  }
+  .card-locked {
+    filter: grayscale(1) brightness(0.4);
+  }
+  .card-locked-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    background: rgba(0,0,0,0.3);
+  }
+  .card-item.owned .card-item-grade { color: var(--pink); }
 
-  /* 토스트 */
-  .toast {
-    position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
-    background: var(--dark); color: #fff;
-    padding: 10px 20px; border-radius: 30px;
-    font-size: 13px; font-weight: 700;
-    opacity: 0; pointer-events: none;
-    transition: opacity 0.3s;
-    white-space: nowrap; z-index: 500;
+  /* ── NAV BAR ── */
+  .navbar {
+    position: fixed;
+    bottom: 0; left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 430px;
+    background: #fff;
+    border-top: 1.5px solid #FFE4EF;
+    display: flex;
+    z-index: 100;
+    box-shadow: 0 -4px 20px #FF6B9D22;
   }
-  .toast.show { opacity: 1; }
+  .nav-item {
+    flex: 1;
+    padding: 10px 0 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    cursor: pointer;
+    border: none;
+    background: none;
+    font-family: 'Noto Sans KR', sans-serif;
+    transition: color 0.15s;
+    color: #FFB3CC;
+  }
+  .nav-item.active { color: var(--pink); }
+  .nav-icon { font-size: 22px; }
+  .nav-label { font-size: 10px; font-weight: 700; }
 
-  /* 하트 파티클 */
-  .heart-particle {
-    position: fixed; pointer-events: none;
-    font-size: 20px; z-index: 400;
-    animation: heartFloat 1s ease-out forwards;
-  }
-  @keyframes heartFloat {
-    0%   { opacity: 1; transform: translateY(0) scale(1); }
-    100% { opacity: 0; transform: translateY(-80px) scale(0.5); }
-  }
+  /* 하단 네비 높이 보정 */
+  .screen { padding-bottom: 70px; }
 
-  .empty-coll {
-    text-align: center; padding: 30px 0;
-    color: var(--mid); font-size: 14px; font-weight: 700;
+  /* 애니메이션 */
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .animate-in { animation: fadeInUp 0.3s ease both; }
+
+  /* 결과 팝업 배경 */
+  .result-bg {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+    z-index: 150;
+  }
+  .result-bg.show { display: block; }
+
+  /* 코인 획득 플로팅 */
+  .coin-float {
+    position: fixed;
+    font-size: 18px;
+    font-weight: 900;
+    color: var(--gold);
+    pointer-events: none;
+    z-index: 500;
+    animation: floatUp 1s ease forwards;
+    text-shadow: 0 2px 8px #0004;
+  }
+  @keyframes floatUp {
+    from { opacity: 1; transform: translateY(0); }
+    to { opacity: 0; transform: translateY(-60px); }
   }
 </style>
 </head>
 <body>
 
-<!-- HUD -->
-<div class="hud">
-  <div class="hud-title">🏠 POCA<span>HOUSE</span></div>
-  <div class="hud-gems">💎 <span id="gem-count">0</span></div>
-</div>
+<!-- ── HOME ── -->
+<div id="screen-home" class="screen active">
+  <div class="topbar">
+    <div class="topbar-logo">POCA<span>HOUSE</span></div>
+    <div class="coins">🍔 <span id="coin-display">0</span></div>
+  </div>
 
-<!-- 화면들 -->
-
-<!-- 1. 알바 -->
-<div class="screen active" id="screen-alba">
-  <div class="alba-wrap">
-    <div class="alba-char">
-      <img src="https://raw.githubusercontent.com/chaei7775/Poca-house/main/file_0000000018f07206b5d23c4988ae3a84.png" alt="하나 알바" id="alba-img" style="width:100%;display:block;">
-      <div class="alba-char-overlay">
-        <div class="alba-char-name">포카버거 알바생 하나</div>
-        <div class="alba-char-msg" id="alba-msg">열심히 일해서 포카 살거야! 💪</div>
+  <div class="home-banner">
+    <img id="home-banner-img" src="https://raw.githubusercontent.com/chaei7775/Poca-house/main/Mimi alba.jpg" alt="포카하우스버거"
+      onerror="this.style.display='none'">
+    <div style="position:absolute;inset:0;background:linear-gradient(135deg,#FFD6E8,#FFB3CC,#C084FC33);display:flex;align-items:center;justify-content:center;" id="home-banner-placeholder">
+      <div style="text-align:center;">
+        <div style="font-size:64px;">🍔</div>
+        <div style="font-size:20px;font-weight:900;color:#FF6B9D;margin-top:8px;">POCA HOUSE BURGER</div>
       </div>
     </div>
+    <div class="home-banner-overlay">
+      <div class="home-banner-title">오늘도 알바 가자! 🎀</div>
+      <div class="home-banner-sub">열심히 일하고 아이돌 카드 뽑아봐</div>
+    </div>
+  </div>
 
-    <button class="alba-btn" id="alba-btn" onclick="doAlba()">
-      🍔 알바하기 (+💎<span id="alba-reward">50</span>)
+  <div class="home-actions animate-in">
+    <button class="btn-main btn-alba" onclick="goTo('alba')">
+      🍔 알바하기
     </button>
-    <div class="alba-timer" id="alba-timer"></div>
-
-    <div class="alba-log" id="alba-log">
-      <div class="alba-log-title">💼 오늘의 알바 기록</div>
-      <div id="log-list">
-        <div class="log-item" style="color:#ccc; font-size:12px;">아직 알바 기록이 없어요...</div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- 2. 포카샵 -->
-<div class="screen" id="screen-shop">
-  <div class="shop-header">
-    <img src="https://raw.githubusercontent.com/chaei7775/Poca-house/main/file_00000000a9007206b6ff42e83fd8f5ab.png" alt="포카샵 하나" style="width:100%;max-width:360px;border-radius:20px;box-shadow:0 8px 30px rgba(255,133,161,0.2);margin-bottom:16px;display:block;margin-left:auto;margin-right:auto;">
-    <div style="font-size:22px; font-weight:800; color:var(--pink-deep); margin-bottom:4px;">💝 포카 샵</div>
-    <div style="font-size:13px; color:var(--mid); margin-bottom:16px;">알바해서 모은 💎으로 포카팩을 구매해요!</div>
-  </div>
-
-  <div class="pack-grid">
-    <div class="pack-card" onclick="openModal('lovely')">
-      <div class="pack-emoji">🩷</div>
-      <div class="pack-name">러블리 팩</div>
-      <div class="pack-desc">포카 3장<br>기본 등급 위주</div>
-      <div class="pack-price">💎 100</div>
-    </div>
-    <div class="pack-card" onclick="openModal('special')">
-      <div class="pack-emoji">💜</div>
-      <div class="pack-name">스페셜 팩</div>
-      <div class="pack-desc">포카 5장<br>레어 확률 UP!</div>
-      <div class="pack-price">💎 300</div>
-    </div>
-    <div class="pack-card premium" onclick="openModal('premium')">
-      <div class="pack-emoji">👑</div>
-      <div class="pack-name">프리미엄 팩</div>
-      <div class="pack-desc">포카 7장<br>SSR 보장!</div>
-      <div class="pack-price">💎 500</div>
-    </div>
-    <div class="pack-card" onclick="openModal('daily')" style="border-color:#86efac; background:linear-gradient(135deg,#f0fdf4,#fff);">
-      <div class="pack-emoji">🌿</div>
-      <div class="pack-name">데일리 팩</div>
-      <div class="pack-desc">포카 2장<br>매일 1회 한정!</div>
-      <div class="pack-price" style="background:#dcfce7; color:#166534;">💎 50</div>
-    </div>
-  </div>
-</div>
-
-<!-- 3. 방 꾸미기 -->
-<div class="screen" id="screen-room">
-  <div class="room-wrap">
-    <div class="room-scene" id="room-scene">
-      <div class="room-wall-deco">⭐🌸⭐</div>
-      <div class="room-neon">🩷</div>
-      <div class="room-poca-wall" id="poca-wall"></div>
-      <div class="room-hana">
-        <img src="https://raw.githubusercontent.com/chaei7775/Poca-house/main/file_00000000d44c720985c5fe9ed5dbd24c.png" alt="하나" style="width:100%;border-radius:12px;">
-      </div>
-      <div class="room-goods">🪄 🐰 💡</div>
-    </div>
-
-    <div class="collection-title">🗂️ 내 포카 컬렉션 <span style="color:var(--mid); font-weight:600; font-size:12px;" id="coll-count">(0장)</span></div>
-    <div class="collection-grid" id="coll-grid">
-      <div class="empty-coll" style="grid-column:1/-1;">포카가 없어요 😢<br><small>포카샵에서 팩을 열어보세요!</small></div>
-    </div>
-    <button class="place-btn" id="place-btn" onclick="placeSelected()" disabled>
-      📌 선택한 포카 벽에 붙이기
+    <button class="btn-main btn-gacha" onclick="goTo('gacha')">
+      ✨ 카드 뽑기
+    </button>
+    <button class="btn-main btn-collection" onclick="goTo('collection')">
+      📁 내 컬렉션
     </button>
   </div>
-</div>
 
-<!-- 구매 모달 -->
-<div class="modal-overlay" id="modal" onclick="closeModal()">
-  <div class="modal" onclick="event.stopPropagation()">
-    <div class="modal-title" id="modal-title"></div>
-    <div class="modal-sub" id="modal-sub"></div>
-    <button class="modal-confirm" id="modal-confirm" onclick="buyPack()">구매하기 💎</button>
-    <button class="modal-cancel" onclick="closeModal()">취소</button>
+  <div class="idol-preview">
+    <div class="section-title">내 아이돌</div>
+    <div class="idol-chips" id="home-idol-chips">
+      <div class="empty-idol">아직 카드가 없어요 💔<br>뽑기 해봐!</div>
+    </div>
   </div>
 </div>
 
-<!-- 팩 오픈 연출 -->
-<div class="open-overlay" id="open-overlay">
-  <div style="color:#fff; font-size:20px; font-weight:800; letter-spacing:2px;">✨ 포카 오픈! ✨</div>
-  <div class="open-pack-emoji" id="open-pack-emoji"></div>
-  <div class="open-cards" id="open-cards"></div>
-  <button class="open-close" onclick="closeOpenOverlay()">내 포카 보러가기 🏠</button>
+<!-- ── ALBA ── -->
+<div id="screen-alba" class="screen">
+  <div class="alba-bg" id="alba-bg"></div>
+  <div class="alba-content">
+    <div style="display:flex;align-items:center;justify-content:space-between;width:100%;">
+      <div class="alba-title">🍔 포카하우스 알바</div>
+      <div class="coins" style="background:rgba(255,255,255,0.2);">🍔 <span id="coin-alba">0</span></div>
+    </div>
+    <div class="alba-subtitle">게이지가 퍼펙트 존에 올 때 탭!</div>
+
+    <div class="alba-count">
+      <div class="alba-count-num" id="alba-done">0</div>
+      <div class="alba-count-label">오늘 알바 횟수</div>
+    </div>
+
+    <div class="gauge-container">
+      <div class="gauge-label">🥩 패티 타이밍</div>
+      <div class="gauge-track" id="gauge-track" onclick="tapGauge()">
+        <div class="gauge-great"></div>
+        <div class="gauge-perfect"></div>
+        <div class="gauge-marker" id="gauge-marker"></div>
+      </div>
+      <div class="gauge-zones">
+        <div class="zone"><div class="zone-dot" style="background:#FFD700"></div><span style="color:#FFD700">PERFECT</span></div>
+        <div class="zone"><div class="zone-dot" style="background:#FF6B9D"></div><span style="color:#FF6B9D">GREAT</span></div>
+        <div class="zone"><div class="zone-dot" style="background:#666"></div><span style="color:#aaa">MISS</span></div>
+      </div>
+      <button class="tap-btn" onclick="tapGauge()">TAP! 👊</button>
+    </div>
+
+    <div id="auto-idols-section" style="display:none;width:100%;">
+      <div class="section-title" style="color:#FFB3CC;">자동 알바 중 ✨</div>
+      <div class="auto-idols" id="auto-idol-list"></div>
+    </div>
+
+    <button class="back-btn" onclick="goTo('home')">← 홈으로</button>
+  </div>
 </div>
 
-<!-- 탭 네비 -->
-<nav class="nav">
-  <button class="nav-btn active" onclick="switchTab('alba', this)">
-    <span class="nav-icon">🍔</span>알바
+<!-- ── GACHA ── -->
+<div id="screen-gacha" class="screen">
+  <div class="topbar">
+    <div class="topbar-logo">POCA<span>HOUSE</span></div>
+    <div class="coins">🍔 <span id="coin-gacha">0</span></div>
+  </div>
+  <div class="gacha-header">
+    <div class="gacha-title">CARD DRAW</div>
+    <div class="gacha-sub">어떤 아이돌이 나올까? 💜</div>
+  </div>
+  <div class="gacha-coins-display">보유 코인: 🍔 <span id="coin-gacha2">0</span></div>
+
+  <div class="gacha-card-area">
+    <div class="gacha-card">
+      <div class="gacha-card-back">
+        <div class="gacha-card-back-logo">POCA<br>HOUSE</div>
+        <div class="gacha-card-back-icon">🎴</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="height:16px;"></div>
+
+  <div class="gacha-btn-row">
+    <button class="gacha-btn gacha-btn-1" onclick="doDraw(1)">
+      1뽑<br><span class="gacha-cost">🍔 100</span>
+    </button>
+    <button class="gacha-btn gacha-btn-3" onclick="doDraw(3)">
+      3뽑<br><span class="gacha-cost">🍔 280</span>
+    </button>
+  </div>
+
+  <div style="padding:12px 16px 0;">
+    <button class="back-btn" style="background:rgba(255,255,255,0.05);border-color:rgba(255,255,255,0.15);color:#aaa;" onclick="goTo('home')">← 홈으로</button>
+  </div>
+</div>
+
+<!-- ── COLLECTION ── -->
+<div id="screen-collection" class="screen">
+  <div class="collection-header">
+    <div class="collection-title">내 컬렉션 📁</div>
+    <div class="collection-sub" id="collection-count">0 / 0 보유</div>
+  </div>
+  <div class="collection-grid" id="collection-grid"></div>
+  <div style="padding:0 16px;">
+    <button class="back-btn" onclick="goTo('home')">← 홈으로</button>
+  </div>
+</div>
+
+<!-- 네비바 -->
+<nav class="navbar">
+  <button class="nav-item active" onclick="goTo('home')" id="nav-home">
+    <span class="nav-icon">🏠</span>
+    <span class="nav-label">홈</span>
   </button>
-  <button class="nav-btn" onclick="switchTab('shop', this)">
-    <span class="nav-icon">🛍️</span>포카샵
+  <button class="nav-item" onclick="goTo('alba')" id="nav-alba">
+    <span class="nav-icon">🍔</span>
+    <span class="nav-label">알바</span>
   </button>
-  <button class="nav-btn" onclick="switchTab('room', this)">
-    <span class="nav-icon">🏠</span>내 방
+  <button class="nav-item" onclick="goTo('gacha')" id="nav-gacha">
+    <span class="nav-icon">✨</span>
+    <span class="nav-label">뽑기</span>
+  </button>
+  <button class="nav-item" onclick="goTo('collection')" id="nav-collection">
+    <span class="nav-icon">📁</span>
+    <span class="nav-label">컬렉션</span>
   </button>
 </nav>
 
-<div class="toast" id="toast"></div>
+<!-- 결과 팝업 -->
+<div class="result-bg" id="result-bg"></div>
+<div class="result-popup" id="result-popup">
+  <div class="result-grade" id="result-grade-text"></div>
+  <div class="result-coins" id="result-coins-text"></div>
+  <div class="result-sub" id="result-sub-text"></div>
+</div>
+
+<!-- 가챠 결과 오버레이 -->
+<div class="gacha-result-overlay" id="gacha-overlay">
+  <div class="gacha-result-grade" id="gacha-res-grade"></div>
+  <div class="gacha-result-card" id="gacha-res-card">
+    <img id="gacha-res-img" src="" alt="">
+  </div>
+  <div class="gacha-result-name" id="gacha-res-name"></div>
+  <button class="gacha-close-btn" onclick="closeGachaResult()">획득! 💜</button>
+</div>
 
 <script>
-// ── 데이터 ──────────────────────────────────────
-const POCA_POOL = [
-  // 일반
-  { id:'c1', name:'민준', rarity:'N', emoji:'🧑', color:'#e2e8f0' },
-  { id:'c2', name:'지호', rarity:'N', emoji:'👦', color:'#e2e8f0' },
-  { id:'c3', name:'서준', rarity:'N', emoji:'🙂', color:'#e2e8f0' },
-  { id:'c4', name:'현우', rarity:'N', emoji:'😊', color:'#e2e8f0' },
-  // 레어
-  { id:'c5', name:'도윤', rarity:'R', emoji:'😍', color:'#bfdbfe' },
-  { id:'c6', name:'태양', rarity:'R', emoji:'🌟', color:'#bfdbfe' },
-  { id:'c7', name:'이준', rarity:'R', emoji:'💙', color:'#bfdbfe' },
-  // SSR
-  { id:'c8', name:'주혁', rarity:'SSR', emoji:'💜', color:'#e9d5ff' },
-  { id:'c9', name:'시우', rarity:'SSR', emoji:'👑', color:'#e9d5ff' },
+// ── 상태 ──
+let coins = parseInt(localStorage.getItem('ph_coins') || '0');
+let owned = JSON.parse(localStorage.getItem('ph_owned') || '[]');
+let albaDone = parseInt(localStorage.getItem('ph_alba') || '0');
+
+const B = "https://raw.githubusercontent.com/chaei7775/Poca-house/main/";
+
+// ── 카드 데이터 ──
+const CARDS = [
   // UR
-  { id:'c10', name:'에이스', rarity:'UR', emoji:'💎', color:'#fef3c7' },
+  { id: 'ian',    name: '이안 (IAN)',    grade: 'UR',  gradeColor: '#C084FC', img: B+'Ian.png',           autoCoins: 15 },
+  { id: 'seonwoo',name: '선우',          grade: 'UR',  gradeColor: '#C084FC', img: B+'Sunu.png',          autoCoins: 15 },
+  { id: 'ryo',    name: '료 (RYO)',      grade: 'UR',  gradeColor: '#C084FC', img: B+'Ryo.png',           autoCoins: 15 },
+  // SSR
+  { id: 'wolf',   name: '울프컷',        grade: 'SSR', gradeColor: '#F59E0B', img: B+'Woolf.png',         autoCoins: 8 },
+  { id: 'band',   name: '장발밴드맨',    grade: 'SSR', gradeColor: '#F59E0B', img: B+'Long band.png',     autoCoins: 8 },
+  { id: 'twin',   name: '양갈래아이돌',  grade: 'SSR', gradeColor: '#F59E0B', img: B+'Silver.png',        autoCoins: 8 },
+  { id: 'sports', name: '스포츠스타',    grade: 'SSR', gradeColor: '#F59E0B', img: B+'Sports.png',        autoCoins: 8 },
+  { id: 'curtain',name: '커튼미들',      grade: 'SSR', gradeColor: '#F59E0B', img: B+'Middle .png',       autoCoins: 8 },
+  { id: 'blue',   name: '파란머리',      grade: 'SSR', gradeColor: '#F59E0B', img: B+'Blue.png',          autoCoins: 8 },
+  { id: 'vampire',name: '적발뱀파이어',  grade: 'SSR', gradeColor: '#F59E0B', img: B+'Red.png',           autoCoins: 8 },
+  { id: 'tuxedo', name: '블랙턱시도',    grade: 'SSR', gradeColor: '#F59E0B', img: B+'Tuxedo .png',       autoCoins: 8 },
+  { id: 'cozy',   name: '포근한오후',    grade: 'SSR', gradeColor: '#F59E0B', img: B+'Sweetheart .png',   autoCoins: 8 },
+  { id: 'semi',   name: '세미정장',      grade: 'SSR', gradeColor: '#F59E0B', img: B+'Semi .png',         autoCoins: 8 },
+  { id: 'bf',     name: '보이프렌드룩',  grade: 'SSR', gradeColor: '#F59E0B', img: B+'Blue jin.png',      autoCoins: 8 },
+  { id: 'hiphop', name: '스트릿힙합',    grade: 'SSR', gradeColor: '#F59E0B', img: B+'Hip pop.png',       autoCoins: 8 },
+  { id: 'night',  name: '나이트폴',      grade: 'SSR', gradeColor: '#F59E0B', img: B+'You and me.png',    autoCoins: 8 },
 ];
 
-const PACK_INFO = {
-  lovely:  { name:'러블리 팩 🩷', emoji:'🩷', cost:100,  count:3, rates:{ N:0.7, R:0.25, SSR:0.04, UR:0.01 } },
-  special: { name:'스페셜 팩 💜', emoji:'💜', cost:300,  count:5, rates:{ N:0.5, R:0.35, SSR:0.12, UR:0.03 } },
-  premium: { name:'프리미엄 팩 👑', emoji:'👑', cost:500, count:7, rates:{ N:0.3, R:0.35, SSR:0.25, UR:0.1 }, ssrGuarantee:true },
-  daily:   { name:'데일리 팩 🌿', emoji:'🌿', cost:50,   count:2, rates:{ N:0.75, R:0.2, SSR:0.04, UR:0.01 } },
-};
+// 뽑기 확률
+const RATES = { UR: 3, SSR: 97 }; // UR 3%, SSR 97% (아직 SR/R/N 없으니)
 
-// 알바 메시지
-const ALBA_MSGS = [
-  "주문 들어왔어요! 빨리빨리~ 🍔",
-  "오늘도 화이팅! 포카 살 거야 💪",
-  "손님이 많다... 그래도 열심히! 😤",
-  "패티 뒤집기 완료! 💫",
-  "알바비 모이는 중~ 조금만 더! 🌟",
-  "오늘 팁 받았어요!! 감사합니다 🙏",
-  "쉬는 시간에 최애 생각함 ❤️",
-];
-
-let gems = parseInt(localStorage.getItem('ph_gems') || '0');
-let collection = JSON.parse(localStorage.getItem('ph_collection') || '[]');
-let wallPocas = JSON.parse(localStorage.getItem('ph_wall') || '[]');
-let albaCount = 0;
-let albaTimer = null;
-let currentPack = null;
-let selectedCardId = null;
-let albaLogs = [];
-
-function save() {
-  localStorage.setItem('ph_gems', gems);
-  localStorage.setItem('ph_collection', JSON.stringify(collection));
-  localStorage.setItem('ph_wall', JSON.stringify(wallPocas));
-}
-
-function updateGems() {
-  document.getElementById('gem-count').textContent = gems;
-}
-
-// ── 탭 전환 ──────────────────────────────────────
-function switchTab(tab, btn) {
+// ── 화면 이동 ──
+function goTo(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById('screen-' + tab).classList.add('active');
-  btn.classList.add('active');
-  if (tab === 'room') renderRoom();
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('screen-' + id).classList.add('active');
+  document.getElementById('nav-' + id).classList.add('active');
+  updateCoinsDisplay();
+  if (id === 'alba') initAlba();
+  if (id === 'collection') renderCollection();
+  if (id === 'home') renderHomeIdols();
 }
 
-// ── 알바 ──────────────────────────────────────────
-function doAlba() {
-  const btn = document.getElementById('alba-btn');
-  const reward = 30 + Math.floor(Math.random() * 50);
-  gems += reward;
-  albaCount++;
-  save();
-  updateGems();
-
-  // 메시지 변경
-  const msg = ALBA_MSGS[Math.floor(Math.random() * ALBA_MSGS.length)];
-  document.getElementById('alba-msg').textContent = msg;
-
-  // 로그 추가
-  addLog(`알바 ${albaCount}회`, `+💎${reward}`);
-
-  // 버튼 쿨다운
-  btn.disabled = true;
-  let sec = 5;
-  document.getElementById('alba-timer').textContent = `${sec}초 후 다시 알바 가능`;
-  albaTimer = setInterval(() => {
-    sec--;
-    if (sec <= 0) {
-      clearInterval(albaTimer);
-      btn.disabled = false;
-      document.getElementById('alba-timer').textContent = '';
-    } else {
-      document.getElementById('alba-timer').textContent = `${sec}초 후 다시 알바 가능`;
-    }
-  }, 1000);
-
-  // 하트 파티클
-  spawnHearts();
-  toast(`+💎${reward} 획득!`);
+// ── 코인 업데이트 ──
+function updateCoinsDisplay() {
+  document.querySelectorAll('#coin-display,#coin-alba,#coin-gacha,#coin-gacha2')
+    .forEach(el => { if(el) el.textContent = coins; });
+}
+function saveCoins() {
+  localStorage.setItem('ph_coins', coins);
+  localStorage.setItem('ph_owned', JSON.stringify(owned));
+  localStorage.setItem('ph_alba', albaDone);
+  updateCoinsDisplay();
 }
 
-function addLog(label, gem) {
-  albaLogs.unshift({ label, gem });
-  if (albaLogs.length > 5) albaLogs.pop();
-  const list = document.getElementById('log-list');
-  list.innerHTML = albaLogs.map(l => `
-    <div class="log-item">
-      <span>${l.label}</span>
-      <span class="log-gem">${l.gem}</span>
-    </div>
-  `).join('');
+// ── 알바 게임 ──
+let gaugePos = 0;
+let gaugeDir = 1;
+let gaugeSpeed = 1.8;
+let gaugeRunning = false;
+let gaugeRAF;
+
+function initAlba() {
+  document.getElementById('coin-alba').textContent = coins;
+  document.getElementById('alba-done').textContent = albaDone;
+  renderAutoIdols();
+  startGauge();
 }
 
-// ── 포카샵 모달 ───────────────────────────────────
-function openModal(packId) {
-  const p = PACK_INFO[packId];
-  currentPack = packId;
-  document.getElementById('modal-title').textContent = p.name;
-  document.getElementById('modal-sub').textContent = `포카 ${p.count}장 | 💎 ${p.cost} 필요 | 현재 보유: 💎${gems}`;
-  document.getElementById('modal').classList.add('open');
-}
-function closeModal() {
-  document.getElementById('modal').classList.remove('open');
-  currentPack = null;
-}
-
-function buyPack() {
-  const p = PACK_INFO[currentPack];
-  if (gems < p.cost) { toast('💎이 부족해요! 알바를 더 해요 🍔'); closeModal(); return; }
-  gems -= p.cost;
-  save();
-  updateGems();
-  closeModal();
-
-  // 카드 뽑기
-  const drawn = [];
-  let hasSSR = false;
-  for (let i = 0; i < p.count; i++) {
-    const card = drawPoca(p.rates);
-    if (card.rarity === 'SSR' || card.rarity === 'UR') hasSSR = true;
-    drawn.push(card);
-    addToCollection(card);
+function startGauge() {
+  if (gaugeRunning) return;
+  gaugeRunning = true;
+  function tick() {
+    gaugePos += gaugeDir * gaugeSpeed;
+    if (gaugePos >= 100) { gaugePos = 100; gaugeDir = -1; }
+    if (gaugePos <= 0) { gaugePos = 0; gaugeDir = 1; }
+    document.getElementById('gauge-marker').style.left = gaugePos + '%';
+    gaugeRAF = requestAnimationFrame(tick);
   }
-  // SSR 보장
-  if (p.ssrGuarantee && !hasSSR) {
-    const ssrCards = POCA_POOL.filter(c => c.rarity === 'SSR');
-    const bonus = ssrCards[Math.floor(Math.random() * ssrCards.length)];
-    drawn[drawn.length - 1] = bonus;
-    addToCollection(bonus);
-  }
-  save();
-  showOpenOverlay(p.emoji, drawn);
+  tick();
 }
 
-function drawPoca(rates) {
-  const r = Math.random();
-  let rarity = 'N';
-  if (r < rates.UR) rarity = 'UR';
-  else if (r < rates.UR + rates.SSR) rarity = 'SSR';
-  else if (r < rates.UR + rates.SSR + rates.R) rarity = 'R';
-  const pool = POCA_POOL.filter(c => c.rarity === rarity);
-  return pool[Math.floor(Math.random() * pool.length)];
-}
+function tapGauge() {
+  const pos = gaugePos;
+  let grade, earn;
 
-function addToCollection(card) {
-  const existing = collection.find(c => c.id === card.id);
-  if (existing) existing.count++;
-  else collection.push({ ...card, count: 1 });
-}
-
-// ── 팩 오픈 연출 ──────────────────────────────────
-function showOpenOverlay(emoji, cards) {
-  document.getElementById('open-pack-emoji').textContent = emoji;
-  const container = document.getElementById('open-cards');
-  container.innerHTML = cards.map(c => `
-    <div class="open-card">
-      <div class="open-card-img" style="background:${c.color};">${c.emoji}</div>
-      <div class="open-card-name">${c.name}<br><span style="color:${rarityColor(c.rarity)}">${c.rarity}</span></div>
-    </div>
-  `).join('');
-  document.getElementById('open-overlay').classList.add('show');
-}
-
-function rarityColor(r) {
-  return { N:'#94a3b8', R:'#3b82f6', SSR:'#a855f7', UR:'#f59e0b' }[r] || '#94a3b8';
-}
-
-function closeOpenOverlay() {
-  document.getElementById('open-overlay').classList.remove('show');
-  // 방 탭으로
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById('screen-room').classList.add('active');
-  document.querySelectorAll('.nav-btn')[2].classList.add('active');
-  renderRoom();
-}
-
-// ── 방 꾸미기 ──────────────────────────────────────
-const WALL_SLOTS = 8;
-
-function renderRoom() {
-  // 포카 벽
-  const wall = document.getElementById('poca-wall');
-  wall.innerHTML = '';
-  for (let i = 0; i < WALL_SLOTS; i++) {
-    const slot = document.createElement('div');
-    slot.className = 'room-poca-slot' + (wallPocas[i] ? ' filled' : '');
-    if (wallPocas[i]) {
-      const card = POCA_POOL.find(c => c.id === wallPocas[i]);
-      if (card) {
-        const inner = document.createElement('div');
-        inner.style.cssText = `width:100%;height:100%;background:${card.color};display:flex;align-items:center;justify-content:center;font-size:28px;border-radius:6px;`;
-        inner.textContent = card.emoji;
-        slot.appendChild(inner);
-      }
-    } else {
-      const ph = document.createElement('span');
-      ph.className = 'slot-emoji';
-      ph.textContent = '📷';
-      slot.appendChild(ph);
-    }
-    wall.appendChild(slot);
+  // 퍼펙트: 41~59%, 그레이트: 35~65%
+  if (pos >= 41 && pos <= 59) {
+    grade = 'PERFECT'; earn = 30;
+  } else if (pos >= 35 && pos <= 65) {
+    grade = 'GREAT'; earn = 20;
+  } else if (pos >= 25 && pos <= 75) {
+    grade = 'COOL'; earn = 10;
+  } else {
+    grade = 'MISS'; earn = 0;
   }
 
-  // 컬렉션
-  const grid = document.getElementById('coll-grid');
-  const count = collection.reduce((a, c) => a + c.count, 0);
-  document.getElementById('coll-count').textContent = `(${count}장)`;
-  if (collection.length === 0) {
-    grid.innerHTML = '<div class="empty-coll" style="grid-column:1/-1;">포카가 없어요 😢<br><small>포카샵에서 팩을 열어보세요!</small></div>';
+  coins += earn;
+  albaDone++;
+  saveCoins();
+  document.getElementById('alba-done').textContent = albaDone;
+
+  showResult(grade, earn);
+  spawnCoinFloat(earn);
+}
+
+function showResult(grade, earn) {
+  const colors = { PERFECT: '#FFD700', GREAT: '#FF6B9D', COOL: '#C084FC', MISS: '#666' };
+  const popup = document.getElementById('result-popup');
+  const bg = document.getElementById('result-bg');
+
+  popup.style.borderColor = colors[grade];
+  document.getElementById('result-grade-text').style.color = colors[grade];
+  document.getElementById('result-grade-text').textContent = grade;
+  document.getElementById('result-coins-text').textContent = earn > 0 ? `+🍔 ${earn}` : '다음엔 잘 할 수 있어!';
+  document.getElementById('result-sub-text').textContent = earn > 0 ? `총 ${coins}코인` : '';
+
+  popup.classList.add('show');
+  bg.classList.add('show');
+
+  setTimeout(() => {
+    popup.classList.remove('show');
+    bg.classList.remove('show');
+  }, 900);
+}
+
+function spawnCoinFloat(earn) {
+  if (earn <= 0) return;
+  const el = document.createElement('div');
+  el.className = 'coin-float';
+  el.textContent = '+🍔' + earn;
+  el.style.left = (40 + Math.random() * 20) + '%';
+  el.style.top = '50%';
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 1100);
+}
+
+function renderAutoIdols() {
+  const autoOwned = CARDS.filter(c => owned.includes(c.id));
+  const section = document.getElementById('auto-idols-section');
+  const list = document.getElementById('auto-idol-list');
+  if (autoOwned.length === 0) { section.style.display = 'none'; return; }
+  section.style.display = 'block';
+  list.innerHTML = autoOwned.map(c =>
+    `<div class="auto-idol-row">
+      <div><span class="auto-idol-name">${c.name}</span> <span style="font-size:11px;color:#888;">${c.grade}</span></div>
+      <div class="auto-coin">+🍔${c.autoCoins}/분</div>
+    </div>`
+  ).join('');
+
+  // 자동 알바 코인 (30초마다)
+  clearInterval(window._autoInterval);
+  window._autoInterval = setInterval(() => {
+    const total = autoOwned.reduce((s, c) => s + Math.floor(c.autoCoins / 2), 0);
+    coins += total;
+    saveCoins();
+    spawnCoinFloat(total);
+  }, 30000);
+}
+
+// ── 가챠 ──
+function doDraw(count) {
+  const cost = count === 1 ? 100 : 280;
+  if (coins < cost) {
+    alert(`코인이 부족해요! 🍔 ${cost} 필요 (현재: ${coins})`);
     return;
   }
-  grid.innerHTML = collection.map(c => `
-    <div class="coll-card ${selectedCardId === c.id ? 'selected' : ''}" onclick="selectCard('${c.id}')">
-      <div class="coll-card-emoji">${c.emoji}</div>
-      <div class="coll-card-name">${c.name}<br><span style="color:${rarityColor(c.rarity)};font-weight:800;">${c.rarity}</span></div>
-      <div class="coll-card-count">${c.count}</div>
-    </div>
-  `).join('');
-  document.getElementById('place-btn').disabled = !selectedCardId;
-}
+  coins -= cost;
+  saveCoins();
 
-function selectCard(id) {
-  selectedCardId = selectedCardId === id ? null : id;
-  renderRoom();
-}
-
-function placeSelected() {
-  if (!selectedCardId) return;
-  const emptySlot = wallPocas.indexOf(undefined);
-  const nextSlot = wallPocas.length < WALL_SLOTS ? wallPocas.length : -1;
-  const slot = emptySlot >= 0 ? emptySlot : (nextSlot >= 0 ? nextSlot : -1);
-
-  if (wallPocas.length >= WALL_SLOTS && !wallPocas.includes(undefined)) {
-    toast('벽이 꽉 찼어요! 🏠'); return;
+  // 뽑기 결과
+  const result = [];
+  for (let i = 0; i < count; i++) {
+    result.push(drawOne());
   }
 
-  if (emptySlot >= 0) wallPocas[emptySlot] = selectedCardId;
-  else wallPocas.push(selectedCardId);
-
-  const card = collection.find(c => c.id === selectedCardId);
-  save();
-  spawnHearts();
-  toast(`${card.name} 포카 붙였어요! 📌`);
-  selectedCardId = null;
-  renderRoom();
+  // 첫 결과 표시 (나중에 여러 장 슬라이드로 확장 가능)
+  showGachaResult(result[0]);
 }
 
-// ── 유틸 ──────────────────────────────────────────
-function spawnHearts() {
-  const emojis = ['🩷','💜','⭐','✨','💖'];
-  for (let i = 0; i < 5; i++) {
-    setTimeout(() => {
-      const el = document.createElement('div');
-      el.className = 'heart-particle';
-      el.textContent = emojis[Math.floor(Math.random() * emojis.length)];
-      el.style.left = (20 + Math.random() * 60) + '%';
-      el.style.bottom = '80px';
-      document.body.appendChild(el);
-      setTimeout(() => el.remove(), 1000);
-    }, i * 100);
+function drawOne() {
+  const rand = Math.random() * 100;
+  let pool;
+  if (rand < 3) {
+    pool = CARDS.filter(c => c.grade === 'UR');
+  } else {
+    pool = CARDS.filter(c => c.grade === 'SSR');
   }
+  const card = pool[Math.floor(Math.random() * pool.length)];
+  if (!owned.includes(card.id)) owned.push(card.id);
+  saveCoins();
+  return card;
 }
 
-function toast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2000);
+function showGachaResult(card) {
+  const overlay = document.getElementById('gacha-overlay');
+  const gradeEl = document.getElementById('gacha-res-grade');
+  const nameEl = document.getElementById('gacha-res-name');
+  const img = document.getElementById('gacha-res-img');
+
+  gradeEl.textContent = `✨ ${card.grade} ✨`;
+  gradeEl.style.color = card.gradeColor;
+  nameEl.textContent = card.name;
+
+  if (card.img) {
+    img.src = card.img;
+    img.style.display = 'block';
+  } else {
+    img.style.display = 'none';
+    document.getElementById('gacha-res-card').innerHTML =
+      `<div style="width:100%;height:100%;background:linear-gradient(135deg,#2d1b4e,#1a1a2e);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;">
+        <div style="font-size:64px;">🎴</div>
+        <div style="font-size:20px;font-weight:900;color:${card.gradeColor};text-align:center;">${card.grade}</div>
+        <div style="font-size:16px;color:#eee;text-align:center;">${card.name}</div>
+      </div>`;
+  }
+
+  overlay.classList.add('show');
 }
 
-// ── 초기화 ────────────────────────────────────────
-updateGems();
-renderRoom();
+function closeGachaResult() {
+  document.getElementById('gacha-overlay').classList.remove('show');
+  renderHomeIdols();
+}
+
+// ── 컬렉션 ──
+function renderCollection() {
+  const grid = document.getElementById('collection-grid');
+  const owned_count = owned.length;
+  document.getElementById('collection-count').textContent = `${owned_count} / ${CARDS.length} 보유`;
+
+  grid.innerHTML = CARDS.map(card => {
+    const isOwned = owned.includes(card.id);
+    return `<div class="card-item ${isOwned ? 'owned' : ''}">
+      <div style="aspect-ratio:3/4;background:linear-gradient(135deg,#f5f0ff,#ffe4ef);display:flex;align-items:center;justify-content:center;font-size:40px;position:relative;" class="${isOwned ? '' : 'card-locked'}">
+        🎴
+        ${!isOwned ? '<div class="card-locked-overlay">🔒</div>' : ''}
+      </div>
+      <div class="card-item-info">
+        <div class="card-item-name">${isOwned ? card.name : '???'}</div>
+        <div class="card-item-grade" style="color:${isOwned ? card.gradeColor : '#ccc'}">${card.grade}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── 홈 아이돌 칩 ──
+function renderHomeIdols() {
+  const chips = document.getElementById('home-idol-chips');
+  const ownedCards = CARDS.filter(c => owned.includes(c.id));
+  if (ownedCards.length === 0) {
+    chips.innerHTML = '<div class="empty-idol">아직 카드가 없어요 💔<br>뽑기 해봐!</div>';
+    return;
+  }
+  chips.innerHTML = ownedCards.slice(0, 5).map(c =>
+    `<div class="idol-chip"><span class="grade" style="background:${c.gradeColor}">${c.grade}</span>${c.name}</div>`
+  ).join('') + (ownedCards.length > 5 ? `<div class="idol-chip">+${ownedCards.length - 5}장</div>` : '');
+}
+
+// ── 초기화 ──
+updateCoinsDisplay();
+renderHomeIdols();
 </script>
 </body>
 </html>
