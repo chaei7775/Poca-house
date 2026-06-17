@@ -242,20 +242,55 @@
   </div>
 </div>
 
-<!-- ALBA -->
+<!-- ALBA 선택 -->
 <div id="screen-alba" class="screen">
   <div class="alba-bg"></div>
   <div class="alba-content">
     <div style="display:flex;align-items:center;justify-content:space-between;width:100%;">
-      <div class="alba-title">🍔 포카하우스 알바</div>
+      <div class="alba-title">알바 선택</div>
       <div class="coins" style="background:rgba(0,0,0,0.4);">🍔 <span id="coin-alba">0</span></div>
     </div>
-    <div class="alba-subtitle">게이지가 퍼펙트 존에 올 때 탭!</div>
-    <div class="alba-count">
-      <div class="alba-count-num" id="alba-done">0</div>
+    <div style="display:flex;flex-direction:column;gap:14px;width:100%;margin-top:8px;">
+      <button onclick="goTo('alba-burger')" style="width:100%;padding:0;border:none;border-radius:18px;overflow:hidden;cursor:pointer;position:relative;height:140px;">
+        <img src="https://raw.githubusercontent.com/chaei7775/Poca-house/main/map-burger.png" style="width:100%;height:100%;object-fit:cover;object-position:center top;">
+        <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,0.6),transparent);display:flex;align-items:flex-end;padding:14px;">
+          <div style="text-align:left;">
+            <div style="font-size:18px;font-weight:900;color:#fff;">🍔 포카버거 알바</div>
+            <div style="font-size:12px;color:#FFB3CC;">패티 타이밍 게임</div>
+          </div>
+        </div>
+      </button>
+      <button onclick="goTo('alba-cafe')" style="width:100%;padding:0;border:none;border-radius:18px;overflow:hidden;cursor:pointer;position:relative;height:140px;">
+        <img src="https://raw.githubusercontent.com/chaei7775/Poca-house/main/map-cafe.png" style="width:100%;height:100%;object-fit:cover;object-position:center top;">
+        <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,0.6),transparent);display:flex;align-items:flex-end;padding:14px;">
+          <div style="text-align:left;">
+            <div style="font-size:18px;font-weight:900;color:#fff;">☕ 포카카페 알바</div>
+            <div style="font-size:12px;color:#FFB3CC;">에스프레소→스티밍→라떼아트→서빙</div>
+          </div>
+        </div>
+      </button>
+    </div>
+    <div id="auto-idols-section" style="display:none;width:100%;">
+      <div class="section-title" style="color:#FFB3CC;">자동 알바 중 ✨</div>
+      <div class="auto-idols" id="auto-idol-list"></div>
+    </div>
+    <button class="back-btn" onclick="goTo('home')">← 홈으로</button>
+  </div>
+</div>
+
+<!-- ALBA 버거 -->
+<div id="screen-alba-burger" class="screen" style="position:relative;overflow:hidden;background:#1a1a2e;padding-bottom:70px;">
+  <img src="https://raw.githubusercontent.com/chaei7775/Poca-house/main/map-burger.png" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;object-position:center top;opacity:0.55;">
+  <div style="position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;padding:16px;gap:12px;min-height:100vh;">
+    <div style="display:flex;align-items:center;justify-content:space-between;width:100%;">
+      <button onclick="goTo('alba')" style="background:rgba(0,0,0,0.4);border:none;border-radius:10px;color:#fff;font-size:13px;font-weight:700;padding:8px 12px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">← 뒤로</button>
+      <div class="coins" style="background:rgba(0,0,0,0.4);">🍔 <span id="coin-alba-burger">0</span></div>
+    </div>
+    <div class="alba-count" style="width:100%;">
+      <div class="alba-count-num" id="alba-done-burger">0</div>
       <div class="alba-count-label">오늘 알바 횟수</div>
     </div>
-    <div class="gauge-container">
+    <div class="gauge-container" style="width:100%;">
       <div class="gauge-label">🥩 패티 타이밍</div>
       <div class="gauge-track" onclick="tapGauge()">
         <div class="gauge-great"></div>
@@ -269,11 +304,31 @@
       </div>
       <button class="tap-btn" onclick="tapGauge()">TAP! 👊</button>
     </div>
-    <div id="auto-idols-section" style="display:none;width:100%;">
-      <div class="section-title" style="color:#FFB3CC;">자동 알바 중 ✨</div>
-      <div class="auto-idols" id="auto-idol-list"></div>
+  </div>
+</div>
+
+<!-- ALBA 카페 -->
+<div id="screen-alba-cafe" class="screen" style="position:relative;overflow:hidden;background:#2a1a0e;padding-bottom:70px;">
+  <img src="https://raw.githubusercontent.com/chaei7775/Poca-house/main/map-cafe.png" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;object-position:center top;opacity:0.6;">
+  <div style="position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;padding:16px;gap:12px;min-height:100vh;">
+    <div style="display:flex;align-items:center;justify-content:space-between;width:100%;">
+      <button onclick="goTo('alba')" style="background:rgba(0,0,0,0.4);border:none;border-radius:10px;color:#fff;font-size:13px;font-weight:700;padding:8px 12px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">← 뒤로</button>
+      <div class="coins" style="background:rgba(0,0,0,0.4);">🍔 <span id="coin-alba-cafe">0</span></div>
     </div>
-    <button class="back-btn" onclick="goTo('home')">← 홈으로</button>
+
+    <!-- 단계 표시 -->
+    <div id="cafe-step-indicator" style="display:flex;gap:8px;width:100%;justify-content:center;">
+      <div class="cafe-step-dot" id="cdot-1" style="width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;font-size:13px;color:#fff;font-weight:700;">1</div>
+      <div style="flex:1;height:2px;background:rgba(255,255,255,0.2);margin-top:13px;"></div>
+      <div class="cafe-step-dot" id="cdot-2" style="width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;font-size:13px;color:#fff;font-weight:700;">2</div>
+      <div style="flex:1;height:2px;background:rgba(255,255,255,0.2);margin-top:13px;"></div>
+      <div class="cafe-step-dot" id="cdot-3" style="width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;font-size:13px;color:#fff;font-weight:700;">3</div>
+      <div style="flex:1;height:2px;background:rgba(255,255,255,0.2);margin-top:13px;"></div>
+      <div class="cafe-step-dot" id="cdot-4" style="width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;font-size:13px;color:#fff;font-weight:700;">4</div>
+    </div>
+
+    <!-- 단계별 컨텐츠 -->
+    <div id="cafe-game-area" style="width:100%;display:flex;flex-direction:column;gap:12px;align-items:center;"></div>
   </div>
 </div>
 
@@ -640,13 +695,187 @@ const CARDS = [
 function goTo(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-  document.getElementById('screen-'+id).classList.add('active');
-  document.getElementById('nav-'+id).classList.add('active');
+  const screen = document.getElementById('screen-'+id);
+  if(!screen) return;
+  screen.classList.add('active');
+  const nav = document.getElementById('nav-'+id);
+  if(nav) nav.classList.add('active');
+  else if(id==='alba-burger'||id==='alba-cafe') document.getElementById('nav-alba').classList.add('active');
   updateCoinsDisplay();
   if (id==='alba') initAlba();
+  if (id==='alba-burger') initBurgerAlba();
+  if (id==='alba-cafe') initCafeAlba();
   if (id==='collection') renderCollection();
   if (id==='home') { renderHomeIdols(); renderHomeSpeech(); }
   if (id==='bond') renderBondList();
+}
+
+function initBurgerAlba() {
+  if(document.getElementById('coin-alba-burger')) document.getElementById('coin-alba-burger').textContent = coins;
+  if(document.getElementById('alba-done-burger')) document.getElementById('alba-done-burger').textContent = albaDone;
+  startGauge();
+}
+
+// ── 카페 알바 ──
+let cafeStep = 0;
+let cafeScores = [];
+let cafeGauge1Pos = 0, cafeGauge1Dir = 1;
+let cafeGauge2Pos = 0, cafeGauge2Dir = 1;
+let cafeGaugeRunning = false;
+
+function initCafeAlba() {
+  if(document.getElementById('coin-alba-cafe')) document.getElementById('coin-alba-cafe').textContent = coins;
+  cafeStep = 0;
+  cafeScores = [];
+  renderCafeStep();
+}
+
+function renderCafeStep() {
+  const area = document.getElementById('cafe-game-area');
+  // 단계 표시 업데이트
+  [1,2,3,4].forEach(i => {
+    const dot = document.getElementById('cdot-'+i);
+    if(!dot) return;
+    if(i < cafeStep+1) dot.style.background = '#FF6B9D';
+    else if(i === cafeStep+1) dot.style.background = '#C084FC';
+    else dot.style.background = 'rgba(255,255,255,0.2)';
+  });
+
+  if(cafeStep === 0) {
+    area.innerHTML = `
+      <div class="gauge-container" style="width:100%;background:rgba(0,0,0,0.55);">
+        <div class="gauge-label">☕ 에스프레소 추출 타이밍</div>
+        <div class="gauge-track" onclick="tapCafeGauge1()">
+          <div class="gauge-great"></div>
+          <div class="gauge-perfect"></div>
+          <div class="gauge-marker" id="cafe-gauge-marker-1"></div>
+        </div>
+        <div class="gauge-zones">
+          <div class="zone"><div class="zone-dot" style="background:#FFD700"></div><span style="color:#FFD700">PERFECT</span></div>
+          <div class="zone"><div class="zone-dot" style="background:#FF6B9D"></div><span style="color:#FF6B9D">GREAT</span></div>
+          <div class="zone"><div class="zone-dot" style="background:#666"></div><span style="color:#aaa">MISS</span></div>
+        </div>
+        <button class="tap-btn" onclick="tapCafeGauge1()">TAP! ☕</button>
+      </div>`;
+    startCafeGauge1();
+  } else if(cafeStep === 1) {
+    area.innerHTML = `
+      <div class="gauge-container" style="width:100%;background:rgba(0,0,0,0.55);">
+        <div class="gauge-label">🥛 우유 스티밍 타이밍</div>
+        <div class="gauge-track" onclick="tapCafeGauge2()">
+          <div class="gauge-great"></div>
+          <div class="gauge-perfect"></div>
+          <div class="gauge-marker" id="cafe-gauge-marker-2"></div>
+        </div>
+        <div class="gauge-zones">
+          <div class="zone"><div class="zone-dot" style="background:#FFD700"></div><span style="color:#FFD700">PERFECT</span></div>
+          <div class="zone"><div class="zone-dot" style="background:#FF6B9D"></div><span style="color:#FF6B9D">GREAT</span></div>
+          <div class="zone"><div class="zone-dot" style="background:#666"></div><span style="color:#aaa">MISS</span></div>
+        </div>
+        <button class="tap-btn" onclick="tapCafeGauge2()">TAP! 🥛</button>
+      </div>`;
+    startCafeGauge2();
+  } else if(cafeStep === 2) {
+    area.innerHTML = `
+      <div class="gauge-container" style="width:100%;background:rgba(0,0,0,0.55);">
+        <div class="gauge-label">🎨 라떼아트 선택</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%;">
+          <button onclick="selectLatteArt('하트','perfect')" style="padding:16px;background:rgba(255,107,157,0.2);border:1.5px solid #FF6B9D;border-radius:12px;color:#fff;font-size:22px;cursor:pointer;">❤️<br><span style="font-size:12px;">하트</span></button>
+          <button onclick="selectLatteArt('나뭇잎','great')" style="padding:16px;background:rgba(192,132,252,0.2);border:1.5px solid #C084FC;border-radius:12px;color:#fff;font-size:22px;cursor:pointer;">🍃<br><span style="font-size:12px;">나뭇잎</span></button>
+          <button onclick="selectLatteArt('별','great')" style="padding:16px;background:rgba(192,132,252,0.2);border:1.5px solid #C084FC;border-radius:12px;color:#fff;font-size:22px;cursor:pointer;">⭐<br><span style="font-size:12px;">별</span></button>
+          <button onclick="selectLatteArt('곰돌이','perfect')" style="padding:16px;background:rgba(255,107,157,0.2);border:1.5px solid #FF6B9D;border-radius:12px;color:#fff;font-size:22px;cursor:pointer;">🐻<br><span style="font-size:12px;">곰돌이</span></button>
+        </div>
+        <div style="font-size:12px;color:#aaa;text-align:center;">하트/곰돌이 = PERFECT 보너스!</div>
+      </div>`;
+  } else if(cafeStep === 3) {
+    area.innerHTML = `
+      <div class="gauge-container" style="width:100%;background:rgba(0,0,0,0.55);">
+        <div class="gauge-label">🛎️ 서빙하기</div>
+        <div style="font-size:48px;text-align:center;padding:12px;">☕</div>
+        <div style="font-size:13px;color:#FFB3CC;text-align:center;">완성된 음료를 손님에게 전달해요!</div>
+        <button class="tap-btn" onclick="serveCafe()" style="margin-top:4px;">서빙! 🛎️</button>
+      </div>`;
+  } else {
+    // 완료
+    const total = cafeScores.reduce((a,b)=>a+b,0);
+    const bonus = total >= 100 ? 50 : total >= 70 ? 30 : 15;
+    coins += bonus; albaDone++; saveAll();
+    area.innerHTML = `
+      <div class="gauge-container" style="width:100%;background:rgba(0,0,0,0.55);text-align:center;">
+        <div style="font-size:36px;">✨</div>
+        <div style="font-size:20px;font-weight:900;color:#FFD700;">+🍔 ${bonus}</div>
+        <div style="font-size:13px;color:#FFB3CC;margin-top:4px;">총점 ${total}점</div>
+        <button class="tap-btn" onclick="initCafeAlba()" style="margin-top:12px;">한 잔 더! ☕</button>
+      </div>`;
+    spawnCoinFloat(bonus);
+    if(document.getElementById('coin-alba-cafe')) document.getElementById('coin-alba-cafe').textContent = coins;
+  }
+}
+
+function startCafeGauge1() {
+  cafeGaugeRunning = true;
+  cafeGauge1Pos = 0; cafeGauge1Dir = 1;
+  function tick() {
+    if(cafeStep !== 0) return;
+    cafeGauge1Pos += cafeGauge1Dir * 1.8;
+    if(cafeGauge1Pos>=100){cafeGauge1Pos=100;cafeGauge1Dir=-1;}
+    if(cafeGauge1Pos<=0){cafeGauge1Pos=0;cafeGauge1Dir=1;}
+    const m = document.getElementById('cafe-gauge-marker-1');
+    if(m) m.style.left = cafeGauge1Pos+'%';
+    if(cafeStep===0) requestAnimationFrame(tick);
+  }
+  tick();
+}
+
+function startCafeGauge2() {
+  cafeGauge2Pos = 0; cafeGauge2Dir = 1;
+  function tick() {
+    if(cafeStep !== 1) return;
+    cafeGauge2Pos += cafeGauge2Dir * 2.2;
+    if(cafeGauge2Pos>=100){cafeGauge2Pos=100;cafeGauge2Dir=-1;}
+    if(cafeGauge2Pos<=0){cafeGauge2Pos=0;cafeGauge2Dir=1;}
+    const m = document.getElementById('cafe-gauge-marker-2');
+    if(m) m.style.left = cafeGauge2Pos+'%';
+    if(cafeStep===1) requestAnimationFrame(tick);
+  }
+  tick();
+}
+
+function tapCafeGauge1() {
+  const pos = cafeGauge1Pos;
+  let score;
+  if(pos>=41&&pos<=59) score=40;
+  else if(pos>=35&&pos<=65) score=25;
+  else if(pos>=25&&pos<=75) score=10;
+  else score=0;
+  cafeScores.push(score);
+  cafeStep=1;
+  renderCafeStep();
+}
+
+function tapCafeGauge2() {
+  const pos = cafeGauge2Pos;
+  let score;
+  if(pos>=41&&pos<=59) score=40;
+  else if(pos>=35&&pos<=65) score=25;
+  else if(pos>=25&&pos<=75) score=10;
+  else score=0;
+  cafeScores.push(score);
+  cafeStep=2;
+  renderCafeStep();
+}
+
+function selectLatteArt(art, grade) {
+  const score = grade==='perfect' ? 40 : 25;
+  cafeScores.push(score);
+  cafeStep=3;
+  renderCafeStep();
+}
+
+function serveCafe() {
+  cafeScores.push(20);
+  cafeStep=4;
+  renderCafeStep();
 }
 
 function updateCoinsDisplay() {
