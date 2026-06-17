@@ -399,19 +399,20 @@
 </div>
 
 <!-- 장소 상세 오버레이 -->
-<div id="place-overlay" style="display:none;position:fixed;inset:0;z-index:400;flex-direction:column;background:#000;">
+<div id="place-overlay" style="display:none;position:fixed;inset:0;z-index:400;background:#000;flex-direction:column;">
   <div style="position:relative;width:100%;flex:1;overflow:hidden;">
     <img id="place-bg-img" src="" style="width:100%;height:100%;object-fit:cover;object-position:top;">
-    <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,0.7) 0%,transparent 50%);"></div>
-    <button onclick="closePlace()" style="position:absolute;top:16px;left:16px;background:rgba(0,0,0,0.5);border:none;border-radius:10px;color:#fff;font-size:13px;font-weight:700;padding:8px 14px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">← 뒤로</button>
-    <div id="place-title" style="position:absolute;bottom:16px;left:16px;font-size:22px;font-weight:900;color:#fff;text-shadow:0 2px 8px #0008;"></div>
+    <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,0.7) 0%,transparent 50%);pointer-events:none;"></div>
+    <button onclick="closePlace()" style="position:absolute;top:16px;left:16px;z-index:10;background:rgba(0,0,0,0.5);border:none;border-radius:10px;color:#fff;font-size:13px;font-weight:700;padding:8px 14px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">← 뒤로</button>
+    <div id="place-title" style="position:absolute;bottom:16px;left:16px;z-index:10;font-size:22px;font-weight:900;color:#fff;text-shadow:0 2px 8px #0008;pointer-events:none;"></div>
   </div>
-  <div id="place-actions" style="padding:16px;background:rgba(0,0,0,0.85);display:flex;flex-direction:column;gap:10px;position:relative;z-index:999;">
-    <button id="pact-1" onclick="placeAction(1)" style="width:100%;padding:14px;background:rgba(255,255,255,0.1);border:1.5px solid rgba(255,255,255,0.2);border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;display:none;"></button>
-    <button id="pact-2" onclick="placeAction(2)" style="width:100%;padding:14px;background:rgba(255,255,255,0.1);border:1.5px solid rgba(255,255,255,0.2);border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;display:none;"></button>
-    <button id="pact-3" onclick="placeAction(3)" style="width:100%;padding:14px;background:rgba(255,255,255,0.1);border:1.5px solid rgba(255,255,255,0.2);border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;display:none;"></button>
-    <button id="pact-4" onclick="placeAction(4)" style="width:100%;padding:14px;background:rgba(255,255,255,0.1);border:1.5px solid rgba(255,255,255,0.2);border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;display:none;"></button>
-  </div>
+</div>
+<!-- 장소 액션 버튼 (overlay와 별도 레이어) -->
+<div id="place-actions-panel" style="display:none;position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;z-index:500;padding:16px;background:rgba(0,0,0,0.9);flex-direction:column;gap:10px;">
+  <button id="pact-1" onclick="placeAction(1)" style="width:100%;padding:14px;background:rgba(255,255,255,0.1);border:1.5px solid rgba(255,255,255,0.2);border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;display:none;"></button>
+  <button id="pact-2" onclick="placeAction(2)" style="width:100%;padding:14px;background:rgba(255,255,255,0.1);border:1.5px solid rgba(255,255,255,0.2);border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;display:none;"></button>
+  <button id="pact-3" onclick="placeAction(3)" style="width:100%;padding:14px;background:rgba(255,255,255,0.1);border:1.5px solid rgba(255,255,255,0.2);border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;display:none;"></button>
+  <button id="pact-4" onclick="placeAction(4)" style="width:100%;padding:14px;background:rgba(255,255,255,0.1);border:1.5px solid rgba(255,255,255,0.2);border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;display:none;"></button>
 </div>
 
 <!-- 인연 -->
@@ -1592,6 +1593,7 @@ function openPlace(id) {
     else { btn.style.display='none'; }
   }
   document.getElementById('place-overlay').style.display = 'flex';
+  document.getElementById('place-actions-panel').style.display = 'flex';
 }
 
 function placeAction(idx) {
@@ -1621,6 +1623,7 @@ function openSubPlace(id) {
 
 function closePlace() {
   document.getElementById('place-overlay').style.display = 'none';
+  document.getElementById('place-actions-panel').style.display = 'none';
 }
 
 updateCoinsDisplay();
