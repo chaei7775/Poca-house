@@ -1583,7 +1583,8 @@ function openPlace(id) {
     const btn = document.createElement('button');
     btn.style.cssText = 'width:100%;padding:14px;background:rgba(255,255,255,0.1);border:1.5px solid rgba(255,255,255,0.2);border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:Noto Sans KR,sans-serif;';
     btn.textContent = a.label;
-    btn.addEventListener('click', new Function(a.fn));
+    btn.setAttribute('data-fn', a.fn);
+    btn.addEventListener('click', function() { eval(this.getAttribute('data-fn')); });
     actionsEl.appendChild(btn);
   });
   overlay.style.display = 'flex';
