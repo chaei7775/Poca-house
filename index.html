@@ -409,7 +409,7 @@
   <div style="padding:16px;background:rgba(0,0,0,0.9);display:flex;flex-direction:column;gap:10px;">
     <button onclick="doBurgerAlba()" id="btn-burger-alba" style="display:none;width:100%;padding:14px;background:rgba(255,255,255,0.1);border:1.5px solid rgba(255,255,255,0.2);border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">🍔 알바하기</button>
     <button onclick="doCafeAlba()" id="btn-cafe-alba" style="display:none;width:100%;padding:14px;background:rgba(255,255,255,0.1);border:1.5px solid rgba(255,255,255,0.2);border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">☕ 카페 알바하기</button>
-    <button onclick="meetChar('yuna')" id="btn-meet-yuna" style="display:none;width:100%;padding:14px;background:rgba(255,107,157,0.2);border:1.5px solid #FF6B9D;border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">🌸 윤아 만나기</button>
+    <button onclick="meetChar('yuna')" id="btn-meet-yuna" style="display:block;width:100%;padding:14px;background:rgba(255,107,157,0.2);border:1.5px solid #FF6B9D;border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">🌸 윤아 만나기</button>
     <button onclick="meetChar('minjun')" id="btn-meet-minjun" style="display:none;width:100%;padding:14px;background:rgba(255,107,157,0.2);border:1.5px solid #FF6B9D;border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">📚 민준 만나기</button>
     <button onclick="meetChar('sion')" id="btn-meet-sion" style="display:none;width:100%;padding:14px;background:rgba(99,102,241,0.2);border:1.5px solid #6366F1;border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">🎸 시온 만나기</button>
     <button onclick="meetChar('doyun')" id="btn-meet-doyun" style="display:none;width:100%;padding:14px;background:rgba(55,65,81,0.4);border:1.5px solid #9ca3af;border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">👑 도윤 만나기</button>
@@ -1455,9 +1455,10 @@ const CHAR_MEET = {
 };
 
 function meetChar(charId) {
+  alert('meetChar 실행됨: ' + charId);
   const ch = CHARS[charId];
   const meet = CHAR_MEET[charId];
-  if(!ch || !meet) return;
+  if(!ch || !meet) { alert('데이터 없음'); return; }
   const aff = affection[charId] || 0;
 
   // 요구 호감도 체크
@@ -1587,6 +1588,17 @@ function explorePlace(placeId) {
   alert(msg[Math.floor(Math.random() * msg.length)]);
 }
 
+function openPlace(id) {
+  const place = PLACES[id];
+  if(!place) return;
+  document.getElementById('place-bg-img').src = 'https://raw.githubusercontent.com/chaei7775/Poca-house/main/' + place.img;
+  document.getElementById('place-title').textContent = place.title;
+  ALL_PLACE_BTNS.forEach(b => { const el=document.getElementById(b); if(el) el.style.display='none'; });
+  const btns = PLACE_BUTTONS[id] || [];
+  btns.forEach(b => { const el=document.getElementById(b); if(el) el.style.display='block'; });
+  document.getElementById('place-overlay').style.display = 'flex';
+}
+
 const PLACE_BUTTONS = {
   burger:       ['btn-burger-alba'],
   'cafe-street':['btn-cafe-alba','btn-meet-yuna'],
@@ -1601,17 +1613,6 @@ const PLACE_BUTTONS = {
 };
 
 const ALL_PLACE_BTNS = ['btn-burger-alba','btn-cafe-alba','btn-meet-yuna','btn-meet-minjun','btn-meet-sion','btn-meet-doyun','btn-meet-harin','btn-meet-ara','btn-sub-library','btn-sub-music','btn-sub-council','btn-sub-rooftop','btn-explore-forest','btn-explore-lake','btn-room-deco'];
-
-function openPlace(id) {
-  const place = PLACES[id];
-  if(!place) return;
-  document.getElementById('place-bg-img').src = 'https://raw.githubusercontent.com/chaei7775/Poca-house/main/' + place.img;
-  document.getElementById('place-title').textContent = place.title;
-  ALL_PLACE_BTNS.forEach(b => { const el=document.getElementById(b); if(el) el.style.display='none'; });
-  const btns = PLACE_BUTTONS[id] || [];
-  btns.forEach(b => { const el=document.getElementById(b); if(el) el.style.display='block'; });
-  document.getElementById('place-overlay').style.display = 'flex';
-}
 
 function doBurgerAlba(){ closePlace(); goTo('alba-burger'); }
 function doCafeAlba(){ closePlace(); goTo('alba-cafe'); }
