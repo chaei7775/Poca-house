@@ -399,11 +399,11 @@
 </div>
 
 <!-- 장소 상세 오버레이 -->
-<div id="place-overlay" style="display:none;position:fixed;inset:0;z-index:400;background:#000;flex-direction:column;">
+<div id="place-overlay" style="display:none;position:fixed;inset:0;z-index:400;background:#000;flex-direction:column;pointer-events:none;">
   <div style="position:relative;width:100%;flex:1;overflow:hidden;">
     <img id="place-bg-img" src="" style="width:100%;height:100%;object-fit:cover;object-position:top;pointer-events:none;">
     <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,0.7) 0%,transparent 50%);pointer-events:none;"></div>
-    <button onclick="closePlace()" style="position:absolute;top:16px;left:16px;z-index:10;background:rgba(0,0,0,0.5);border:none;border-radius:10px;color:#fff;font-size:13px;font-weight:700;padding:8px 14px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">← 뒤로</button>
+    <button onclick="closePlace()" style="position:absolute;top:16px;left:16px;z-index:10;background:rgba(0,0,0,0.5);border:none;border-radius:10px;color:#fff;font-size:13px;font-weight:700;padding:8px 14px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;pointer-events:auto;">← 뒤로</button>
     <div id="place-title" style="position:absolute;bottom:16px;left:16px;z-index:10;font-size:22px;font-weight:900;color:#fff;text-shadow:0 2px 8px #0008;pointer-events:none;"></div>
   </div>
 </div>
