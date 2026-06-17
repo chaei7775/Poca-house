@@ -7,7 +7,7 @@
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&family=Noto+Sans+KR:wght@400;700;900&display=swap');
   * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-  :root { --pink: #FF6B9D; --pink-light: #FFB3CC; --pink-pale: #FFF0F5; --purple: #C084FC; --gold: #F59E0B; --dark: #1a1a2e; --white: #fff; }
+  :root { --pink: #FF6B9D; --pink-light: #FFB3CC; --pink-pale: #FFF0F5; --purple: #C084FC; --gold: #F59E0B; --dark: #1a1a2e; }
   body { font-family: 'Noto Sans KR', sans-serif; background: var(--pink-pale); min-height: 100vh; max-width: 430px; margin: 0 auto; overflow-x: hidden; }
   .screen { display: none; min-height: 100vh; flex-direction: column; padding-bottom: 70px; }
   .screen.active { display: flex; }
@@ -18,13 +18,22 @@
 
   /* HOME */
   #screen-home { background: linear-gradient(180deg, #FFF0F5 0%, #FFE4EF 100%); }
-  .home-banner { position: relative; width: 100%; height: 260px; overflow: hidden; background: #FFD6E8; }
+  .home-banner { position: relative; width: 100%; height: 240px; overflow: hidden; background: #FFD6E8; }
   .home-banner img { width: 100%; height: 100%; object-fit: cover; object-position: center top; }
   .home-banner-overlay { position: absolute; bottom: 0; left: 0; right: 0; padding: 20px 16px 12px; background: linear-gradient(to top, #FFF0F5ee, transparent); }
   .home-banner-title { font-size: 22px; font-weight: 900; color: var(--pink); text-shadow: 0 1px 8px #fff8; }
   .home-banner-sub { font-size: 12px; color: #FF6B9D99; margin-top: 2px; }
-  .home-actions { padding: 16px; display: flex; flex-direction: column; gap: 12px; }
-  .btn-main { width: 100%; padding: 16px; border: none; border-radius: 16px; font-size: 16px; font-weight: 900; font-family: 'Noto Sans KR', sans-serif; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
+  
+  /* 홈 말풍선 */
+  .home-speech { padding: 12px 16px 0; }
+  .speech-bubble-wrap { display: flex; align-items: flex-end; gap: 10px; }
+  .speech-char-img { width: 52px; height: 52px; border-radius: 50%; object-fit: cover; border: 2px solid var(--pink-light); background: #FFD6E8; flex-shrink: 0; }
+  .speech-char-placeholder { width: 52px; height: 52px; border-radius: 50%; background: linear-gradient(135deg, #FFB3CC, #C084FC); display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; }
+  .speech-bubble { background: #fff; border: 1.5px solid var(--pink-light); border-radius: 16px 16px 16px 4px; padding: 10px 14px; font-size: 13px; color: #555; line-height: 1.5; position: relative; box-shadow: 0 2px 8px #FF6B9D11; max-width: calc(100% - 72px); }
+  .speech-name { font-size: 11px; font-weight: 700; color: var(--pink); margin-bottom: 3px; }
+
+  .home-actions { padding: 12px 16px; display: flex; flex-direction: column; gap: 10px; }
+  .btn-main { width: 100%; padding: 15px; border: none; border-radius: 16px; font-size: 16px; font-weight: 900; font-family: 'Noto Sans KR', sans-serif; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
   .btn-main:active { transform: scale(0.97); }
   .btn-alba { background: linear-gradient(135deg, #FF6B9D, #FF8FAB); color: #fff; box-shadow: 0 4px 20px #FF6B9D55; }
   .btn-gacha { background: linear-gradient(135deg, #C084FC, #A855F7); color: #fff; box-shadow: 0 4px 20px #C084FC55; }
@@ -104,12 +113,81 @@
   .card-locked { filter: grayscale(1) brightness(0.4); }
   .card-locked-overlay { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 32px; background: rgba(0,0,0,0.3); }
 
+  /* ── 인연 SCREEN ── */
+  #screen-bond { background: linear-gradient(180deg, #1a1a2e 0%, #2d1b4e 100%); }
+  .bond-header { padding: 20px 16px 12px; background: linear-gradient(135deg, #C084FC, #FF6B9D); }
+  .bond-header-title { font-size: 20px; font-weight: 900; color: #fff; font-family: 'Nunito', sans-serif; }
+  .bond-header-sub { font-size: 12px; color: rgba(255,255,255,0.7); margin-top: 2px; }
+
+  .bond-list { padding: 16px; display: flex; flex-direction: column; gap: 14px; }
+  .bond-card { background: rgba(255,255,255,0.06); border: 1.5px solid rgba(255,255,255,0.12); border-radius: 18px; overflow: hidden; cursor: pointer; transition: transform 0.15s; }
+  .bond-card:active { transform: scale(0.98); }
+  .bond-card-top { display: flex; align-items: center; gap: 14px; padding: 14px; }
+  .bond-char-img { width: 64px; height: 64px; border-radius: 50%; object-fit: cover; border: 2px solid rgba(255,255,255,0.2); flex-shrink: 0; }
+  .bond-char-placeholder { width: 64px; height: 64px; border-radius: 50%; background: linear-gradient(135deg, #FF6B9D, #C084FC); display: flex; align-items: center; justify-content: center; font-size: 28px; flex-shrink: 0; }
+  .bond-info { flex: 1; }
+  .bond-name { font-size: 16px; font-weight: 900; color: #fff; }
+  .bond-grade-tag { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 6px; margin-top: 2px; }
+  .bond-desc { font-size: 11px; color: #aaa; margin-top: 4px; line-height: 1.4; }
+  .bond-heart-row { display: flex; align-items: center; gap: 6px; margin-top: 8px; }
+  .bond-hearts { display: flex; gap: 3px; }
+  .heart { font-size: 16px; }
+  .bond-level-text { font-size: 11px; color: #FFB3CC; font-weight: 700; }
+  .bond-locked-tag { font-size: 11px; color: #666; font-style: italic; }
+
+  /* 인연 상세 오버레이 */
+  .bond-detail-overlay { display: none; position: fixed; inset: 0; background: rgba(10,10,20,0.97); z-index: 400; flex-direction: column; overflow-y: auto; }
+  .bond-detail-overlay.show { display: flex; }
+  .bond-detail-header { position: relative; width: 100%; height: 280px; overflow: hidden; flex-shrink: 0; }
+  .bond-detail-header img { width: 100%; height: 100%; object-fit: cover; object-position: top; }
+  .bond-detail-header-overlay { position: absolute; inset: 0; background: linear-gradient(to top, #0a0a14 30%, transparent); }
+  .bond-detail-back { position: absolute; top: 16px; left: 16px; background: rgba(0,0,0,0.5); border: none; border-radius: 10px; color: #fff; font-size: 14px; font-weight: 700; padding: 8px 14px; cursor: pointer; font-family: 'Noto Sans KR', sans-serif; }
+  .bond-detail-name { position: absolute; bottom: 16px; left: 16px; font-size: 24px; font-weight: 900; color: #fff; text-shadow: 0 2px 8px #0008; }
+  .bond-detail-body { padding: 20px 16px; display: flex; flex-direction: column; gap: 20px; flex: 1; }
+
+  /* 호감도 바 */
+  .bond-affection { background: rgba(255,255,255,0.06); border-radius: 14px; padding: 16px; }
+  .bond-affection-title { font-size: 13px; font-weight: 700; color: #FFB3CC; letter-spacing: 1px; margin-bottom: 12px; }
+  .affection-hearts { display: flex; gap: 8px; justify-content: center; margin-bottom: 10px; }
+  .affection-heart { font-size: 28px; transition: transform 0.2s; cursor: pointer; }
+  .affection-heart.active { transform: scale(1.15); }
+  .affection-bar { width: 100%; height: 8px; background: rgba(255,255,255,0.1); border-radius: 4px; overflow: hidden; }
+  .affection-fill { height: 100%; background: linear-gradient(90deg, #FF6B9D, #C084FC); border-radius: 4px; transition: width 0.4s ease; }
+  .affection-label { text-align: center; font-size: 12px; color: #888; margin-top: 8px; }
+
+  /* 스토리 */
+  .bond-stories { background: rgba(255,255,255,0.06); border-radius: 14px; padding: 16px; }
+  .bond-stories-title { font-size: 13px; font-weight: 700; color: #FFB3CC; letter-spacing: 1px; margin-bottom: 12px; }
+  .story-item { padding: 12px; background: rgba(255,255,255,0.05); border-radius: 10px; margin-bottom: 8px; cursor: pointer; border: 1px solid rgba(255,255,255,0.08); }
+  .story-item:last-child { margin-bottom: 0; }
+  .story-item.locked { opacity: 0.4; cursor: default; }
+  .story-item-top { display: flex; align-items: center; justify-content: space-between; }
+  .story-ep { font-size: 12px; font-weight: 700; color: #C084FC; }
+  .story-lock { font-size: 14px; }
+  .story-title-text { font-size: 14px; font-weight: 700; color: #fff; margin-top: 4px; }
+  .story-preview { font-size: 12px; color: #888; margin-top: 4px; line-height: 1.4; }
+
+  /* 스토리 읽기 오버레이 */
+  .story-read-overlay { display: none; position: fixed; inset: 0; background: rgba(5,5,15,0.98); z-index: 500; flex-direction: column; }
+  .story-read-overlay.show { display: flex; }
+  .story-read-header { padding: 16px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid rgba(255,255,255,0.08); flex-shrink: 0; }
+  .story-read-back { background: none; border: none; color: #fff; font-size: 20px; cursor: pointer; }
+  .story-read-title { font-size: 15px; font-weight: 700; color: #fff; }
+  .story-read-body { flex: 1; overflow-y: auto; padding: 20px 16px; display: flex; flex-direction: column; gap: 16px; }
+  .story-msg { display: flex; flex-direction: column; gap: 4px; }
+  .story-msg-name { font-size: 11px; font-weight: 700; color: #C084FC; }
+  .story-msg-bubble { background: rgba(255,255,255,0.07); border-radius: 12px 12px 12px 4px; padding: 12px 14px; font-size: 14px; color: #eee; line-height: 1.6; max-width: 85%; border: 1px solid rgba(255,255,255,0.1); }
+  .story-msg.player .story-msg-bubble { background: rgba(255,107,157,0.15); border-radius: 12px 12px 4px 12px; align-self: flex-end; border-color: rgba(255,107,157,0.2); }
+  .story-msg.player .story-msg-name { text-align: right; color: #FF6B9D; }
+  .story-read-footer { padding: 16px; flex-shrink: 0; }
+  .story-next-btn { width: 100%; padding: 14px; background: linear-gradient(135deg, #C084FC, #FF6B9D); border: none; border-radius: 14px; color: #fff; font-size: 15px; font-weight: 700; font-family: 'Noto Sans KR', sans-serif; cursor: pointer; }
+
   /* NAVBAR */
   .navbar { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 430px; background: #fff; border-top: 1.5px solid #FFE4EF; display: flex; z-index: 100; box-shadow: 0 -4px 20px #FF6B9D22; }
-  .nav-item { flex: 1; padding: 10px 0 8px; display: flex; flex-direction: column; align-items: center; gap: 3px; cursor: pointer; border: none; background: none; font-family: 'Noto Sans KR', sans-serif; color: #FFB3CC; }
+  .nav-item { flex: 1; padding: 8px 0 6px; display: flex; flex-direction: column; align-items: center; gap: 2px; cursor: pointer; border: none; background: none; font-family: 'Noto Sans KR', sans-serif; color: #FFB3CC; }
   .nav-item.active { color: var(--pink); }
-  .nav-icon { font-size: 22px; }
-  .nav-label { font-size: 10px; font-weight: 700; }
+  .nav-icon { font-size: 20px; }
+  .nav-label { font-size: 9px; font-weight: 700; }
 
   @keyframes fadeInUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
   .animate-in { animation: fadeInUp 0.3s ease both; }
@@ -135,10 +213,22 @@
   <div class="home-banner">
     <img src="https://raw.githubusercontent.com/chaei7775/Poca-house/main/burger-main.png" alt="포카하우스" onerror="this.style.display='none'">
     <div class="home-banner-overlay">
-      <div class="home-banner-title">오늘도 알바 가자! 🎀</div>
+      <div class="home-banner-title" id="home-title">오늘도 알바 가자! 🎀</div>
       <div class="home-banner-sub">열심히 일하고 아이돌 카드 뽑아봐</div>
     </div>
   </div>
+
+  <!-- 말풍선 -->
+  <div class="home-speech">
+    <div class="speech-bubble-wrap" id="speech-wrap">
+      <div class="speech-char-placeholder" id="speech-char">💫</div>
+      <div class="speech-bubble">
+        <div class="speech-name" id="speech-name">POCA HOUSE</div>
+        <div id="speech-text">카드를 뽑으면 아이돌이 말을 걸어올 거야! 🎴</div>
+      </div>
+    </div>
+  </div>
+
   <div class="home-actions animate-in">
     <button class="btn-main btn-alba" onclick="goTo('alba')">🍔 알바하기</button>
     <button class="btn-main btn-gacha" onclick="goTo('gacha')">✨ 카드 뽑기</button>
@@ -231,12 +321,22 @@
   </div>
 </div>
 
+<!-- 인연 -->
+<div id="screen-bond" class="screen">
+  <div class="bond-header">
+    <div class="bond-header-title">💞 인연</div>
+    <div class="bond-header-sub">카드를 모아 인연을 쌓아봐</div>
+  </div>
+  <div class="bond-list" id="bond-list"></div>
+</div>
+
 <!-- NAVBAR -->
 <nav class="navbar">
   <button class="nav-item active" onclick="goTo('home')" id="nav-home"><span class="nav-icon">🏠</span><span class="nav-label">홈</span></button>
   <button class="nav-item" onclick="goTo('alba')" id="nav-alba"><span class="nav-icon">🍔</span><span class="nav-label">알바</span></button>
   <button class="nav-item" onclick="goTo('gacha')" id="nav-gacha"><span class="nav-icon">✨</span><span class="nav-label">뽑기</span></button>
   <button class="nav-item" onclick="goTo('collection')" id="nav-collection"><span class="nav-icon">📁</span><span class="nav-label">컬렉션</span></button>
+  <button class="nav-item" onclick="goTo('bond')" id="nav-bond"><span class="nav-icon">💞</span><span class="nav-label">인연</span></button>
 </nav>
 
 <div class="result-bg" id="result-bg"></div>
@@ -253,28 +353,288 @@
   <button class="gacha-close-btn" onclick="closeGachaResult()">획득! 💜</button>
 </div>
 
+<!-- 인연 상세 오버레이 -->
+<div class="bond-detail-overlay" id="bond-detail-overlay">
+  <div class="bond-detail-header">
+    <img id="bond-detail-img" src="" alt="">
+    <div class="bond-detail-header-overlay"></div>
+    <button class="bond-detail-back" onclick="closeBondDetail()">← 뒤로</button>
+    <div class="bond-detail-name" id="bond-detail-name"></div>
+  </div>
+  <div class="bond-detail-body">
+    <div class="bond-affection">
+      <div class="bond-affection-title">💞 호감도</div>
+      <div class="affection-hearts" id="detail-hearts"></div>
+      <div class="affection-bar"><div class="affection-fill" id="affection-fill"></div></div>
+      <div class="affection-label" id="affection-label"></div>
+    </div>
+    <div class="bond-stories">
+      <div class="bond-stories-title">📖 스토리</div>
+      <div id="story-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- 스토리 읽기 오버레이 -->
+<div class="story-read-overlay" id="story-read-overlay">
+  <div class="story-read-header">
+    <button class="story-read-back" onclick="closeStoryRead()">←</button>
+    <div class="story-read-title" id="story-read-title"></div>
+  </div>
+  <div class="story-read-body" id="story-read-body"></div>
+  <div class="story-read-footer">
+    <button class="story-next-btn" onclick="closeStoryRead()">✓ 읽음</button>
+  </div>
+</div>
+
 <script>
 let coins = parseInt(localStorage.getItem('ph_coins') || '0');
 let owned = JSON.parse(localStorage.getItem('ph_owned') || '[]');
 let albaDone = parseInt(localStorage.getItem('ph_alba') || '0');
+let affection = JSON.parse(localStorage.getItem('ph_affection') || '{}');
+let storyRead = JSON.parse(localStorage.getItem('ph_story') || '{}');
+
 const B = "https://raw.githubusercontent.com/chaei7775/Poca-house/main/";
+
+// ── 캐릭터 데이터 ──
+const CHARS = {
+  minjun: {
+    id: 'minjun', name: '민준', emoji: '📚',
+    gradeColor: '#F59E0B',
+    img: B+'Minjun SSR.png',
+    homeLines: [
+      "모르는 건 부끄러운 게 아니야. 알려고 하지 않는 게 부끄러운 거지.",
+      "오늘도 알바 열심히 해. 난 여기서 기다릴게.",
+      "감기 걸리면 큰일이잖아. 우산은 같이 쓰면 되지.",
+      "별의 언어를 읽는 순간, 우린 더 이상 혼자가 아니야."
+    ],
+    stories: [
+      { ep: 1, title: "도서관의 밤", unlockAt: 0, msgs: [
+        {who:'minjun', text:"...여기서 뭐 해? 문 닫을 시간인데."},
+        {who:'player', text:"책 찾다가 길을 잃었어요."},
+        {who:'minjun', text:"길을 잃은 게 아니라, 아직 찾고 있는 거야. 도와줄까?"},
+        {who:'player', text:"...네, 부탁드려도 될까요?"},
+        {who:'minjun', text:"(책을 집어들며) 이걸 찾고 있었지? 생각보다 잘 아네."}
+      ]},
+      { ep: 2, title: "비 오는 귀갓길", unlockAt: 1, msgs: [
+        {who:'minjun', text:"...비 맞으면서 걸어가려고?"},
+        {who:'player', text:"우산이 없어서요."},
+        {who:'minjun', text:"(우산 내밀며) 가져가. 나는 괜찮아."},
+        {who:'player', text:"같이 써요."},
+        {who:'minjun', text:"...그래. (작게) 가까이 와."}
+      ]},
+      { ep: 3, title: "별의 기록", unlockAt: 2, msgs: [
+        {who:'minjun', text:"오늘 별자리 봤어?"},
+        {who:'player', text:"못 봤어요. 바빴거든요."},
+        {who:'minjun', text:"이 기록… 분명 우리가 잃어버린 진실의 조각이야."},
+        {who:'player', text:"무서운 말이에요."},
+        {who:'minjun', text:"(눈 마주치며) 괜찮아. 내가 옆에 있잖아."}
+      ]}
+    ]
+  },
+  sion: {
+    id: 'sion', name: '시온', emoji: '🎸',
+    gradeColor: '#6366F1',
+    img: B+'Sion SSR.png',
+    homeLines: [
+      "무대 위에선 누구의 것도 아냐. 오직 음악만 남아.",
+      "관객이 없어도 연주는 진심이어야 하거든.",
+      "폭풍이 몰아쳐도, 나는 내 노래를 멈추지 않아.",
+      "기대하는 네 눈빛, 언젠가 실망으로 바뀔 거야."
+    ],
+    stories: [
+      { ep: 1, title: "야간 리허설", unlockAt: 0, msgs: [
+        {who:'sion', text:"...뭐야. 아직도 있어?"},
+        {who:'player', text:"연주 소리가 좋아서요."},
+        {who:'sion', text:"관중 없는 데서 들어도 좋냐고."},
+        {who:'player', text:"네. 진심이 느껴졌어요."},
+        {who:'sion', text:"...(기타 줄 튕기며) 한 곡만 더 들을래?"}
+      ]},
+      { ep: 2, title: "폭풍 속 무대", unlockAt: 1, msgs: [
+        {who:'sion', text:"비 맞으면서 공연 보러 왔어?"},
+        {who:'player', text:"시온씨 공연이니까요."},
+        {who:'sion', text:"...바보같은 거 알아?"},
+        {who:'player', text:"알아요."},
+        {who:'sion', text:"(낮게) 고마워. 이 한 마디는 너한테만 해."}
+      ]},
+      { ep: 3, title: "무대 뒤 적막", unlockAt: 2, msgs: [
+        {who:'sion', text:"기대하지 마. 난 사람 실망시키는 데 특기 있어."},
+        {who:'player', text:"그래도 괜찮아요."},
+        {who:'sion', text:"...왜?"},
+        {who:'player', text:"지금 이 순간만으로 충분하니까요."},
+        {who:'sion', text:"(오래 침묵하다) ...넌 이상한 애야."}
+      ]}
+    ]
+  },
+  doyun: {
+    id: 'doyun', name: '도윤', emoji: '👑',
+    gradeColor: '#374151',
+    img: B+'Doyun SSR.png',
+    homeLines: [
+      "필요하면 불러. 나, 가는 편이거든.",
+      "규칙은 공정해야지. 그래야만 모두가 내 선택을 따르게 되니까.",
+      "가면을 쓰는 건 숨기기 위해서가 아니야. 내가 선택한 역할을 연기하기 위해서지.",
+      "넌, 내가 만든 가장 아름다운 예외야."
+    ],
+    stories: [
+      { ep: 1, title: "학생회장의 제안", unlockAt: 0, msgs: [
+        {who:'doyun', text:"너 포카하우스 알바하지?"},
+        {who:'player', text:"네, 맞아요."},
+        {who:'doyun', text:"내가 규칙을 하나 정해줄게. 지각하지 마."},
+        {who:'player', text:"...알겠어요."},
+        {who:'doyun', text:"(작게 웃으며) 잘 따르네. 마음에 들어."}
+      ]},
+      { ep: 2, title: "가면무도회의 밤", unlockAt: 1, msgs: [
+        {who:'doyun', text:"왜 가면을 안 썼어?"},
+        {who:'player', text:"숨기고 싶은 게 없어서요."},
+        {who:'doyun', text:"...(가면 내리며) 그렇군. 나도 오늘만큼은 그러고 싶었어."},
+        {who:'player', text:"예뻐요. 민얼굴이."},
+        {who:'doyun', text:"(귀 붉혀지며) ...함부로 말하지 마."}
+      ]},
+      { ep: 3, title: "보이지 않는 실세", unlockAt: 2, msgs: [
+        {who:'doyun', text:"내가 왜 이렇게 움직이는지 알아?"},
+        {who:'player', text:"모르겠어요."},
+        {who:'doyun', text:"내 옆에 있는 사람을 지키기 위해서야."},
+        {who:'player', text:"...저도요?"},
+        {who:'doyun', text:"(눈 마주치며) 특히 너."}
+      ]}
+    ]
+  },
+  harin: {
+    id: 'harin', name: '하린', emoji: '🌙',
+    gradeColor: '#7C3AED',
+    img: B+'Harin SSR.png',
+    homeLines: [
+      "이 노래가 끝나면, 모든 게 사라져도 너만은 기억해줘.",
+      "이 밤이 끝나도, 내 도래는 너에게 닿을 거야.",
+      "마지막 노래가 끝나면, 더는 울지 않아도 되겠지.",
+      "이 노래가 너에게 닿을 수 있다면, 나는 언제든 노래할 수 있어."
+    ],
+    stories: [
+      { ep: 1, title: "새벽역에서", unlockAt: 0, msgs: [
+        {who:'harin', text:"이 시간에 여기 왜 있어?"},
+        {who:'player', text:"막차를 놓쳤어요."},
+        {who:'harin', text:"나도. (옆에 앉으며) 같이 기다리자."},
+        {who:'player', text:"노래 들었어요. 진짜 좋았어요."},
+        {who:'harin', text:"...고마워. 처음으로 직접 들었네."}
+      ]},
+      { ep: 2, title: "달빛 보컬", unlockAt: 1, msgs: [
+        {who:'harin', text:"왜 항상 맨 앞에 있어?"},
+        {who:'player', text:"목소리가 잘 들리니까요."},
+        {who:'harin', text:"...아, 그렇구나. (낮게) 사실 너 보려고 이쪽 서게 됐어."},
+        {who:'player', text:"...네?"},
+        {who:'harin', text:"(웃으며) 다음 곡도 들어줘."}
+      ]},
+      { ep: 3, title: "마지막 무대", unlockAt: 2, msgs: [
+        {who:'harin', text:"오늘이 마지막 무대야."},
+        {who:'player', text:"왜요?"},
+        {who:'harin', text:"쉬어야 할 것 같아서. 근데 네가 있으면 계속할 수 있을 것 같아."},
+        {who:'player', text:"계속 들을게요."},
+        {who:'harin', text:"(손 잡으며) 고마워. 진짜로."}
+      ]}
+    ]
+  },
+  yuna: {
+    id: 'yuna', name: '윤아', emoji: '🌸',
+    gradeColor: '#EC4899',
+    img: B+'Yuna SSR.png',
+    homeLines: [
+      "오늘은 우리, 봄이랑 데이트하는 날이야!",
+      "오늘 너한테 제일 예쁜 꽃을 줄게. 받아줄 거지?",
+      "봄이 온 걸 알려주는 건 바로 너였으면 좋겠어.",
+      "오늘, 나만 바라봐 줘. 그거면 충분해."
+    ],
+    stories: [
+      { ep: 1, title: "꽃집 알바", unlockAt: 0, msgs: [
+        {who:'yuna', text:"어서 와! 뭐 찾아?"},
+        {who:'player', text:"예쁜 꽃이요."},
+        {who:'yuna', text:"(빙글 돌며) 그럼 나야! 아, 농담이고— 이건 어때?"},
+        {who:'player', text:"예뻐요. 당신처럼."},
+        {who:'yuna', text:"(발끈) 야! 갑자기 그런 말 하면 어떡해!"}
+      ]},
+      { ep: 2, title: "봄 축제", unlockAt: 1, msgs: [
+        {who:'yuna', text:"같이 축제 가자!"},
+        {who:'player', text:"나랑요?"},
+        {who:'yuna', text:"응! 혼자 가기 싫어. ...사실 너랑 가고 싶어서."},
+        {who:'player', text:"좋아요."},
+        {who:'yuna', text:"(팔 낚아채며) 그럼 빨리 가자!"}
+      ]},
+      { ep: 3, title: "나만 봐줘", unlockAt: 2, msgs: [
+        {who:'yuna', text:"오늘 나 예뻐?"},
+        {who:'player', text:"항상 예뻐요."},
+        {who:'yuna', text:"그런 말 쉽게 하지 마. 나 진심으로 받아들이거든."},
+        {who:'player', text:"진심이에요."},
+        {who:'yuna', text:"(조용히) ...나도야."}
+      ]}
+    ]
+  },
+  ara: {
+    id: 'ara', name: '아라', emoji: '🌹',
+    gradeColor: '#9D174D',
+    img: B+'Ara SSR.png',
+    homeLines: [
+      "오늘, 주인공은 나로 정해졌으니까.",
+      "비밀은 아름다울수록 오래가거든.",
+      "감히 날 갖고 싶어? 그 꿈, 완전히 박살 내줄게.",
+      "오늘 밤, 넌 내게서 벗어날 수 없어."
+    ],
+    stories: [
+      { ep: 1, title: "무대의 여왕", unlockAt: 0, msgs: [
+        {who:'ara', text:"공연 어땠어?"},
+        {who:'player', text:"완벽했어요."},
+        {who:'ara', text:"당연하지. (턱 들며) 그래도 오늘 유독 잘됐어."},
+        {who:'player', text:"왜요?"},
+        {who:'ara', text:"...네가 있어서. 말 안 해도 느껴지거든."}
+      ]},
+      { ep: 2, title: "가면 뒤의 얼굴", unlockAt: 1, msgs: [
+        {who:'ara', text:"날 좋아해?"},
+        {who:'player', text:"네."},
+        {who:'ara', text:"흥. 다들 그렇게 말하지."},
+        {who:'player', text:"저는 달라요."},
+        {who:'ara', text:"(오래 바라보다) ...증명해 봐."}
+      ]},
+      { ep: 3, title: "치명적인 미소", unlockAt: 2, msgs: [
+        {who:'ara', text:"넌 이상해."},
+        {who:'player', text:"왜요?"},
+        {who:'ara', text:"내가 차갑게 굴어도 안 떠나잖아."},
+        {who:'player', text:"떠날 이유가 없어요."},
+        {who:'ara', text:"(낮게) ...오늘 밤은 가지 마."}
+      ]}
+    ]
+  }
+};
+
+// CARDS 데이터
 const CARDS = [
-  { id:'ian',    name:'이안 (IAN)',   grade:'UR',  gradeColor:'#C084FC', img:B+'Ian.png',           autoCoins:15 },
-  { id:'seonwoo',name:'선우',         grade:'UR',  gradeColor:'#C084FC', img:B+'Sunu.png',          autoCoins:15 },
-  { id:'ryo',    name:'료 (RYO)',     grade:'UR',  gradeColor:'#C084FC', img:B+'Ryo.png',           autoCoins:15 },
-  { id:'wolf',   name:'울프컷',       grade:'SSR', gradeColor:'#F59E0B', img:B+'Woolf.png',         autoCoins:8 },
-  { id:'band',   name:'장발밴드맨',   grade:'SSR', gradeColor:'#F59E0B', img:B+'Long band.png',     autoCoins:8 },
-  { id:'twin',   name:'양갈래아이돌', grade:'SSR', gradeColor:'#F59E0B', img:B+'Silver.png',        autoCoins:8 },
-  { id:'sports', name:'스포츠스타',   grade:'SSR', gradeColor:'#F59E0B', img:B+'Sports.png',        autoCoins:8 },
-  { id:'curtain',name:'커튼미들',     grade:'SSR', gradeColor:'#F59E0B', img:B+'Middle%20.png',     autoCoins:8 },
-  { id:'blue',   name:'파란머리',     grade:'SSR', gradeColor:'#F59E0B', img:B+'Blue.png',          autoCoins:8 },
-  { id:'vampire',name:'적발뱀파이어', grade:'SSR', gradeColor:'#F59E0B', img:B+'Red.png',           autoCoins:8 },
-  { id:'tuxedo', name:'블랙턱시도',   grade:'SSR', gradeColor:'#F59E0B', img:B+'Tuxedo%20.png',     autoCoins:8 },
-  { id:'cozy',   name:'포근한오후',   grade:'SSR', gradeColor:'#F59E0B', img:B+'Sweetheart%20.png', autoCoins:8 },
-  { id:'semi',   name:'세미정장',     grade:'SSR', gradeColor:'#F59E0B', img:B+'Semi%20.png',       autoCoins:8 },
-  { id:'bf',     name:'보이프렌드룩', grade:'SSR', gradeColor:'#F59E0B', img:B+'Blue%20jin.png',    autoCoins:8 },
-  { id:'hiphop', name:'스트릿힙합',   grade:'SSR', gradeColor:'#F59E0B', img:B+'Hip%20pop.png',     autoCoins:8 },
-  { id:'night',  name:'나이트폴',     grade:'SSR', gradeColor:'#F59E0B', img:B+'You%20and%20me.png',autoCoins:8 },
+  { id:'ian',    name:'이안 (IAN)',   grade:'UR',  gradeColor:'#C084FC', img:B+'Ian.png',           autoCoins:15, charId:null },
+  { id:'seonwoo',name:'선우',         grade:'UR',  gradeColor:'#C084FC', img:B+'Sunu.png',          autoCoins:15, charId:null },
+  { id:'ryo',    name:'료 (RYO)',     grade:'UR',  gradeColor:'#C084FC', img:B+'Ryo.png',           autoCoins:15, charId:null },
+  { id:'wolf',   name:'울프컷',       grade:'SSR', gradeColor:'#F59E0B', img:B+'Woolf.png',         autoCoins:8,  charId:null },
+  { id:'band',   name:'장발밴드맨',   grade:'SSR', gradeColor:'#F59E0B', img:B+'Long band.png',     autoCoins:8,  charId:null },
+  { id:'twin',   name:'양갈래아이돌', grade:'SSR', gradeColor:'#F59E0B', img:B+'Silver.png',        autoCoins:8,  charId:null },
+  { id:'sports', name:'스포츠스타',   grade:'SSR', gradeColor:'#F59E0B', img:B+'Sports.png',        autoCoins:8,  charId:null },
+  { id:'curtain',name:'커튼미들',     grade:'SSR', gradeColor:'#F59E0B', img:B+'Middle%20.png',     autoCoins:8,  charId:null },
+  { id:'blue',   name:'파란머리',     grade:'SSR', gradeColor:'#F59E0B', img:B+'Blue.png',          autoCoins:8,  charId:null },
+  { id:'vampire',name:'적발뱀파이어', grade:'SSR', gradeColor:'#F59E0B', img:B+'Red.png',           autoCoins:8,  charId:null },
+  { id:'tuxedo', name:'블랙턱시도',   grade:'SSR', gradeColor:'#F59E0B', img:B+'Tuxedo%20.png',     autoCoins:8,  charId:null },
+  { id:'cozy',   name:'포근한오후',   grade:'SSR', gradeColor:'#F59E0B', img:B+'Sweetheart%20.png', autoCoins:8,  charId:null },
+  { id:'semi',   name:'세미정장',     grade:'SSR', gradeColor:'#F59E0B', img:B+'Semi%20.png',       autoCoins:8,  charId:null },
+  { id:'bf',     name:'보이프렌드룩', grade:'SSR', gradeColor:'#F59E0B', img:B+'Blue%20jin.png',    autoCoins:8,  charId:null },
+  { id:'hiphop', name:'스트릿힙합',   grade:'SSR', gradeColor:'#F59E0B', img:B+'Hip%20pop.png',     autoCoins:8,  charId:null },
+  { id:'night',  name:'나이트폴',     grade:'SSR', gradeColor:'#F59E0B', img:B+'You%20and%20me.png',autoCoins:8,  charId:null },
+  // SR 캐릭터 카드
+  { id:'minjun_sr1', name:'민준 - 별빛 도서관', grade:'SR', gradeColor:'#F59E0B', img:B+'Minjun SR1.png', autoCoins:5, charId:'minjun' },
+  { id:'minjun_sr2', name:'민준 - 비 오는 귀갓길', grade:'SR', gradeColor:'#F59E0B', img:B+'Minjun SR2.png', autoCoins:5, charId:'minjun' },
+  { id:'sion_sr1',   name:'시온 - 야간 리허설',   grade:'SR', gradeColor:'#6366F1', img:B+'Sion SR1.png',   autoCoins:5, charId:'sion' },
+  { id:'sion_sr2',   name:'시온 - 밴드부 기타리스트', grade:'SR', gradeColor:'#6366F1', img:B+'Sion SR2.png', autoCoins:5, charId:'sion' },
+  { id:'doyun_sr1',  name:'도윤 - 학생회장',      grade:'SR', gradeColor:'#374151', img:B+'Doyun SR1.png',  autoCoins:5, charId:'doyun' },
+  { id:'doyun_sr2',  name:'도윤 - 뮤지컬 남주',   grade:'SR', gradeColor:'#374151', img:B+'Doyun SR2.png',  autoCoins:5, charId:'doyun' },
+  { id:'harin_sr1',  name:'하린 - 별빛축제',      grade:'SR', gradeColor:'#7C3AED', img:B+'Harin SR1.png',  autoCoins:5, charId:'harin' },
+  { id:'harin_sr2',  name:'하린 - 새벽역',        grade:'SR', gradeColor:'#7C3AED', img:B+'Harin SR2.png',  autoCoins:5, charId:'harin' },
+  { id:'yuna_sr1',   name:'윤아 - 봄 축제',       grade:'SR', gradeColor:'#EC4899', img:B+'Yuna SR1.png',   autoCoins:5, charId:'yuna' },
+  { id:'yuna_sr2',   name:'윤아 - 꽃집 알바',     grade:'SR', gradeColor:'#EC4899', img:B+'Yuna SR2.png',   autoCoins:5, charId:'yuna' },
+  { id:'ara_sr1',    name:'아라 - 무대의 여왕',   grade:'SR', gradeColor:'#9D174D', img:B+'Ara SR1.png',    autoCoins:5, charId:'ara' },
+  { id:'ara_sr2',    name:'아라 - 가면무도회',    grade:'SR', gradeColor:'#9D174D', img:B+'Ara SR2.png',    autoCoins:5, charId:'ara' },
 ];
 
 function goTo(id) {
@@ -285,18 +645,46 @@ function goTo(id) {
   updateCoinsDisplay();
   if (id==='alba') initAlba();
   if (id==='collection') renderCollection();
-  if (id==='home') renderHomeIdols();
+  if (id==='home') { renderHomeIdols(); renderHomeSpeech(); }
+  if (id==='bond') renderBondList();
 }
+
 function updateCoinsDisplay() {
   document.querySelectorAll('#coin-display,#coin-alba,#coin-gacha,#coin-gacha2').forEach(el=>{if(el)el.textContent=coins;});
 }
-function saveCoins() {
+function saveAll() {
   localStorage.setItem('ph_coins', coins);
   localStorage.setItem('ph_owned', JSON.stringify(owned));
   localStorage.setItem('ph_alba', albaDone);
+  localStorage.setItem('ph_affection', JSON.stringify(affection));
+  localStorage.setItem('ph_story', JSON.stringify(storyRead));
   updateCoinsDisplay();
 }
 
+// 홈 말풍선
+function renderHomeSpeech() {
+  const ownedChars = Object.keys(CHARS).filter(cid => {
+    return CARDS.some(c => c.charId === cid && owned.includes(c.id));
+  });
+  const nameEl = document.getElementById('speech-name');
+  const textEl = document.getElementById('speech-text');
+  const charEl = document.getElementById('speech-char');
+  if (ownedChars.length === 0) {
+    nameEl.textContent = 'POCA HOUSE';
+    textEl.textContent = '카드를 뽑으면 아이돌이 말을 걸어올 거야! 🎴';
+    charEl.textContent = '💫';
+    return;
+  }
+  const cid = ownedChars[Math.floor(Math.random() * ownedChars.length)];
+  const ch = CHARS[cid];
+  const line = ch.homeLines[Math.floor(Math.random() * ch.homeLines.length)];
+  nameEl.textContent = ch.name;
+  textEl.textContent = line;
+  charEl.textContent = ch.emoji;
+  charEl.style.background = `linear-gradient(135deg, ${ch.gradeColor}88, ${ch.gradeColor})`;
+}
+
+// 알바
 let gaugePos=0, gaugeDir=1, gaugeSpeed=1.8, gaugeRunning=false;
 function initAlba() {
   document.getElementById('coin-alba').textContent = coins;
@@ -324,7 +712,7 @@ function tapGauge() {
   else if (pos>=25&&pos<=75){grade='COOL';earn=10;}
   else{grade='MISS';earn=0;}
   coins+=earn; albaDone++;
-  saveCoins();
+  saveAll();
   document.getElementById('alba-done').textContent = albaDone;
   showResult(grade,earn);
   spawnCoinFloat(earn);
@@ -359,23 +747,35 @@ function renderAutoIdols() {
   clearInterval(window._autoInterval);
   window._autoInterval=setInterval(()=>{
     const total=autoOwned.reduce((s,c)=>s+Math.floor(c.autoCoins/2),0);
-    coins+=total; saveCoins(); spawnCoinFloat(total);
+    coins+=total; saveAll(); spawnCoinFloat(total);
   },30000);
 }
+
+// 가챠
 function doDraw(count) {
   const cost=count===1?100:280;
   if(coins<cost){alert(`코인이 부족해요! 🍔 ${cost} 필요 (현재: ${coins})`);return;}
-  coins-=cost; saveCoins();
+  coins-=cost; saveAll();
   const results=[];
   for(let i=0;i<count;i++) results.push(drawOne());
   showGachaResult(results[0]);
 }
 function drawOne() {
   const rand=Math.random()*100;
-  let pool=rand<3?CARDS.filter(c=>c.grade==='UR'):CARDS.filter(c=>c.grade==='SSR');
+  let pool;
+  if(rand<3) pool=CARDS.filter(c=>c.grade==='UR');
+  else if(rand<20) pool=CARDS.filter(c=>c.grade==='SR');
+  else pool=CARDS.filter(c=>c.grade==='SSR');
   const card=pool[Math.floor(Math.random()*pool.length)];
-  if(!owned.includes(card.id)) owned.push(card.id);
-  saveCoins(); return card;
+  if(!owned.includes(card.id)){
+    owned.push(card.id);
+    // 캐릭터 카드면 호감도 올리기
+    if(card.charId) {
+      if(!affection[card.charId]) affection[card.charId]=0;
+      affection[card.charId]=Math.min(5,affection[card.charId]+1);
+    }
+  }
+  saveAll(); return card;
 }
 function showGachaResult(card) {
   document.getElementById('gacha-res-grade').textContent=`✨ ${card.grade} ✨`;
@@ -388,8 +788,10 @@ function showGachaResult(card) {
 }
 function closeGachaResult() {
   document.getElementById('gacha-overlay').classList.remove('show');
-  renderHomeIdols();
+  renderHomeIdols(); renderHomeSpeech();
 }
+
+// 컬렉션
 function renderCollection() {
   const grid=document.getElementById('collection-grid');
   document.getElementById('collection-count').textContent=`${owned.length} / ${CARDS.length} 보유`;
@@ -407,14 +809,97 @@ function renderCollection() {
     </div>`;
   }).join('');
 }
+
+// 홈 아이돌 칩
 function renderHomeIdols() {
   const chips=document.getElementById('home-idol-chips');
   const ownedCards=CARDS.filter(c=>owned.includes(c.id));
   if(ownedCards.length===0){chips.innerHTML='<div class="empty-idol">아직 카드가 없어요 💔<br>뽑기 해봐!</div>';return;}
   chips.innerHTML=ownedCards.slice(0,5).map(c=>`<div class="idol-chip"><span class="grade" style="background:${c.gradeColor}">${c.grade}</span>${c.name}</div>`).join('')+(ownedCards.length>5?`<div class="idol-chip">+${ownedCards.length-5}장</div>`:'');
 }
+
+// ── 인연 ──
+function renderBondList() {
+  const list=document.getElementById('bond-list');
+  list.innerHTML=Object.values(CHARS).map(ch=>{
+    const aff=affection[ch.id]||0;
+    const hasCard=CARDS.some(c=>c.charId===ch.id&&owned.includes(c.id));
+    const hearts='❤️'.repeat(aff)+'🤍'.repeat(5-aff);
+    return `<div class="bond-card" onclick="${hasCard?`openBondDetail('${ch.id}')`:''}" style="${!hasCard?'opacity:0.4;cursor:default;':''}">
+      <div class="bond-card-top">
+        <div class="bond-char-placeholder" style="background:linear-gradient(135deg,${ch.gradeColor}88,${ch.gradeColor})">${ch.emoji}</div>
+        <div class="bond-info">
+          <div class="bond-name">${ch.name}</div>
+          <div class="bond-heart-row">
+            <div class="bond-hearts">${hearts}</div>
+            <div class="bond-level-text">Lv.${aff}</div>
+          </div>
+          <div class="bond-desc">${hasCard?'카드를 보유 중':'카드를 뽑아야 인연을 쌓을 수 있어'}</div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+let currentCharId=null;
+function openBondDetail(charId) {
+  currentCharId=charId;
+  const ch=CHARS[charId];
+  const aff=affection[charId]||0;
+  document.getElementById('bond-detail-img').src=ch.img;
+  document.getElementById('bond-detail-name').textContent=ch.name;
+
+  // 호감도 하트
+  const heartsEl=document.getElementById('detail-hearts');
+  heartsEl.innerHTML=[1,2,3,4,5].map(i=>`<div class="affection-heart ${i<=aff?'active':''}">${i<=aff?'❤️':'🤍'}</div>`).join('');
+  document.getElementById('affection-fill').style.width=(aff/5*100)+'%';
+  const labels=['인연 없음','처음 만남','친해지는 중','소중한 사이','마음을 열다','운명의 인연'];
+  document.getElementById('affection-label').textContent=labels[aff];
+
+  // 스토리 목록
+  const storyEl=document.getElementById('story-list');
+  storyEl.innerHTML=ch.stories.map(s=>{
+    const unlocked=aff>=s.unlockAt;
+    const read=storyRead[charId+'_'+s.ep];
+    return `<div class="story-item ${unlocked?'':'locked'}" onclick="${unlocked?`readStory('${charId}',${s.ep-1})`:''}" >
+      <div class="story-item-top">
+        <div class="story-ep">EP.${s.ep}</div>
+        <div class="story-lock">${read?'✅':unlocked?'📖':'🔒'}</div>
+      </div>
+      <div class="story-title-text">${s.title}</div>
+      <div class="story-preview">${unlocked?s.msgs[0].text.slice(0,30)+'...':'호감도 '+s.unlockAt+' 이상 필요'}</div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('bond-detail-overlay').classList.add('show');
+}
+function closeBondDetail() {
+  document.getElementById('bond-detail-overlay').classList.remove('show');
+  currentCharId=null;
+}
+
+function readStory(charId,idx) {
+  const ch=CHARS[charId];
+  const story=ch.stories[idx];
+  document.getElementById('story-read-title').textContent=`${ch.name} - ${story.title}`;
+  const body=document.getElementById('story-read-body');
+  body.innerHTML=story.msgs.map(m=>`
+    <div class="story-msg ${m.who==='player'?'player':''}">
+      <div class="story-msg-name">${m.who==='player'?'나':ch.name}</div>
+      <div class="story-msg-bubble">${m.text}</div>
+    </div>`).join('');
+  storyRead[charId+'_'+(idx+1)]=true;
+  saveAll();
+  document.getElementById('story-read-overlay').classList.add('show');
+}
+function closeStoryRead() {
+  document.getElementById('story-read-overlay').classList.remove('show');
+  if(currentCharId) openBondDetail(currentCharId);
+}
+
 updateCoinsDisplay();
 renderHomeIdols();
+renderHomeSpeech();
 </script>
 </body>
 </html>
