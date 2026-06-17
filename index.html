@@ -401,7 +401,7 @@
 <!-- 장소 상세 오버레이 -->
 <div id="place-overlay" style="display:none;position:fixed;inset:0;z-index:400;background:#000;flex-direction:column;">
   <div style="position:relative;width:100%;flex:1;overflow:hidden;">
-    <img id="place-bg-img" src="" style="width:100%;height:100%;object-fit:cover;object-position:top;">
+    <img id="place-bg-img" src="" style="width:100%;height:100%;object-fit:cover;object-position:top;pointer-events:none;">
     <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,0.7) 0%,transparent 50%);pointer-events:none;"></div>
     <button onclick="closePlace()" style="position:absolute;top:16px;left:16px;z-index:10;background:rgba(0,0,0,0.5);border:none;border-radius:10px;color:#fff;font-size:13px;font-weight:700;padding:8px 14px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">← 뒤로</button>
     <div id="place-title" style="position:absolute;bottom:16px;left:16px;z-index:10;font-size:22px;font-weight:900;color:#fff;text-shadow:0 2px 8px #0008;pointer-events:none;"></div>
@@ -1602,12 +1602,12 @@ function placeAction(idx) {
   const key = a.key;
   if(key==='burger_alba'){ closePlace(); goTo('alba-burger'); }
   else if(key==='cafe_alba'){ closePlace(); goTo('alba-cafe'); }
-  else if(key==='meet_minjun') meetChar('minjun');
-  else if(key==='meet_sion') meetChar('sion');
-  else if(key==='meet_doyun') meetChar('doyun');
-  else if(key==='meet_harin') meetChar('harin');
-  else if(key==='meet_yuna') meetChar('yuna');
-  else if(key==='meet_ara') meetChar('ara');
+  else if(key==='meet_minjun'){ const ch=CHARS['minjun'];const meet=CHAR_MEET['minjun'];const aff=affection['minjun']||0;const dialog=meet.dialogs.find(d=>aff<=d.maxAff)||meet.dialogs[meet.dialogs.length-1];showMeetPopup(ch,meet,aff<meet.reqAff?null:dialog,aff); }
+  else if(key==='meet_sion'){ const ch=CHARS['sion'];const meet=CHAR_MEET['sion'];const aff=affection['sion']||0;const dialog=meet.dialogs.find(d=>aff<=d.maxAff)||meet.dialogs[meet.dialogs.length-1];showMeetPopup(ch,meet,aff<meet.reqAff?null:dialog,aff); }
+  else if(key==='meet_doyun'){ const ch=CHARS['doyun'];const meet=CHAR_MEET['doyun'];const aff=affection['doyun']||0;const dialog=meet.dialogs.find(d=>aff<=d.maxAff)||meet.dialogs[meet.dialogs.length-1];showMeetPopup(ch,meet,aff<meet.reqAff?null:dialog,aff); }
+  else if(key==='meet_harin'){ const ch=CHARS['harin'];const meet=CHAR_MEET['harin'];const aff=affection['harin']||0;const dialog=meet.dialogs.find(d=>aff<=d.maxAff)||meet.dialogs[meet.dialogs.length-1];showMeetPopup(ch,meet,aff<meet.reqAff?null:dialog,aff); }
+  else if(key==='meet_yuna'){ const ch=CHARS['yuna'];const meet=CHAR_MEET['yuna'];const aff=affection['yuna']||0;const dialog=meet.dialogs.find(d=>aff<=d.maxAff)||meet.dialogs[meet.dialogs.length-1];showMeetPopup(ch,meet,aff<meet.reqAff?null:dialog,aff); }
+  else if(key==='meet_ara'){ const ch=CHARS['ara'];const meet=CHAR_MEET['ara'];const aff=affection['ara']||0;const dialog=meet.dialogs.find(d=>aff<=d.maxAff)||meet.dialogs[meet.dialogs.length-1];showMeetPopup(ch,meet,aff<meet.reqAff?null:dialog,aff); }
   else if(key==='sub_library') openSubPlace('library');
   else if(key==='sub_music') openSubPlace('music');
   else if(key==='sub_council') openSubPlace('council');
