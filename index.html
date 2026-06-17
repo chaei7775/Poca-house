@@ -406,7 +406,12 @@
     <button onclick="closePlace()" style="position:absolute;top:16px;left:16px;background:rgba(0,0,0,0.5);border:none;border-radius:10px;color:#fff;font-size:13px;font-weight:700;padding:8px 14px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">← 뒤로</button>
     <div id="place-title" style="position:absolute;bottom:16px;left:16px;font-size:22px;font-weight:900;color:#fff;text-shadow:0 2px 8px #0008;"></div>
   </div>
-  <div id="place-actions" style="padding:16px;background:rgba(0,0,0,0.85);display:flex;flex-direction:column;gap:10px;"></div>
+  <div id="place-actions" style="padding:16px;background:rgba(0,0,0,0.85);display:flex;flex-direction:column;gap:10px;">
+    <button id="pact-1" onclick="placeAction(1)" style="width:100%;padding:14px;background:rgba(255,255,255,0.1);border:1.5px solid rgba(255,255,255,0.2);border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;display:none;"></button>
+    <button id="pact-2" onclick="placeAction(2)" style="width:100%;padding:14px;background:rgba(255,255,255,0.1);border:1.5px solid rgba(255,255,255,0.2);border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;display:none;"></button>
+    <button id="pact-3" onclick="placeAction(3)" style="width:100%;padding:14px;background:rgba(255,255,255,0.1);border:1.5px solid rgba(255,255,255,0.2);border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;display:none;"></button>
+    <button id="pact-4" onclick="placeAction(4)" style="width:100%;padding:14px;background:rgba(255,255,255,0.1);border:1.5px solid rgba(255,255,255,0.2);border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;display:none;"></button>
+  </div>
 </div>
 
 <!-- 인연 -->
@@ -1571,42 +1576,43 @@ function explorePlace(placeId) {
   alert(msg[Math.floor(Math.random() * msg.length)]);
 }
 
+let currentPlaceActions = [];
+
 function openPlace(id) {
   const place = PLACES[id];
   if(!place) return;
-  const overlay = document.getElementById('place-overlay');
   document.getElementById('place-bg-img').src = 'https://raw.githubusercontent.com/chaei7775/Poca-house/main/' + place.img;
   document.getElementById('place-title').textContent = place.title;
+  currentPlaceActions = place.actions;
   
-  const btns = {
-    burger_alba: () => { goTo('alba-burger'); closePlace(); },
-    cafe_alba: () => { goTo('alba-cafe'); closePlace(); },
-    meet_minjun: () => meetChar('minjun'),
-    meet_sion: () => meetChar('sion'),
-    meet_doyun: () => meetChar('doyun'),
-    meet_harin: () => meetChar('harin'),
-    meet_yuna: () => meetChar('yuna'),
-    meet_ara: () => meetChar('ara'),
-    sub_library: () => openSubPlace('library'),
-    sub_music: () => openSubPlace('music'),
-    sub_council: () => openSubPlace('council'),
-    sub_rooftop: () => openSubPlace('rooftop'),
-    explore_forest: () => explorePlace('forest'),
-    explore_lake: () => explorePlace('lake'),
-    room_deco: () => alert('준비 중이에요!'),
-  };
+  for(let i=1;i<=4;i++){
+    const btn = document.getElementById('pact-'+i);
+    const a = place.actions[i-1];
+    if(a){ btn.textContent=a.label; btn.style.display='block'; }
+    else { btn.style.display='none'; }
+  }
+  document.getElementById('place-overlay').style.display = 'flex';
+}
 
-  const actEl = document.getElementById('place-actions');
-  actEl.innerHTML = '';
-  place.actions.forEach(a => {
-    const btn = document.createElement('button');
-    btn.style.cssText = 'width:100%;padding:14px;background:rgba(255,255,255,0.1);border:1.5px solid rgba(255,255,255,0.2);border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:Noto Sans KR,sans-serif;margin-bottom:0px;';
-    btn.textContent = a.label;
-    const fn = btns[a.key] || (() => alert('준비 중이에요!'));
-    btn.addEventListener('click', fn);
-    actEl.appendChild(btn);
-  });
-  overlay.style.display = 'flex';
+function placeAction(idx) {
+  const a = currentPlaceActions[idx-1];
+  if(!a) return;
+  const key = a.key;
+  if(key==='burger_alba'){ closePlace(); goTo('alba-burger'); }
+  else if(key==='cafe_alba'){ closePlace(); goTo('alba-cafe'); }
+  else if(key==='meet_minjun') meetChar('minjun');
+  else if(key==='meet_sion') meetChar('sion');
+  else if(key==='meet_doyun') meetChar('doyun');
+  else if(key==='meet_harin') meetChar('harin');
+  else if(key==='meet_yuna') meetChar('yuna');
+  else if(key==='meet_ara') meetChar('ara');
+  else if(key==='sub_library') openSubPlace('library');
+  else if(key==='sub_music') openSubPlace('music');
+  else if(key==='sub_council') openSubPlace('council');
+  else if(key==='sub_rooftop') openSubPlace('rooftop');
+  else if(key==='explore_forest') explorePlace('forest');
+  else if(key==='explore_lake') explorePlace('lake');
+  else alert('준비 중이에요!');
 }
 
 function openSubPlace(id) {
