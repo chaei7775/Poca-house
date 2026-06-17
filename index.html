@@ -481,6 +481,11 @@ let owned = JSON.parse(localStorage.getItem('ph_owned') || '[]');
 let albaDone = parseInt(localStorage.getItem('ph_alba') || '0');
 let affection = JSON.parse(localStorage.getItem('ph_affection') || '{}');
 let storyRead = JSON.parse(localStorage.getItem('ph_story') || '{}');
+let inventory = JSON.parse(localStorage.getItem('ph_inventory') || JSON.stringify({
+  '🌸 벚꽃': 3, '🌹 장미': 2, '💐 꽃다발': 1, '🍀 클로버': 5,
+  '☕ 커피': 2, '🍰 케이크': 1, '📚 책': 2, '🎵 악보': 1
+}));
+let hints = JSON.parse(localStorage.getItem('ph_hints') || '[]');
 
 const B = "https://raw.githubusercontent.com/chaei7775/Poca-house/main/";
 
@@ -1086,6 +1091,8 @@ function saveAll() {
   localStorage.setItem('ph_alba', albaDone);
   localStorage.setItem('ph_affection', JSON.stringify(affection));
   localStorage.setItem('ph_story', JSON.stringify(storyRead));
+  localStorage.setItem('ph_inventory', JSON.stringify(inventory));
+  localStorage.setItem('ph_hints', JSON.stringify(hints));
   updateCoinsDisplay();
 }
 
@@ -1330,24 +1337,20 @@ function closeStoryRead() {
 // ── 맵 ──
 const PLACES = {
   burger: {
-    title: '🍔 포카버거',
-    img: 'map-burger.png',
+    title: '🍔 포카버거', img: 'map-burger.png', charId: null,
     actions: [
       { label: '🍔 알바하기', fn: "goTo('alba-burger');closePlace();" },
-      { label: '💬 캐릭터 만나기', fn: "alert('준비 중이에요!')" },
     ]
   },
   'cafe-street': {
-    title: '☕ 카페거리',
-    img: 'map-cafe-street.png',
+    title: '☕ 카페거리', img: 'map-cafe-street.png', charId: 'yuna',
     actions: [
       { label: '☕ 카페 알바하기', fn: "goTo('alba-cafe');closePlace();" },
-      { label: '💬 캐릭터 만나기', fn: "alert('준비 중이에요!')" },
+      { label: '🌸 윤아 만나기', fn: "meetChar('yuna')" },
     ]
   },
   school: {
-    title: '🏫 연성고등학교',
-    img: 'map-school.png',
+    title: '🏫 연성고등학교', img: 'map-school.png', charId: null,
     actions: [
       { label: '📚 도서관', fn: "openSubPlace('library')" },
       { label: '🎵 음악실', fn: "openSubPlace('music')" },
@@ -1355,14 +1358,218 @@ const PLACES = {
       { label: '⭐ 옥상', fn: "openSubPlace('rooftop')" },
     ]
   },
-  library: { title: '📚 도서관', img: 'map-library.png', actions: [{ label: '💬 민준 만나기', fn: "alert('준비 중이에요!')" }] },
-  music:   { title: '🎵 음악실', img: 'map-music.png',   actions: [{ label: '💬 시온 만나기', fn: "alert('준비 중이에요!')" }] },
-  council: { title: '🏢 학생회실', img: 'map-council.png', actions: [{ label: '💬 도윤 만나기', fn: "alert('준비 중이에요!')" }] },
-  rooftop: { title: '⭐ 옥상', img: 'map-rooftop.png',  actions: [{ label: '💬 하린 만나기', fn: "alert('준비 중이에요!')" }] },
-  forest:  { title: '🌲 동쪽숲', img: 'map-forest.png',  actions: [{ label: '🌿 탐험하기', fn: "alert('준비 중이에요!')" }] },
-  lake:    { title: '🏞️ 동쪽호수', img: 'map-lake.png',  actions: [{ label: '🎣 낚시하기', fn: "alert('준비 중이에요!')" }] },
-  room:    { title: '🏠 내 방', img: 'map-room.png',     actions: [{ label: '🛋️ 방 꾸미기', fn: "alert('준비 중이에요!')" }] },
+  library: { title: '📚 도서관', img: 'map-library.png', charId: 'minjun',
+    actions: [{ label: '📚 민준 만나기', fn: "meetChar('minjun')" }] },
+  music:   { title: '🎵 음악실', img: 'map-music.png', charId: 'sion',
+    actions: [{ label: '🎸 시온 만나기', fn: "meetChar('sion')" }] },
+  council: { title: '🏢 학생회실', img: 'map-council.png', charId: 'doyun',
+    actions: [{ label: '👑 도윤 만나기', fn: "meetChar('doyun')" }] },
+  rooftop: { title: '⭐ 옥상', img: 'map-rooftop.png', charId: 'harin',
+    actions: [{ label: '🌙 하린 만나기', fn: "meetChar('harin')" }] },
+  forest:  { title: '🌲 동쪽숲', img: 'map-forest.png', charId: null,
+    actions: [{ label: '🌿 탐험하기', fn: "explorePlace('forest')" }] },
+  lake:    { title: '🏞️ 동쪽호수', img: 'map-lake.png', charId: 'ara',
+    actions: [{ label: '🌹 아라 만나기', fn: "meetChar('ara')" }] },
+  room:    { title: '🏠 내 방', img: 'map-room.png', charId: null,
+    actions: [{ label: '🛋️ 방 꾸미기', fn: "alert('준비 중이에요!')" }] },
 };
+
+// ── 캐릭터 만나기 ──
+const CHAR_MEET = {
+  minjun: {
+    reqAff: 0,
+    dialogs: [
+      { maxAff: 1, lines: ["...여기 자주 와?", "책 읽으러 온 거면 조용히 해."] },
+      { maxAff: 3, lines: ["오늘도 왔네.", "읽고 싶은 책 있으면 추천해줄게."] },
+      { maxAff: 5, lines: ["기다렸어.", "같이 읽을까?"] },
+    ],
+    hintChance: 0.3,
+    hints: ["도서관 깊숙한 곳에 봉인된 방이 있다는 소문이 있어.", "금지된 악보가 음악실 어딘가에 숨겨져 있다고 들었어.", "별의 언어를 아는 자만이 통소원에 닿을 수 있어."]
+  },
+  sion: {
+    reqAff: 0,
+    dialogs: [
+      { maxAff: 1, lines: ["...뭐야.", "볼 것 없어. 가."] },
+      { maxAff: 3, lines: ["또 왔어?", "...뭐, 방해만 안 하면 돼."] },
+      { maxAff: 5, lines: ["기다렸어.", "오늘은 새 곡 들려줄까?"] },
+    ],
+    hintChance: 0.25,
+    hints: ["음악실 피아노 뒤에 뭔가 숨겨진 것 같았어.", "폭풍의 밤에만 열리는 무대가 있다는 말을 들었어.", "금지된 악보... 나도 찾고 있어."]
+  },
+  doyun: {
+    reqAff: 1,
+    dialogs: [
+      { maxAff: 1, lines: ["볼 일 없으면 나가.", "학생회실은 아무나 오는 곳이 아니야."] },
+      { maxAff: 3, lines: ["...용건이 뭐야?", "짧게 말해."] },
+      { maxAff: 5, lines: ["왔군.", "앉아. 할 말이 있어."] },
+    ],
+    hintChance: 0.2,
+    hints: ["학생회 금고에 봉인문서가 있어. 열쇠를 찾아.", "도서관과 학생회실 사이에 비밀 통로가 있을 수 있어.", "규칙의 끝에 진실이 있어."]
+  },
+  harin: {
+    reqAff: 0,
+    dialogs: [
+      { maxAff: 1, lines: ["...여기 자주 와?", "옥상은 내 장소야."] },
+      { maxAff: 3, lines: ["오늘도 왔네.", "같이 별 볼래?"] },
+      { maxAff: 5, lines: ["기다렸어.", "오늘 밤 특별한 게 보일 것 같아."] },
+    ],
+    hintChance: 0.35,
+    hints: ["옥상에서 달빛이 특정 방향을 비추는 날이 있어.", "마지막 노래가 끝나면 새로운 문이 열려.", "별빛 전망대는 별이 없는 밤에만 보여."]
+  },
+  yuna: {
+    reqAff: 0,
+    dialogs: [
+      { maxAff: 1, lines: ["어서 와! 오늘 꽃 예쁜 거 많이 들어왔어!", "뭐 필요해?"] },
+      { maxAff: 3, lines: ["또 왔어? 반가워!", "오늘 특별히 예쁜 꽃 골라줄게~"] },
+      { maxAff: 5, lines: ["기다렸어!", "이 꽃 너 생각하면서 골랐어."] },
+    ],
+    hintChance: 0.3,
+    hints: ["숲 깊은 곳에 아무도 모르는 비밀 온실이 있어.", "봄에만 피는 별꽃씨앗이 있다는 말을 들었어.", "꽃의 언어를 아는 사람만이 온실에 들어갈 수 있어."]
+  },
+  ara: {
+    reqAff: 2,
+    dialogs: [
+      { maxAff: 2, lines: ["...감히.", "이 호수는 내 장소야. 돌아가."] },
+      { maxAff: 4, lines: ["...또 왔군.", "비밀은 알아도 말 안 해."] },
+      { maxAff: 5, lines: ["...왔군.", "오늘은 특별히 얘기해줄게."] },
+    ],
+    hintChance: 0.15,
+    hints: ["붉은 달이 뜨는 밤, 호수 섬에 들어갈 수 있어.", "장미 향기를 따라가면 비밀 정원이 보여.", "나를 가진다는 건 축복이자 저주야."]
+  }
+};
+
+function meetChar(charId) {
+  const ch = CHARS[charId];
+  const meet = CHAR_MEET[charId];
+  if(!ch || !meet) return;
+  const aff = affection[charId] || 0;
+
+  // 요구 호감도 체크
+  if(aff < meet.reqAff) {
+    showMeetPopup(ch, meet, null, aff);
+    return;
+  }
+
+  // 대화 선택
+  const dialog = meet.dialogs.find(d => aff <= d.maxAff) || meet.dialogs[meet.dialogs.length-1];
+  showMeetPopup(ch, meet, dialog, aff);
+}
+
+function showMeetPopup(ch, meet, dialog, aff) {
+  const overlay = document.createElement('div');
+  overlay.id = 'meet-overlay';
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:500;background:rgba(0,0,0,0.85);display:flex;flex-direction:column;justify-content:flex-end;';
+
+  const hearts = '❤️'.repeat(aff) + '🤍'.repeat(5-aff);
+
+  if(!dialog) {
+    // 접근 불가
+    overlay.innerHTML = `
+      <div style="padding:24px;background:rgba(20,10,30,0.98);border-radius:20px 20px 0 0;">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+          <div style="width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,${ch.gradeColor}88,${ch.gradeColor});display:flex;align-items:center;justify-content:center;font-size:24px;">${ch.emoji}</div>
+          <div>
+            <div style="font-size:16px;font-weight:900;color:#fff;">${ch.name}</div>
+            <div style="font-size:12px;color:#888;">호감도 ${meet.reqAff} 이상 필요</div>
+          </div>
+        </div>
+        <div style="background:rgba(255,255,255,0.05);border-radius:12px;padding:14px;margin-bottom:16px;">
+          <div style="font-size:14px;color:#aaa;line-height:1.6;">...접근하지 마. 아직 너를 받아들일 준비가 안 됐어.</div>
+        </div>
+        <button onclick="document.getElementById('meet-overlay').remove()" style="width:100%;padding:14px;background:rgba(255,255,255,0.1);border:none;border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">돌아가기</button>
+      </div>`;
+  } else {
+    const lineIdx = Math.floor(Math.random() * dialog.lines.length);
+    const line = dialog.lines[lineIdx];
+    overlay.innerHTML = `
+      <div style="padding:24px;background:rgba(20,10,30,0.98);border-radius:20px 20px 0 0;">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+          <div style="width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,${ch.gradeColor}88,${ch.gradeColor});display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;">${ch.emoji}</div>
+          <div style="flex:1;">
+            <div style="font-size:16px;font-weight:900;color:#fff;">${ch.name}</div>
+            <div style="font-size:13px;">${hearts}</div>
+          </div>
+        </div>
+        <div style="background:rgba(255,255,255,0.06);border-radius:12px;padding:14px;margin-bottom:14px;min-height:60px;">
+          <div style="font-size:15px;color:#eee;line-height:1.7;">"${line}"</div>
+        </div>
+        <button onclick="showGiftMenu('${charId}')" style="width:100%;padding:13px;background:linear-gradient(135deg,#FF6B9D,#C084FC);border:none;border-radius:12px;color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;margin-bottom:8px;">💝 호감작하기</button>
+        <button onclick="document.getElementById('meet-overlay').remove()" style="width:100%;padding:12px;background:rgba(255,255,255,0.08);border:none;border-radius:12px;color:#aaa;font-size:14px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">돌아가기</button>
+      </div>`;
+  }
+  document.body.appendChild(overlay);
+}
+
+function showGiftMenu(charId) {
+  const overlay = document.getElementById('meet-overlay');
+  const ch = CHARS[charId];
+  const items = Object.entries(inventory).filter(([k,v]) => v > 0);
+
+  if(items.length === 0) {
+    overlay.querySelector('div').innerHTML += '<div style="color:#FF6B9D;text-align:center;margin-top:8px;">인벤토리가 비어있어요!</div>';
+    return;
+  }
+
+  const giftHtml = items.map(([item, cnt]) =>
+    `<button onclick="giveGift('${charId}','${item}')" style="padding:10px 14px;background:rgba(255,255,255,0.08);border:1.5px solid rgba(255,255,255,0.15);border-radius:10px;color:#fff;font-size:13px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;text-align:left;">
+      ${item} <span style="color:#aaa;font-size:11px;">x${cnt}</span>
+    </button>`
+  ).join('');
+
+  const panel = overlay.querySelector('div');
+  panel.innerHTML = `
+    <div style="font-size:13px;color:#FFB3CC;margin-bottom:10px;font-weight:700;">💝 어떤 선물을 줄까요?</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;">${giftHtml}</div>
+    <button onclick="document.getElementById('meet-overlay').remove()" style="width:100%;padding:12px;background:rgba(255,255,255,0.08);border:none;border-radius:12px;color:#aaa;font-size:14px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">취소</button>`;
+}
+
+function giveGift(charId, item) {
+  const ch = CHARS[charId];
+  const meet = CHAR_MEET[charId];
+  if(!inventory[item] || inventory[item] <= 0) return;
+
+  // 아이템 사용
+  inventory[item]--;
+  if(inventory[item] === 0) delete inventory[item];
+
+  // 호감도 상승
+  if(!affection[charId]) affection[charId] = 0;
+  const oldAff = affection[charId];
+  affection[charId] = Math.min(5, affection[charId] + 1);
+  saveAll();
+
+  // 힌트 체크
+  let hintText = '';
+  const gotHint = Math.random() < meet.hintChance;
+  if(gotHint && meet.hints.length > 0) {
+    const hint = meet.hints[Math.floor(Math.random() * meet.hints.length)];
+    if(!hints.includes(hint)) {
+      hints.push(hint);
+      saveAll();
+      hintText = `<div style="background:rgba(255,215,0,0.1);border:1px solid rgba(255,215,0,0.3);border-radius:10px;padding:10px;margin-top:10px;"><div style="font-size:11px;color:#FFD700;font-weight:700;margin-bottom:4px;">💡 단서 획득!</div><div style="font-size:13px;color:#eee;">"${hint}"</div></div>`;
+    }
+  }
+
+  const newAff = affection[charId];
+  const hearts = '❤️'.repeat(newAff) + '🤍'.repeat(5-newAff);
+  const affUp = newAff > oldAff;
+
+  const overlay = document.getElementById('meet-overlay');
+  overlay.querySelector('div').innerHTML = `
+    <div style="text-align:center;padding:8px 0;">
+      <div style="font-size:32px;margin-bottom:8px;">${item}</div>
+      <div style="font-size:16px;font-weight:900;color:#fff;margin-bottom:6px;">${ch.name}에게 선물했어요!</div>
+      <div style="font-size:20px;margin-bottom:6px;">${hearts}</div>
+      ${affUp ? '<div style="font-size:13px;color:#FF6B9D;font-weight:700;">💞 호감도 상승!</div>' : '<div style="font-size:12px;color:#888;">이미 최대 호감도예요</div>'}
+      ${hintText}
+    </div>
+    <button onclick="document.getElementById('meet-overlay').remove()" style="width:100%;margin-top:16px;padding:13px;background:linear-gradient(135deg,#FF6B9D,#C084FC);border:none;border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">확인</button>`;
+}
+
+function explorePlace(placeId) {
+  const msg = ['탐험 중... 아무것도 발견하지 못했어.', '수상한 흔적이 있어. 더 조사가 필요해.', '뭔가 있는 것 같은데... 연금술 도구가 필요할 것 같아.'];
+  alert(msg[Math.floor(Math.random() * msg.length)]);
+}
 
 function openPlace(id) {
   const place = PLACES[id];
