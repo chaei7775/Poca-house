@@ -1577,9 +1577,15 @@ function openPlace(id) {
   const overlay = document.getElementById('place-overlay');
   document.getElementById('place-bg-img').src = 'https://raw.githubusercontent.com/chaei7775/Poca-house/main/' + place.img;
   document.getElementById('place-title').textContent = place.title;
-  document.getElementById('place-actions').innerHTML = place.actions.map(a =>
-    `<button onclick="${a.fn}" style="width:100%;padding:14px;background:rgba(255,255,255,0.1);border:1.5px solid rgba(255,255,255,0.2);border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">${a.label}</button>`
-  ).join('');
+  const actionsEl = document.getElementById('place-actions');
+  actionsEl.innerHTML = '';
+  place.actions.forEach(a => {
+    const btn = document.createElement('button');
+    btn.style.cssText = 'width:100%;padding:14px;background:rgba(255,255,255,0.1);border:1.5px solid rgba(255,255,255,0.2);border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:Noto Sans KR,sans-serif;';
+    btn.textContent = a.label;
+    btn.addEventListener('click', new Function(a.fn));
+    actionsEl.appendChild(btn);
+  });
   overlay.style.display = 'flex';
 }
 
