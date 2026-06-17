@@ -1455,10 +1455,9 @@ const CHAR_MEET = {
 };
 
 function meetChar(charId) {
-  alert('meetChar 실행됨: ' + charId);
   const ch = CHARS[charId];
   const meet = CHAR_MEET[charId];
-  if(!ch || !meet) { alert('데이터 없음'); return; }
+  if(!ch || !meet) return;
   const aff = affection[charId] || 0;
 
   // 요구 호감도 체크
