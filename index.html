@@ -1339,39 +1339,39 @@ const PLACES = {
   burger: {
     title: '🍔 포카버거', img: 'map-burger.png', charId: null,
     actions: [
-      { label: '🍔 알바하기', fn: "goTo('alba-burger');closePlace();" },
+      { label: '🍔 알바하기', key: 'burger_alba' },
     ]
   },
   'cafe-street': {
     title: '☕ 카페거리', img: 'map-cafe-street.png', charId: 'yuna',
     actions: [
-      { label: '☕ 카페 알바하기', fn: "goTo('alba-cafe');closePlace();" },
-      { label: '🌸 윤아 만나기', fn: "meetChar('yuna')" },
+      { label: '☕ 카페 알바하기', key: 'cafe_alba' },
+      { label: '🌸 윤아 만나기', key: 'meet_yuna' },
     ]
   },
   school: {
     title: '🏫 연성고등학교', img: 'map-school.png', charId: null,
     actions: [
-      { label: '📚 도서관', fn: "openSubPlace('library')" },
-      { label: '🎵 음악실', fn: "openSubPlace('music')" },
-      { label: '🏢 학생회실', fn: "openSubPlace('council')" },
-      { label: '⭐ 옥상', fn: "openSubPlace('rooftop')" },
+      { label: '📚 도서관', key: 'sub_library' },
+      { label: '🎵 음악실', key: 'sub_music' },
+      { label: '🏢 학생회실', key: 'sub_council' },
+      { label: '⭐ 옥상', key: 'sub_rooftop' },
     ]
   },
   library: { title: '📚 도서관', img: 'map-library.png', charId: 'minjun',
-    actions: [{ label: '📚 민준 만나기', fn: "meetChar('minjun')" }] },
+    actions: [{ label: '📚 민준 만나기', key: 'meet_minjun' }] },
   music:   { title: '🎵 음악실', img: 'map-music.png', charId: 'sion',
-    actions: [{ label: '🎸 시온 만나기', fn: "meetChar('sion')" }] },
+    actions: [{ label: '🎸 시온 만나기', key: 'meet_sion' }] },
   council: { title: '🏢 학생회실', img: 'map-council.png', charId: 'doyun',
-    actions: [{ label: '👑 도윤 만나기', fn: "meetChar('doyun')" }] },
+    actions: [{ label: '👑 도윤 만나기', key: 'meet_doyun' }] },
   rooftop: { title: '⭐ 옥상', img: 'map-rooftop.png', charId: 'harin',
-    actions: [{ label: '🌙 하린 만나기', fn: "meetChar('harin')" }] },
+    actions: [{ label: '🌙 하린 만나기', key: 'meet_harin' }] },
   forest:  { title: '🌲 동쪽숲', img: 'map-forest.png', charId: null,
-    actions: [{ label: '🌿 탐험하기', fn: "explorePlace('forest')" }] },
+    actions: [{ label: '🌿 탐험하기', key: 'explore_forest' }] },
   lake:    { title: '🏞️ 동쪽호수', img: 'map-lake.png', charId: 'ara',
-    actions: [{ label: '🌹 아라 만나기', fn: "meetChar('ara')" }] },
+    actions: [{ label: '🌹 아라 만나기', key: 'meet_ara' }] },
   room:    { title: '🏠 내 방', img: 'map-room.png', charId: null,
-    actions: [{ label: '🛋️ 방 꾸미기', fn: "alert('준비 중이에요!')" }] },
+    actions: [{ label: '🛋️ 방 꾸미기', key: 'room_deco' }] },
 };
 
 // ── 캐릭터 만나기 ──
@@ -1577,30 +1577,34 @@ function openPlace(id) {
   const overlay = document.getElementById('place-overlay');
   document.getElementById('place-bg-img').src = 'https://raw.githubusercontent.com/chaei7775/Poca-house/main/' + place.img;
   document.getElementById('place-title').textContent = place.title;
-  const actionsEl = document.getElementById('place-actions');
-  actionsEl.innerHTML = '';
+  
+  const btns = {
+    burger_alba: () => { goTo('alba-burger'); closePlace(); },
+    cafe_alba: () => { goTo('alba-cafe'); closePlace(); },
+    meet_minjun: () => meetChar('minjun'),
+    meet_sion: () => meetChar('sion'),
+    meet_doyun: () => meetChar('doyun'),
+    meet_harin: () => meetChar('harin'),
+    meet_yuna: () => meetChar('yuna'),
+    meet_ara: () => meetChar('ara'),
+    sub_library: () => openSubPlace('library'),
+    sub_music: () => openSubPlace('music'),
+    sub_council: () => openSubPlace('council'),
+    sub_rooftop: () => openSubPlace('rooftop'),
+    explore_forest: () => explorePlace('forest'),
+    explore_lake: () => explorePlace('lake'),
+    room_deco: () => alert('준비 중이에요!'),
+  };
+
+  const actEl = document.getElementById('place-actions');
+  actEl.innerHTML = '';
   place.actions.forEach(a => {
     const btn = document.createElement('button');
-    btn.style.cssText = 'width:100%;padding:14px;background:rgba(255,255,255,0.1);border:1.5px solid rgba(255,255,255,0.2);border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:Noto Sans KR,sans-serif;';
+    btn.style.cssText = 'width:100%;padding:14px;background:rgba(255,255,255,0.1);border:1.5px solid rgba(255,255,255,0.2);border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:Noto Sans KR,sans-serif;margin-bottom:0px;';
     btn.textContent = a.label;
-    if(a.fn.startsWith("meetChar(")) {
-      const cid = a.fn.match(/meetChar\('(.+?)'\)/)[1];
-      btn.addEventListener('click', () => meetChar(cid));
-    } else if(a.fn.startsWith("goTo(")) {
-      const parts = a.fn.match(/goTo\('(.+?)'\)/);
-      const gid = parts[1];
-      const extra = a.fn.includes('closePlace()');
-      btn.addEventListener('click', () => { goTo(gid); if(extra) closePlace(); });
-    } else if(a.fn.startsWith("openSubPlace(")) {
-      const sid = a.fn.match(/openSubPlace\('(.+?)'\)/)[1];
-      btn.addEventListener('click', () => openSubPlace(sid));
-    } else if(a.fn.startsWith("explorePlace(")) {
-      const eid = a.fn.match(/explorePlace\('(.+?)'\)/)[1];
-      btn.addEventListener('click', () => explorePlace(eid));
-    } else {
-      btn.addEventListener('click', () => alert('준비 중이에요!'));
-    }
-    actionsEl.appendChild(btn);
+    const fn = btns[a.key] || (() => alert('준비 중이에요!'));
+    btn.addEventListener('click', fn);
+    actEl.appendChild(btn);
   });
   overlay.style.display = 'flex';
 }
