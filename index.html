@@ -1583,8 +1583,23 @@ function openPlace(id) {
     const btn = document.createElement('button');
     btn.style.cssText = 'width:100%;padding:14px;background:rgba(255,255,255,0.1);border:1.5px solid rgba(255,255,255,0.2);border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:Noto Sans KR,sans-serif;';
     btn.textContent = a.label;
-    btn.setAttribute('data-fn', a.fn);
-    btn.addEventListener('click', function() { eval(this.getAttribute('data-fn')); });
+    if(a.fn.startsWith("meetChar(")) {
+      const cid = a.fn.match(/meetChar\('(.+?)'\)/)[1];
+      btn.addEventListener('click', () => meetChar(cid));
+    } else if(a.fn.startsWith("goTo(")) {
+      const parts = a.fn.match(/goTo\('(.+?)'\)/);
+      const gid = parts[1];
+      const extra = a.fn.includes('closePlace()');
+      btn.addEventListener('click', () => { goTo(gid); if(extra) closePlace(); });
+    } else if(a.fn.startsWith("openSubPlace(")) {
+      const sid = a.fn.match(/openSubPlace\('(.+?)'\)/)[1];
+      btn.addEventListener('click', () => openSubPlace(sid));
+    } else if(a.fn.startsWith("explorePlace(")) {
+      const eid = a.fn.match(/explorePlace\('(.+?)'\)/)[1];
+      btn.addEventListener('click', () => explorePlace(eid));
+    } else {
+      btn.addEventListener('click', () => alert('준비 중이에요!'));
+    }
     actionsEl.appendChild(btn);
   });
   overlay.style.display = 'flex';
