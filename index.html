@@ -565,99 +565,19 @@
 </div>
 
 <!-- Firebase -->
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
-  import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, increment, orderBy, query, limit, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
-
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script>
   const firebaseConfig = {
     apiKey: "AIzaSyC1_Y4AIMSgx3MG5hI2dpcanNpkb13jB3M",
     authDomain: "poca-house.firebaseapp.com",
     projectId: "poca-house",
     storageBucket: "poca-house.firebasestorage.app",
     messagingSenderId: "32346141447",
-    appId: "1:32346141447:web:90d35bf9a7710f3aa88ba2",
-    measurementId: "G-N6WFV22CRM"
+    appId: "1:32346141447:web:90d35bf9a7710f3aa88ba2"
   };
-
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
-
-  // 타임라인 포스트 추가
-  window.addTimelinePost = async function(content, cardImg, cardName, grade) {
-    const nick = localStorage.getItem('ph_nickname') || '포카러버';
-    try {
-      await addDoc(collection(db, 'timeline'), {
-        nick, content, cardImg: cardImg || '', cardName: cardName || '', grade: grade || '',
-        likes: 0, createdAt: serverTimestamp()
-      });
-    } catch(e) { console.error(e); }
-  };
-
-  // 타임라인 실시간 로드
-  window.loadTimeline = function() {
-    const q = query(collection(db, 'timeline'), orderBy('createdAt', 'desc'), limit(30));
-    onSnapshot(q, (snapshot) => {
-      const feed = document.getElementById('timeline-feed');
-      if (snapshot.empty) {
-        feed.innerHTML = '<div class="timeline-empty">🌸 아직 소식이 없어요<br>카드를 뽑으면 자동으로 올라와요!</div>';
-        return;
-      }
-      feed.innerHTML = snapshot.docs.map(d => {
-        const data = d.data();
-        const myLikes = JSON.parse(localStorage.getItem('ph_likes') || '[]');
-        const liked = myLikes.includes(d.id);
-        const time = data.createdAt ? timeAgo(data.createdAt.toDate()) : '방금';
-        return `<div class="timeline-item">
-          <div class="timeline-item-top">
-            <div class="timeline-avatar">🌸</div>
-            <div class="timeline-nick">${data.nick}</div>
-            <div class="timeline-time">${time}</div>
-          </div>
-          <div class="timeline-content">${data.content}</div>
-          ${data.cardImg ? `<div class="timeline-card-img"><img src="${data.cardImg}" onerror="this.style.display='none'"></div>` : ''}
-          <div class="timeline-actions">
-            <button class="timeline-action-btn ${liked ? 'liked' : ''}" onclick="toggleLike('${d.id}', this)">💗 부러워요 ${data.likes || 0}</button>
-            <button class="timeline-action-btn" onclick="openComment('${d.id}')">💬 댓글</button>
-          </div>
-        </div>`;
-      }).join('');
-    });
-  };
-
-  // 좋아요
-  window.toggleLike = async function(postId, btn) {
-    const myLikes = JSON.parse(localStorage.getItem('ph_likes') || '[]');
-    if (myLikes.includes(postId)) return;
-    myLikes.push(postId);
-    localStorage.setItem('ph_likes', JSON.stringify(myLikes));
-    btn.classList.add('liked');
-    try {
-      await updateDoc(doc(db, 'timeline', postId), { likes: increment(1) });
-    } catch(e) {}
-  };
-
-  // 댓글 로드
-  window.loadComments = async function(postId) {
-    const list = document.getElementById('comment-list');
-    list.innerHTML = '<div style="text-align:center;color:#aaa;font-size:13px;padding:20px;">로딩 중...</div>';
-    try {
-      const snap = await getDocs(collection(db, 'timeline', postId, 'comments'));
-      if (snap.empty) { list.innerHTML = '<div style="text-align:center;color:#aaa;font-size:13px;padding:20px;">댓글이 없어요. 첫 댓글을 남겨봐!</div>'; return; }
-      list.innerHTML = snap.docs.map(d => {
-        const data = d.data();
-        return `<div class="comment-item"><div class="comment-nick">${data.nick}</div><div class="comment-text">${data.text}</div></div>`;
-      }).join('');
-    } catch(e) { list.innerHTML = '<div style="text-align:center;color:#aaa;font-size:13px;padding:20px;">댓글을 불러올 수 없어요.</div>'; }
-  };
-
-  // 댓글 전송
-  window.sendCommentToFirebase = async function(postId, text) {
-    const nick = localStorage.getItem('ph_nickname') || '포카러버';
-    try {
-      await addDoc(collection(db, 'timeline', postId, 'comments'), { nick, text, createdAt: serverTimestamp() });
-      loadComments(postId);
-    } catch(e) {}
-  };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
 
   function timeAgo(date) {
     const diff = Math.floor((new Date() - date) / 1000);
@@ -666,6 +586,82 @@
     if (diff < 86400) return Math.floor(diff/3600) + '시간 전';
     return Math.floor(diff/86400) + '일 전';
   }
+
+  window.addTimelinePost = async function(content, cardImg, cardName, grade) {
+    const nick = localStorage.getItem('ph_nickname') || '포카러버';
+    try {
+      await db.collection('timeline').add({
+        nick, content, cardImg: cardImg || '', cardName: cardName || '', grade: grade || '',
+        likes: 0, createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+    } catch(e) { console.error(e); }
+  };
+
+  window.loadTimeline = function() {
+    db.collection('timeline').orderBy('createdAt', 'desc').limit(30)
+      .onSnapshot((snapshot) => {
+        const feed = document.getElementById('timeline-feed');
+        if (snapshot.empty) {
+          feed.innerHTML = '<div class="timeline-empty">🌸 아직 소식이 없어요<br>카드를 뽑으면 자동으로 올라와요!</div>';
+          return;
+        }
+        feed.innerHTML = snapshot.docs.map(d => {
+          const data = d.data();
+          const myLikes = JSON.parse(localStorage.getItem('ph_likes') || '[]');
+          const liked = myLikes.includes(d.id);
+          const time = data.createdAt ? timeAgo(data.createdAt.toDate()) : '방금';
+          return `<div class="timeline-item">
+            <div class="timeline-item-top">
+              <div class="timeline-avatar">🌸</div>
+              <div class="timeline-nick">${data.nick}</div>
+              <div class="timeline-time">${time}</div>
+            </div>
+            <div class="timeline-content">${data.content}</div>
+            ${data.cardImg ? `<div class="timeline-card-img"><img src="${data.cardImg}" onerror="this.style.display='none'"></div>` : ''}
+            <div class="timeline-actions">
+              <button class="timeline-action-btn ${liked ? 'liked' : ''}" onclick="toggleLike('${d.id}', this)">💗 부러워요 ${data.likes || 0}</button>
+              <button class="timeline-action-btn" onclick="openComment('${d.id}')">💬 댓글</button>
+            </div>
+          </div>`;
+        }).join('');
+      });
+  };
+
+  window.toggleLike = async function(postId, btn) {
+    const myLikes = JSON.parse(localStorage.getItem('ph_likes') || '[]');
+    if (myLikes.includes(postId)) return;
+    myLikes.push(postId);
+    localStorage.setItem('ph_likes', JSON.stringify(myLikes));
+    btn.classList.add('liked');
+    try {
+      await db.collection('timeline').doc(postId).update({
+        likes: firebase.firestore.FieldValue.increment(1)
+      });
+    } catch(e) {}
+  };
+
+  window.loadComments = async function(postId) {
+    const list = document.getElementById('comment-list');
+    list.innerHTML = '<div style="text-align:center;color:#aaa;font-size:13px;padding:20px;">로딩 중...</div>';
+    try {
+      const snap = await db.collection('timeline').doc(postId).collection('comments').get();
+      if (snap.empty) { list.innerHTML = '<div style="text-align:center;color:#aaa;font-size:13px;padding:20px;">댓글이 없어요. 첫 댓글을 남겨봐!</div>'; return; }
+      list.innerHTML = snap.docs.map(d => {
+        const data = d.data();
+        return `<div class="comment-item"><div class="comment-nick">${data.nick}</div><div class="comment-text">${data.text}</div></div>`;
+      }).join('');
+    } catch(e) { list.innerHTML = '<div style="text-align:center;color:#aaa;font-size:13px;padding:20px;">댓글을 불러올 수 없어요.</div>'; }
+  };
+
+  window.sendCommentToFirebase = async function(postId, text) {
+    const nick = localStorage.getItem('ph_nickname') || '포카러버';
+    try {
+      await db.collection('timeline').doc(postId).collection('comments').add({
+        nick, text, createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      window.loadComments(postId);
+    } catch(e) {}
+  };
 </script>
 
 <script src="game.js"></script>
