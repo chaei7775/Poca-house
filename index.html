@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>POCA HOUSE</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&family=Noto+Sans+KR:wght@400;700;900&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  :root { --pink: #FF6B9D; --pink-light: #FFB3CC; --pink-pale: #FFF0F5; --purple: #C084FC; --gold: #F59E0B; --dark: #1a1a2e; }
+  body { font-family: 'Noto Sans KR', sans-serif; background: var(--pink-pale); min-height: 100vh; max-width: 430px; margin: 0 auto; overflow-x: hidden; }
+  .screen { display: none; min-height: 100vh; flex-direction: column; padding-bottom: 70px; }
+  .screen.active { display: flex; }
+  .topbar { background: linear-gradient(135deg, #FF6B9D, #C084FC); padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 12px #FF6B9D44; }
+  .topbar-logo { font-family: 'Nunito', sans-serif; font-weight: 900; font-size: 18px; color: #fff; }
+  .topbar-logo span { color: #FFE4EF; }
+  .coins { background: rgba(255,255,255,0.25); border-radius: 20px; padding: 4px 12px; font-size: 14px; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 4px; }
+  #screen-home { background: linear-gradient(180deg, #FFF0F5 0%, #FFE4EF 100%); }
+  .home-banner { position: relative; width: 100%; height: 240px; overflow: hidden; background: #FFD6E8; }
+  .home-banner img { width: 100%; height: 100%; object-fit: cover; object-position: center top; }
+  .home-banner-overlay { position: absolute; bottom: 0; left: 0; right: 0; padding: 20px 16px 12px; background: linear-gradient(to top, #FFF0F5ee, transparent); }
+  .home-banner-title { font-size: 22px; font-weight: 900; color: var(--pink); text-shadow: 0 1px 8px #fff8; }
+  .home-banner-sub { font-size: 12px; color: #FF6B9D99; margin-top: 2px; }
+  .home-speech { padding: 12px 16px 0; }
+  .speech-bubble-wrap { display: flex; align-items: flex-end; gap: 10px; }
+  .speech-char-placeholder { width: 52px; height: 52px; border-radius: 50%; background: linear-gradient(135deg, #FFB3CC, #C084FC); display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; }
+  .speech-bubble { background: #fff; border: 1.5px solid var(--pink-light); border-radius: 16px 16px 16px 4px; padding: 10px 14px; font-size: 13px; color: #555; line-height: 1.5; box-shadow: 0 2px 8px #FF6B9D11; max-width: calc(100% - 72px); }
+  .speech-name { font-size: 11px; font-weight: 700; color: var(--pink); margin-bottom: 3px; }
+  .home-actions { padding: 12px 16px; display: flex; flex-direction: column; gap: 10px; }
+  .btn-main { width: 100%; padding: 15px; border: none; border-radius: 16px; font-size: 16px; font-weight: 900; font-family: 'Noto Sans KR', sans-serif; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
+  .btn-main:active { transform: scale(0.97); }
+  .btn-alba { background: linear-gradient(135deg, #FF6B9D, #FF8FAB); color: #fff; box-shadow: 0 4px 20px #FF6B9D55; }
+  .btn-gacha { background: linear-gradient(135deg, #C084FC, #A855F7); color: #fff; box-shadow: 0 4px 20px #C084FC55; }
+  .btn-collection { background: #fff; color: var(--pink); border: 2px solid var(--pink-light); }
+  .idol-preview { padding: 0 16px 16px; }
+  .section-title { font-size: 13px; font-weight: 700; color: #FF6B9D99; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 10px; }
+  .idol-chips { display: flex; gap: 8px; flex-wrap: wrap; }
+  .idol-chip { background: #fff; border: 1.5px solid var(--pink-light); border-radius: 20px; padding: 6px 14px; font-size: 13px; font-weight: 700; color: var(--pink); display: flex; align-items: center; gap: 4px; }
+  .idol-chip .grade { font-size: 10px; background: linear-gradient(135deg, #C084FC, #A855F7); color: #fff; border-radius: 6px; padding: 1px 5px; }
+  .empty-idol { font-size: 13px; color: #FFB3CC; padding: 8px 0; }
+  #screen-alba { position: relative; overflow: hidden; background: #1a1a2e; }
+  .alba-bg { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background-image: url('https://raw.githubusercontent.com/chaei7775/Poca-house/main/alba-main.png'); background-size: cover; background-position: center top; opacity: 0.5; }
+  .alba-content { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; padding: 20px 16px; gap: 16px; min-height: 100vh; }
+  .alba-title { font-size: 20px; font-weight: 900; color: #fff; text-align: center; text-shadow: 0 2px 8px #0008; }
+  .back-btn { width: 100%; padding: 14px; background: rgba(0,0,0,0.4); border: 1.5px solid rgba(255,255,255,0.2); border-radius: 14px; color: #fff; font-size: 15px; font-weight: 700; font-family: 'Noto Sans KR', sans-serif; cursor: pointer; }
+  #screen-gacha { position: relative; overflow: hidden; background: linear-gradient(180deg, #1a1a2e 0%, #2d1b4e 100%); }
+  .gacha-bg { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background-image: url('https://raw.githubusercontent.com/chaei7775/Poca-house/main/burger-order.png'); background-size: cover; background-position: center top; opacity: 0.18; }
+  .gacha-inner { position: relative; z-index: 1; width: 100%; padding-bottom: 32px; }
+  .gacha-header { padding: 20px 16px 0; text-align: center; }
+  .gacha-title { font-size: 24px; font-weight: 900; font-family: 'Nunito', sans-serif; background: linear-gradient(135deg, #C084FC, #FF6B9D); -webkit-background-clip: text; -webkit-text-fill-color: transparent; letter-spacing: 2px; }
+  .gacha-sub { font-size: 12px; color: #C084FC88; margin-top: 4px; }
+  .gacha-coins-display { background: rgba(192,132,252,0.15); border: 1.5px solid #C084FC44; border-radius: 12px; padding: 10px 16px; margin: 16px; text-align: center; font-size: 15px; color: var(--gold); font-weight: 700; }
+  .gacha-card-area { padding: 0 16px; display: flex; flex-direction: column; align-items: center; gap: 16px; }
+  .gacha-card { width: 100%; max-width: 280px; aspect-ratio: 3/4; border-radius: 16px; overflow: hidden; box-shadow: 0 8px 40px #C084FC44; background: #2d1b4e; display: flex; align-items: center; justify-content: center; }
+  .gacha-card-back { width: 100%; height: 100%; background: linear-gradient(135deg, #2d1b4e, #1a1a2e); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; }
+  .gacha-card-back-logo { font-size: 32px; font-weight: 900; font-family: 'Nunito', sans-serif; color: #C084FC44; letter-spacing: 4px; }
+  .gacha-card-back-icon { font-size: 48px; opacity: 0.3; }
+  .gacha-btn-row { display: flex; gap: 10px; padding: 0 16px; width: 100%; }
+  .gacha-btn { flex: 1; padding: 14px; border: none; border-radius: 14px; font-size: 14px; font-weight: 900; font-family: 'Noto Sans KR', sans-serif; cursor: pointer; }
+  .gacha-btn:active { transform: scale(0.97); }
+  .gacha-btn-1 { background: rgba(192,132,252,0.2); border: 1.5px solid #C084FC; color: #C084FC; }
+  .gacha-btn-3 { background: linear-gradient(135deg, #C084FC, #A855F7); color: #fff; box-shadow: 0 4px 16px #C084FC44; }
+  .gacha-cost { font-size: 11px; opacity: 0.8; font-weight: 400; }
+  .gacha-result-overlay { display: none; position: fixed; inset: 0; background: rgba(26,26,46,0.92); z-index: 300; flex-direction: column; align-items: center; justify-content: center; gap: 20px; padding: 24px; }
+  .gacha-result-overlay.show { display: flex; }
+  .gacha-result-card { width: 240px; aspect-ratio: 3/4; border-radius: 16px; overflow: hidden; box-shadow: 0 0 60px #C084FC88; animation: cardReveal 0.5s cubic-bezier(0.34,1.56,0.64,1); }
+  .gacha-result-card img { width: 100%; height: 100%; object-fit: cover; }
+  @keyframes cardReveal { from { transform: rotateY(90deg) scale(0.8); opacity: 0; } to { transform: rotateY(0deg) scale(1); opacity: 1; } }
+  .gacha-result-grade { font-size: 28px; font-weight: 900; font-family: 'Nunito', sans-serif; text-align: center; }
+  .gacha-result-name { font-size: 18px; font-weight: 700; color: #fff; text-align: center; }
+  .gacha-close-btn { padding: 14px 40px; background: linear-gradient(135deg, #FF6B9D, #C084FC); border: none; border-radius: 14px; color: #fff; font-size: 16px; font-weight: 900; font-family: 'Noto Sans KR', sans-serif; cursor: pointer; }
+  #screen-collection { background: var(--pink-pale); }
+  .collection-header { padding: 20px 16px 12px; background: linear-gradient(135deg, #FF6B9D, #C084FC); }
+  .collection-title { font-size: 20px; font-weight: 900; color: #fff; font-family: 'Nunito', sans-serif; }
+  .collection-sub { font-size: 12px; color: rgba(255,255,255,0.7); margin-top: 2px; }
+  .collection-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 16px; }
+  .card-item { background: #fff; border-radius: 14px; overflow: hidden; box-shadow: 0 2px 12px #FF6B9D22; position: relative; }
+  .card-item-info { padding: 8px 10px; }
+  .card-item-name { font-size: 13px; font-weight: 700; color: #333; }
+  .card-item-grade { font-size: 11px; font-weight: 700; margin-top: 2px; }
+  .card-locked { filter: grayscale(1) brightness(0.4); }
+  .card-locked-overlay { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 32px; background: rgba(0,0,0,0.3); }
+  #screen-bond { background: linear-gradient(180deg, #1a1a2e 0%, #2d1b4e 100%); }
+  .bond-header { padding: 20px 16px 12px; background: linear-gradient(135deg, #C084FC, #FF6B9D); }
+  .bond-header-title { font-size: 20px; font-weight: 900; color: #fff; font-family: 'Nunito', sans-serif; }
+  .bond-header-sub { font-size: 12px; color: rgba(255,255,255,0.7); margin-top: 2px; }
+  .bond-list { padding: 16px; display: flex; flex-direction: column; gap: 14px; }
+  .bond-card { background: rgba(255,255,255,0.06); border: 1.5px solid rgba(255,255,255,0.12); border-radius: 18px; overflow: hidden; cursor: pointer; transition: transform 0.15s; }
+  .bond-card:active { transform: scale(0.98); }
+  .bond-card-top { display: flex; align-items: center; gap: 14px; padding: 14px; }
+  .bond-char-placeholder { width: 64px; height: 64px; border-radius: 50%; background: linear-gradient(135deg, #FF6B9D, #C084FC); display: flex; align-items: center; justify-content: center; font-size: 28px; flex-shrink: 0; }
+  .bond-info { flex: 1; }
+  .bond-name { font-size: 16px; font-weight: 900; color: #fff; }
+  .bond-heart-row { display: flex; align-items: center; gap: 6px; margin-top: 8px; }
+  .bond-hearts { display: flex; gap: 3px; }
+  .bond-level-text { font-size: 11px; color: #FFB3CC; font-weight: 700; }
+  .bond-desc { font-size: 11px; color: #aaa; margin-top: 4px; }
+  .bond-detail-overlay { display: none; position: fixed; inset: 0; background: rgba(10,10,20,0.97); z-index: 400; flex-direction: column; overflow-y: auto; }
+  .bond-detail-overlay.show { display: flex; }
+  .bond-detail-header { position: relative; width: 100%; height: 280px; overflow: hidden; flex-shrink: 0; }
+  .bond-detail-header img { width: 100%; height: 100%; object-fit: cover; object-position: top; }
+  .bond-detail-header-overlay { position: absolute; inset: 0; background: linear-gradient(to top, #0a0a14 30%, transparent); }
+  .bond-detail-back { position: absolute; top: 16px; left: 16px; background: rgba(0,0,0,0.5); border: none; border-radius: 10px; color: #fff; font-size: 14px; font-weight: 700; padding: 8px 14px; cursor: pointer; font-family: 'Noto Sans KR', sans-serif; }
+  .bond-detail-name { position: absolute; bottom: 16px; left: 16px; font-size: 24px; font-weight: 900; color: #fff; text-shadow: 0 2px 8px #0008; }
+  .bond-detail-body { padding: 20px 16px; display: flex; flex-direction: column; gap: 20px; flex: 1; }
+  .bond-affection { background: rgba(255,255,255,0.06); border-radius: 14px; padding: 16px; }
+  .bond-affection-title { font-size: 13px; font-weight: 700; color: #FFB3CC; letter-spacing: 1px; margin-bottom: 12px; }
+  .affection-hearts { display: flex; gap: 8px; justify-content: center; margin-bottom: 10px; }
+  .affection-heart { font-size: 28px; transition: transform 0.2s; }
+  .affection-heart.active { transform: scale(1.15); }
+  .affection-bar { width: 100%; height: 8px; background: rgba(255,255,255,0.1); border-radius: 4px; overflow: hidden; }
+  .affection-fill { height: 100%; background: linear-gradient(90deg, #FF6B9D, #C084FC); border-radius: 4px; transition: width 0.4s ease; }
+  .affection-label { text-align: center; font-size: 12px; color: #888; margin-top: 8px; }
+  .bond-stories { background: rgba(255,255,255,0.06); border-radius: 14px; padding: 16px; }
+  .bond-stories-title { font-size: 13px; font-weight: 700; color: #FFB3CC; letter-spacing: 1px; margin-bottom: 12px; }
+  .story-item { padding: 12px; background: rgba(255,255,255,0.05); border-radius: 10px; margin-bottom: 8px; cursor: pointer; border: 1px solid rgba(255,255,255,0.08); }
+  .story-item:last-child { margin-bottom: 0; }
+  .story-item.locked { opacity: 0.4; cursor: default; }
+  .story-item-top { display: flex; align-items: center; justify-content: space-between; }
+  .story-ep { font-size: 12px; font-weight: 700; color: #C084FC; }
+  .story-title-text { font-size: 14px; font-weight: 700; color: #fff; margin-top: 4px; }
+  .story-preview { font-size: 12px; color: #888; margin-top: 4px; line-height: 1.4; }
+  .story-read-overlay { display: none; position: fixed; inset: 0; background: rgba(5,5,15,0.98); z-index: 500; flex-direction: column; }
+  .story-read-overlay.show { display: flex; }
+  .story-read-header { padding: 16px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid rgba(255,255,255,0.08); flex-shrink: 0; }
+  .story-read-back { background: none; border: none; color: #fff; font-size: 20px; cursor: pointer; }
+  .story-read-title { font-size: 15px; font-weight: 700; color: #fff; }
+  .story-read-body { flex: 1; overflow-y: auto; padding: 20px 16px; display: flex; flex-direction: column; gap: 16px; }
+  .story-msg { display: flex; flex-direction: column; gap: 4px; }
+  .story-msg-name { font-size: 11px; font-weight: 700; color: #C084FC; }
+  .story-msg-bubble { background: rgba(255,255,255,0.07); border-radius: 12px 12px 12px 4px; padding: 12px 14px; font-size: 14px; color: #eee; line-height: 1.6; max-width: 85%; border: 1px solid rgba(255,255,255,0.1); }
+  .story-msg.player .story-msg-bubble { background: rgba(255,107,157,0.15); border-radius: 12px 12px 4px 12px; align-self: flex-end; border-color: rgba(255,107,157,0.2); }
+  .story-msg.player .story-msg-name { text-align: right; color: #FF6B9D; }
+  .story-read-footer { padding: 16px; flex-shrink: 0; }
+  .story-next-btn { width: 100%; padding: 14px; background: linear-gradient(135deg, #C084FC, #FF6B9D); border: none; border-radius: 14px; color: #fff; font-size: 15px; font-weight: 700; font-family: 'Noto Sans KR', sans-serif; cursor: pointer; }
+  .navbar { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 430px; background: #fff; border-top: 1.5px solid #FFE4EF; display: flex; z-index: 100; box-shadow: 0 -4px 20px #FF6B9D22; }
+  .nav-item { flex: 1; padding: 6px 0 5px; display: flex; flex-direction: column; align-items: center; gap: 1px; cursor: pointer; border: none; background: none; font-family: 'Noto Sans KR', sans-serif; color: #FFB3CC; }
+  .nav-item.active { color: var(--pink); }
+  .nav-icon { font-size: 18px; }
+  .nav-label { font-size: 8px; font-weight: 700; }
+  @keyframes fadeInUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+  .animate-in { animation: fadeInUp 0.3s ease both; }
+  .result-bg { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 150; }
+  .result-bg.show { display: block; }
+  .result-popup { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0); background: rgba(26,26,46,0.95); border: 2px solid; border-radius: 20px; padding: 24px 32px; text-align: center; z-index: 200; transition: transform 0.2s cubic-bezier(0.34,1.56,0.64,1); min-width: 200px; }
+  .result-popup.show { transform: translate(-50%, -50%) scale(1); }
+  .result-grade { font-size: 36px; font-weight: 900; font-family: 'Nunito', sans-serif; letter-spacing: 2px; }
+  .result-coins { font-size: 16px; color: var(--gold); font-weight: 700; margin-top: 4px; }
+  .result-sub { font-size: 12px; color: #888; margin-top: 4px; }
+  .coin-float { position: fixed; font-size: 18px; font-weight: 900; color: var(--gold); pointer-events: none; z-index: 500; animation: floatUp 1s ease forwards; }
+  @keyframes floatUp { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(-60px); } }
+  @keyframes pulse { 0%,100%{opacity:0.6;transform:scale(1);} 50%{opacity:1;transform:scale(1.05);} }
+  @keyframes popIn { from{transform:scale(0);opacity:0;} to{transform:scale(1);opacity:1;} }
+  .shop-overlay { display: none; position: fixed; inset: 0; z-index: 450; background: rgba(0,0,0,0.6); align-items: flex-end; }
+  .shop-overlay.show { display: flex; }
+  .shop-panel { width: 100%; max-width: 430px; margin: 0 auto; background: #1a1a2e; border-radius: 24px 24px 0 0; padding: 20px 16px 36px; max-height: 85vh; overflow-y: auto; }
+  .shop-tab-row { display: flex; gap: 8px; margin-bottom: 16px; }
+  .shop-tab { flex: 1; padding: 10px; border: none; border-radius: 12px; font-size: 14px; font-weight: 700; font-family: 'Noto Sans KR', sans-serif; cursor: pointer; background: rgba(255,255,255,0.08); color: #aaa; }
+  .shop-tab.active { background: linear-gradient(135deg, #FF6B9D, #C084FC); color: #fff; }
+  .shop-section { display: none; }
+  .shop-section.active { display: block; }
+  .shop-item { display: flex; align-items: center; justify-content: space-between; padding: 14px; background: rgba(255,255,255,0.06); border-radius: 14px; margin-bottom: 10px; border: 1px solid rgba(255,255,255,0.1); }
+  .shop-item-left { display: flex; align-items: center; gap: 12px; }
+  .shop-item-emoji { font-size: 28px; }
+  .shop-item-name { font-size: 14px; font-weight: 700; color: #fff; }
+  .shop-item-desc { font-size: 11px; color: #888; margin-top: 2px; }
+  .shop-btn { padding: 8px 16px; border: none; border-radius: 10px; font-size: 13px; font-weight: 700; font-family: 'Noto Sans KR', sans-serif; cursor: pointer; white-space: nowrap; }
+  .shop-btn-buy { background: linear-gradient(135deg, #FF6B9D, #C084FC); color: #fff; }
+  .shop-btn-apply { background: linear-gradient(135deg, #4ade80, #22c55e); color: #fff; }
+  .room-card { border-radius: 16px; overflow: hidden; margin-bottom: 14px; border: 2px solid rgba(255,255,255,0.1); position: relative; }
+  .room-card.current { border-color: #FF6B9D; }
+  .room-card-img { width: 100%; height: 160px; background: #2d1b4e; display: flex; align-items: center; justify-content: center; font-size: 48px; overflow: hidden; }
+  .room-card-img img { width: 100%; height: 100%; object-fit: cover; }
+  .room-card-body { padding: 12px 14px; background: rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: space-between; }
+  .room-card-name { font-size: 15px; font-weight: 700; color: #fff; }
+  .room-card-price { font-size: 12px; color: var(--gold); margin-top: 2px; }
+  .room-current-badge { position: absolute; top: 10px; right: 10px; background: #FF6B9D; color: #fff; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px; }
+  .wish-popup { position: fixed; inset: 0; z-index: 600; background: rgba(0,0,0,0.75); display: flex; align-items: center; justify-content: center; animation: fadeInUp 0.3s ease; }
+  .wish-inner { background: linear-gradient(135deg, #1a1a2e, #2d1b4e); border: 2px solid #FFD700; border-radius: 24px; padding: 32px 24px; text-align: center; box-shadow: 0 0 40px #FFD70044; max-width: 300px; width: 90%; }
+  .nickname-popup { position: fixed; inset: 0; z-index: 1000; background: linear-gradient(135deg, #FF6B9D, #C084FC); display: flex; align-items: center; justify-content: center; }
+  .nickname-inner { background: #fff; border-radius: 24px; padding: 32px 24px; text-align: center; width: 90%; max-width: 320px; }
+  .nickname-title { font-size: 22px; font-weight: 900; color: var(--pink); margin-bottom: 8px; }
+  .nickname-sub { font-size: 13px; color: #888; margin-bottom: 20px; }
+  .nickname-input { width: 100%; padding: 14px; border: 2px solid var(--pink-light); border-radius: 12px; font-size: 16px; font-family: 'Noto Sans KR', sans-serif; text-align: center; outline: none; }
+  .nickname-input:focus { border-color: var(--pink); }
+  .nickname-btn { width: 100%; padding: 14px; background: linear-gradient(135deg, #FF6B9D, #C084FC); border: none; border-radius: 12px; color: #fff; font-size: 16px; font-weight: 900; font-family: 'Noto Sans KR', sans-serif; cursor: pointer; margin-top: 12px; }
+  .attend-popup { position: fixed; inset: 0; z-index: 900; background: rgba(0,0,0,0.75); display: flex; align-items: center; justify-content: center; }
+  .attend-inner { background: linear-gradient(135deg, #1a1a2e, #2d1b4e); border: 2px solid #FF6B9D; border-radius: 24px; padding: 28px 24px; text-align: center; width: 90%; max-width: 320px; }
+  .attend-title { font-size: 20px; font-weight: 900; color: #FF6B9D; margin-bottom: 4px; }
+  .attend-day { font-size: 14px; color: #FFB3CC; margin-bottom: 16px; }
+  .attend-reward { font-size: 40px; margin-bottom: 12px; }
+  .attend-reward-text { font-size: 15px; font-weight: 700; color: #fff; margin-bottom: 20px; line-height: 1.6; }
+  .attend-btn { width: 100%; padding: 14px; background: linear-gradient(135deg, #FF6B9D, #C084FC); border: none; border-radius: 12px; color: #fff; font-size: 16px; font-weight: 900; font-family: 'Noto Sans KR', sans-serif; cursor: pointer; }
+  #screen-timeline { background: var(--pink-pale); }
+  .timeline-header { padding: 20px 16px 12px; background: linear-gradient(135deg, #FF6B9D, #C084FC); }
+  .timeline-title { font-size: 20px; font-weight: 900; color: #fff; font-family: 'Nunito', sans-serif; }
+  .timeline-sub { font-size: 12px; color: rgba(255,255,255,0.7); margin-top: 2px; }
+  .timeline-feed { padding: 12px 16px; display: flex; flex-direction: column; gap: 12px; }
+  .timeline-item { background: #fff; border-radius: 16px; padding: 14px; box-shadow: 0 2px 12px #FF6B9D11; border: 1px solid #FFE4EF; }
+  .timeline-empty { text-align: center; padding: 40px 20px; color: #FFB3CC; font-size: 14px; }
+  .comment-overlay { display: none; position: fixed; inset: 0; z-index: 600; background: rgba(0,0,0,0.6); align-items: flex-end; }
+  .comment-overlay.show { display: flex; }
+  .comment-panel { width: 100%; max-width: 430px; margin: 0 auto; background: #fff; border-radius: 24px 24px 0 0; padding: 20px 16px; max-height: 70vh; display: flex; flex-direction: column; }
+  /* 가방 */
+  .bag-slot { background:#fff;border:1.5px solid #FFE4EF;border-radius:12px;aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;position:relative;cursor:pointer; }
+  .bag-slot.has-item { border-color:#FFB3CC;background:linear-gradient(135deg,#FFF0F5,#fff); }
+  .bag-slot.has-item:active { transform:scale(0.95); }
+  .bag-slot.empty { cursor:default; }
+  .bag-item-emoji { font-size:22px; }
+  .bag-item-qty { position:absolute;top:3px;right:5px;font-size:10px;font-weight:900;color:#FF6B9D; }
+  .bag-item-name { font-size:9px;color:#888;font-weight:700;text-align:center;max-width:100%;overflow:hidden;white-space:nowrap; }
+</style>
+</head>
+<body>
+
+<!-- 닉네임 팝업 -->
+<div class="nickname-popup" id="nickname-popup" style="display:none;">
+  <div class="nickname-inner">
+    <div style="font-size:48px;margin-bottom:12px;">🌸</div>
+    <div class="nickname-title">포카하우스에 오신걸 환영해요!</div>
+    <div class="nickname-sub">닉네임을 입력해주세요</div>
+    <input class="nickname-input" id="nickname-input" type="text" placeholder="닉네임 (2-8자)" maxlength="8">
+    <button class="nickname-btn" onclick="saveNickname()">시작하기 ✨</button>
+  </div>
+</div>
+
+<!-- 출석 팝업 -->
+<div class="attend-popup" id="attend-popup" style="display:none;">
+  <div class="attend-inner">
+    <div class="attend-title">🎁 출석 보상!</div>
+    <div class="attend-day" id="attend-day-text"></div>
+    <div class="attend-reward" id="attend-reward-emoji"></div>
+    <div class="attend-reward-text" id="attend-reward-text"></div>
+    <button class="attend-btn" onclick="closeAttend()">받기! 🎀</button>
+  </div>
+</div>
+
+<!-- HOME -->
+<div id="screen-home" class="screen active">
+  <div class="topbar">
+    <div class="topbar-logo">POCA<span>HOUSE</span></div>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <div style="font-size:12px;color:#FFE4EF;font-weight:700;" id="topbar-nick"></div>
+      <div class="coins">🍔 <span id="coin-display">0</span></div>
+    </div>
+  </div>
+  <div class="home-banner">
+    <img src="https://raw.githubusercontent.com/chaei7775/Poca-house/main/burger-main.png" alt="포카하우스" onerror="this.style.display='none'">
+    <div class="home-banner-overlay">
+      <div class="home-banner-title">오늘도 알바 가자! 🎀</div>
+      <div class="home-banner-sub">열심히 일하고 아이돌 카드 뽑아봐</div>
+    </div>
+  </div>
+  <div class="home-speech">
+    <div class="speech-bubble-wrap">
+      <div class="speech-char-placeholder" id="speech-char">💫</div>
+      <div class="speech-bubble">
+        <div class="speech-name" id="speech-name">POCA HOUSE</div>
+        <div id="speech-text">카드를 뽑으면 아이돌이 말을 걸어올 거야! 🎴</div>
+      </div>
+    </div>
+  </div>
+  <div class="home-actions animate-in">
+    <button class="btn-main btn-alba" onclick="goTo('alba')">🍔 알바하기</button>
+    <button class="btn-main btn-gacha" onclick="goTo('gacha')">✨ 카드 뽑기</button>
+    <button class="btn-main btn-collection" onclick="goTo('collection')">📁 내 컬렉션</button>
+  </div>
+  <div class="idol-preview">
+    <div class="section-title">내 아이돌</div>
+    <div class="idol-chips" id="home-idol-chips"><div class="empty-idol">아직 카드가 없어요 💔<br>뽑기 해봐!</div></div>
+  </div>
+</div>
+
+<!-- ALBA 선택 -->
+<div id="screen-alba" class="screen">
+  <div class="alba-bg"></div>
+  <div class="alba-content">
+    <div style="display:flex;align-items:center;justify-content:space-between;width:100%;">
+      <div class="alba-title">알바 선택</div>
+      <div class="coins" style="background:rgba(0,0,0,0.4);">🍔 <span id="coin-alba">0</span></div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:14px;width:100%;margin-top:8px;">
+      <button onclick="goTo('alba-burger')" style="width:100%;padding:0;border:none;border-radius:18px;overflow:hidden;cursor:pointer;position:relative;height:140px;">
+        <img src="https://raw.githubusercontent.com/chaei7775/Poca-house/main/map-burger.png" style="width:100%;height:100%;object-fit:cover;object-position:center top;">
+        <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,0.6),transparent);display:flex;align-items:flex-end;padding:14px;">
+          <div style="text-align:left;"><div style="font-size:18px;font-weight:900;color:#fff;">🍔 포카버거 알바</div><div style="font-size:12px;color:#FFB3CC;">재료 조합 게임</div></div>
+        </div>
+      </button>
+      <button onclick="goTo('alba-cafe')" style="width:100%;padding:0;border:none;border-radius:18px;overflow:hidden;cursor:pointer;position:relative;height:140px;">
+        <img src="https://raw.githubusercontent.com/chaei7775/Poca-house/main/map-cafe.png" style="width:100%;height:100%;object-fit:cover;object-position:center top;">
+        <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,0.6),transparent);display:flex;align-items:flex-end;padding:14px;">
+          <div style="text-align:left;"><div style="font-size:18px;font-weight:900;color:#fff;">☕ 포카카페 알바</div><div style="font-size:12px;color:#FFB3CC;">에스프레소→스티밍→라떼아트→서빙</div></div>
+        </div>
+      </button>
+    </div>
+    <button class="back-btn" onclick="goTo('home')">← 홈으로</button>
+  </div>
+</div>
+
+<!-- ALBA 버거 -->
+<div id="screen-alba-burger" class="screen" style="background:#1a0a0a;padding-bottom:70px;flex-direction:column;">
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:rgba(0,0,0,0.6);flex-shrink:0;">
+    <button onclick="goTo('alba')" style="background:rgba(255,255,255,0.15);border:none;border-radius:10px;color:#fff;font-size:13px;font-weight:700;padding:7px 12px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">← 뒤로</button>
+    <div style="font-size:13px;font-weight:700;color:#fff;" id="burger-menu-name">메뉴 선택</div>
+    <div class="coins" style="background:rgba(0,0,0,0.5);font-size:12px;">🍔 <span id="coin-alba-burger">0</span></div>
+  </div>
+  <div style="position:relative;width:100%;flex-shrink:0;">
+    <img src="https://raw.githubusercontent.com/chaei7775/Poca-house/main/map-burger.png" style="width:100%;display:block;">
+    <div id="burger-hotspots" style="position:absolute;inset:0;z-index:5;"></div>
+  </div>
+  <div id="burger-bottom-panel" style="padding:12px 16px;background:rgba(0,0,0,0.75);backdrop-filter:blur(8px);flex:1;"></div>
+</div>
+
+<!-- ALBA 카페 -->
+<div id="screen-alba-cafe" class="screen" style="background:#1a0e0a;padding-bottom:70px;flex-direction:column;">
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:rgba(0,0,0,0.6);flex-shrink:0;">
+    <button onclick="goTo('alba')" style="background:rgba(255,255,255,0.15);border:none;border-radius:10px;color:#fff;font-size:13px;font-weight:700;padding:7px 12px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">← 뒤로</button>
+    <div style="display:flex;gap:6px;align-items:center;">
+      <div id="cdot-1" style="width:24px;height:24px;border-radius:50%;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff;font-weight:700;">1</div>
+      <div id="cdot-2" style="width:24px;height:24px;border-radius:50%;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff;font-weight:700;">2</div>
+      <div id="cdot-3" style="width:24px;height:24px;border-radius:50%;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff;font-weight:700;">3</div>
+      <div id="cdot-4" style="width:24px;height:24px;border-radius:50%;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff;font-weight:700;">4</div>
+    </div>
+    <div class="coins" style="background:rgba(0,0,0,0.5);font-size:12px;">🍔 <span id="coin-alba-cafe">0</span></div>
+  </div>
+  <div style="position:relative;width:100%;flex-shrink:0;" id="cafe-img-wrap">
+    <img src="https://raw.githubusercontent.com/chaei7775/Poca-house/main/map-cafe.png" style="width:100%;display:block;" id="cafe-bg-img">
+    <div id="cafe-hotspots" style="position:absolute;inset:0;z-index:5;"></div>
+    <canvas id="latte-canvas" style="position:absolute;inset:0;z-index:6;display:none;touch-action:none;"></canvas>
+  </div>
+  <div id="cafe-bottom-panel" style="padding:12px 16px;background:rgba(0,0,0,0.7);backdrop-filter:blur(8px);flex:1;"></div>
+</div>
+
+<!-- GACHA -->
+<div id="screen-gacha" class="screen">
+  <div class="gacha-bg"></div>
+  <div class="gacha-inner">
+    <div class="topbar" style="background:linear-gradient(135deg,#1a1a2eee,#2d1b4eee);">
+      <div class="topbar-logo">POCA<span>HOUSE</span></div>
+      <div class="coins">🍔 <span id="coin-gacha">0</span></div>
+    </div>
+    <div class="gacha-header">
+      <div class="gacha-title">CARD DRAW</div>
+      <div class="gacha-sub">어떤 아이돌이 나올까? 💜</div>
+    </div>
+    <div class="gacha-coins-display">보유 코인: 🍔 <span id="coin-gacha2">0</span></div>
+    <div class="gacha-card-area">
+      <div class="gacha-card">
+        <div class="gacha-card-back">
+          <div class="gacha-card-back-logo">POCA<br>HOUSE</div>
+          <div class="gacha-card-back-icon">🎴</div>
+        </div>
+      </div>
+    </div>
+    <div style="height:16px;"></div>
+    <div class="gacha-btn-row">
+      <button class="gacha-btn gacha-btn-1" onclick="doDraw(1)">1뽑<br><span class="gacha-cost">🍔 180</span></button>
+      <button class="gacha-btn gacha-btn-3" onclick="doDraw(3)">3뽑<br><span class="gacha-cost">🍔 540</span></button>
+    </div>
+    <div style="padding:12px 16px 0;">
+      <button class="back-btn" style="background:rgba(255,255,255,0.05);border-color:rgba(255,255,255,0.15);color:#aaa;" onclick="goTo('home')">← 홈으로</button>
+    </div>
+  </div>
+</div>
+
+<!-- COLLECTION -->
+<div id="screen-collection" class="screen">
+  <div class="collection-header">
+    <div class="collection-title">내 컬렉션 📁</div>
+    <div class="collection-sub" id="collection-count">0 / 0 보유</div>
+  </div>
+  <div class="collection-grid" id="collection-grid"></div>
+  <div style="padding:0 16px;">
+    <button class="back-btn" style="background:rgba(255,107,157,0.1);border-color:var(--pink-light);color:var(--pink);" onclick="goTo('home')">← 홈으로</button>
+  </div>
+</div>
+
+<!-- 맵 -->
+<div id="screen-map" class="screen" style="background:#0a1628;padding-bottom:70px;flex-direction:column;">
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:rgba(0,0,0,0.6);flex-shrink:0;">
+    <div style="font-size:16px;font-weight:900;color:#fff;font-family:'Nunito',sans-serif;">🗺️ 포카마을</div>
+    <div class="coins" style="background:rgba(0,0,0,0.5);font-size:12px;">🍔 <span id="coin-map">0</span></div>
+  </div>
+  <div style="position:relative;width:100%;overflow:hidden;">
+    <img src="https://raw.githubusercontent.com/chaei7775/Poca-house/main/map-village.png" style="width:100%;display:block;">
+    <button onclick="openPlace('school')" style="position:absolute;left:48%;top:12%;transform:translate(-50%,-50%);background:rgba(96,165,250,0.85);border:2px solid #fff;border-radius:20px;padding:4px 10px;color:#fff;font-size:11px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;white-space:nowrap;">🏫 연성고등학교</button>
+    <button onclick="openPlace('beach')" style="position:absolute;left:12%;top:30%;transform:translate(-50%,-50%);background:rgba(56,189,248,0.85);border:2px solid #fff;border-radius:20px;padding:4px 10px;color:#fff;font-size:11px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;white-space:nowrap;">🏖️ 해변</button>
+    <button onclick="openPlace('forest')" style="position:absolute;left:22%;top:42%;transform:translate(-50%,-50%);background:rgba(74,222,128,0.85);border:2px solid #fff;border-radius:20px;padding:4px 10px;color:#fff;font-size:11px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;white-space:nowrap;">🌲 동쪽숲</button>
+    <button onclick="openPlace('shopping')" style="position:absolute;left:58%;top:35%;transform:translate(-50%,-50%);background:rgba(251,191,36,0.9);border:2px solid #fff;border-radius:20px;padding:4px 10px;color:#fff;font-size:11px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;white-space:nowrap;">🛍️ 상점거리</button>
+    <button onclick="openPlace('housing')" style="position:absolute;left:76%;top:28%;transform:translate(-50%,-50%);background:rgba(255,182,193,0.85);border:2px solid #fff;border-radius:20px;padding:4px 10px;color:#fff;font-size:11px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;white-space:nowrap;">🏘️ 주택가</button>
+    <button onclick="openPlace('mystery')" style="position:absolute;left:90%;top:20%;transform:translate(-50%,-50%);background:rgba(192,132,252,0.85);border:2px solid #fff;border-radius:20px;padding:4px 10px;color:#fff;font-size:11px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;white-space:nowrap;">✨ 신비의 섬</button>
+    <button onclick="openPlace('cafe-street')" style="position:absolute;left:80%;top:52%;transform:translate(-50%,-50%);background:rgba(192,132,252,0.85);border:2px solid #fff;border-radius:20px;padding:4px 10px;color:#fff;font-size:11px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;white-space:nowrap;">☕ 카페거리</button>
+    <button onclick="openPlace('square')" style="position:absolute;left:52%;top:52%;transform:translate(-50%,-50%);background:rgba(255,107,157,0.85);border:2px solid #fff;border-radius:20px;padding:4px 10px;color:#fff;font-size:11px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;white-space:nowrap;">🏛️ 중앙광장</button>
+    <button onclick="openPlace('lake')" style="position:absolute;left:20%;top:62%;transform:translate(-50%,-50%);background:rgba(56,189,248,0.85);border:2px solid #fff;border-radius:20px;padding:4px 10px;color:#fff;font-size:11px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;white-space:nowrap;">🏞️ 동쪽호수</button>
+    <button onclick="openPlace('room')" style="position:absolute;left:48%;top:75%;transform:translate(-50%,-50%);background:rgba(255,182,193,0.85);border:2px solid #fff;border-radius:20px;padding:4px 10px;color:#fff;font-size:11px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;white-space:nowrap;">🏠 내 집</button>
+    <button onclick="openPlace('park')" style="position:absolute;left:72%;top:75%;transform:translate(-50%,-50%);background:rgba(74,222,128,0.85);border:2px solid #fff;border-radius:20px;padding:4px 10px;color:#fff;font-size:11px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;white-space:nowrap;">🌸 꽃길공원</button>
+  </div>
+</div>
+
+<!-- 장소 오버레이 -->
+<div id="place-overlay" style="display:none;position:fixed;inset:0;z-index:400;background:#000;flex-direction:column;">
+  <div style="position:relative;width:100%;flex:1;overflow:hidden;">
+    <img id="place-bg-img" src="" style="width:100%;height:100%;object-fit:cover;object-position:top;">
+    <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,0.7) 0%,transparent 50%);pointer-events:none;"></div>
+    <button onclick="closePlace()" style="position:absolute;top:16px;left:16px;z-index:10;background:rgba(0,0,0,0.5);border:none;border-radius:10px;color:#fff;font-size:13px;font-weight:700;padding:8px 14px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">← 뒤로</button>
+    <div id="place-title" style="position:absolute;bottom:16px;left:16px;z-index:10;font-size:22px;font-weight:900;color:#fff;text-shadow:0 2px 8px #0008;"></div>
+  </div>
+  <div style="padding:16px;background:rgba(0,0,0,0.9);display:flex;flex-direction:column;gap:10px;">
+    <button onclick="doBurgerAlba()" id="btn-burger-alba" style="display:none;width:100%;padding:14px;background:rgba(255,255,255,0.1);border:1.5px solid rgba(255,255,255,0.2);border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">🍔 알바하기</button>
+    <button onclick="doCafeAlba()" id="btn-cafe-alba" style="display:none;width:100%;padding:14px;background:rgba(255,255,255,0.1);border:1.5px solid rgba(255,255,255,0.2);border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">☕ 카페 알바하기</button>
+    <button onclick="meetChar('yuna')" id="btn-meet-yuna" style="display:none;width:100%;padding:14px;background:rgba(255,107,157,0.2);border:1.5px solid #FF6B9D;border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">🌸 윤아 만나기</button>
+    <button onclick="meetChar('minjun')" id="btn-meet-minjun" style="display:none;width:100%;padding:14px;background:rgba(255,107,157,0.2);border:1.5px solid #FF6B9D;border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">📚 민준 만나기</button>
+    <button onclick="meetChar('sion')" id="btn-meet-sion" style="display:none;width:100%;padding:14px;background:rgba(99,102,241,0.2);border:1.5px solid #6366F1;border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">🎸 시온 만나기</button>
+    <button onclick="meetChar('doyun')" id="btn-meet-doyun" style="display:none;width:100%;padding:14px;background:rgba(55,65,81,0.4);border:1.5px solid #9ca3af;border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">👑 도윤 만나기</button>
+    <button onclick="meetChar('harin')" id="btn-meet-harin" style="display:none;width:100%;padding:14px;background:rgba(124,58,237,0.2);border:1.5px solid #7C3AED;border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">🌙 하린 만나기</button>
+    <button onclick="meetChar('ara')" id="btn-meet-ara" style="display:none;width:100%;padding:14px;background:rgba(157,23,77,0.2);border:1.5px solid #9D174D;border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">🌹 아라 만나기</button>
+    <button onclick="openSubPlace('library')" id="btn-sub-library" style="display:none;width:100%;padding:14px;background:rgba(255,255,255,0.1);border:1.5px solid rgba(255,255,255,0.2);border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">📚 도서관</button>
+    <button onclick="openSubPlace('music')" id="btn-sub-music" style="display:none;width:100%;padding:14px;background:rgba(255,255,255,0.1);border:1.5px solid rgba(255,255,255,0.2);border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">🎵 음악실</button>
+    <button onclick="openSubPlace('council')" id="btn-sub-council" style="display:none;width:100%;padding:14px;background:rgba(255,255,255,0.1);border:1.5px solid rgba(255,255,255,0.2);border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">🏢 학생회실</button>
+    <button onclick="openSubPlace('rooftop')" id="btn-sub-rooftop" style="display:none;width:100%;padding:14px;background:rgba(255,255,255,0.1);border:1.5px solid rgba(255,255,255,0.2);border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">⭐ 옥상</button>
+    <button onclick="startExplore('forest')" id="btn-explore-forest" style="display:none;width:100%;padding:14px;background:rgba(255,255,255,0.1);border:1.5px solid rgba(255,255,255,0.2);border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">🌿 탐험하기</button>
+    <button onclick="explorePlace('lake')" id="btn-explore-lake" style="display:none;width:100%;padding:14px;background:rgba(255,255,255,0.1);border:1.5px solid rgba(255,255,255,0.2);border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">🎣 낚시하기</button>
+    <button onclick="startExplore('beach')" id="btn-explore-beach" style="display:none;width:100%;padding:14px;background:rgba(56,189,248,0.2);border:1.5px solid #38bdf8;border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">🏖️ 해변 탐험</button>
+    <button onclick="explorePlace('housing')" id="btn-explore-housing" style="display:none;width:100%;padding:14px;background:rgba(255,255,255,0.1);border:1.5px solid rgba(255,255,255,0.2);border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">🏘️ 주택가 둘러보기</button>
+    <button onclick="startExplore('mystery')" id="btn-explore-mystery" style="display:none;width:100%;padding:14px;background:rgba(192,132,252,0.2);border:1.5px solid #C084FC;border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">✨ 신비의 섬 탐험 (준비 중)</button>
+    <button onclick="startExplore('square')" id="btn-explore-square" style="display:none;width:100%;padding:14px;background:rgba(255,107,157,0.2);border:1.5px solid #FF6B9D;border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">🏛️ 중앙광장 둘러보기</button>
+    <button onclick="startExplore('park')" id="btn-explore-park" style="display:none;width:100%;padding:14px;background:rgba(74,222,128,0.2);border:1.5px solid #4ade80;border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">🌸 꽃길공원 산책</button>
+    <button id="btn-room-deco" style="display:none;width:100%;padding:14px;background:rgba(255,255,255,0.1);border:1.5px solid rgba(255,255,255,0.2);border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;" onclick="alert('준비 중이에요!')">🛋️ 방 꾸미기</button>
+    <button onclick="openShop('gift')" id="btn-shop-gift" style="display:none;width:100%;padding:14px;background:rgba(255,107,157,0.2);border:1.5px solid #FF6B9D;border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">🎁 잡화점</button>
+    <button onclick="openShop('room')" id="btn-shop-room" style="display:none;width:100%;padding:14px;background:rgba(251,191,36,0.2);border:1.5px solid #FBBF24;border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">🪑 가구샵</button>
+  </div>
+</div>
+
+<!-- 인연 -->
+<div id="screen-bond" class="screen">
+  <div class="bond-header">
+    <div class="bond-header-title">💞 인연</div>
+    <div class="bond-header-sub">카드를 모아 인연을 쌓아봐</div>
+  </div>
+  <div class="bond-list" id="bond-list"></div>
+</div>
+
+<!-- 타임라인 -->
+<div id="screen-timeline" class="screen">
+  <div class="timeline-header">
+    <div class="timeline-title">✨ 타임라인</div>
+    <div class="timeline-sub">포카하우스 소식을 확인해봐!</div>
+  </div>
+  <div class="timeline-feed" id="timeline-feed">
+    <div class="timeline-empty">🌸 아직 소식이 없어요<br>카드를 뽑으면 자동으로 올라와요!</div>
+  </div>
+</div>
+
+<!-- 📋 퀘스트 -->
+<div id="screen-quest" class="screen" style="background:linear-gradient(180deg,#1a1a2e 0%,#2d1b4e 100%);">
+  <div class="topbar">
+    <div class="topbar-logo">POCA<span>HOUSE</span></div>
+    <div class="coins">🍔 <span id="coin-quest">0</span></div>
+  </div>
+  <div style="padding:16px 16px 8px;background:linear-gradient(135deg,#C084FC,#FF6B9D);">
+    <div style="font-size:20px;font-weight:900;color:#fff;font-family:'Nunito',sans-serif;">📋 퀘스트</div>
+    <div style="font-size:12px;color:rgba(255,255,255,0.8);margin-top:2px;">천사의 귀환을 위한 여정</div>
+  </div>
+  <!-- 플레이어 레벨 표시 -->
+  <div style="margin:14px 16px 0;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:14px;padding:14px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+      <div style="font-size:14px;font-weight:900;color:#fff;">⭐ 플레이어 레벨</div>
+      <div class="player-level-display" style="font-size:16px;font-weight:900;color:#FFD700;">Lv.1</div>
+    </div>
+    <div style="width:100%;height:8px;background:rgba(255,255,255,0.1);border-radius:4px;overflow:hidden;">
+      <div class="player-exp-bar" style="height:100%;width:0%;background:linear-gradient(90deg,#FFD700,#F59E0B);border-radius:4px;transition:width 0.4s ease;"></div>
+    </div>
+    <div class="player-exp-display" style="font-size:11px;color:#aaa;margin-top:4px;text-align:right;">0 / 20 EXP</div>
+  </div>
+  <div style="flex:1;overflow-y:auto;padding:14px 16px 80px;" id="quest-list"></div>
+</div>
+
+<!-- 🎒 가방 -->
+<div id="screen-bag" class="screen" style="background:linear-gradient(180deg,#FFF0F5 0%,#FFE4EF 100%);">
+  <div class="topbar">
+    <div class="topbar-logo">POCA<span>HOUSE</span></div>
+    <div class="coins">🍔 <span id="coin-bag">0</span></div>
+  </div>
+  <div style="padding:16px 16px 8px;background:linear-gradient(135deg,#FF6B9D,#C084FC);">
+    <div style="font-size:20px;font-weight:900;color:#fff;font-family:'Nunito',sans-serif;">🎒 내 가방</div>
+    <div style="font-size:12px;color:rgba(255,255,255,0.8);margin-top:2px;" id="bag-slot-info">0 / 20칸 사용 중</div>
+  </div>
+  <div style="flex:1;overflow-y:auto;padding:14px 14px 80px;">
+    <div id="bag-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px;"></div>
+    <button id="bag-expand-btn" onclick="expandBag()" style="width:100%;padding:13px;background:linear-gradient(135deg,#FF6B9D,#C084FC);border:none;border-radius:14px;color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">🎒 슬롯 확장 (+3칸) · 🍔 500코인</button>
+  </div>
+</div>
+
+<!-- 상점 오버레이 -->
+<div class="shop-overlay" id="shop-overlay" onclick="closeShopOutside(event)">
+  <div class="shop-panel" id="shop-panel">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+      <div style="font-size:16px;font-weight:900;color:#fff;">🛍️ 상점거리</div>
+      <button onclick="closeShop()" style="background:rgba(255,255,255,0.1);border:none;border-radius:8px;color:#fff;padding:6px 12px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;font-size:13px;">닫기</button>
+    </div>
+    <div style="font-size:12px;color:var(--gold);font-weight:700;margin-bottom:14px;">🍔 보유: <span id="shop-coin-display">0</span>코인</div>
+    <div class="shop-tab-row">
+      <button class="shop-tab active" id="tab-gift" onclick="switchShopTab('gift')">🎁 잡화점</button>
+      <button class="shop-tab" id="tab-room" onclick="switchShopTab('room')">🪑 가구샵</button>
+    </div>
+    <div class="shop-section active" id="section-gift">
+      <div style="font-size:11px;color:#888;margin-bottom:12px;">선물을 사서 캐릭터 호감도를 올려봐!</div>
+      <div style="font-size:12px;font-weight:700;color:#FFB3CC;margin-bottom:8px;">🎁 선물 코너</div>
+      <div class="shop-item"><div class="shop-item-left"><div class="shop-item-emoji">🐻</div><div><div class="shop-item-name">곰인형</div><div class="shop-item-desc">🍔 300코인 · 호감도+1</div></div></div><button class="shop-btn shop-btn-buy" onclick="buyGift('🐻 곰인형',300)">구매</button></div>
+      <div class="shop-item"><div class="shop-item-left"><div class="shop-item-emoji">🌹</div><div><div class="shop-item-name">꽃다발</div><div class="shop-item-desc">🍔 500코인 · 호감도+1</div></div></div><button class="shop-btn shop-btn-buy" onclick="buyGift('🌹 꽃다발',500)">구매</button></div>
+      <div class="shop-item"><div class="shop-item-left"><div class="shop-item-emoji">🎂</div><div><div class="shop-item-name">케이크</div><div class="shop-item-desc">🍔 1000코인 · 호감도+1</div></div></div><button class="shop-btn shop-btn-buy" onclick="buyGift('🎂 케이크',1000)">구매</button></div>
+      <div class="shop-item"><div class="shop-item-left"><div class="shop-item-emoji">📚</div><div><div class="shop-item-name">책</div><div class="shop-item-desc">🍔 700코인 · 호감도+1</div></div></div><button class="shop-btn shop-btn-buy" onclick="buyGift('📚 책',700)">구매</button></div>
+      <div class="shop-item"><div class="shop-item-left"><div class="shop-item-emoji">🎮</div><div><div class="shop-item-name">게임기</div><div class="shop-item-desc">🍔 1500코인 · 호감도+1</div></div></div><button class="shop-btn shop-btn-buy" onclick="buyGift('🎮 게임기',1500)">구매</button></div>
+      <div style="font-size:12px;font-weight:700;color:#FFB3CC;margin:16px 0 8px;">🥤 음료 코너</div>
+      <div class="shop-item"><div class="shop-item-left"><div class="shop-item-emoji">🧃</div><div><div class="shop-item-name">사과주스</div><div class="shop-item-desc">🍔 300코인 · 스태미나+10</div></div></div><button class="shop-btn shop-btn-buy" onclick="buyDrink('🧃 사과주스',300,10)">구매</button></div>
+      <div class="shop-item"><div class="shop-item-left"><div class="shop-item-emoji">🍓</div><div><div class="shop-item-name">딸기스무디</div><div class="shop-item-desc">🍔 500코인 · 스태미나+20</div></div></div><button class="shop-btn shop-btn-buy" onclick="buyDrink('🍓 딸기스무디',500,20)">구매</button></div>
+      <div class="shop-item"><div class="shop-item-left"><div class="shop-item-emoji">⚡</div><div><div class="shop-item-name">에너지드링크</div><div class="shop-item-desc">🍔 800코인 · 스태미나+30</div></div></div><button class="shop-btn shop-btn-buy" onclick="buyDrink('⚡ 에너지드링크',800,30)">구매</button></div>
+      <div style="margin-top:16px;padding:12px;background:rgba(255,255,255,0.04);border-radius:12px;border:1px solid rgba(255,255,255,0.08);">
+        <div style="font-size:12px;font-weight:700;color:#FFB3CC;margin-bottom:8px;">🎒 내 인벤토리</div>
+        <div id="inventory-display" style="font-size:12px;color:#aaa;line-height:1.8;"></div>
+      </div>
+    </div>
+    <div class="shop-section" id="section-room">
+      <div style="font-size:11px;color:#888;margin-bottom:12px;">방 테마를 구매하고 내 방을 꾸며봐!</div>
+      <div class="room-card" id="roomcard-pink"><div class="room-card-img"><img src="https://raw.githubusercontent.com/chaei7775/Poca-house/main/room_pink.png" onerror="this.parentElement.innerHTML='💕'"></div><div id="badge-pink"></div><div class="room-card-body"><div><div class="room-card-name">💕 핑크덕질방</div><div class="room-card-price" id="price-pink"></div></div><div id="btns-pink"></div></div></div>
+      <div class="room-card" id="roomcard-plant"><div class="room-card-img"><img src="https://raw.githubusercontent.com/chaei7775/Poca-house/main/room_plant.png" onerror="this.parentElement.innerHTML='🌿'"></div><div id="badge-plant"></div><div class="room-card-body"><div><div class="room-card-name">🌿 식물힐링방</div><div class="room-card-price" id="price-plant"></div></div><div id="btns-plant"></div></div></div>
+      <div class="room-card" id="roomcard-doll"><div class="room-card-img"><img src="https://raw.githubusercontent.com/chaei7775/Poca-house/main/room_doll.png" onerror="this.parentElement.innerHTML='🐻'"></div><div id="badge-doll"></div><div class="room-card-body"><div><div class="room-card-name">🐻 인형컬렉터룸</div><div class="room-card-price" id="price-doll"></div></div><div id="btns-doll"></div></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- NAVBAR -->
+<nav class="navbar">
+  <button class="nav-item active" onclick="goTo('home')" id="nav-home"><span class="nav-icon">🏠</span><span class="nav-label">홈</span></button>
+  <button class="nav-item" onclick="goTo('bond')" id="nav-bond"><span class="nav-icon">💞</span><span class="nav-label">인연</span></button>
+  <button class="nav-item" onclick="goTo('map')" id="nav-map"><span class="nav-icon">🗺️</span><span class="nav-label">맵</span></button>
+  <button class="nav-item" onclick="goTo('gacha')" id="nav-gacha"><span class="nav-icon">✨</span><span class="nav-label">뽑기</span></button>
+  <button class="nav-item" onclick="goTo('quest')" id="nav-quest"><span class="nav-icon">📋</span><span class="nav-label">퀘스트</span></button>
+  <button class="nav-item" onclick="goTo('bag')" id="nav-bag"><span class="nav-icon">🎒</span><span class="nav-label">가방</span></button>
+</nav>
+
+<div class="result-bg" id="result-bg"></div>
+<div class="result-popup" id="result-popup">
+  <div class="result-grade" id="result-grade-text"></div>
+  <div class="result-coins" id="result-coins-text"></div>
+  <div class="result-sub" id="result-sub-text"></div>
+</div>
+<div class="gacha-result-overlay" id="gacha-overlay">
+  <div class="gacha-result-grade" id="gacha-res-grade"></div>
+  <div class="gacha-result-card" id="gacha-res-card"><img id="gacha-res-img" src="" alt=""></div>
+  <div class="gacha-result-name" id="gacha-res-name"></div>
+  <button class="gacha-close-btn" onclick="closeGachaResult()">획득! 💜</button>
+</div>
+<div class="bond-detail-overlay" id="bond-detail-overlay">
+  <div class="bond-detail-header">
+    <img id="bond-detail-img" src="" alt="">
+    <div class="bond-detail-header-overlay"></div>
+    <button class="bond-detail-back" onclick="closeBondDetail()">← 뒤로</button>
+    <div class="bond-detail-name" id="bond-detail-name"></div>
+  </div>
+  <div class="bond-detail-body">
+    <div class="bond-affection">
+      <div class="bond-affection-title">💞 호감도</div>
+      <div class="affection-hearts" id="detail-hearts"></div>
+      <div class="affection-bar"><div class="affection-fill" id="affection-fill"></div></div>
+      <div class="affection-label" id="affection-label"></div>
+    </div>
+    <div class="bond-stories">
+      <div class="bond-stories-title">📖 스토리</div>
+      <div id="story-list"></div>
+    </div>
+  </div>
+</div>
+<div class="story-read-overlay" id="story-read-overlay">
+  <div class="story-read-header">
+    <button class="story-read-back" onclick="closeStoryRead()">←</button>
+    <div class="story-read-title" id="story-read-title"></div>
+  </div>
+  <div class="story-read-body" id="story-read-body"></div>
+  <div class="story-read-footer"><button class="story-next-btn" onclick="closeStoryRead()">✓ 읽음</button></div>
+</div>
+<div class="wish-popup" id="wish-popup" style="display:none;">
+  <div class="wish-inner" id="wish-inner"></div>
+</div>
+
+<script src="game.js"></script>
+</body>
+</html>
