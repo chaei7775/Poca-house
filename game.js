@@ -301,14 +301,7 @@ function showGachaResult(card) {
   document.getElementById('gacha-res-name').textContent = card.name;
   const img = document.getElementById('gacha-res-img');
   if (card.img) { img.src = card.img; img.style.display = 'block'; } else { img.style.display = 'none'; }
-  // SR 이상이면 타임라인 자동 등록
-  if (['SR','SSR','UR'].includes(card.grade) && window.addTimelinePost) {
-    const nick = localStorage.getItem('ph_nickname') || '포카러버';
-    window.addTimelinePost(
-      nick + '님이 ' + card.grade + ' 카드를 획득했어요! 🎴✨',
-      card.img, card.name, card.grade
-    );
-  }
+
   document.getElementById('gacha-overlay').classList.add('show');
 }
 function closeGachaResult() { document.getElementById('gacha-overlay').classList.remove('show'); renderHomeIdols(); renderHomeSpeech(); }
@@ -452,7 +445,7 @@ function goTo(id) {
   if (id === 'collection') renderCollection();
   if (id === 'home') { renderHomeIdols(); renderHomeSpeech(); }
   if (id === 'bond') renderBondList();
-  if (id === 'timeline' && window.loadTimeline) window.loadTimeline();
+
 }
 
 // ── 버거 알바 ──
