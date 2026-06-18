@@ -42,11 +42,6 @@
   .alba-bg { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background-image: url('https://raw.githubusercontent.com/chaei7775/Poca-house/main/burger-main.png'); background-size: cover; background-position: center top; opacity: 0.5; }
   .alba-content { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; padding: 20px 16px; gap: 16px; min-height: 100vh; }
   .alba-title { font-size: 20px; font-weight: 900; color: #fff; text-align: center; text-shadow: 0 2px 8px #0008; }
-  .auto-idols { width: 100%; background: rgba(0,0,0,0.45); backdrop-filter: blur(6px); border-radius: 12px; padding: 12px; border: 1px solid rgba(255,255,255,0.15); }
-  .auto-idol-row { display: flex; align-items: center; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.08); font-size: 13px; color: #eee; }
-  .auto-idol-row:last-child { border-bottom: none; }
-  .auto-idol-name { font-weight: 700; color: #C084FC; }
-  .auto-coin { color: var(--gold); font-weight: 700; font-size: 12px; }
   .back-btn { width: 100%; padding: 14px; background: rgba(0,0,0,0.4); border: 1.5px solid rgba(255,255,255,0.2); border-radius: 14px; color: #fff; font-size: 15px; font-weight: 700; font-family: 'Noto Sans KR', sans-serif; cursor: pointer; }
   #screen-gacha { position: relative; overflow: hidden; background: linear-gradient(180deg, #1a1a2e 0%, #2d1b4e 100%); }
   .gacha-bg { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background-image: url('https://raw.githubusercontent.com/chaei7775/Poca-house/main/burger-order.png'); background-size: cover; background-position: center top; opacity: 0.18; }
@@ -156,8 +151,6 @@
   @keyframes floatUp { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(-60px); } }
   @keyframes pulse { 0%,100%{opacity:0.6;transform:scale(1);} 50%{opacity:1;transform:scale(1.05);} }
   @keyframes popIn { from{transform:scale(0);opacity:0;} to{transform:scale(1);opacity:1;} }
-
-  /* ── 상점 오버레이 ── */
   .shop-overlay { display: none; position: fixed; inset: 0; z-index: 450; background: rgba(0,0,0,0.6); align-items: flex-end; }
   .shop-overlay.show { display: flex; }
   .shop-panel { width: 100%; max-width: 430px; margin: 0 auto; background: #1a1a2e; border-radius: 24px 24px 0 0; padding: 20px 16px 36px; max-height: 85vh; overflow-y: auto; }
@@ -184,15 +177,103 @@
   .room-current-badge { position: absolute; top: 10px; right: 10px; background: #FF6B9D; color: #fff; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px; }
   .wish-popup { position: fixed; inset: 0; z-index: 600; background: rgba(0,0,0,0.75); display: flex; align-items: center; justify-content: center; animation: fadeInUp 0.3s ease; }
   .wish-inner { background: linear-gradient(135deg, #1a1a2e, #2d1b4e); border: 2px solid #FFD700; border-radius: 24px; padding: 32px 24px; text-align: center; box-shadow: 0 0 40px #FFD70044; max-width: 300px; width: 90%; }
+
+  /* 닉네임 팝업 */
+  .nickname-popup { position: fixed; inset: 0; z-index: 1000; background: linear-gradient(135deg, #FF6B9D, #C084FC); display: flex; align-items: center; justify-content: center; }
+  .nickname-inner { background: #fff; border-radius: 24px; padding: 32px 24px; text-align: center; width: 90%; max-width: 320px; }
+  .nickname-title { font-size: 22px; font-weight: 900; color: var(--pink); margin-bottom: 8px; }
+  .nickname-sub { font-size: 13px; color: #888; margin-bottom: 20px; }
+  .nickname-input { width: 100%; padding: 14px; border: 2px solid var(--pink-light); border-radius: 12px; font-size: 16px; font-family: 'Noto Sans KR', sans-serif; text-align: center; outline: none; }
+  .nickname-input:focus { border-color: var(--pink); }
+  .nickname-btn { width: 100%; padding: 14px; background: linear-gradient(135deg, #FF6B9D, #C084FC); border: none; border-radius: 12px; color: #fff; font-size: 16px; font-weight: 900; font-family: 'Noto Sans KR', sans-serif; cursor: pointer; margin-top: 12px; }
+
+  /* 출석 팝업 */
+  .attend-popup { position: fixed; inset: 0; z-index: 900; background: rgba(0,0,0,0.75); display: flex; align-items: center; justify-content: center; }
+  .attend-inner { background: linear-gradient(135deg, #1a1a2e, #2d1b4e); border: 2px solid #FF6B9D; border-radius: 24px; padding: 28px 24px; text-align: center; width: 90%; max-width: 320px; }
+  .attend-title { font-size: 20px; font-weight: 900; color: #FF6B9D; margin-bottom: 4px; }
+  .attend-day { font-size: 14px; color: #FFB3CC; margin-bottom: 16px; }
+  .attend-reward { font-size: 40px; margin-bottom: 12px; }
+  .attend-reward-text { font-size: 15px; font-weight: 700; color: #fff; margin-bottom: 20px; line-height: 1.6; }
+  .attend-btn { width: 100%; padding: 14px; background: linear-gradient(135deg, #FF6B9D, #C084FC); border: none; border-radius: 12px; color: #fff; font-size: 16px; font-weight: 900; font-family: 'Noto Sans KR', sans-serif; cursor: pointer; }
+
+  /* 타임라인 */
+  #screen-timeline { background: var(--pink-pale); }
+  .timeline-header { padding: 20px 16px 12px; background: linear-gradient(135deg, #FF6B9D, #C084FC); }
+  .timeline-title { font-size: 20px; font-weight: 900; color: #fff; font-family: 'Nunito', sans-serif; }
+  .timeline-sub { font-size: 12px; color: rgba(255,255,255,0.7); margin-top: 2px; }
+  .timeline-feed { padding: 12px 16px; display: flex; flex-direction: column; gap: 12px; }
+  .timeline-item { background: #fff; border-radius: 16px; padding: 14px; box-shadow: 0 2px 12px #FF6B9D11; border: 1px solid #FFE4EF; }
+  .timeline-item-top { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .timeline-avatar { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, #FFB3CC, #C084FC); display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+  .timeline-nick { font-size: 13px; font-weight: 700; color: #333; }
+  .timeline-time { font-size: 11px; color: #aaa; margin-left: auto; }
+  .timeline-content { font-size: 14px; color: #444; line-height: 1.5; margin-bottom: 10px; }
+  .timeline-card-img { width: 100%; border-radius: 12px; overflow: hidden; margin-bottom: 10px; }
+  .timeline-card-img img { width: 100%; max-height: 200px; object-fit: cover; }
+  .timeline-actions { display: flex; gap: 12px; border-top: 1px solid #FFE4EF; padding-top: 10px; }
+  .timeline-action-btn { flex: 1; padding: 8px; background: none; border: 1.5px solid #FFE4EF; border-radius: 10px; font-size: 13px; font-weight: 700; color: #FF6B9D; cursor: pointer; font-family: 'Noto Sans KR', sans-serif; display: flex; align-items: center; justify-content: center; gap: 4px; }
+  .timeline-action-btn:active { background: #FFF0F5; }
+  .timeline-action-btn.liked { background: #FFF0F5; border-color: #FF6B9D; }
+  .timeline-empty { text-align: center; padding: 40px 20px; color: #FFB3CC; font-size: 14px; }
+  .comment-overlay { display: none; position: fixed; inset: 0; z-index: 600; background: rgba(0,0,0,0.6); align-items: flex-end; }
+  .comment-overlay.show { display: flex; }
+  .comment-panel { width: 100%; max-width: 430px; margin: 0 auto; background: #fff; border-radius: 24px 24px 0 0; padding: 20px 16px; max-height: 70vh; display: flex; flex-direction: column; }
+  .comment-list { flex: 1; overflow-y: auto; margin-bottom: 12px; }
+  .comment-item { padding: 10px 0; border-bottom: 1px solid #FFE4EF; }
+  .comment-nick { font-size: 12px; font-weight: 700; color: var(--pink); margin-bottom: 4px; }
+  .comment-text { font-size: 13px; color: #444; }
+  .comment-input-row { display: flex; gap: 8px; }
+  .comment-input { flex: 1; padding: 10px 14px; border: 1.5px solid #FFE4EF; border-radius: 20px; font-size: 13px; font-family: 'Noto Sans KR', sans-serif; outline: none; }
+  .comment-send-btn { padding: 10px 16px; background: linear-gradient(135deg, #FF6B9D, #C084FC); border: none; border-radius: 20px; color: #fff; font-size: 13px; font-weight: 700; cursor: pointer; font-family: 'Noto Sans KR', sans-serif; }
 </style>
 </head>
 <body>
+
+<!-- 닉네임 팝업 -->
+<div class="nickname-popup" id="nickname-popup" style="display:none;">
+  <div class="nickname-inner">
+    <div style="font-size:48px;margin-bottom:12px;">🌸</div>
+    <div class="nickname-title">포카하우스에 오신걸 환영해요!</div>
+    <div class="nickname-sub">닉네임을 입력해주세요</div>
+    <input class="nickname-input" id="nickname-input" type="text" placeholder="닉네임 (2-8자)" maxlength="8">
+    <button class="nickname-btn" onclick="saveNickname()">시작하기 ✨</button>
+  </div>
+</div>
+
+<!-- 출석 팝업 -->
+<div class="attend-popup" id="attend-popup" style="display:none;">
+  <div class="attend-inner">
+    <div class="attend-title">🎁 출석 보상!</div>
+    <div class="attend-day" id="attend-day-text"></div>
+    <div class="attend-reward" id="attend-reward-emoji"></div>
+    <div class="attend-reward-text" id="attend-reward-text"></div>
+    <button class="attend-btn" onclick="closeAttend()">받기! 🎀</button>
+  </div>
+</div>
+
+<!-- 댓글 오버레이 -->
+<div class="comment-overlay" id="comment-overlay" onclick="closeCommentOutside(event)">
+  <div class="comment-panel">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+      <div style="font-size:16px;font-weight:900;color:#333;">💬 댓글</div>
+      <button onclick="closeComment()" style="background:none;border:none;font-size:20px;cursor:pointer;">×</button>
+    </div>
+    <div class="comment-list" id="comment-list"></div>
+    <div class="comment-input-row">
+      <input class="comment-input" id="comment-input" placeholder="댓글을 입력하세요..." maxlength="50">
+      <button class="comment-send-btn" onclick="sendComment()">전송</button>
+    </div>
+  </div>
+</div>
 
 <!-- HOME -->
 <div id="screen-home" class="screen active">
   <div class="topbar">
     <div class="topbar-logo">POCA<span>HOUSE</span></div>
-    <div class="coins">🍔 <span id="coin-display">0</span></div>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <div style="font-size:12px;color:#FFE4EF;font-weight:700;" id="topbar-nick"></div>
+      <div class="coins">🍔 <span id="coin-display">0</span></div>
+    </div>
   </div>
   <div class="home-banner">
     <img src="https://raw.githubusercontent.com/chaei7775/Poca-house/main/burger-main.png" alt="포카하우스" onerror="this.style.display='none'">
@@ -233,7 +314,7 @@
       <button onclick="goTo('alba-burger')" style="width:100%;padding:0;border:none;border-radius:18px;overflow:hidden;cursor:pointer;position:relative;height:140px;">
         <img src="https://raw.githubusercontent.com/chaei7775/Poca-house/main/map-burger.png" style="width:100%;height:100%;object-fit:cover;object-position:center top;">
         <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,0.6),transparent);display:flex;align-items:flex-end;padding:14px;">
-          <div style="text-align:left;"><div style="font-size:18px;font-weight:900;color:#fff;">🍔 포카버거 알바</div><div style="font-size:12px;color:#FFB3CC;">패티 타이밍 게임</div></div>
+          <div style="text-align:left;"><div style="font-size:18px;font-weight:900;color:#fff;">🍔 포카버거 알바</div><div style="font-size:12px;color:#FFB3CC;">재료 조합 게임</div></div>
         </div>
       </button>
       <button onclick="goTo('alba-cafe')" style="width:100%;padding:0;border:none;border-radius:18px;overflow:hidden;cursor:pointer;position:relative;height:140px;">
@@ -242,10 +323,6 @@
           <div style="text-align:left;"><div style="font-size:18px;font-weight:900;color:#fff;">☕ 포카카페 알바</div><div style="font-size:12px;color:#FFB3CC;">에스프레소→스티밍→라떼아트→서빙</div></div>
         </div>
       </button>
-    </div>
-    <div id="auto-idols-section" style="display:none;width:100%;">
-      <div class="section-title" style="color:#FFB3CC;">자동 알바 중 ✨</div>
-      <div class="auto-idols" id="auto-idol-list"></div>
     </div>
     <button class="back-btn" onclick="goTo('home')">← 홈으로</button>
   </div>
@@ -308,8 +385,8 @@
     </div>
     <div style="height:16px;"></div>
     <div class="gacha-btn-row">
-      <button class="gacha-btn gacha-btn-1" onclick="doDraw(1)">1뽑<br><span class="gacha-cost">🍔 200</span></button>
-      <button class="gacha-btn gacha-btn-3" onclick="doDraw(3)">3뽑<br><span class="gacha-cost">🍔 560</span></button>
+      <button class="gacha-btn gacha-btn-1" onclick="doDraw(1)">1뽑<br><span class="gacha-cost">🍔 180</span></button>
+      <button class="gacha-btn gacha-btn-3" onclick="doDraw(3)">3뽑<br><span class="gacha-cost">🍔 540</span></button>
     </div>
     <div style="padding:12px 16px 0;">
       <button class="back-btn" style="background:rgba(255,255,255,0.05);border-color:rgba(255,255,255,0.15);color:#aaa;" onclick="goTo('home')">← 홈으로</button>
@@ -371,7 +448,6 @@
     <button onclick="explorePlace('forest')" id="btn-explore-forest" style="display:none;width:100%;padding:14px;background:rgba(255,255,255,0.1);border:1.5px solid rgba(255,255,255,0.2);border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">🌿 탐험하기</button>
     <button onclick="explorePlace('lake')" id="btn-explore-lake" style="display:none;width:100%;padding:14px;background:rgba(255,255,255,0.1);border:1.5px solid rgba(255,255,255,0.2);border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">🎣 낚시하기</button>
     <button id="btn-room-deco" style="display:none;width:100%;padding:14px;background:rgba(255,255,255,0.1);border:1.5px solid rgba(255,255,255,0.2);border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;" onclick="alert('준비 중이에요!')">🛋️ 방 꾸미기</button>
-    <!-- 상점거리 버튼 -->
     <button onclick="openShop('gift')" id="btn-shop-gift" style="display:none;width:100%;padding:14px;background:rgba(255,107,157,0.2);border:1.5px solid #FF6B9D;border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">🎁 잡화점</button>
     <button onclick="openShop('room')" id="btn-shop-room" style="display:none;width:100%;padding:14px;background:rgba(251,191,36,0.2);border:1.5px solid #FBBF24;border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">🪑 가구샵</button>
   </div>
@@ -386,7 +462,18 @@
   <div class="bond-list" id="bond-list"></div>
 </div>
 
-<!-- ====== 상점 오버레이 ====== -->
+<!-- 타임라인 -->
+<div id="screen-timeline" class="screen">
+  <div class="timeline-header">
+    <div class="timeline-title">✨ 타임라인</div>
+    <div class="timeline-sub">포카하우스 소식을 확인해봐!</div>
+  </div>
+  <div class="timeline-feed" id="timeline-feed">
+    <div class="timeline-empty">🌸 아직 소식이 없어요<br>카드를 뽑으면 자동으로 올라와요!</div>
+  </div>
+</div>
+
+<!-- 상점 오버레이 -->
 <div class="shop-overlay" id="shop-overlay" onclick="closeShopOutside(event)">
   <div class="shop-panel" id="shop-panel">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
@@ -398,78 +485,28 @@
       <button class="shop-tab active" id="tab-gift" onclick="switchShopTab('gift')">🎁 잡화점</button>
       <button class="shop-tab" id="tab-room" onclick="switchShopTab('room')">🪑 가구샵</button>
     </div>
-
-    <!-- 잡화점 -->
     <div class="shop-section active" id="section-gift">
       <div style="font-size:11px;color:#888;margin-bottom:12px;">선물을 사서 캐릭터 호감도를 올려봐!</div>
       <div style="font-size:12px;font-weight:700;color:#FFB3CC;margin-bottom:8px;">🎁 선물 코너</div>
-      <div class="shop-item">
-        <div class="shop-item-left"><div class="shop-item-emoji">🐻</div><div><div class="shop-item-name">곰인형</div><div class="shop-item-desc">🍔 300코인 · 호감도+1</div></div></div>
-        <button class="shop-btn shop-btn-buy" onclick="buyGift('🐻 곰인형',300)">구매</button>
-      </div>
-      <div class="shop-item">
-        <div class="shop-item-left"><div class="shop-item-emoji">🌹</div><div><div class="shop-item-name">꽃다발</div><div class="shop-item-desc">🍔 500코인 · 호감도+1</div></div></div>
-        <button class="shop-btn shop-btn-buy" onclick="buyGift('🌹 꽃다발',500)">구매</button>
-      </div>
-      <div class="shop-item">
-        <div class="shop-item-left"><div class="shop-item-emoji">🎂</div><div><div class="shop-item-name">케이크</div><div class="shop-item-desc">🍔 1000코인 · 호감도+1</div></div></div>
-        <button class="shop-btn shop-btn-buy" onclick="buyGift('🎂 케이크',1000)">구매</button>
-      </div>
-      <div class="shop-item">
-        <div class="shop-item-left"><div class="shop-item-emoji">📚</div><div><div class="shop-item-name">책</div><div class="shop-item-desc">🍔 700코인 · 호감도+1</div></div></div>
-        <button class="shop-btn shop-btn-buy" onclick="buyGift('📚 책',700)">구매</button>
-      </div>
-      <div class="shop-item">
-        <div class="shop-item-left"><div class="shop-item-emoji">🎮</div><div><div class="shop-item-name">게임기</div><div class="shop-item-desc">🍔 1500코인 · 호감도+1</div></div></div>
-        <button class="shop-btn shop-btn-buy" onclick="buyGift('🎮 게임기',1500)">구매</button>
-      </div>
+      <div class="shop-item"><div class="shop-item-left"><div class="shop-item-emoji">🐻</div><div><div class="shop-item-name">곰인형</div><div class="shop-item-desc">🍔 300코인 · 호감도+1</div></div></div><button class="shop-btn shop-btn-buy" onclick="buyGift('🐻 곰인형',300)">구매</button></div>
+      <div class="shop-item"><div class="shop-item-left"><div class="shop-item-emoji">🌹</div><div><div class="shop-item-name">꽃다발</div><div class="shop-item-desc">🍔 500코인 · 호감도+1</div></div></div><button class="shop-btn shop-btn-buy" onclick="buyGift('🌹 꽃다발',500)">구매</button></div>
+      <div class="shop-item"><div class="shop-item-left"><div class="shop-item-emoji">🎂</div><div><div class="shop-item-name">케이크</div><div class="shop-item-desc">🍔 1000코인 · 호감도+1</div></div></div><button class="shop-btn shop-btn-buy" onclick="buyGift('🎂 케이크',1000)">구매</button></div>
+      <div class="shop-item"><div class="shop-item-left"><div class="shop-item-emoji">📚</div><div><div class="shop-item-name">책</div><div class="shop-item-desc">🍔 700코인 · 호감도+1</div></div></div><button class="shop-btn shop-btn-buy" onclick="buyGift('📚 책',700)">구매</button></div>
+      <div class="shop-item"><div class="shop-item-left"><div class="shop-item-emoji">🎮</div><div><div class="shop-item-name">게임기</div><div class="shop-item-desc">🍔 1500코인 · 호감도+1</div></div></div><button class="shop-btn shop-btn-buy" onclick="buyGift('🎮 게임기',1500)">구매</button></div>
       <div style="font-size:12px;font-weight:700;color:#FFB3CC;margin:16px 0 8px;">🥤 음료 코너</div>
-      <div style="font-size:11px;color:#888;margin-bottom:8px;">스태미나를 채워서 알바를 더 돌리자!</div>
-      <div class="shop-item">
-        <div class="shop-item-left"><div class="shop-item-emoji">🍎</div><div><div class="shop-item-name">사과주스</div><div class="shop-item-desc">🍔 300코인 · 스태미나+10</div></div></div>
-        <button class="shop-btn shop-btn-buy" onclick="buyDrink('🍎 사과주스',300,10)">구매</button>
-      </div>
-      <div class="shop-item">
-        <div class="shop-item-left"><div class="shop-item-emoji">🍓</div><div><div class="shop-item-name">딸기스무디</div><div class="shop-item-desc">🍔 500코인 · 스태미나+20</div></div></div>
-        <button class="shop-btn shop-btn-buy" onclick="buyDrink('🍓 딸기스무디',500,20)">구매</button>
-      </div>
-      <div class="shop-item">
-        <div class="shop-item-left"><div class="shop-item-emoji">⚡</div><div><div class="shop-item-name">에너지드링크</div><div class="shop-item-desc">🍔 800코인 · 스태미나+30</div></div></div>
-        <button class="shop-btn shop-btn-buy" onclick="buyDrink('⚡ 에너지드링크',800,30)">구매</button>
-      </div>
+      <div class="shop-item"><div class="shop-item-left"><div class="shop-item-emoji">🍎</div><div><div class="shop-item-name">사과주스</div><div class="shop-item-desc">🍔 300코인 · 스태미나+10</div></div></div><button class="shop-btn shop-btn-buy" onclick="buyDrink('🍎 사과주스',300,10)">구매</button></div>
+      <div class="shop-item"><div class="shop-item-left"><div class="shop-item-emoji">🍓</div><div><div class="shop-item-name">딸기스무디</div><div class="shop-item-desc">🍔 500코인 · 스태미나+20</div></div></div><button class="shop-btn shop-btn-buy" onclick="buyDrink('🍓 딸기스무디',500,20)">구매</button></div>
+      <div class="shop-item"><div class="shop-item-left"><div class="shop-item-emoji">⚡</div><div><div class="shop-item-name">에너지드링크</div><div class="shop-item-desc">🍔 800코인 · 스태미나+30</div></div></div><button class="shop-btn shop-btn-buy" onclick="buyDrink('⚡ 에너지드링크',800,30)">구매</button></div>
       <div style="margin-top:16px;padding:12px;background:rgba(255,255,255,0.04);border-radius:12px;border:1px solid rgba(255,255,255,0.08);">
         <div style="font-size:12px;font-weight:700;color:#FFB3CC;margin-bottom:8px;">🎒 내 인벤토리</div>
         <div id="inventory-display" style="font-size:12px;color:#aaa;line-height:1.8;"></div>
       </div>
     </div>
-
-    <!-- 가구샵 -->
     <div class="shop-section" id="section-room">
       <div style="font-size:11px;color:#888;margin-bottom:12px;">방 테마를 구매하고 내 방을 꾸며봐!</div>
-      <div class="room-card" id="roomcard-pink">
-        <div class="room-card-img"><img src="https://raw.githubusercontent.com/chaei7775/Poca-house/main/room_pink.png" onerror="this.parentElement.innerHTML='💕'"></div>
-        <div id="badge-pink"></div>
-        <div class="room-card-body">
-          <div><div class="room-card-name">💕 핑크덕질방</div><div class="room-card-price" id="price-pink"></div></div>
-          <div id="btns-pink"></div>
-        </div>
-      </div>
-      <div class="room-card" id="roomcard-plant">
-        <div class="room-card-img"><img src="https://raw.githubusercontent.com/chaei7775/Poca-house/main/room_plant.png" onerror="this.parentElement.innerHTML='🌿'"></div>
-        <div id="badge-plant"></div>
-        <div class="room-card-body">
-          <div><div class="room-card-name">🌿 식물힐링방</div><div class="room-card-price" id="price-plant"></div></div>
-          <div id="btns-plant"></div>
-        </div>
-      </div>
-      <div class="room-card" id="roomcard-doll">
-        <div class="room-card-img"><img src="https://raw.githubusercontent.com/chaei7775/Poca-house/main/room_doll.png" onerror="this.parentElement.innerHTML='🐻'"></div>
-        <div id="badge-doll"></div>
-        <div class="room-card-body">
-          <div><div class="room-card-name">🐻 인형컬렉터룸</div><div class="room-card-price" id="price-doll"></div></div>
-          <div id="btns-doll"></div>
-        </div>
-      </div>
+      <div class="room-card" id="roomcard-pink"><div class="room-card-img"><img src="https://raw.githubusercontent.com/chaei7775/Poca-house/main/room_pink.png" onerror="this.parentElement.innerHTML='💕'"></div><div id="badge-pink"></div><div class="room-card-body"><div><div class="room-card-name">💕 핑크덕질방</div><div class="room-card-price" id="price-pink"></div></div><div id="btns-pink"></div></div></div>
+      <div class="room-card" id="roomcard-plant"><div class="room-card-img"><img src="https://raw.githubusercontent.com/chaei7775/Poca-house/main/room_plant.png" onerror="this.parentElement.innerHTML='🌿'"></div><div id="badge-plant"></div><div class="room-card-body"><div><div class="room-card-name">🌿 식물힐링방</div><div class="room-card-price" id="price-plant"></div></div><div id="btns-plant"></div></div></div>
+      <div class="room-card" id="roomcard-doll"><div class="room-card-img"><img src="https://raw.githubusercontent.com/chaei7775/Poca-house/main/room_doll.png" onerror="this.parentElement.innerHTML='🐻'"></div><div id="badge-doll"></div><div class="room-card-body"><div><div class="room-card-name">🐻 인형컬렉터룸</div><div class="room-card-price" id="price-doll"></div></div><div id="btns-doll"></div></div></div>
     </div>
   </div>
 </div>
@@ -480,7 +517,7 @@
   <button class="nav-item" onclick="goTo('alba')" id="nav-alba"><span class="nav-icon">🍔</span><span class="nav-label">알바</span></button>
   <button class="nav-item" onclick="goTo('map')" id="nav-map"><span class="nav-icon">🗺️</span><span class="nav-label">맵</span></button>
   <button class="nav-item" onclick="goTo('gacha')" id="nav-gacha"><span class="nav-icon">✨</span><span class="nav-label">뽑기</span></button>
-  <button class="nav-item" onclick="goTo('bond')" id="nav-bond"><span class="nav-icon">💞</span><span class="nav-label">인연</span></button>
+  <button class="nav-item" onclick="goTo('timeline')" id="nav-timeline"><span class="nav-icon">📢</span><span class="nav-label">타임라인</span></button>
 </nav>
 
 <div class="result-bg" id="result-bg"></div>
@@ -523,6 +560,113 @@
   <div class="story-read-body" id="story-read-body"></div>
   <div class="story-read-footer"><button class="story-next-btn" onclick="closeStoryRead()">✓ 읽음</button></div>
 </div>
+<div class="wish-popup" id="wish-popup" style="display:none;">
+  <div class="wish-inner" id="wish-inner"></div>
+</div>
+
+<!-- Firebase -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+  import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, increment, orderBy, query, limit, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyC1_Y4AIMSgx3MG5hI2dpcanNpkb13jB3M",
+    authDomain: "poca-house.firebaseapp.com",
+    projectId: "poca-house",
+    storageBucket: "poca-house.firebasestorage.app",
+    messagingSenderId: "32346141447",
+    appId: "1:32346141447:web:90d35bf9a7710f3aa88ba2",
+    measurementId: "G-N6WFV22CRM"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  // 타임라인 포스트 추가
+  window.addTimelinePost = async function(content, cardImg, cardName, grade) {
+    const nick = localStorage.getItem('ph_nickname') || '포카러버';
+    try {
+      await addDoc(collection(db, 'timeline'), {
+        nick, content, cardImg: cardImg || '', cardName: cardName || '', grade: grade || '',
+        likes: 0, createdAt: serverTimestamp()
+      });
+    } catch(e) { console.error(e); }
+  };
+
+  // 타임라인 실시간 로드
+  window.loadTimeline = function() {
+    const q = query(collection(db, 'timeline'), orderBy('createdAt', 'desc'), limit(30));
+    onSnapshot(q, (snapshot) => {
+      const feed = document.getElementById('timeline-feed');
+      if (snapshot.empty) {
+        feed.innerHTML = '<div class="timeline-empty">🌸 아직 소식이 없어요<br>카드를 뽑으면 자동으로 올라와요!</div>';
+        return;
+      }
+      feed.innerHTML = snapshot.docs.map(d => {
+        const data = d.data();
+        const myLikes = JSON.parse(localStorage.getItem('ph_likes') || '[]');
+        const liked = myLikes.includes(d.id);
+        const time = data.createdAt ? timeAgo(data.createdAt.toDate()) : '방금';
+        return `<div class="timeline-item">
+          <div class="timeline-item-top">
+            <div class="timeline-avatar">🌸</div>
+            <div class="timeline-nick">${data.nick}</div>
+            <div class="timeline-time">${time}</div>
+          </div>
+          <div class="timeline-content">${data.content}</div>
+          ${data.cardImg ? `<div class="timeline-card-img"><img src="${data.cardImg}" onerror="this.style.display='none'"></div>` : ''}
+          <div class="timeline-actions">
+            <button class="timeline-action-btn ${liked ? 'liked' : ''}" onclick="toggleLike('${d.id}', this)">💗 부러워요 ${data.likes || 0}</button>
+            <button class="timeline-action-btn" onclick="openComment('${d.id}')">💬 댓글</button>
+          </div>
+        </div>`;
+      }).join('');
+    });
+  };
+
+  // 좋아요
+  window.toggleLike = async function(postId, btn) {
+    const myLikes = JSON.parse(localStorage.getItem('ph_likes') || '[]');
+    if (myLikes.includes(postId)) return;
+    myLikes.push(postId);
+    localStorage.setItem('ph_likes', JSON.stringify(myLikes));
+    btn.classList.add('liked');
+    try {
+      await updateDoc(doc(db, 'timeline', postId), { likes: increment(1) });
+    } catch(e) {}
+  };
+
+  // 댓글 로드
+  window.loadComments = async function(postId) {
+    const list = document.getElementById('comment-list');
+    list.innerHTML = '<div style="text-align:center;color:#aaa;font-size:13px;padding:20px;">로딩 중...</div>';
+    try {
+      const snap = await getDocs(collection(db, 'timeline', postId, 'comments'));
+      if (snap.empty) { list.innerHTML = '<div style="text-align:center;color:#aaa;font-size:13px;padding:20px;">댓글이 없어요. 첫 댓글을 남겨봐!</div>'; return; }
+      list.innerHTML = snap.docs.map(d => {
+        const data = d.data();
+        return `<div class="comment-item"><div class="comment-nick">${data.nick}</div><div class="comment-text">${data.text}</div></div>`;
+      }).join('');
+    } catch(e) { list.innerHTML = '<div style="text-align:center;color:#aaa;font-size:13px;padding:20px;">댓글을 불러올 수 없어요.</div>'; }
+  };
+
+  // 댓글 전송
+  window.sendCommentToFirebase = async function(postId, text) {
+    const nick = localStorage.getItem('ph_nickname') || '포카러버';
+    try {
+      await addDoc(collection(db, 'timeline', postId, 'comments'), { nick, text, createdAt: serverTimestamp() });
+      loadComments(postId);
+    } catch(e) {}
+  };
+
+  function timeAgo(date) {
+    const diff = Math.floor((new Date() - date) / 1000);
+    if (diff < 60) return '방금';
+    if (diff < 3600) return Math.floor(diff/60) + '분 전';
+    if (diff < 86400) return Math.floor(diff/3600) + '시간 전';
+    return Math.floor(diff/86400) + '일 전';
+  }
+</script>
 
 <script src="game.js"></script>
 </body>
