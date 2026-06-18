@@ -19,8 +19,7 @@ function saveNickname() {
 
 // ── 출석 시스템 ──
 const ATTEND_REWARDS = {
-  1:  { emoji: '🎁', text: '코인 1000개 + 일반 뽑기권 3장
-사과주스 3개', coins: 1000 },
+  1:  { emoji: '🎁', text: '코인 1000개 + 일반 뽑기권 3장 + 사과주스 3개', coins: 1000 },
   7:  { emoji: '🌟', text: '소원조각 1개 + 코인 500개', coins: 500 },
   14: { emoji: '🎀', text: '코인 800개 + 스태미나 회복', coins: 800 },
   21: { emoji: '🎴', text: '프리미엄 뽑기권 1장 + 코인 1000개', coins: 1000 },
