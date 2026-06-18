@@ -1,3 +1,85 @@
+// ── 닉네임 시스템 ──
+function checkNickname() {
+  const nick = localStorage.getItem('ph_nickname');
+  if (!nick) {
+    document.getElementById('nickname-popup').style.display = 'flex';
+  } else {
+    document.getElementById('topbar-nick').textContent = nick;
+    checkAttendance();
+  }
+}
+function saveNickname() {
+  const input = document.getElementById('nickname-input').value.trim();
+  if (input.length < 2) { alert('닉네임은 2자 이상이에요!'); return; }
+  localStorage.setItem('ph_nickname', input);
+  document.getElementById('nickname-popup').style.display = 'none';
+  document.getElementById('topbar-nick').textContent = input;
+  checkAttendance();
+}
+
+// ── 출석 시스템 ──
+const ATTEND_REWARDS = {
+  1:  { emoji: '🎁', text: '코인 1000개 + 일반 뽑기권 3장
+사과주스 3개', coins: 1000 },
+  7:  { emoji: '🌟', text: '소원조각 1개 + 코인 500개', coins: 500 },
+  14: { emoji: '🎀', text: '코인 800개 + 스태미나 회복', coins: 800 },
+  21: { emoji: '🎴', text: '프리미엄 뽑기권 1장 + 코인 1000개', coins: 1000 },
+  28: { emoji: '🖍️', text: '코인 2000개 + 소원조각 3개', coins: 2000 },
+};
+function checkAttendance() {
+  const lastAttend = localStorage.getItem('ph_last_attend');
+  const today = new Date().toDateString();
+  if (lastAttend === today) return;
+  let days = parseInt(localStorage.getItem('ph_attend_days') || '0') + 1;
+  if (days > 28) days = 1;
+  localStorage.setItem('ph_attend_days', days);
+  localStorage.setItem('ph_last_attend', today);
+  showAttendPopup(days);
+}
+function showAttendPopup(day) {
+  const reward = ATTEND_REWARDS[day] || { emoji: '🍔', text: '코인 200개', coins: 200 };
+  document.getElementById('attend-day-text').textContent = day + '일차 출석!';
+  document.getElementById('attend-reward-emoji').textContent = reward.emoji;
+  document.getElementById('attend-reward-text').textContent = reward.text;
+  document.getElementById('attend-popup').style.display = 'flex';
+  window._attendCoins = reward.coins;
+  window._attendDay = day;
+}
+function closeAttend() {
+  document.getElementById('attend-popup').style.display = 'none';
+  const reward = ATTEND_REWARDS[window._attendDay] || { coins: 200 };
+  coins += reward.coins;
+  saveAll();
+  spawnCoinFloat(reward.coins);
+  if (window._attendDay === 14) { stamina = 100; localStorage.setItem('ph_stamina', 100); }
+  if (window._attendDay === 7 || window._attendDay === 28) {
+    wishFragments += (window._attendDay === 28 ? 3 : 1);
+    localStorage.setItem('ph_wish', wishFragments);
+  }
+}
+
+// ── 타임라인 ──
+let currentCommentPostId = null;
+function openComment(postId) {
+  currentCommentPostId = postId;
+  document.getElementById('comment-overlay').classList.add('show');
+  if (window.loadComments) window.loadComments(postId);
+}
+function closeComment() {
+  document.getElementById('comment-overlay').classList.remove('show');
+  currentCommentPostId = null;
+}
+function closeCommentOutside(e) {
+  if (e.target === document.getElementById('comment-overlay')) closeComment();
+}
+function sendComment() {
+  const input = document.getElementById('comment-input');
+  const text = input.value.trim();
+  if (!text || !currentCommentPostId) return;
+  if (window.sendCommentToFirebase) window.sendCommentToFirebase(currentCommentPostId, text);
+  input.value = '';
+}
+
 // ════════════════════════════════
 // ⚙️ 가격 설정
 // ════════════════════════════════
@@ -14,8 +96,8 @@ const CONFIG = {
     cafeLow:  10,
   },
   gacha: {
-    one:   200,
-    three: 560,
+    one:   180,  // 1뽑 비용
+    three: 540,  // 3뽑 비용
   },
 };
 
@@ -191,10 +273,10 @@ function drawOne() {
   const rand = Math.random() * 100;
   let pool;
   if (rand < 1)       pool = CARDS.filter(c => c.grade === 'UR');   // 1%
-  else if (rand < 5)  pool = CARDS.filter(c => c.grade === 'SSR');  // 4%
-  else if (rand < 15) pool = CARDS.filter(c => c.grade === 'SR');   // 10%
-  else if (rand < 40) pool = CARDS.filter(c => c.grade === 'R');    // 25%
-  else                pool = CARDS.filter(c => c.grade === 'N');     // 60%
+  else if (rand < 3)  pool = CARDS.filter(c => c.grade === 'SSR');  // 2%
+  else if (rand < 10) pool = CARDS.filter(c => c.grade === 'SR');   // 7%
+  else if (rand < 30) pool = CARDS.filter(c => c.grade === 'R');    // 20%
+  else                pool = CARDS.filter(c => c.grade === 'N');     // 70%
   const card = pool[Math.floor(Math.random() * pool.length)];
   if (!owned.includes(card.id)) {
     owned.push(card.id);
@@ -219,6 +301,14 @@ function showGachaResult(card) {
   document.getElementById('gacha-res-name').textContent = card.name;
   const img = document.getElementById('gacha-res-img');
   if (card.img) { img.src = card.img; img.style.display = 'block'; } else { img.style.display = 'none'; }
+  // SR 이상이면 타임라인 자동 등록
+  if (['SR','SSR','UR'].includes(card.grade) && window.addTimelinePost) {
+    const nick = localStorage.getItem('ph_nickname') || '포카러버';
+    window.addTimelinePost(
+      nick + '님이 ' + card.grade + ' 카드를 획득했어요! 🎴✨',
+      card.img, card.name, card.grade
+    );
+  }
   document.getElementById('gacha-overlay').classList.add('show');
 }
 function closeGachaResult() { document.getElementById('gacha-overlay').classList.remove('show'); renderHomeIdols(); renderHomeSpeech(); }
@@ -362,6 +452,7 @@ function goTo(id) {
   if (id === 'collection') renderCollection();
   if (id === 'home') { renderHomeIdols(); renderHomeSpeech(); }
   if (id === 'bond') renderBondList();
+  if (id === 'timeline' && window.loadTimeline) window.loadTimeline();
 }
 
 // ── 버거 알바 ──
@@ -579,10 +670,10 @@ function renderAutoIdols() {
   const section = document.getElementById('auto-idols-section');
   const list = document.getElementById('auto-idol-list');
   if (autoOwned.length === 0) { section.style.display = 'none'; return; }
-  section.style.display = 'block';
+  section.style.display = 'none'; // 자동알바 비활성화
   list.innerHTML = autoOwned.map(c => `<div class="auto-idol-row"><div><span class="auto-idol-name">${c.name}</span> <span style="font-size:11px;color:#888;">${c.grade}</span></div><div class="auto-coin">+🍔${c.autoCoins}/분</div></div>`).join('');
-  clearInterval(window._autoInterval);
-  window._autoInterval = setInterval(() => {
+  
+  // 자동알바 제거됨 // setInterval(() => {
     const total = autoOwned.reduce((s, c) => s + Math.floor(c.autoCoins / 2), 0);
     coins += total; saveAll(); spawnCoinFloat(total);
   }, 30000);
@@ -746,3 +837,4 @@ function giveGift(charId, item) {
 updateCoinsDisplay();
 renderHomeIdols();
 renderHomeSpeech();
+checkNickname();
