@@ -202,7 +202,6 @@
   .comment-overlay { display: none; position: fixed; inset: 0; z-index: 600; background: rgba(0,0,0,0.6); align-items: flex-end; }
   .comment-overlay.show { display: flex; }
   .comment-panel { width: 100%; max-width: 430px; margin: 0 auto; background: #fff; border-radius: 24px 24px 0 0; padding: 20px 16px; max-height: 70vh; display: flex; flex-direction: column; }
-  /* 가방 */
   .bag-slot { background:#fff;border:1.5px solid #FFE4EF;border-radius:12px;aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;position:relative;cursor:pointer; }
   .bag-slot.has-item { border-color:#FFB3CC;background:linear-gradient(135deg,#FFF0F5,#fff); }
   .bag-slot.has-item:active { transform:scale(0.95); }
@@ -212,7 +211,6 @@
   .bag-item-name { font-size:9px;color:#888;font-weight:700;text-align:center;max-width:100%;overflow:hidden;white-space:nowrap; }
 </style>
 
-<!-- Firebase TEST 연결: firebase-test 브랜치에서만 사용 -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
   import { getFirestore, doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
@@ -241,7 +239,6 @@
 </head>
 <body>
 
-<!-- 닉네임 팝업 -->
 <div class="nickname-popup" id="nickname-popup" style="display:none;">
   <div class="nickname-inner">
     <div style="font-size:48px;margin-bottom:12px;">🌸</div>
@@ -252,7 +249,6 @@
   </div>
 </div>
 
-<!-- 출석 팝업 -->
 <div class="attend-popup" id="attend-popup" style="display:none;">
   <div class="attend-inner">
     <div class="attend-title">🎁 출석 보상!</div>
@@ -263,7 +259,6 @@
   </div>
 </div>
 
-<!-- HOME -->
 <div id="screen-home" class="screen active">
   <div class="topbar">
     <div class="topbar-logo">POCA<span>HOUSE</span></div>
@@ -299,7 +294,6 @@
   </div>
 </div>
 
-<!-- ALBA 선택 -->
 <div id="screen-alba" class="screen">
   <div class="alba-bg"></div>
   <div class="alba-content">
@@ -332,7 +326,6 @@
   </div>
 </div>
 
-<!-- ALBA 버거 -->
 <div id="screen-alba-burger" class="screen" style="background:#1a0a0a;padding-bottom:70px;flex-direction:column;">
   <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:rgba(0,0,0,0.6);flex-shrink:0;">
     <button onclick="goTo('alba')" style="background:rgba(255,255,255,0.15);border:none;border-radius:10px;color:#fff;font-size:13px;font-weight:700;padding:7px 12px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">← 뒤로</button>
@@ -346,7 +339,6 @@
   <div id="burger-bottom-panel" style="padding:12px 16px;background:rgba(0,0,0,0.75);backdrop-filter:blur(8px);flex:1;"></div>
 </div>
 
-<!-- ALBA 카페 -->
 <div id="screen-alba-cafe" class="screen" style="background:#1a0e0a;padding-bottom:70px;flex-direction:column;">
   <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:rgba(0,0,0,0.6);flex-shrink:0;">
     <button onclick="goTo('alba')" style="background:rgba(255,255,255,0.15);border:none;border-radius:10px;color:#fff;font-size:13px;font-weight:700;padding:7px 12px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">← 뒤로</button>
@@ -366,7 +358,6 @@
   <div id="cafe-bottom-panel" style="padding:12px 16px;background:rgba(0,0,0,0.7);backdrop-filter:blur(8px);flex:1;"></div>
 </div>
 
-<!-- ALBA 꽃집 -->
 <div id="screen-alba-flower" class="screen" style="background:#1a0a1a;padding-bottom:70px;flex-direction:column;">
   <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:rgba(0,0,0,0.62);flex-shrink:0;">
     <button onclick="goTo('alba')" style="background:rgba(255,255,255,0.15);border:none;border-radius:10px;color:#fff;font-size:13px;font-weight:700;padding:7px 12px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">← 뒤로</button>
@@ -380,28 +371,21 @@
   <div id="flower-bottom-panel" style="padding:10px 12px;background:rgba(26,10,30,0.84);backdrop-filter:blur(8px);flex:0 0 auto;"></div>
 </div>
 
-<!-- GACHA -->
 <div id="screen-gacha" class="screen" style="position:relative;background:#0a0a1e;padding-bottom:0;">
-  <!-- 배경 이미지 꽉 차게 -->
   <div style="position:absolute;inset:0;background-image:url('https://raw.githubusercontent.com/chaei7775/Poca-house/main/burger-order.png');background-size:cover;background-position:center;z-index:0;"></div>
   <div style="position:absolute;inset:0;background:rgba(10,10,30,0.45);z-index:1;"></div>
-  <!-- 상단바 -->
   <div class="topbar" style="background:rgba(10,10,46,0.6);backdrop-filter:blur(8px);position:relative;z-index:10;">
     <div class="topbar-logo">POCA<span>HOUSE</span></div>
     <div class="coins">🍔 <span id="coin-gacha">0</span></div>
   </div>
-  <!-- 컨텐츠 -->
   <div style="position:relative;z-index:10;display:flex;flex-direction:column;align-items:center;flex:1;padding:0 16px 16px;">
     <div style="text-align:center;padding:16px 0 8px;">
       <div style="font-size:22px;font-weight:900;font-family:'Nunito',sans-serif;background:linear-gradient(135deg,#C084FC,#FF6B9D);-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:2px;">CARD DRAW</div>
       <div style="font-size:12px;color:#C084FC99;margin-top:2px;">어떤 아이돌이 나올까? 💜</div>
       <div style="font-size:13px;color:#FFD700;font-weight:700;margin-top:6px;">🍔 <span id="coin-gacha2">0</span>코인 보유</div>
     </div>
-    <!-- 마법책 영역 - 배경 받침대 위치에 맞게 -->
     <div id="gacha-book-area" style="position:relative;width:200px;height:180px;margin:8px auto;cursor:pointer;" onclick="doDrawAnimation()">
-      <!-- 책 -->
       <div id="gacha-book" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:100px;filter:drop-shadow(0 0 20px #C084FC);animation:bookFloat 3s ease-in-out infinite;">📖</div>
-      <!-- 반짝임 -->
       <div id="gacha-sparkles" style="position:absolute;inset:0;pointer-events:none;">
         <div style="position:absolute;top:10%;left:20%;font-size:16px;animation:sparkle 2s infinite 0.3s;">✨</div>
         <div style="position:absolute;top:20%;right:15%;font-size:12px;animation:sparkle 2s infinite 0.8s;">⭐</div>
@@ -410,12 +394,11 @@
       </div>
       <div style="position:absolute;bottom:-20px;left:50%;transform:translateX(-50%);font-size:11px;color:#C084FC99;white-space:nowrap;">탭해서 뽑기!</div>
     </div>
-    <!-- 뽑기 버튼 -->
     <div style="display:flex;gap:10px;width:100%;max-width:360px;margin-top:32px;">
-      <button class="gacha-btn gacha-btn-1" onclick="doDraw(1)" style="flex:1;padding:14px;border-radius:14px;font-size:14px;font-weight:900;font-family:'Noto Sans KR',sans-serif;cursor:pointer;background:rgba(192,132,252,0.2);border:1.5px solid #C084FC;color:#C084FC;">1뽑<br><span style="font-size:11px;opacity:0.8;font-weight:400;">🍔 180</span></button>
-      <button class="gacha-btn gacha-btn-3" onclick="doDraw(3)" style="flex:1;padding:14px;border-radius:14px;font-size:14px;font-weight:900;font-family:'Noto Sans KR',sans-serif;cursor:pointer;background:linear-gradient(135deg,#C084FC,#A855F7);border:none;color:#fff;box-shadow:0 4px 16px #C084FC44;">3뽑<br><span style="font-size:11px;opacity:0.8;font-weight:400;">🍔 540</span></button>
+      <button class="gacha-btn gacha-btn-1" onclick="doDraw(1)" style="flex:1;padding:14px;border-radius:14px;font-size:14px;font-weight:900;cursor:pointer;background:rgba(192,132,252,0.2);border:1.5px solid #C084FC;color:#C084FC;">1뽑<br><span style="font-size:11px;opacity:0.8;font-weight:400;">🍔 180</span></button>
+      <button class="gacha-btn gacha-btn-3" onclick="doDraw(3)" style="flex:1;padding:14px;border-radius:14px;font-size:14px;font-weight:900;cursor:pointer;background:linear-gradient(135deg,#C084FC,#A855F7);border:none;color:#fff;box-shadow:0 4px 16px #C084FC44;">3뽑<br><span style="font-size:11px;opacity:0.8;font-weight:400;">🍔 540</span></button>
     </div>
-    <button style="margin-top:12px;width:100%;max-width:360px;padding:12px;background:rgba(255,255,255,0.05);border:1.5px solid rgba(255,255,255,0.15);border-radius:14px;color:#aaa;font-size:14px;font-weight:700;font-family:'Noto Sans KR',sans-serif;cursor:pointer;" onclick="goTo('home')">← 홈으로</button>
+    <button style="margin-top:12px;width:100%;max-width:360px;padding:12px;background:rgba(255,255,255,0.05);border:1.5px solid rgba(255,255,255,0.15);border-radius:14px;color:#aaa;font-size:14px;font-weight:700;cursor:pointer;" onclick="goTo('home')">← 홈으로</button>
   </div>
   <style>
     @keyframes bookFloat { 0%,100%{transform:translateY(0) rotate(-3deg);} 50%{transform:translateY(-10px) rotate(3deg);} }
@@ -425,7 +408,6 @@
   </style>
 </div>
 
-<!-- COLLECTION -->
 <div id="screen-collection" class="screen">
   <div class="collection-header">
     <div class="collection-title">내 컬렉션 📁</div>
@@ -437,7 +419,6 @@
   </div>
 </div>
 
-<!-- 맵 -->
 <div id="screen-map" class="screen" style="background:#0a1628;padding-bottom:70px;flex-direction:column;">
   <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:rgba(0,0,0,0.6);flex-shrink:0;">
     <div style="font-size:16px;font-weight:900;color:#fff;font-family:'Nunito',sans-serif;">🗺️ 포카마을</div>
@@ -445,56 +426,54 @@
   </div>
   <div style="position:relative;width:100%;overflow:hidden;">
     <img src="https://raw.githubusercontent.com/chaei7775/Poca-house/main/map-village.png" style="width:100%;display:block;">
-    <button onclick="openPlace('school')" style="position:absolute;left:48%;top:12%;transform:translate(-50%,-50%);background:rgba(96,165,250,0.85);border:2px solid #fff;border-radius:20px;padding:4px 10px;color:#fff;font-size:11px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;white-space:nowrap;">🏫 연성고등학교</button>
-    <button onclick="openPlace('beach')" style="position:absolute;left:12%;top:30%;transform:translate(-50%,-50%);background:rgba(56,189,248,0.85);border:2px solid #fff;border-radius:20px;padding:4px 10px;color:#fff;font-size:11px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;white-space:nowrap;">🏖️ 해변</button>
-    <button onclick="openPlace('forest')" style="position:absolute;left:22%;top:42%;transform:translate(-50%,-50%);background:rgba(74,222,128,0.85);border:2px solid #fff;border-radius:20px;padding:4px 10px;color:#fff;font-size:11px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;white-space:nowrap;">🌲 동쪽숲</button>
-    <button onclick="openPlace('shopping')" style="position:absolute;left:58%;top:35%;transform:translate(-50%,-50%);background:rgba(251,191,36,0.9);border:2px solid #fff;border-radius:20px;padding:4px 10px;color:#fff;font-size:11px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;white-space:nowrap;">🛍️ 상점거리</button>
-    <button onclick="openPlace('housing')" style="position:absolute;left:76%;top:28%;transform:translate(-50%,-50%);background:rgba(255,182,193,0.85);border:2px solid #fff;border-radius:20px;padding:4px 10px;color:#fff;font-size:11px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;white-space:nowrap;">🏘️ 주택가</button>
-    <button onclick="openPlace('mystery')" style="position:absolute;left:90%;top:20%;transform:translate(-50%,-50%);background:rgba(192,132,252,0.85);border:2px solid #fff;border-radius:20px;padding:4px 10px;color:#fff;font-size:11px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;white-space:nowrap;">✨ 신비의 섬</button>
-    <button onclick="openPlace('cafe-street')" style="position:absolute;left:80%;top:52%;transform:translate(-50%,-50%);background:rgba(192,132,252,0.85);border:2px solid #fff;border-radius:20px;padding:4px 10px;color:#fff;font-size:11px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;white-space:nowrap;">☕ 카페거리</button>
-    <button onclick="openPlace('square')" style="position:absolute;left:52%;top:52%;transform:translate(-50%,-50%);background:rgba(255,107,157,0.85);border:2px solid #fff;border-radius:20px;padding:4px 10px;color:#fff;font-size:11px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;white-space:nowrap;">🏛️ 중앙광장</button>
-    <button onclick="openPlace('lake')" style="position:absolute;left:20%;top:62%;transform:translate(-50%,-50%);background:rgba(56,189,248,0.85);border:2px solid #fff;border-radius:20px;padding:4px 10px;color:#fff;font-size:11px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;white-space:nowrap;">🏞️ 동쪽호수</button>
-    <button onclick="openPlace('room')" style="position:absolute;left:48%;top:75%;transform:translate(-50%,-50%);background:rgba(255,182,193,0.85);border:2px solid #fff;border-radius:20px;padding:4px 10px;color:#fff;font-size:11px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;white-space:nowrap;">🏠 내 집</button>
-    <button onclick="openPlace('park')" style="position:absolute;left:72%;top:75%;transform:translate(-50%,-50%);background:rgba(74,222,128,0.85);border:2px solid #fff;border-radius:20px;padding:4px 10px;color:#fff;font-size:11px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;white-space:nowrap;">🌸 꽃길공원</button>
+    <button onclick="openPlace('school')" style="position:absolute;left:48%;top:12%;transform:translate(-50%,-50%);background:rgba(96,165,250,0.85);border:2px solid #fff;border-radius:20px;padding:4px 10px;color:#fff;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;">🏫 연성고등학교</button>
+    <button onclick="openPlace('beach')" style="position:absolute;left:12%;top:30%;transform:translate(-50%,-50%);background:rgba(56,189,248,0.85);border:2px solid #fff;border-radius:20px;padding:4px 10px;color:#fff;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;">🏖️ 해변</button>
+    <button onclick="openPlace('forest')" style="position:absolute;left:22%;top:42%;transform:translate(-50%,-50%);background:rgba(74,222,128,0.85);border:2px solid #fff;border-radius:20px;padding:4px 10px;color:#fff;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;">🌲 동쪽숲</button>
+    <button onclick="openPlace('shopping')" style="position:absolute;left:58%;top:35%;transform:translate(-50%,-50%);background:rgba(251,191,36,0.9);border:2px solid #fff;border-radius:20px;padding:4px 10px;color:#fff;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;">🛍️ 상점거리</button>
+    <button onclick="openPlace('housing')" style="position:absolute;left:76%;top:28%;transform:translate(-50%,-50%);background:rgba(255,182,193,0.85);border:2px solid #fff;border-radius:20px;padding:4px 10px;color:#fff;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;">🏘️ 주택가</button>
+    <button onclick="openPlace('mystery')" style="position:absolute;left:90%;top:20%;transform:translate(-50%,-50%);background:rgba(192,132,252,0.85);border:2px solid #fff;border-radius:20px;padding:4px 10px;color:#fff;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;">✨ 신비의 섬</button>
+    <button onclick="openPlace('cafe-street')" style="position:absolute;left:80%;top:52%;transform:translate(-50%,-50%);background:rgba(192,132,252,0.85);border:2px solid #fff;border-radius:20px;padding:4px 10px;color:#fff;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;">☕ 카페거리</button>
+    <button onclick="openPlace('square')" style="position:absolute;left:52%;top:52%;transform:translate(-50%,-50%);background:rgba(255,107,157,0.85);border:2px solid #fff;border-radius:20px;padding:4px 10px;color:#fff;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;">🏛️ 중앙광장</button>
+    <button onclick="openPlace('lake')" style="position:absolute;left:20%;top:62%;transform:translate(-50%,-50%);background:rgba(56,189,248,0.85);border:2px solid #fff;border-radius:20px;padding:4px 10px;color:#fff;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;">🏞️ 동쪽호수</button>
+    <button onclick="openPlace('room')" style="position:absolute;left:48%;top:75%;transform:translate(-50%,-50%);background:rgba(255,182,193,0.85);border:2px solid #fff;border-radius:20px;padding:4px 10px;color:#fff;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;">🏠 내 집</button>
+    <button onclick="openPlace('park')" style="position:absolute;left:72%;top:75%;transform:translate(-50%,-50%);background:rgba(74,222,128,0.85);border:2px solid #fff;border-radius:20px;padding:4px 10px;color:#fff;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;">🌸 꽃길공원</button>
   </div>
 </div>
 
-<!-- 장소 오버레이 -->
 <div id="place-overlay" style="display:none;position:fixed;inset:0;z-index:400;background:#000;flex-direction:column;">
   <div style="position:relative;width:100%;flex:1;overflow:hidden;">
     <img id="place-bg-img" src="" style="width:100%;height:100%;object-fit:cover;object-position:top;">
     <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,0.7) 0%,transparent 50%);pointer-events:none;"></div>
-    <button onclick="closePlace()" style="position:absolute;top:16px;left:16px;z-index:10;background:rgba(0,0,0,0.5);border:none;border-radius:10px;color:#fff;font-size:13px;font-weight:700;padding:8px 14px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">← 뒤로</button>
+    <button onclick="closePlace()" style="position:absolute;top:16px;left:16px;z-index:10;background:rgba(0,0,0,0.5);border:none;border-radius:10px;color:#fff;font-size:13px;font-weight:700;padding:8px 14px;cursor:pointer;">← 뒤로</button>
     <div id="place-title" style="position:absolute;bottom:16px;left:16px;z-index:10;font-size:22px;font-weight:900;color:#fff;text-shadow:0 2px 8px #0008;"></div>
   </div>
   <div style="padding:16px;background:rgba(0,0,0,0.9);display:flex;flex-direction:column;gap:10px;">
-    <button onclick="doBurgerAlba()" id="btn-burger-alba" style="display:none;width:100%;padding:14px;background:rgba(255,255,255,0.1);border:1.5px solid rgba(255,255,255,0.2);border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">🍔 알바하기</button>
-    <button onclick="doCafeAlba()" id="btn-cafe-alba" style="display:none;width:100%;padding:14px;background:rgba(255,255,255,0.1);border:1.5px solid rgba(255,255,255,0.2);border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">☕ 카페 알바하기</button>
-    <button onclick="meetChar('yuna')" id="btn-meet-yuna" style="display:none;width:100%;padding:14px;background:rgba(255,107,157,0.2);border:1.5px solid #FF6B9D;border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">🌸 윤아 만나기</button>
-    <button onclick="meetChar('minjun')" id="btn-meet-minjun" style="display:none;width:100%;padding:14px;background:rgba(255,107,157,0.2);border:1.5px solid #FF6B9D;border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">📚 민준 만나기</button>
-    <button onclick="meetChar('sion')" id="btn-meet-sion" style="display:none;width:100%;padding:14px;background:rgba(99,102,241,0.2);border:1.5px solid #6366F1;border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">🎸 시온 만나기</button>
-    <button onclick="meetChar('doyun')" id="btn-meet-doyun" style="display:none;width:100%;padding:14px;background:rgba(55,65,81,0.4);border:1.5px solid #9ca3af;border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">👑 도윤 만나기</button>
-    <button onclick="meetChar('harin')" id="btn-meet-harin" style="display:none;width:100%;padding:14px;background:rgba(124,58,237,0.2);border:1.5px solid #7C3AED;border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">🌙 하린 만나기</button>
-    <button onclick="meetChar('ara')" id="btn-meet-ara" style="display:none;width:100%;padding:14px;background:rgba(157,23,77,0.2);border:1.5px solid #9D174D;border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">🌹 아라 만나기</button>
-    <button onclick="openSubPlace('library')" id="btn-sub-library" style="display:none;width:100%;padding:14px;background:rgba(255,255,255,0.1);border:1.5px solid rgba(255,255,255,0.2);border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">📚 도서관</button>
-    <button onclick="openSubPlace('music')" id="btn-sub-music" style="display:none;width:100%;padding:14px;background:rgba(255,255,255,0.1);border:1.5px solid rgba(255,255,255,0.2);border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">🎵 음악실</button>
-    <button onclick="openSubPlace('council')" id="btn-sub-council" style="display:none;width:100%;padding:14px;background:rgba(255,255,255,0.1);border:1.5px solid rgba(255,255,255,0.2);border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">🏢 학생회실</button>
-    <button onclick="openSubPlace('rooftop')" id="btn-sub-rooftop" style="display:none;width:100%;padding:14px;background:rgba(255,255,255,0.1);border:1.5px solid rgba(255,255,255,0.2);border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">⭐ 옥상</button>
-    <button onclick="openTechAcademy()" id="btn-tech-academy" style="display:none;width:100%;padding:14px;background:rgba(192,132,252,0.2);border:1.5px solid #C084FC;border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">🎓 기술학원</button>
-    <button onclick="startExplore('forest')" id="btn-explore-forest" style="display:none;width:100%;padding:14px;background:rgba(255,255,255,0.1);border:1.5px solid rgba(255,255,255,0.2);border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">🌿 탐험하기</button>
-    <button onclick="explorePlace('lake')" id="btn-explore-lake" style="display:none;width:100%;padding:14px;background:rgba(255,255,255,0.1);border:1.5px solid rgba(255,255,255,0.2);border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">🎣 낚시하기</button>
-    <button onclick="startExplore('beach')" id="btn-explore-beach" style="display:none;width:100%;padding:14px;background:rgba(56,189,248,0.2);border:1.5px solid #38bdf8;border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">🏖️ 해변 탐험</button>
-    <button onclick="explorePlace('housing')" id="btn-explore-housing" style="display:none;width:100%;padding:14px;background:rgba(255,255,255,0.1);border:1.5px solid rgba(255,255,255,0.2);border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">🏘️ 주택가 둘러보기</button>
-    <button onclick="startExplore('mystery')" id="btn-explore-mystery" style="display:none;width:100%;padding:14px;background:rgba(192,132,252,0.2);border:1.5px solid #C084FC;border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">✨ 신비의 섬 탐험</button>
-    <button onclick="startExplore('square')" id="btn-explore-square" style="display:none;width:100%;padding:14px;background:rgba(255,107,157,0.2);border:1.5px solid #FF6B9D;border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">🏛️ 중앙광장 둘러보기</button>
-    <button onclick="startExplore('park')" id="btn-explore-park" style="display:none;width:100%;padding:14px;background:rgba(74,222,128,0.2);border:1.5px solid #4ade80;border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">🌸 꽃길공원 산책</button>
-    <button id="btn-room-deco" style="display:none;width:100%;padding:14px;background:rgba(255,255,255,0.1);border:1.5px solid rgba(255,255,255,0.2);border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;" onclick="alert('준비 중이에요!')">🛋️ 방 꾸미기</button>
-    <button onclick="openShop('gift')" id="btn-shop-gift" style="display:none;width:100%;padding:14px;background:rgba(255,107,157,0.2);border:1.5px solid #FF6B9D;border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">🎁 잡화점</button>
-    <button onclick="openShop('room')" id="btn-shop-room" style="display:none;width:100%;padding:14px;background:rgba(251,191,36,0.2);border:1.5px solid #FBBF24;border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">🪑 가구샵</button>
+    <button onclick="doBurgerAlba()" id="btn-burger-alba" style="display:none;width:100%;padding:14px;background:rgba(255,255,255,0.1);border:1.5px solid rgba(255,255,255,0.2);border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;">🍔 알바하기</button>
+    <button onclick="doCafeAlba()" id="btn-cafe-alba" style="display:none;width:100%;padding:14px;background:rgba(255,255,255,0.1);border:1.5px solid rgba(255,255,255,0.2);border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;">☕ 카페 알바하기</button>
+    <button onclick="meetChar('yuna')" id="btn-meet-yuna" style="display:none;width:100%;padding:14px;background:rgba(255,107,157,0.2);border:1.5px solid #FF6B9D;border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;">🌸 윤아 만나기</button>
+    <button onclick="meetChar('minjun')" id="btn-meet-minjun" style="display:none;width:100%;padding:14px;background:rgba(255,107,157,0.2);border:1.5px solid #FF6B9D;border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;">📚 민준 만나기</button>
+    <button onclick="meetChar('sion')" id="btn-meet-sion" style="display:none;width:100%;padding:14px;background:rgba(99,102,241,0.2);border:1.5px solid #6366F1;border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;">🎸 시온 만나기</button>
+    <button onclick="meetChar('doyun')" id="btn-meet-doyun" style="display:none;width:100%;padding:14px;background:rgba(55,65,81,0.4);border:1.5px solid #9ca3af;border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;">👑 도윤 만나기</button>
+    <button onclick="meetChar('harin')" id="btn-meet-harin" style="display:none;width:100%;padding:14px;background:rgba(124,58,237,0.2);border:1.5px solid #7C3AED;border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;">🌙 하린 만나기</button>
+    <button onclick="meetChar('ara')" id="btn-meet-ara" style="display:none;width:100%;padding:14px;background:rgba(157,23,77,0.2);border:1.5px solid #9D174D;border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;">🌹 아라 만나기</button>
+    <button onclick="openSubPlace('library')" id="btn-sub-library" style="display:none;width:100%;padding:14px;background:rgba(255,255,255,0.1);border:1.5px solid rgba(255,255,255,0.2);border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;">📚 도서관</button>
+    <button onclick="openSubPlace('music')" id="btn-sub-music" style="display:none;width:100%;padding:14px;background:rgba(255,255,255,0.1);border:1.5px solid rgba(255,255,255,0.2);border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;">🎵 음악실</button>
+    <button onclick="openSubPlace('council')" id="btn-sub-council" style="display:none;width:100%;padding:14px;background:rgba(255,255,255,0.1);border:1.5px solid rgba(255,255,255,0.2);border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;">🏢 학생회실</button>
+    <button onclick="openSubPlace('rooftop')" id="btn-sub-rooftop" style="display:none;width:100%;padding:14px;background:rgba(255,255,255,0.1);border:1.5px solid rgba(255,255,255,0.2);border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;">⭐ 옥상</button>
+    <button onclick="openTechAcademy()" id="btn-tech-academy" style="display:none;width:100%;padding:14px;background:rgba(192,132,252,0.2);border:1.5px solid #C084FC;border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;">🎓 기술학원</button>
+    <button onclick="startExplore('forest')" id="btn-explore-forest" style="display:none;width:100%;padding:14px;background:rgba(255,255,255,0.1);border:1.5px solid rgba(255,255,255,0.2);border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;">🌿 탐험하기</button>
+    <button onclick="explorePlace('lake')" id="btn-explore-lake" style="display:none;width:100%;padding:14px;background:rgba(255,255,255,0.1);border:1.5px solid rgba(255,255,255,0.2);border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;">🎣 낚시하기</button>
+    <button onclick="startExplore('beach')" id="btn-explore-beach" style="display:none;width:100%;padding:14px;background:rgba(56,189,248,0.2);border:1.5px solid #38bdf8;border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;">🏖️ 해변 탐험</button>
+    <button onclick="explorePlace('housing')" id="btn-explore-housing" style="display:none;width:100%;padding:14px;background:rgba(255,255,255,0.1);border:1.5px solid rgba(255,255,255,0.2);border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;">🏘️ 주택가 둘러보기</button>
+    <button onclick="startExplore('mystery')" id="btn-explore-mystery" style="display:none;width:100%;padding:14px;background:rgba(192,132,252,0.2);border:1.5px solid #C084FC;border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;">✨ 신비의 섬 탐험</button>
+    <button onclick="startExplore('square')" id="btn-explore-square" style="display:none;width:100%;padding:14px;background:rgba(255,107,157,0.2);border:1.5px solid #FF6B9D;border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;">🏛️ 중앙광장 둘러보기</button>
+    <button onclick="startExplore('park')" id="btn-explore-park" style="display:none;width:100%;padding:14px;background:rgba(74,222,128,0.2);border:1.5px solid #4ade80;border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;">🌸 꽃길공원 산책</button>
+    <button id="btn-room-deco" style="display:none;width:100%;padding:14px;background:rgba(255,255,255,0.1);border:1.5px solid rgba(255,255,255,0.2);border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;" onclick="alert('준비 중이에요!')">🛋️ 방 꾸미기</button>
+    <button onclick="openShop('gift')" id="btn-shop-gift" style="display:none;width:100%;padding:14px;background:rgba(255,107,157,0.2);border:1.5px solid #FF6B9D;border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;">🎁 잡화점</button>
+    <button onclick="openShop('room')" id="btn-shop-room" style="display:none;width:100%;padding:14px;background:rgba(251,191,36,0.2);border:1.5px solid #FBBF24;border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;">🪑 가구샵</button>
   </div>
 </div>
 
-<!-- 인연 -->
 <div id="screen-bond" class="screen">
   <div class="bond-header">
     <div class="bond-header-title">💞 인연</div>
@@ -503,7 +482,6 @@
   <div class="bond-list" id="bond-list"></div>
 </div>
 
-<!-- 타임라인 -->
 <div id="screen-timeline" class="screen">
   <div class="timeline-header">
     <div class="timeline-title">✨ 타임라인</div>
@@ -514,7 +492,6 @@
   </div>
 </div>
 
-<!-- 📋 퀘스트 -->
 <div id="screen-quest" class="screen" style="background:linear-gradient(180deg,#1a1a2e 0%,#2d1b4e 100%);">
   <div class="topbar">
     <div class="topbar-logo">POCA<span>HOUSE</span></div>
@@ -524,7 +501,6 @@
     <div style="font-size:20px;font-weight:900;color:#fff;font-family:'Nunito',sans-serif;">📋 퀘스트</div>
     <div style="font-size:12px;color:rgba(255,255,255,0.8);margin-top:2px;">천사의 귀환을 위한 여정</div>
   </div>
-  <!-- 플레이어 레벨 표시 -->
   <div style="margin:14px 16px 0;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:14px;padding:14px;">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
       <div style="font-size:14px;font-weight:900;color:#fff;">⭐ 플레이어 레벨</div>
@@ -538,7 +514,6 @@
   <div style="flex:1;overflow-y:auto;padding:14px 16px 80px;" id="quest-list"></div>
 </div>
 
-<!-- 🎒 가방 -->
 <div id="screen-bag" class="screen" style="background:linear-gradient(180deg,#FFF0F5 0%,#FFE4EF 100%);">
   <div class="topbar">
     <div class="topbar-logo">POCA<span>HOUSE</span></div>
@@ -550,16 +525,15 @@
   </div>
   <div style="flex:1;overflow-y:auto;padding:14px 14px 80px;">
     <div id="bag-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px;"></div>
-    <button id="bag-expand-btn" onclick="expandBag()" style="width:100%;padding:13px;background:linear-gradient(135deg,#FF6B9D,#C084FC);border:none;border-radius:14px;color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">🎒 슬롯 확장 (+3칸) · 🍔 500코인</button>
+    <button id="bag-expand-btn" onclick="expandBag()" style="width:100%;padding:13px;background:linear-gradient(135deg,#FF6B9D,#C084FC);border:none;border-radius:14px;color:#fff;font-size:13px;font-weight:700;font-family:'Noto Sans KR',sans-serif;">🎒 슬롯 확장 (+3칸) · 🍔 500코인</button>
   </div>
 </div>
 
-<!-- 상점 오버레이 -->
 <div class="shop-overlay" id="shop-overlay" onclick="closeShopOutside(event)">
   <div class="shop-panel" id="shop-panel">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
       <div style="font-size:16px;font-weight:900;color:#fff;">🛍️ 상점거리</div>
-      <button onclick="closeShop()" style="background:rgba(255,255,255,0.1);border:none;border-radius:8px;color:#fff;padding:6px 12px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;font-size:13px;">닫기</button>
+      <button onclick="closeShop()" style="background:rgba(255,255,255,0.1);border:none;border-radius:8px;color:#fff;padding:6px 12px;font-size:13px;">닫기</button>
     </div>
     <div style="font-size:12px;color:var(--gold);font-weight:700;margin-bottom:14px;">🍔 보유: <span id="shop-coin-display">0</span>코인</div>
     <div class="shop-tab-row">
@@ -592,7 +566,6 @@
   </div>
 </div>
 
-<!-- NAVBAR -->
 <nav class="navbar">
   <div class="navbar-row navbar-row-top">
     <button class="nav-item active" onclick="goTo('home')" id="nav-home"><span class="nav-icon">🏠</span><span class="nav-label">홈</span></button>
@@ -617,7 +590,7 @@
   <div class="gacha-result-grade" id="gacha-res-grade"></div>
   <div class="gacha-result-card" id="gacha-res-card"><img id="gacha-res-img" src="" alt=""></div>
   <div class="gacha-result-name" id="gacha-res-name"></div>
-  <button class="gacha-close-btn" onclick="closeGachaResult()">획득! 💜</button>
+  <div style="display:flex;gap:10px;width:100%;max-width:200px;margin-top:10px;" id="gacha-btn-container"></div>
 </div>
 <div class="bond-detail-overlay" id="bond-detail-overlay">
   <div class="bond-detail-header">
@@ -651,6 +624,6 @@
   <div class="wish-inner" id="wish-inner"></div>
 </div>
 
-<script src="game.js"></script>
+<script src="game.js?v=3.1"></script>
 </body>
 </html>
