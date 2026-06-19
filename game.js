@@ -3137,3 +3137,69 @@ window.onExplore = function(){ postTimeline("✨ 탐험 성공!"); };
   hook('showGachaResult','🎴 가챠 결과', (a)=>a?.[0]?.img);
 
 })();
+(function(){
+
+// ===============================
+// 🚨 SERVER BUTTON ROOT KILLER
+// ===============================
+
+// 1. 즉시 제거 함수
+function killServerUI(){
+  document.querySelectorAll("*").forEach(el=>{
+    const t = (el.innerText || "").toLowerCase();
+
+    if(
+      t.includes("서버") ||
+      t.includes("저장") ||
+      t.includes("firebase") ||
+      t.includes("sync")
+    ){
+      el.remove();
+    }
+  });
+}
+
+// 2. DOM 감시 (재생성 차단)
+const observer = new MutationObserver(() => {
+  killServerUI();
+});
+observer.observe(document.body, {
+  childList: true,
+  subtree: true
+});
+
+// 3. interval 보험 (가장 중요)
+setInterval(killServerUI, 300);
+
+// ===============================
+// 🚨 setTimeout 생성 차단 (핵심)
+// ===============================
+const _setTimeout = window.setTimeout;
+
+window.setTimeout = function(fn, t){
+
+  const s = String(fn);
+
+  // firebase / server UI 생성 차단
+  if(
+    s.includes("firebase") ||
+    s.includes("server") ||
+    s.includes("Server") ||
+    s.includes("sync")
+  ){
+    return 0;
+  }
+
+  return _setTimeout(fn, t);
+};
+
+// ===============================
+// 🚨 직접 생성 함수 방어
+// ===============================
+window.addFirebaseTestPanel = function(){};
+window.createServerButton = function(){};
+window.renderServerButton = function(){};
+
+console.log("🔥 POCA CORE STABILITY FIX LOADED");
+
+})();
