@@ -211,6 +211,33 @@
   .bag-item-qty { position:absolute;top:3px;right:5px;font-size:10px;font-weight:900;color:#FF6B9D; }
   .bag-item-name { font-size:9px;color:#888;font-weight:700;text-align:center;max-width:100%;overflow:hidden;white-space:nowrap; }
 </style>
+
+<!-- Firebase TEST 연결: firebase-test 브랜치에서만 사용 -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
+  import { getFirestore, doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyA59X0WsN0vngqfhPR3yT4Ra7Ort3xZb1I",
+    authDomain: "poca-house-test.firebaseapp.com",
+    projectId: "poca-house-test",
+    storageBucket: "poca-house-test.firebasestorage.app",
+    messagingSenderId: "958061227255",
+    appId: "1:958061227255:web:4075fd8050aa2f148337f2"
+  };
+
+  try {
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    window.pocaFirebase = { db, doc, setDoc, serverTimestamp };
+    window.pocaFirebaseReady = true;
+    console.log("✅ Poca Firebase ready");
+  } catch (err) {
+    window.pocaFirebaseReady = false;
+    console.error("❌ Poca Firebase init failed", err);
+  }
+</script>
+
 </head>
 <body>
 
