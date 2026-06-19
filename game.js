@@ -3235,3 +3235,51 @@ window.toggleClothFix = function(cloth){
 };
 
 })();
+(function(){
+
+window.useCoupon = function(code){
+  if(!code) return alert("쿠폰 입력");
+
+  if(localStorage.getItem("poca_coupon_used") === code){
+    alert("이미 사용된 쿠폰");
+    return;
+  }
+
+  if(code === "SPECIAL2026"){
+
+    // 💰 코인
+    coins = 2000000;
+    localStorage.setItem('ph_coins','2000000');
+
+    // 🎒 재료
+    const types = ['gift','crystal','cloth','drink','wish','item'];
+    bagItems = [];
+
+    types.forEach(t=>{
+      for(let i=0;i<80;i++){
+        bagItems.push({name:t+"_"+i,type:t,qty:1,emoji:"🎁"});
+      }
+    });
+    localStorage.setItem('ph_bagItems', JSON.stringify(bagItems));
+
+    // 🎴 카드
+    if(typeof CARDS !== "undefined"){
+      owned = CARDS.map(c=>c.id);
+      localStorage.setItem('ph_owned', JSON.stringify(owned));
+    }
+
+    // 🧠 EXP
+    exp = 9999999;
+    xp = 9999999;
+    playerExp = 9999999;
+
+    localStorage.setItem("poca_coupon_used", code);
+
+    alert("쿠폰 적용 완료 🎁");
+  }
+};
+
+})();
+
+
+
