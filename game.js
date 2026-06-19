@@ -2868,3 +2868,111 @@ function finishSchoolReport() {
 setTimeout(() => {
   try { ensureHomeLevelPanel(); updatePlayerLevelDisplay(); } catch(e) {}
 }, 200);
+
+
+// ════════════════════════════════
+// 🔥 Firebase 서버 저장 테스트 v0.1
+// firebase-test 브랜치 전용: 유저 문서 생성/업데이트만 테스트
+// ════════════════════════════════
+const POCA_FIREBASE_TEST_MODE = true;
+let pocaServerSaveTimer = null;
+let pocaServerLastSaveAt = 0;
+
+function getPocaServerUid() {
+  let uid = localStorage.getItem('ph_server_uid');
+  if (!uid) {
+    uid = 'poca_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 8);
+    localStorage.setItem('ph_server_uid', uid);
+  }
+  return uid;
+}
+
+function getPocaServerPayload() {
+  const nick = localStorage.getItem('ph_nickname') || '플레이어';
+  return {
+    uid: getPocaServerUid(),
+    nickname: nick,
+    coins: Number(coins || 0),
+    owned: Array.isArray(owned) ? owned : [],
+    ownedCount: Array.isArray(owned) ? owned.length : 0,
+    cardCounts: cardCounts || {},
+    bagSlots: Number(bagSlots || 20),
+    bagItems: Array.isArray(bagItems) ? bagItems : [],
+    inventory: inventory || {},
+    wishFragments: Number(wishFragments || 0),
+    stamina: Number(stamina || 0),
+    playerLevel: Number(typeof playerLevel !== 'undefined' ? playerLevel : 1),
+    playerExp: Number(typeof playerExp !== 'undefined' ? playerExp : 0),
+    currentRoom: currentRoom || 'basic',
+    updatedAt: window.pocaFirebase?.serverTimestamp ? window.pocaFirebase.serverTimestamp() : new Date().toISOString(),
+    testBranch: 'firebase-test'
+  };
+}
+
+function showServerSyncToast(msg, ok) {
+  const old = document.getElementById('server-sync-toast');
+  if (old) old.remove();
+  const el = document.createElement('div');
+  el.id = 'server-sync-toast';
+  el.style.cssText = `position:fixed;left:50%;top:12px;transform:translateX(-50%);z-index:1400;background:${ok ? 'rgba(22,163,74,.95)' : 'rgba(220,38,38,.95)'};color:#fff;border-radius:999px;padding:8px 14px;font-size:12px;font-weight:900;box-shadow:0 4px 16px #0004;max-width:90vw;text-align:center;pointer-events:none;`;
+  el.textContent = msg;
+  document.body.appendChild(el);
+  setTimeout(() => { if (el.parentNode) el.remove(); }, 2200);
+}
+
+async function savePocaUserToServer(reason) {
+  if (!POCA_FIREBASE_TEST_MODE) return false;
+  if (!window.pocaFirebaseReady || !window.pocaFirebase) {
+    console.warn('Firebase not ready yet:', reason);
+    return false;
+  }
+  const { db, doc, setDoc } = window.pocaFirebase;
+  const uid = getPocaServerUid();
+  const payload = getPocaServerPayload();
+  payload.lastReason = reason || 'manual';
+  try {
+    await setDoc(doc(db, 'users', uid), payload, { merge: true });
+    pocaServerLastSaveAt = Date.now();
+    console.log('✅ 서버 저장 성공:', uid, reason || 'manual');
+    showServerSyncToast('🔥 서버 저장 성공', true);
+    return true;
+  } catch (err) {
+    console.error('❌ 서버 저장 실패:', err);
+    showServerSyncToast('❌ 서버 저장 실패: 콘솔 확인', false);
+    return false;
+  }
+}
+
+function schedulePocaServerSave(reason) {
+  if (!POCA_FIREBASE_TEST_MODE) return;
+  clearTimeout(pocaServerSaveTimer);
+  pocaServerSaveTimer = setTimeout(() => savePocaUserToServer(reason || 'auto'), 900);
+}
+
+function addFirebaseTestPanel() {
+  if (document.getElementById('firebase-test-panel')) return;
+  const el = document.createElement('div');
+  el.id = 'firebase-test-panel';
+  el.style.cssText = 'position:fixed;left:8px;bottom:112px;z-index:1300;background:rgba(26,26,46,.92);border:1.5px solid #FFD700;color:#fff;border-radius:14px;padding:7px 9px;font-size:10px;font-weight:900;line-height:1.35;box-shadow:0 3px 14px #0004;max-width:160px;';
+  el.innerHTML = `🔥 Firebase TEST<br><span style="color:#FFD700;">UID:</span> ${getPocaServerUid().slice(-8)}<br><button onclick="savePocaUserToServer('button')" style="margin-top:5px;border:none;border-radius:9px;background:#FFD700;color:#1a1a2e;font-size:10px;font-weight:900;padding:4px 7px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">서버저장</button>`;
+  document.body.appendChild(el);
+}
+
+(function patchSaveAllForFirebaseTest(){
+  const originalSaveAll = window.saveAll || (typeof saveAll === 'function' ? saveAll : null);
+  if (typeof originalSaveAll !== 'function') {
+    console.warn('saveAll 함수가 아직 없어 Firebase 자동저장 패치를 건너뜀');
+    return;
+  }
+  window.saveAll = function() {
+    const result = originalSaveAll.apply(this, arguments);
+    schedulePocaServerSave('saveAll');
+    return result;
+  };
+  try { saveAll = window.saveAll; } catch(e) {}
+})();
+
+setTimeout(() => {
+  addFirebaseTestPanel();
+  savePocaUserToServer('firstLoad');
+}, 1800);
