@@ -264,7 +264,7 @@ function endRhythmGame() {
   clearInterval(rhythmState.spawnTimer);
   clearInterval(rhythmState.tickTimer);
   removeRhythmInput();
-  if (rhythmState.audio) { rhythmState.audio.pause(); }
+  stopRhythmAudioOnly();
 
   // 남아있는 노트는 모두 Miss 처리 (점수에는 영향 없음, 화면 정리용)
   rhythmState.notes.forEach(n => { if (!n.judged) { n.judged = true; n.el.remove(); } });
@@ -302,36 +302,39 @@ function renderRhythmResult(earnedCoins, ratio) {
   `;
 }
 
+
+function stopRhythmAudioOnly() {
+  if (rhythmState && rhythmState.audio) {
+    try {
+      rhythmState.audio.pause();
+      rhythmState.audio.currentTime = 0;
+      rhythmState.audio.src = '';
+      rhythmState.audio.load();
+    } catch (e) {}
+    rhythmState.audio = null;
+  }
+}
+
 function exitRhythmGame() {
-  if (rhythmState && !rhythmState.ended) {
+  if (rhythmState) {
     clearInterval(rhythmState.spawnTimer);
     clearInterval(rhythmState.tickTimer);
     removeRhythmInput();
-    if (rhythmState.audio) rhythmState.audio.pause();
-    if (typeof playBgm === 'function') playBgm();
+
+    if (Array.isArray(rhythmState.notes)) {
+      rhythmState.notes.forEach(n => {
+        try { if (n.el) n.el.remove(); } catch (e) {}
+      });
+    }
+
+    stopRhythmAudioOnly();
   }
+
   rhythmState = null;
+
+  if (typeof playBgm === 'function') playBgm();
+
   goTo('map');
-}
-
-// ── game.js의 openPlace()를 후킹해서 shopping 장소에 이벤트 알바 버튼 표시 ──
-(function hookOpenPlaceForEventAlba() {
-  if (typeof window.openPlace !== 'function') {
-    setTimeout(hookOpenPlaceForEventAlba, 50);
-    return;
-  }
-  const originalOpenPlace = window.openPlace;
-  window.openPlace = function(id) {
-    const result = originalOpenPlace.apply(this, arguments);
-    const btn = document.getElementById('btn-event-alba');
-    if (btn) btn.style.display = (id === 'shopping') ? 'block' : 'none';
-    return result;
-  };
-})();
-
-function goToEventAlba() {
-  if (typeof closePlace === 'function') closePlace();
-  openRhythmGame();
 }
 
 // ── game.js의 goTo()를 건드리지 않고, 후킹해서 리듬게임 화면 진입을 감지 ──
@@ -343,6 +346,17 @@ function goToEventAlba() {
   }
   const originalGoTo = window.goTo;
   window.goTo = function(id) {
+    if (typeof id === 'string' && !id.startsWith('rhythm')) {
+      if (rhythmState) {
+        clearInterval(rhythmState.spawnTimer);
+        clearInterval(rhythmState.tickTimer);
+        removeRhythmInput();
+        stopRhythmAudioOnly();
+        rhythmState = null;
+        if (typeof playBgm === 'function') playBgm();
+      }
+    }
+
     const result = originalGoTo.apply(this, arguments);
     if (id === 'rhythm-select') renderRhythmSelect();
     return result;
