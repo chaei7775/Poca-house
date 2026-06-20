@@ -72,7 +72,7 @@ function ensurePocaTextOutlineStyle() {
 }
 ensurePocaTextOutlineStyle();
 
-// ── 홈 화면 레벨바 (캐릭터 원형 아이콘 안쪽 하단에 작게) ──
+// ── 홈 화면 레벨 표시 (캐릭터 원형 아이콘 옆에 작은 텍스트만) ──
 function renderPocaLevelBar() {
   const charEl = document.getElementById('speech-char');
   if (!charEl) return;
@@ -90,9 +90,6 @@ function renderPocaLevelBar() {
   if (!charId) charId = ownedChars[0];
 
   const level = getCardLevel(charId);
-  const exp = getCardExp(charId);
-  const required = getCardExpRequired(level);
-  const pct = level >= 20 ? 100 : Math.min(100, Math.round(exp / required * 100));
 
   charEl.style.position = 'relative';
   charEl.style.overflow = 'visible';
@@ -100,13 +97,10 @@ function renderPocaLevelBar() {
   if (!bar) {
     bar = document.createElement('div');
     bar.id = 'poca-level-bar';
-    bar.style.cssText = 'position:absolute;bottom:-9px;left:50%;transform:translateX(-50%);width:44px;text-align:center;pointer-events:none;';
+    bar.style.cssText = 'position:absolute;bottom:-7px;left:50%;transform:translateX(-50%);pointer-events:none;background:#fff;border:1px solid #000;border-radius:8px;padding:0px 5px;white-space:nowrap;';
     charEl.appendChild(bar);
   }
-  bar.innerHTML =
-    '<div style="font-size:8px;font-weight:900;color:#fff;text-shadow:-1px -1px 0 #000,1px -1px 0 #000,-1px 1px 0 #000,1px 1px 0 #000;line-height:1;margin-bottom:1px;">Lv.' + level + '</div>' +
-    '<div style="height:4px;background:rgba(255,255,255,0.85);border:1px solid #000;border-radius:99px;overflow:hidden;">' +
-    '<div style="height:100%;width:' + pct + '%;background:linear-gradient(90deg,#FF6B9D,#C084FC);border-radius:99px;"></div></div>';
+  bar.innerHTML = '<span style="font-size:9px;font-weight:900;color:#FF6B9D;">Lv.' + level + '</span>';
 }
 
 // ── 학교 성적표 후킹: 등교한 포카에게 경험치 지급 ──
@@ -229,6 +223,7 @@ function updateHomeBannerWithStory() {
   titleEl.textContent = q.title;
   subEl.textContent = q.desc.length > 38 ? q.desc.slice(0, 38) + '...' : q.desc;
   titleEl.classList.add('poca-text-outline');
+  subEl.style.color = '#222';
 }
 
 // ── 퀘스트 화면에 새 스토리 탭 추가 + 텍스트 외곽선 적용 ──
@@ -243,16 +238,37 @@ function renderStoryQuestSection() {
   section.style.cssText = 'margin-bottom:16px;';
 
   let html = '<div class="poca-text-outline" style="font-size:13px;font-weight:900;margin-bottom:10px;">📖 스토리</div>';
-  STORY_QUESTS.forEach(function(q) {
+  STORY_QUESTS.forEach(function(q, idx) {
     const done = storyProgress[q.id] === 'done';
-    html += '<div style="background:#fff;border:1.5px solid #000;border-radius:12px;padding:12px;margin-bottom:8px;opacity:' + (done ? '0.55' : '1') + ';">' +
+    html += '<div onclick="openStoryQuestDetail(' + idx + ')" style="cursor:pointer;background:#fff;border:1.5px solid #000;border-radius:12px;padding:10px 12px;margin-bottom:8px;opacity:' + (done ? '0.55' : '1') + ';">' +
+      '<div style="font-size:9px;font-weight:900;color:#9333ea;letter-spacing:1px;margin-bottom:2px;">QUEST</div>' +
       '<div style="display:flex;align-items:center;justify-content:space-between;">' +
-      '<div class="poca-text-outline" style="font-size:14px;font-weight:900;">' + (done ? '✅ ' : '') + q.title + '</div>' +
-      '<div style="font-size:11px;color:#F59E0B;font-weight:900;">🍔' + q.rewardCoins + '</div></div>' +
-      '<div style="font-size:12px;color:#333;margin-top:4px;">' + q.desc + '</div></div>';
+      '<div class="poca-text-outline" style="font-size:12px;font-weight:900;">' + (done ? '✅ ' : '') + q.title + '</div>' +
+      '<div style="font-size:10px;color:#F59E0B;font-weight:900;">🍔' + q.rewardCoins + '</div></div>' +
+      '<div style="font-size:11px;color:#222;margin-top:3px;">' + (q.desc.length > 28 ? q.desc.slice(0, 28) + '...' : q.desc) + '</div></div>';
   });
   section.innerHTML = html;
   el.insertBefore(section, el.firstChild);
+}
+
+function openStoryQuestDetail(idx) {
+  const q = STORY_QUESTS[idx];
+  if (!q) return;
+  const done = storyProgress[q.id] === 'done';
+  const old = document.getElementById('story-quest-detail-overlay');
+  if (old) old.remove();
+  const overlay = document.createElement('div');
+  overlay.id = 'story-quest-detail-overlay';
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:960;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;padding:20px;';
+  overlay.onclick = function(e) { if (e.target === overlay) overlay.remove(); };
+  overlay.innerHTML = '<div style="background:#fff;border:2px solid #000;border-radius:18px;padding:22px;text-align:center;width:90%;max-width:320px;">' +
+    '<div style="font-size:9px;font-weight:900;color:#9333ea;letter-spacing:1.5px;margin-bottom:6px;">QUEST</div>' +
+    '<div class="poca-text-outline" style="font-size:18px;font-weight:900;margin-bottom:12px;">' + q.title + '</div>' +
+    '<div style="font-size:13px;color:#222;line-height:1.6;margin-bottom:16px;">' + q.desc + '</div>' +
+    '<div style="font-size:13px;color:#F59E0B;font-weight:900;margin-bottom:16px;">🍔 ' + q.rewardCoins.toLocaleString() + ' · ⭐ ' + q.rewardExp + 'xp</div>' +
+    (done ? '<div style="font-size:13px;color:#4ade80;font-weight:900;margin-bottom:10px;">✅ 완료한 이야기예요</div>' : '') +
+    '<button onclick="document.getElementById(\'story-quest-detail-overlay\').remove()" style="width:100%;padding:12px;background:linear-gradient(135deg,#FF6B9D,#C084FC);border:none;border-radius:12px;color:#fff;font-size:14px;font-weight:900;cursor:pointer;font-family:\'Noto Sans KR\',sans-serif;">확인</button></div>';
+  document.body.appendChild(overlay);
 }
 
 (function hookRenderQuestListForStory() {
@@ -275,6 +291,16 @@ function renderStoryQuestSection() {
     setTimeout(function() { checkStoryCondition('story_start'); }, 500);
   }
 })();
+
+// ── 첫 로드 시 즉시 홈 배너/레벨 표시 적용 ──
+setTimeout(function() {
+  updateHomeBannerWithStory();
+  renderPocaLevelBar();
+}, 600);
+setTimeout(function() {
+  updateHomeBannerWithStory();
+  renderPocaLevelBar();
+}, 1500);
 
 // ── checkQuestProgress 후킹: 기존 조건들과 스토리 조건 동시 체크 ──
 (function hookCheckQuestProgressForStory() {
