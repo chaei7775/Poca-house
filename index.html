@@ -429,7 +429,51 @@
     <button class="back-btn" style="background:rgba(255,107,157,0.1);border-color:var(--pink-light);color:var(--pink);" onclick="goTo('home')">← 홈으로</button>
   </div>
 </div>
+<!-- ════════════ 🎶 리듬게임 추가분 (rhythm.js 연동) ════════════ -->
+<style>
+  #screen-rhythm-select { background: linear-gradient(180deg,#1a1a2e 0%,#2d1b4e 100%); padding: 20px 16px; }
+  .rhythm-diff-btn { width:100%; display:block; margin-bottom:14px; padding:18px; border:none; border-radius:16px; background:linear-gradient(135deg,#2d1b4e,#1a1a2e); border:1.5px solid #C084FC55; color:#fff; text-align:left; cursor:pointer; }
+  .rhythm-diff-label { font-size:18px; font-weight:900; margin-bottom:4px; }
+  .rhythm-diff-sub { font-size:13px; color:#FFD700; font-weight:700; }
+  #screen-rhythm-play { background:#0c0c1a; padding:0; overflow:hidden; }
+  .rhythm-hud { display:flex; justify-content:space-between; padding:12px 16px; color:#fff; font-weight:900; font-size:14px; }
+  #rhythm-track { position:relative; width:100%; height:calc(100vh - 220px); max-height:560px; }
+  .rhythm-lanes { display:flex; width:100%; height:100%; gap:2px; }
+  .rhythm-lane { position:relative; flex:1; background:rgba(255,255,255,0.04); border-left:1px solid rgba(255,255,255,0.08); overflow:hidden; }
+  .rhythm-judge-line { position:absolute; left:0; right:0; bottom:70px; height:4px; background:#FFD700; box-shadow:0 0 12px #FFD700; }
+  .rhythm-key-icon { position:absolute; left:0; right:0; bottom:18px; text-align:center; font-size:22px; color:#fff; opacity:0.8; transition: transform 0.1s, opacity 0.1s; }
+  .rhythm-judge-text { position:absolute; top:40%; left:50%; transform:translate(-50%,-10px); font-size:28px; font-weight:900; opacity:0; transition: opacity 0.2s, transform 0.2s; pointer-events:none; }
+  .rhythm-exit-btn { position:absolute; top:10px; right:14px; background:rgba(255,255,255,0.12); border:none; color:#fff; border-radius:10px; padding:6px 12px; font-size:12px; font-weight:700; cursor:pointer; }
+  #screen-rhythm-result { background:linear-gradient(180deg,#1a1a2e 0%,#2d1b4e 100%); display:flex; align-items:center; justify-content:center; padding:20px; }
+  .rhythm-result-card { background:rgba(255,255,255,0.06); border-radius:24px; padding:32px 24px; text-align:center; width:100%; max-width:320px; border:1.5px solid #C084FC55; }
+  .rhythm-result-grade { font-size:56px; font-weight:900; color:#FFD700; margin-bottom:16px; text-shadow:0 0 20px #FFD70088; }
+  .rhythm-result-row { color:#fff; font-size:15px; margin-bottom:10px; }
+  .rhythm-result-btn { margin-top:16px; width:100%; padding:14px; background:linear-gradient(135deg,#FF6B9D,#C084FC); border:none; border-radius:12px; color:#fff; font-size:15px; font-weight:900; cursor:pointer; }
+</style>
 
+<div id="screen-rhythm-select" class="screen">
+  <button class="rhythm-exit-btn" onclick="goTo('map')" style="position:static;margin-bottom:16px;">← 나가기</button>
+  <div style="color:#fff;font-size:20px;font-weight:900;margin-bottom:4px;">🎶 리듬게임</div>
+  <div style="color:#aaa;font-size:13px;margin-bottom:20px;">박자에 맞춰 방향키를 눌러보세요!</div>
+  <div id="rhythm-diff-list"></div>
+</div>
+
+<div id="screen-rhythm-play" class="screen">
+  <button class="rhythm-exit-btn" onclick="exitRhythmGame()">✕ 나가기</button>
+  <div class="rhythm-hud">
+    <div id="rhythm-combo">0 콤보</div>
+    <div id="rhythm-score">0 점</div>
+  </div>
+  <div id="rhythm-track"></div>
+</div>
+
+<div id="screen-rhythm-result" class="screen">
+  <div class="rhythm-result-card">
+    <div id="rhythm-result-body"></div>
+    <button class="rhythm-result-btn" onclick="goTo('rhythm-select')">다시 하기</button>
+    <button class="rhythm-result-btn" style="background:#444;margin-top:8px;" onclick="goTo('map')">나가기</button>
+  </div>
+</div>
 <!-- 맵 -->
 <div id="screen-map" class="screen" style="background:#0a1628;padding-bottom:70px;flex-direction:column;">
   <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:rgba(0,0,0,0.6);flex-shrink:0;">
