@@ -19,7 +19,6 @@ function playBgm() {
   initBgm();
   if (!pocaBgmEnabled) return;
   pocaBgmAudio.play().catch(() => {
-    // 브라우저가 첫 자동재생을 막으면, 사용자의 첫 터치/클릭 때 재생 시도
     const resumeOnce = () => {
       pocaBgmAudio.play().catch(() => {});
       document.removeEventListener('click', resumeOnce);
@@ -61,7 +60,7 @@ function addBgmButton() {
   btn.id = 'bgm-toggle-btn';
   btn.textContent = pocaBgmEnabled ? '🔊' : '🔇';
   btn.style.cssText =
-    'position:fixed;right:10px;top:10px;z-index:1200;' +
+    'position:fixed;left:10px;bottom:104px;z-index:1200;' +
     'width:36px;height:36px;border-radius:50%;border:none;' +
     'background:rgba(26,26,46,.75);color:#fff;font-size:16px;' +
     'display:flex;align-items:center;justify-content:center;cursor:pointer;' +
