@@ -716,5 +716,45 @@ console.log("🔥 FINAL STABILITY ACTIVE");
 })();
 </script>
 
+
+<script>
+(function(){
+  console.log("🔥 TIMELINE REMOVAL + SERVER BUTTON KILL ACTIVE");
+
+  // kill server button / firebase UI
+  const killWords = ["서버저장","firebase","Firebase","TEST","firebase test"];
+  const obs = new MutationObserver(()=>{
+    document.querySelectorAll("*").forEach(el=>{
+      const t = (el.innerText||"");
+      if(killWords.some(k=>t.includes(k))){
+        el.remove();
+      }
+    });
+  });
+  obs.observe(document.body,{childList:true,subtree:true});
+
+  // remove timeline screen entirely
+  function removeTimeline(){
+    const tl = document.getElementById("screen-timeline");
+    if(tl) tl.remove();
+  }
+
+  // override screen switch safety
+  window.showScreen = function(id){
+    document.querySelectorAll(".screen").forEach(s=>s.style.display="none");
+    if(id==="timeline") return; // blocked
+    const el = document.getElementById("screen-"+id);
+    if(el) el.style.display="block";
+    else {
+      const home = document.getElementById("screen-home");
+      if(home) home.style.display="block";
+    }
+  };
+
+  // auto cleanup
+  removeTimeline();
+
+})();
+</script>
 </body>
 </html>
