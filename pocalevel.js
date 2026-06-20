@@ -97,10 +97,10 @@ function renderPocaLevelBar() {
   if (!bar) {
     bar = document.createElement('div');
     bar.id = 'poca-level-bar';
-    bar.style.cssText = 'position:absolute;bottom:-7px;left:50%;transform:translateX(-50%);pointer-events:none;background:#fff;border:1px solid #000;border-radius:8px;padding:0px 5px;white-space:nowrap;';
+    bar.style.cssText = 'position:absolute;top:-15px;left:50%;transform:translateX(-50%);pointer-events:none;white-space:nowrap;';
     charEl.appendChild(bar);
   }
-  bar.innerHTML = '<span style="font-size:9px;font-weight:900;color:#FF6B9D;">Lv.' + level + '</span>';
+  bar.innerHTML = '<span style="font-size:10px;font-weight:900;color:#fff;text-shadow:-1px -1px 0 #000,1px -1px 0 #000,-1px 1px 0 #000,1px 1px 0 #000;">Lv.' + level + '</span>';
 }
 
 // ── 학교 성적표 후킹: 등교한 포카에게 경험치 지급 ──
@@ -214,16 +214,33 @@ function showStoryQuestToast(q) {
   setTimeout(function() { popup.style.opacity = '0'; popup.style.transition = 'opacity 0.5s'; setTimeout(function() { popup.remove(); }, 500); }, 3000);
 }
 
-// ── 홈 배너 문구를 현재 스토리 퀘스트로 교체 ──
+// ── 홈 배너 문구를 현재 스토리 퀘스트로 교체 (클릭하면 상세 팝업) ──
 function updateHomeBannerWithStory() {
   const titleEl = document.querySelector('.home-banner-title');
   const subEl = document.querySelector('.home-banner-sub');
+  const overlayEl = document.querySelector('.home-banner-overlay');
   if (!titleEl || !subEl) return;
   const q = getCurrentStoryQuest();
+  const idx = STORY_QUESTS.findIndex(function(sq) { return sq.id === q.id; });
+
+  let labelEl = document.getElementById('home-banner-quest-label');
+  if (!labelEl && overlayEl) {
+    labelEl = document.createElement('div');
+    labelEl.id = 'home-banner-quest-label';
+    labelEl.style.cssText = 'font-size:10px;font-weight:900;color:#9333ea;letter-spacing:1.5px;margin-bottom:2px;';
+    labelEl.textContent = 'QUEST';
+    overlayEl.insertBefore(labelEl, titleEl);
+  }
+
   titleEl.textContent = q.title;
   subEl.textContent = q.desc.length > 38 ? q.desc.slice(0, 38) + '...' : q.desc;
   titleEl.classList.add('poca-text-outline');
   subEl.style.color = '#222';
+
+  if (overlayEl) {
+    overlayEl.style.cursor = 'pointer';
+    overlayEl.onclick = function() { openStoryQuestDetail(idx); };
+  }
 }
 
 // ── 퀘스트 화면에 새 스토리 탭 추가 + 텍스트 외곽선 적용 ──
