@@ -2074,8 +2074,8 @@ function openClothDetail(clothId, itemName) {
   if (!cloth) return;
   const item = findClothBagItem(clothId, itemName);
   const isOwned = !!item;
-  const equippedName = typeof equippedCloth === 'object' ? equippedCloth.name : null;
-  const equippedId = typeof equippedCloth === 'object' ? equippedCloth.id : equippedCloth;
+  const equippedName = (equippedCloth && typeof equippedCloth === 'object') ? equippedCloth.name : null;
+  const equippedId = (equippedCloth && typeof equippedCloth === 'object') ? equippedCloth.id : equippedCloth;
   const isEquipped = equippedName ? equippedName === itemName : equippedId === clothId;
   const displayName = item ? item.name : cloth.name;
   const displayDesc = getClothDisplayDesc(cloth, item);
