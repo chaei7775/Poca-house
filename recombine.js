@@ -478,26 +478,26 @@ function openMoreMenu() {
     const result = originalStartExplore.apply(this, arguments);
 
     // 재조합석류 드랍 (탐험 1회당 1번 판정)
-    setTimeout(function() {
-      if (placeId === 'mystery') {
-        if (Math.random() < 0.03) {
-          addToBag('💠', '에픽 재조합석', 'material', 1, 'SSR/UR 카드 재조합에 필요한 재료');
-          showBagToast('💠 에픽 재조합석을 발견했어요!');
-        }
-        // 신비의 섬 희귀재료 보정: 기존 30%보다 15%p 더 높은 효과를 위해
-        // 별도 보너스 판정으로 희귀재료를 추가 지급 (원본 30% + 보너스 15% ≈ 45%)
-        if (typeof EXPLORE_MATERIALS !== 'undefined' && EXPLORE_MATERIALS.mystery && Math.random() < 0.15) {
-          const rarePool = EXPLORE_MATERIALS.mystery.rare;
-          const bonusMat = rarePool[Math.floor(Math.random() * rarePool.length)];
-          addToBag('🌿', bonusMat, 'material', 1, '제작 재료 (신비의 섬 보너스)');
-        }
-      } else {
-        const validPlaces = ['beach', 'park', 'forest', 'lake', 'square'];
-        if (validPlaces.includes(placeId) && Math.random() < 0.15) {
-          addToBag('🔹', '재조합석', 'material', 1, '카드 재조합에 필요한 재료');
-          showBagToast('🔹 재조합석을 발견했어요!');
-        }
+    // setTimeout으로 살짜기 늦춰서 endExplore()가 화면을 그리기 전에 exploreCollected에 반영
+    if (placeId === 'mystery') {
+      if (Math.random() < 0.03) {
+        addToBag('💠', '에픽 재조합석', 'material', 1, 'SSR/UR 카드 재조합에 필요한 재료');
+        if (typeof exploreCollected !== 'undefined') exploreCollected.push('💠 에픽 재조합석');
       }
-    }, 50);
+      // 신비의 섬 희귀재료 보정: 기존 30%보다 15%p 더 높은 효과를 위해
+      // 별도 보너스 판정으로 희귀재료를 추가 지급 (원본 30% + 보너스 15% ≈ 45%)
+      if (typeof EXPLORE_MATERIALS !== 'undefined' && EXPLORE_MATERIALS.mystery && Math.random() < 0.15) {
+        const rarePool = EXPLORE_MATERIALS.mystery.rare;
+        const bonusMat = rarePool[Math.floor(Math.random() * rarePool.length)];
+        addToBag('🌿', bonusMat, 'material', 1, '제작 재료 (신비의 섬 보너스)');
+        if (typeof exploreCollected !== 'undefined') exploreCollected.push(bonusMat);
+      }
+    } else {
+      const validPlaces = ['beach', 'park', 'forest', 'lake', 'square'];
+      if (validPlaces.includes(placeId) && Math.random() < 0.15) {
+        addToBag('🔹', '재조합석', 'material', 1, '카드 재조합에 필요한 재료');
+        if (typeof exploreCollected !== 'undefined') exploreCollected.push('🔹 재조합석');
+      }
+    }
   };
 })();
