@@ -599,6 +599,7 @@ function showWishFragment() {
 }
 function showWishCrystalEarned() {
   addToBag('💎', '소원의 결정', 'crystal', 1, '소원의 결정 — 특별한 소원을 이룰 수 있어!');
+  addTimelineFeed('💎 소원의 결정 획득! 세상에서 가장 희귀한 보물!');
   const popup = document.createElement('div');
   popup.style.cssText = 'position:fixed;inset:0;z-index:999;background:rgba(0,0,0,0.88);display:flex;align-items:center;justify-content:center;flex-direction:column;';
   popup.innerHTML = `<div style="text-align:center;"><div style="font-size:80px;margin-bottom:8px;filter:drop-shadow(0 0 30px #C084FC);">💎</div><div style="font-size:26px;font-weight:900;background:linear-gradient(135deg,#FFD700,#C084FC,#FF6B9D);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:8px;">소원의 결정 획득!</div><div style="font-size:14px;color:#FFB3CC;margin-bottom:16px;">세상에서 가장 희귀한 보물이에요 ✨</div><div style="font-size:28px;margin-bottom:20px;">🎆🎇✨💫🌟⭐🎆🎇</div><button onclick="this.closest('div[style*=fixed]').remove();showWishCrystalUse();" style="padding:14px 36px;background:linear-gradient(135deg,#FFD700,#C084FC);border:none;border-radius:16px;color:#fff;font-size:16px;font-weight:900;cursor:pointer;font-family:'Noto Sans KR',sans-serif;box-shadow:0 0 30px #C084FC88;">✨ 소원 빌기</button><div style="margin-top:12px;"><button onclick="this.closest('div[style*=fixed]').remove()" style="background:none;border:none;color:#888;font-size:13px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">나중에 사용하기</button></div></div>`;
@@ -652,6 +653,14 @@ function confessChar(charId) {
   const ch = CHARS[charId];
   showBagToast(`💝 ${ch.name} 인연 Lv.MAX가 됐어요!`);
 }
+function addTimelineFeed(msg) {
+  const feeds = JSON.parse(localStorage.getItem('ph_timeline') || '[]');
+  const nick = localStorage.getItem('ph_nickname') || '플레이어';
+  feeds.unshift({ nick, msg, time: Date.now() });
+  if (feeds.length > 50) feeds.pop();
+  localStorage.setItem('ph_timeline', JSON.stringify(feeds));
+}
+
 
 // ── 화면 전환 ──
 function goTo(id) {
@@ -1646,6 +1655,61 @@ function useCoupon() {
     saveAll();
     if (typeof renderBag === 'function') renderBag();
     alert('🎁 재봉 제작재료 세트 지급!\n\n모든 재봉 제작 재료가 10개씩 지급됐어요.');
+    return;
+  }
+
+  if (coupon === 'SPECIAL7777') {
+    // 코인 300만
+    coins += 3000000;
+
+    // 레벨 30 분량 경험치 (현재 레벨/경험치 무관하게 30레벨까지 강제로 채움)
+    const targetLevel = 30;
+    while (playerLevel < targetLevel) {
+      const required = getExpRequired(playerLevel);
+      playerExp = required;
+      checkPlayerLevelUp();
+    }
+
+    // 재료 종류별 100개
+    const allMaterials = [
+      ['🌈', '무지개꽃'], ['🌹', '장미꽃'], ['🌻', '해바라기'], ['🍀', '네잎클로버'],
+      ['🦋', '나비가루'], ['💧', '맑은샘물'], ['🌙', '달빛모래'], ['💎', '벚꽃결정'],
+      ['🦋', '나비의날개'], ['🍀', '행운의잎'], ['🪶', '새의깃털'], ['🪨', '빛나는돌'],
+      ['🐚', '반짝이는조개'], ['⭐', '별빛모래'], ['🪵', '고급원목'], ['🕸️', '은빛거미줄'],
+      ['🌙', '달빛수정'], ['🌈', '무지개수정'], ['⭐', '별의파편'], ['🦪', '바다진주'],
+      ['🌳', '별빛나무'], ['🍄', '신비버섯'], ['☁️', '구름조각'], ['🪽', '천사의깃털'],
+      ['💧', '달의눈물']
+    ];
+    allMaterials.forEach(([emoji, name]) => {
+      addToBag(emoji, name, 'material', 100, '재봉 제작 재료');
+    });
+
+    // 등교권(등교티켓) 100개
+    normalizeSchoolDaily?.();
+    if (typeof schoolDaily !== 'undefined') {
+      schoolDaily.tickets = (schoolDaily.tickets || 0) + 100;
+      if (typeof saveSchoolDaily === 'function') saveSchoolDaily();
+      if (typeof saveSchool === 'function') saveSchool();
+    }
+
+    // UR + SSR 카드 전부 지급
+    const urSsrCards = CARDS.filter(c => c.grade === 'UR' || c.grade === 'SSR');
+    urSsrCards.forEach(card => {
+      cardCounts[card.id] = (cardCounts[card.id] || 0) + 1;
+      if (!owned.includes(card.id)) owned.push(card.id);
+    });
+    localStorage.setItem('ph_cardCounts', JSON.stringify(cardCounts));
+
+    usedCoupons.push(coupon);
+    localStorage.setItem('ph_usedCoupons', JSON.stringify(usedCoupons));
+    saveBag();
+    saveAll();
+    updateCoinsDisplay();
+    updatePlayerLevelDisplay();
+    ensureHomeLevelPanel();
+    if (typeof renderBag === 'function') renderBag();
+    if (typeof renderHomeIdols === 'function') renderHomeIdols();
+    alert('🎁 스페셜 테스터 보상 지급 완료!\n\n💰 코인 3,000,000\n⭐ 레벨 30 도달\n🌿 재료 전종류 100개씩\n🎫 등교권 100장\n🎴 UR/SSR 카드 전체 획득');
     return;
   }
 
@@ -2900,6 +2964,17 @@ function getPocaServerPayload() {
   };
 }
 
+function showServerSyncToast(msg, ok) {
+  const old = document.getElementById('server-sync-toast');
+  if (old) old.remove();
+  const el = document.createElement('div');
+  el.id = 'server-sync-toast';
+  el.style.cssText = `position:fixed;left:50%;top:12px;transform:translateX(-50%);z-index:1400;background:${ok ? 'rgba(22,163,74,.95)' : 'rgba(220,38,38,.95)'};color:#fff;border-radius:999px;padding:8px 14px;font-size:12px;font-weight:900;box-shadow:0 4px 16px #0004;max-width:90vw;text-align:center;pointer-events:none;`;
+  el.textContent = msg;
+  document.body.appendChild(el);
+  setTimeout(() => { if (el.parentNode) el.remove(); }, 2200);
+}
+
 async function savePocaUserToServer(reason) {
   if (!POCA_FIREBASE_TEST_MODE) return false;
   if (!window.pocaFirebaseReady || !window.pocaFirebase) {
@@ -2914,9 +2989,11 @@ async function savePocaUserToServer(reason) {
     await setDoc(doc(db, 'users', uid), payload, { merge: true });
     pocaServerLastSaveAt = Date.now();
     console.log('✅ 서버 저장 성공:', uid, reason || 'manual');
+    showServerSyncToast('🔥 서버 저장 성공', true);
     return true;
   } catch (err) {
     console.error('❌ 서버 저장 실패:', err);
+    showServerSyncToast('❌ 서버 저장 실패: 콘솔 확인', false);
     return false;
   }
 }
@@ -2925,6 +3002,15 @@ function schedulePocaServerSave(reason) {
   if (!POCA_FIREBASE_TEST_MODE) return;
   clearTimeout(pocaServerSaveTimer);
   pocaServerSaveTimer = setTimeout(() => savePocaUserToServer(reason || 'auto'), 900);
+}
+
+function addFirebaseTestPanel() {
+  if (document.getElementById('firebase-test-panel')) return;
+  const el = document.createElement('div');
+  el.id = 'firebase-test-panel';
+  el.style.cssText = 'position:fixed;left:8px;bottom:112px;z-index:1300;background:rgba(26,26,46,.92);border:1.5px solid #FFD700;color:#fff;border-radius:14px;padding:7px 9px;font-size:10px;font-weight:900;line-height:1.35;box-shadow:0 3px 14px #0004;max-width:160px;';
+  el.innerHTML = `🔥 Firebase TEST<br><span style="color:#FFD700;">UID:</span> ${getPocaServerUid().slice(-8)}<br><button onclick="savePocaUserToServer('button')" style="margin-top:5px;border:none;border-radius:9px;background:#FFD700;color:#1a1a2e;font-size:10px;font-weight:900;padding:4px 7px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">서버저장</button>`;
+  document.body.appendChild(el);
 }
 
 (function patchSaveAllForFirebaseTest(){
@@ -2942,6 +3028,167 @@ function schedulePocaServerSave(reason) {
 })();
 
 setTimeout(() => {
+  addFirebaseTestPanel();
   savePocaUserToServer('firstLoad');
 }, 1800);
 
+
+/* ===== POCA HOUSE TIMELINE PATCH (AUTO ADDED) ===== */
+async function postTimeline(text){
+  try{
+    if(!window.db || !window.currentUser) return;
+    await window.fb?.addDoc(
+      window.fb?.collection(window.db,'timeline'),
+      {
+        uid: window.currentUser,
+        text,
+        createdAt: window.fb?.serverTimestamp?.()
+      }
+    );
+  }catch(e){}
+}
+
+window.onAlbaComplete = function(){ postTimeline("🍔 알바 완료!"); };
+window.onGacha = function(){ postTimeline("🎴 카드 뽑기!"); };
+window.onExplore = function(){ postTimeline("✨ 탐험 성공!"); };
+
+
+
+/* ===== POCA SAFE RECOVERY v10 (NO KILL ENGINE) ===== */
+(function(){
+
+  /* =========================
+     1. SERVER BUTTON CLEAN ONLY (NO FUNCTION KILL)
+  ==========================*/
+  function cleanServerUI(){
+    document.querySelectorAll('button,div').forEach(el=>{
+      const t = (el.innerText || el.textContent || '').trim();
+
+      if(el.id === 'server-sync-toast') return;
+
+      // remove ONLY visible server button text
+      if(t.includes('서버저장')){
+        el.remove();
+      }
+    });
+  }
+
+  setInterval(cleanServerUI, 500);
+
+  /* =========================
+     2. SAFE TIMELINE STORAGE
+  ==========================*/
+  function getTimeline(){
+    try{
+      return JSON.parse(localStorage.getItem('ph_timeline') || '[]');
+    }catch(e){ return []; }
+  }
+
+  function addTimeline(text, img){
+    try{
+      const list = getTimeline();
+      list.unshift({text:text||'', img:img||'', time:Date.now()});
+      if(list.length > 100) list.pop();
+      localStorage.setItem('ph_timeline', JSON.stringify(list));
+    }catch(e){}
+  }
+
+  /* =========================
+     3. FULL SCREEN TIMELINE UI (RESTORED)
+  ==========================*/
+  function openTimeline(){
+    const old = document.getElementById('poca-timeline-page');
+    if(old) old.remove();
+
+    const wrap = document.createElement('div');
+    wrap.id = 'poca-timeline-page';
+    wrap.style.cssText =
+      'position:fixed;inset:0;z-index:999999;background:#0b0b1a;' +
+      'overflow:auto;color:#fff;padding:14px;';
+
+    const list = getTimeline();
+
+    let html = `
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+        <div style="font-size:18px;font-weight:900;">📢 TIMELINE</div>
+        <button id="closeTL" style="padding:6px 10px;border:none;border-radius:10px;background:#333;color:#fff;">닫기</button>
+      </div>
+    `;
+
+    list.forEach(v=>{
+      html += `
+        <div style="background:#1a1a2e;margin-bottom:12px;padding:10px;border-radius:14px;">
+          ${v.img ? `<img src="${v.img}" style="width:100%;border-radius:10px;margin-bottom:8px;">` : ''}
+          <div style="font-size:14px;font-weight:700;">${v.text||''}</div>
+        </div>
+      `;
+    });
+
+    wrap.innerHTML = html;
+    document.body.appendChild(wrap);
+
+    document.getElementById('closeTL').onclick = ()=>wrap.remove();
+  }
+
+  window.openTimelinePage = openTimeline;
+
+  /* timeline button */
+  function createBtn(){
+    if(document.getElementById('timeline-btn')) return;
+
+    const btn = document.createElement('button');
+    btn.id = 'timeline-btn';
+    btn.textContent = '📢';
+    btn.style.cssText =
+      'position:fixed;right:16px;bottom:80px;z-index:999999;' +
+      'width:44px;height:44px;border-radius:50%;' +
+      'border:none;background:#C084FC;color:#fff;font-size:18px;';
+
+    btn.onclick = openTimeline;
+    document.body.appendChild(btn);
+  }
+
+  createBtn();
+  setInterval(createBtn, 1000);
+
+  /* =========================
+     4. SAFE HOOK (NO FUNCTION DELETE)
+  ==========================*/
+  function hook(fnName, label, imgGetter){
+    if(!window[fnName]) return;
+
+    const old = window[fnName];
+    window[fnName] = function(){
+      const res = old.apply(this, arguments);
+
+      setTimeout(()=>{
+
+        const btn = document.createElement('button');
+        btn.textContent = '📢 자랑하기';
+        btn.style.cssText =
+          'position:fixed;bottom:20px;left:50%;transform:translateX(-50%);' +
+          'z-index:999999;padding:10px 14px;border:none;border-radius:12px;' +
+          'background:#FF6B9D;color:#fff;font-weight:900;';
+
+        btn.onclick = ()=>{
+          let img = '';
+          try{ img = imgGetter ? imgGetter(arguments) : ''; }catch(e){}
+          addTimeline(label, img);
+          openTimeline();
+        };
+
+        document.body.appendChild(btn);
+        setTimeout(()=>btn.remove(), 5000);
+
+      },50);
+
+      return res;
+    };
+  }
+
+  /* =========================
+     5. ONLY GACHA RESTORED FIRST
+  ==========================*/
+  hook('showGachaResult','🎴 가챠 결과', (a)=>a?.[0]?.img);
+
+})();
