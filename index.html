@@ -756,5 +756,57 @@ console.log("🔥 FINAL STABILITY ACTIVE");
 
 })();
 </script>
+
+<script>
+(function(){
+  console.log("🔥 FINAL LOCK STABILITY ACTIVE");
+
+  // 1. HARD FREEZE: prevent full page wipe (innerHTML nuking mitigation)
+  const _innerHTML = Object.getOwnPropertyDescriptor(Element.prototype, 'innerHTML');
+  Object.defineProperty(Element.prototype, 'innerHTML', {
+    set: function(v){
+      // block global wipe on body / main containers
+      if(this.tagName === "BODY") return;
+      if(this.id && this.id.includes("screen")) {
+        _innerHTML.set.call(this, v);
+        return;
+      }
+      _innerHTML.set.call(this, v);
+    },
+    get: _innerHTML.get
+  });
+
+  // 2. STOP HOME BACKGROUND DISAPPEAR
+  const home = document.getElementById("screen-home");
+  if(home){
+    home.style.backgroundSize = "cover";
+    home.style.backgroundRepeat = "no-repeat";
+    home.style.backgroundPosition = "center";
+  }
+
+  // 3. SCREEN SAFE SWITCH ONLY
+  window.showScreen = function(id){
+    document.querySelectorAll(".screen").forEach(s=>s.style.display="none");
+    const target = document.getElementById("screen-"+id);
+    if(target){
+      target.style.display="block";
+    } else {
+      document.getElementById("screen-home").style.display="block";
+    }
+  };
+
+  // 4. REMOVE SERVER BUTTON FOREVER
+  setInterval(()=>{
+    document.querySelectorAll("*").forEach(el=>{
+      const t = (el.innerText||"").toLowerCase();
+      if(t.includes("서버저장") || t.includes("firebase")){
+        el.remove();
+      }
+    });
+  }, 800);
+
+})();
+</script>
+
 </body>
 </html>
