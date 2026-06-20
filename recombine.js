@@ -279,7 +279,76 @@ function doRecombine() {
 
   saveAll();
   rcSelectedCards = [null, null];
-  showRecombineResult(result, resultCard);
+  playRecombineAnimation(result, resultCard);
+}
+
+// ── 재조합 연출 (약 4초) ──
+function playRecombineAnimation(result, resultCard) {
+  const old = document.getElementById('rc-anim-overlay');
+  if (old) old.remove();
+
+  const overlay = document.createElement('div');
+  overlay.id = 'rc-anim-overlay';
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:990;background:radial-gradient(circle at 50% 45%,#1a0a2e,#05020a 70%);display:flex;align-items:center;justify-content:center;overflow:hidden;';
+
+  overlay.innerHTML =
+    '<div id="rc-anim-orb" style="position:relative;width:160px;height:160px;border-radius:50%;background:radial-gradient(circle,#C084FC,#6b21a8 70%);box-shadow:0 0 40px #C084FCaa;transition:box-shadow 0.6s,background 0.6s,transform 0.6s;animation:rcOrbSpin 2s linear infinite;">' +
+      '<div id="rc-anim-spark" style="position:absolute;inset:-30px;border:2px dashed rgba(255,255,255,0.4);border-radius:50%;animation:rcOrbSpin 3s linear infinite reverse;"></div>' +
+    '</div>' +
+    '<div id="rc-anim-text" style="position:absolute;bottom:30%;color:#fff;font-size:15px;font-weight:900;text-shadow:0 2px 8px #000;">재조합 진행중...</div>' +
+    '<style>@keyframes rcOrbSpin{from{transform:rotate(0deg);}to{transform:rotate(360deg);}} @keyframes rcFlashBig{0%{opacity:0;}50%{opacity:1;}100%{opacity:0;}}</style>';
+
+  document.body.appendChild(overlay);
+
+  const orb = document.getElementById('rc-anim-orb');
+  const textEl = document.getElementById('rc-anim-text');
+
+  // 0~1.2초: 재료 흡수 텍스트
+  setTimeout(function() {
+    if (textEl) textEl.textContent = '재료를 흡수하는 중...';
+  }, 1200);
+
+  // 1.2~2.2초: 가짜 긍정 신호 (수정구 잠깐 금색)
+  setTimeout(function() {
+    if (orb) {
+      orb.style.background = 'radial-gradient(circle,#FFD700,#b45309 70%)';
+      orb.style.boxShadow = '0 0 60px #FFD700cc';
+    }
+    if (textEl) textEl.textContent = '어...?';
+  }, 2200);
+
+  // 2.2~2.8초: 다시 보라색으로 (긴장 풀림)
+  setTimeout(function() {
+    const isEpic = result.type === 'hidden' && result.hidden.grade === '에픽히든';
+    const isUR = result.type === 'card' && result.grade === 'UR';
+    const finalColor = isEpic ? '#FFD700' : (isUR ? '#FFD700' : '#C084FC');
+    if (orb) {
+      orb.style.background = 'radial-gradient(circle,' + finalColor + ',#1a0a2e 70%)';
+      orb.style.boxShadow = '0 0 80px ' + finalColor + 'dd';
+      orb.style.transform = 'scale(1.4)';
+    }
+    if (textEl) textEl.textContent = '운명이 결정되고 있어요...';
+  }, 2800);
+
+  // 3.4~4초: 폭발 + 결과 공개
+  setTimeout(function() {
+    const isEpic = result.type === 'hidden' && result.hidden.grade === '에픽히든';
+    const flash = document.createElement('div');
+    flash.style.cssText = 'position:fixed;inset:0;z-index:995;background:#fff;animation:rcFlashBig 0.5s ease forwards;pointer-events:none;';
+    document.body.appendChild(flash);
+    if (isEpic) {
+      const feathers = document.createElement('div');
+      feathers.style.cssText = 'position:fixed;inset:0;z-index:994;pointer-events:none;font-size:28px;';
+      feathers.innerHTML = ['🪽','💎','✨','🪽','💎','✨'].map(function(e, i) {
+        return '<span style="position:absolute;left:' + (10 + i * 15) + '%;top:-40px;animation:rcFeatherFall 1.2s ease-in forwards ' + (i * 0.1) + 's;">' + e + '</span>';
+      }).join('') + '<style>@keyframes rcFeatherFall{to{transform:translateY(110vh) rotate(180deg);opacity:0.3;}}</style>';
+      document.body.appendChild(feathers);
+      setTimeout(function() { feathers.remove(); }, 1500);
+    }
+    setTimeout(function() { flash.remove(); }, 550);
+    overlay.remove();
+    showRecombineResult(result, resultCard);
+  }, 3400);
 }
 
 function rollHiddenCard(grade, recipe) {
