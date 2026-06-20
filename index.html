@@ -666,5 +666,55 @@
 <script src="engine/server.js"></script>
 <script src="engine/main.js"></script>
 
+
+<script>
+// ===== FINAL STABILITY LAYER =====
+(function(){
+
+// 1. HARD KILL SERVER BUTTON / FIREBASE PANEL
+const killText = ["서버저장","firebase","Firebase TEST"];
+const observer = new MutationObserver(()=>{
+  document.querySelectorAll("*").forEach(el=>{
+    const t = (el.innerText||"").toLowerCase();
+    if(killText.some(k => t.includes(k.toLowerCase()))){
+      el.remove();
+    }
+  });
+});
+observer.observe(document.body,{childList:true,subtree:true});
+
+// 2. FIX SCREEN SWITCH (timeline blank fix)
+window.showScreen = function(id){
+  document.querySelectorAll('.screen').forEach(s=>{
+    s.style.display = 'none';
+  });
+  const target = document.getElementById('screen-'+id);
+  if(target){
+    target.style.display = 'block';
+  }
+};
+
+// 3. SAFE TIMELINE CLICK RECOVERY
+document.addEventListener('click', (e)=>{
+  const txt = (e.target.innerText||"").toLowerCase();
+  if(txt.includes("타임라인")){
+    window.showScreen('timeline');
+  }
+});
+
+// 4. PREVENT RECREATE LOOP (server button revival)
+const blockTimeout = window.setTimeout;
+window.setTimeout = function(fn, t){
+  const s = fn.toString();
+  if(s.includes("firebase") || s.includes("Server") || s.includes("서버")){
+    return 0;
+  }
+  return blockTimeout(fn,t);
+};
+
+console.log("🔥 FINAL STABILITY ACTIVE");
+})();
+</script>
+
 </body>
 </html>
