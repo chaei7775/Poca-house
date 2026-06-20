@@ -1,18 +1,25 @@
-
-// CORE STABLE ENGINE
+// POCA CORE ENGINE - STABLE VERSION
 (function(){
 
-window.AppState = {
+window.App = {
   screen: "home"
 };
 
 window.showScreen = function(id){
-  document.querySelectorAll(".screen").forEach(s=>s.style.display="none");
-  const el = document.getElementById("screen-"+id);
-  if(el) el.style.display="block";
-  AppState.screen = id;
+  document.querySelectorAll(".screen").forEach(s=>{
+    s.style.display="none";
+  });
+
+  const target = document.getElementById("screen-"+id);
+  if(target){
+    target.style.display="block";
+    App.screen = id;
+  } else {
+    document.getElementById("screen-home").style.display="block";
+    App.screen = "home";
+  }
 };
 
-console.log("STABLE ARCH V3 LOADED");
+console.log("POCA STABLE RUNNER LOADED");
 
 })();
