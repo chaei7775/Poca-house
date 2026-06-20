@@ -369,6 +369,7 @@ function openMoreMenu() {
     '<div style="display:flex;flex-direction:column;gap:10px;">' +
     '<button onclick="document.getElementById(\'more-menu-overlay\').remove();openRecombine();" style="display:flex;align-items:center;gap:12px;padding:14px;background:rgba(192,132,252,0.15);border:1.5px solid #C084FC;border-radius:14px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:\'Noto Sans KR\',sans-serif;text-align:left;"><span style="font-size:24px;">🔮</span> 카드 재조합기</button>' +
     '<button onclick="document.getElementById(\'more-menu-overlay\').remove();openHiddenCardDex();" style="display:flex;align-items:center;gap:12px;padding:14px;background:rgba(255,215,0,0.12);border:1.5px solid #FFD700;border-radius:14px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:\'Noto Sans KR\',sans-serif;text-align:left;"><span style="font-size:24px;">📖</span> 히든카드 도감</button>' +
+    '<button onclick="document.getElementById(\'more-menu-overlay\').remove();openShop(\'gift\');" style="display:flex;align-items:center;gap:12px;padding:14px;background:rgba(255,107,157,0.12);border:1.5px solid #FF6B9D;border-radius:14px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:\'Noto Sans KR\',sans-serif;text-align:left;"><span style="font-size:24px;">🛍️</span> 잡화점</button>' +
     '</div></div>';
   document.body.appendChild(overlay);
 }
@@ -383,5 +384,51 @@ function openMoreMenu() {
     const result = originalGoTo.apply(this, arguments);
     if (id === 'recombine') renderRecombinePage();
     return result;
+  };
+})();
+
+// ── 탐험 후킹: 재조합석류 드랍 추가 + 신비의 섬 보정 ──
+// 신비의 섬: 희귀재료 45%, 스태미나 15 소모, 에픽재조합석 3% 드랍
+// 그 외 일반 탐험지: 재조합석 15% 드랍 (희귀재료 확률은 기존 30% 유지)
+(function hookStartExploreForRcStones() {
+  if (typeof window.startExplore !== 'function') {
+    setTimeout(hookStartExploreForRcStones, 50);
+    return;
+  }
+  const originalStartExplore = window.startExplore;
+  window.startExplore = function(placeId) {
+    // 신비의 섬은 스태미나를 15로 보정 (원본 함수가 차감하기 전에 stamina를 5 더 채워서 보정)
+    if (placeId === 'mystery' && typeof stamina !== 'undefined') {
+      if (stamina < 15) {
+        showBagToast('스태미나가 부족해요! ⚡ 음료를 마셔봐요 (신비의 섬은 15 필요)');
+        return;
+      }
+      stamina -= 5; // 원본이 -10을 하니, 여기서 -5 추가해서 총 -15
+      if (typeof saveStamina === 'function') saveStamina();
+    }
+    const result = originalStartExplore.apply(this, arguments);
+
+    // 재조합석류 드랍 (탐험 1회당 1번 판정)
+    setTimeout(function() {
+      if (placeId === 'mystery') {
+        if (Math.random() < 0.03) {
+          addToBag('💠', '에픽 재조합석', 'material', 1, 'SSR/UR 카드 재조합에 필요한 재료');
+          showBagToast('💠 에픽 재조합석을 발견했어요!');
+        }
+        // 신비의 섬 희귀재료 보정: 기존 30%보다 15%p 더 높은 효과를 위해
+        // 별도 보너스 판정으로 희귀재료를 추가 지급 (원본 30% + 보너스 15% ≈ 45%)
+        if (typeof EXPLORE_MATERIALS !== 'undefined' && EXPLORE_MATERIALS.mystery && Math.random() < 0.15) {
+          const rarePool = EXPLORE_MATERIALS.mystery.rare;
+          const bonusMat = rarePool[Math.floor(Math.random() * rarePool.length)];
+          addToBag('🌿', bonusMat, 'material', 1, '제작 재료 (신비의 섬 보너스)');
+        }
+      } else {
+        const validPlaces = ['beach', 'park', 'forest', 'lake', 'square'];
+        if (validPlaces.includes(placeId) && Math.random() < 0.15) {
+          addToBag('🔹', '재조합석', 'material', 1, '카드 재조합에 필요한 재료');
+          showBagToast('🔹 재조합석을 발견했어요!');
+        }
+      }
+    }, 50);
   };
 })();
