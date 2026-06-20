@@ -362,3 +362,23 @@ function exitRhythmGame() {
     return result;
   };
 })();
+
+// ── game.js의 openPlace()를 후킹해서 shopping 장소에 이벤트 알바 버튼 표시 ──
+function goToEventAlba() {
+  if (typeof closePlace === 'function') closePlace();
+  openRhythmGame();
+}
+
+(function hookOpenPlaceForEventAlba() {
+  if (typeof window.openPlace !== 'function') {
+    setTimeout(hookOpenPlaceForEventAlba, 50);
+    return;
+  }
+  const originalOpenPlace = window.openPlace;
+  window.openPlace = function(id) {
+    const result = originalOpenPlace.apply(this, arguments);
+    const btn = document.getElementById('btn-event-alba');
+    if (btn) btn.style.display = (id === 'shopping') ? 'block' : 'none';
+    return result;
+  };
+})();

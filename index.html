@@ -202,7 +202,9 @@
   .bag-item-emoji { font-size:22px; }
   .bag-item-qty { position:absolute;top:3px;right:5px;font-size:10px;font-weight:900;color:#FF6B9D; }
   .bag-item-name { font-size:9px;color:#888;font-weight:700;text-align:center;max-width:100%;overflow:hidden;white-space:nowrap; }
-  #screen-rhythm-select { background: linear-gradient(180deg,#1a1a2e 0%,#2d1b4e 100%); padding: 20px 16px; }
+  #screen-rhythm-select { background: linear-gradient(180deg,#1a1a2e 0%,#2d1b4e 100%); padding: 20px 16px; position: relative; overflow: hidden; }
+  #screen-rhythm-select::before { content: ''; position: absolute; inset: 0; background-image: url('https://raw.githubusercontent.com/chaei7775/Poca-house/main/event-alba-bg.png'); background-size: cover; background-position: center; opacity: 0.35; z-index: 0; }
+  #screen-rhythm-select > * { position: relative; z-index: 1; }
   .rhythm-diff-btn { width:100%; display:block; margin-bottom:14px; padding:18px; border:none; border-radius:16px; background:linear-gradient(135deg,#2d1b4e,#1a1a2e); border:1.5px solid #C084FC55; color:#fff; text-align:left; cursor:pointer; }
   .rhythm-diff-label { font-size:18px; font-weight:900; margin-bottom:4px; }
   .rhythm-diff-sub { font-size:13px; color:#FFD700; font-weight:700; }
@@ -247,36 +249,6 @@
     console.error("❌ Poca Firebase init failed", err);
   }
 </script>
-
-
-<style id="poca-ui-stability-fix">
-  html, body {
-    height: 100dvh !important;
-    overflow: hidden !important;
-  }
-
-  .screen {
-    display: none !important;
-    min-height: 0 !important;
-    height: calc(100dvh - 96px) !important;
-    overflow-y: auto !important;
-    padding-bottom: 96px !important;
-  }
-
-  .screen.active {
-    display: flex !important;
-  }
-
-  #screen-rhythm-result:not(.active),
-  #screen-rhythm-play:not(.active),
-  #screen-rhythm-select:not(.active) {
-    display: none !important;
-  }
-
-  #screen-rhythm-result.active {
-    display: flex !important;
-  }
-</style>
 
 </head>
 <body>
@@ -365,6 +337,13 @@
         <img src="flower-shop-bg.png" style="width:100%;height:100%;object-fit:cover;object-position:center 60%;">
         <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,0.62),transparent);display:flex;align-items:flex-end;padding:14px;">
           <div style="text-align:left;"><div style="font-size:18px;font-weight:900;color:#fff;">🌷 포카꽃집 알바</div><div style="font-size:12px;color:#FFB3CC;">꽃다발 순서 암기 게임</div></div>
+        </div>
+      </button>
+
+      <button onclick="openRhythmGame()" style="width:100%;padding:0;border:none;border-radius:18px;overflow:hidden;cursor:pointer;position:relative;height:140px;">
+        <img src="https://raw.githubusercontent.com/chaei7775/Poca-house/main/event-alba-bg.png" style="width:100%;height:100%;object-fit:cover;object-position:center top;">
+        <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,0.6),transparent);display:flex;align-items:flex-end;padding:14px;">
+          <div style="text-align:left;"><div style="font-size:18px;font-weight:900;color:#fff;">💃 이벤트 알바</div><div style="font-size:12px;color:#FFB3CC;">박자에 맞춰 리듬게임!</div></div>
         </div>
       </button>
     </div>
@@ -709,69 +688,5 @@
 <script src="game.js"></script>
 <script src="audio.js"></script>
 <script src="rhythm.js"></script>
-
-<script id="poca-ui-stability-fix-js">
-(function(){
-  function closeRhythmScreens(){
-    ['screen-rhythm-select','screen-rhythm-play','screen-rhythm-result'].forEach(function(id){
-      var el = document.getElementById(id);
-      if (!el) return;
-      el.classList.remove('active');
-      el.style.display = 'none';
-    });
-  }
-
-  function enforceOnlyActiveScreen(){
-    document.querySelectorAll('.screen').forEach(function(el){
-      if (el.classList.contains('active')) {
-        el.style.display = 'flex';
-      } else {
-        el.style.display = 'none';
-      }
-    });
-  }
-
-  function cleanupOnNormalScreens(id){
-    if (!String(id || '').startsWith('rhythm')) {
-      closeRhythmScreens();
-    }
-    enforceOnlyActiveScreen();
-  }
-
-  function install(){
-    closeRhythmScreens();
-    enforceOnlyActiveScreen();
-
-    if (typeof window.goTo === 'function' && !window.goTo.__pocaStableWrapped) {
-      var oldGoTo = window.goTo;
-      window.goTo = function(id){
-        var result = oldGoTo.apply(this, arguments);
-        cleanupOnNormalScreens(id);
-        return result;
-      };
-      window.goTo.__pocaStableWrapped = true;
-    }
-
-    if (typeof window.exitRhythmGame === 'function' && !window.exitRhythmGame.__pocaStableWrapped) {
-      var oldExit = window.exitRhythmGame;
-      window.exitRhythmGame = function(){
-        closeRhythmScreens();
-        try { return oldExit.apply(this, arguments); }
-        finally { cleanupOnNormalScreens('map'); }
-      };
-      window.exitRhythmGame.__pocaStableWrapped = true;
-    }
-  }
-
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', install);
-  } else {
-    install();
-  }
-
-  window.addEventListener('load', install);
-})();
-</script>
-
 </body>
 </html>
