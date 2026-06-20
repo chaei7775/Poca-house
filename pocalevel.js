@@ -61,10 +61,21 @@ function showCardLevelUpToast(charId, level) {
   setTimeout(function() { if (el.parentNode) el.remove(); }, 2400);
 }
 
-// ── 홈 화면 레벨바 (말풍선 캐릭터 옆) ──
+// ── 텍스트 외곽선 스타일 (스토리 제목 / 퀘스트 텍스트) ──
+function ensurePocaTextOutlineStyle() {
+  if (document.getElementById('poca-text-outline-style')) return;
+  const st = document.createElement('style');
+  st.id = 'poca-text-outline-style';
+  st.textContent =
+    '.poca-text-outline { color:#fff !important; text-shadow:-1.5px -1.5px 0 #000,1.5px -1.5px 0 #000,-1.5px 1.5px 0 #000,1.5px 1.5px 0 #000,0 0 4px rgba(0,0,0,0.4) !important; }';
+  document.head.appendChild(st);
+}
+ensurePocaTextOutlineStyle();
+
+// ── 홈 화면 레벨바 (캐릭터 원형 아이콘 안쪽 하단에 작게) ──
 function renderPocaLevelBar() {
-  const speechWrap = document.querySelector('.speech-bubble-wrap');
-  if (!speechWrap) return;
+  const charEl = document.getElementById('speech-char');
+  if (!charEl) return;
   const ownedChars = Object.keys(CHARS).filter(function(cid) {
     return CARDS.some(function(c) { return c.charId === cid && owned.includes(c.id); });
   });
@@ -83,15 +94,18 @@ function renderPocaLevelBar() {
   const required = getCardExpRequired(level);
   const pct = level >= 20 ? 100 : Math.min(100, Math.round(exp / required * 100));
 
+  charEl.style.position = 'relative';
+  charEl.style.overflow = 'visible';
+
   if (!bar) {
     bar = document.createElement('div');
     bar.id = 'poca-level-bar';
-    bar.style.cssText = 'margin-top:4px;width:52px;text-align:center;';
-    speechWrap.insertBefore(bar, speechWrap.firstChild.nextSibling);
+    bar.style.cssText = 'position:absolute;bottom:-9px;left:50%;transform:translateX(-50%);width:44px;text-align:center;pointer-events:none;';
+    charEl.appendChild(bar);
   }
   bar.innerHTML =
-    '<div style="font-size:9px;font-weight:900;color:#FF6B9D;margin-bottom:2px;">Lv.' + level + '</div>' +
-    '<div style="height:5px;background:#FFE4EF;border-radius:99px;overflow:hidden;">' +
+    '<div style="font-size:8px;font-weight:900;color:#fff;text-shadow:-1px -1px 0 #000,1px -1px 0 #000,-1px 1px 0 #000,1px 1px 0 #000;line-height:1;margin-bottom:1px;">Lv.' + level + '</div>' +
+    '<div style="height:4px;background:rgba(255,255,255,0.85);border:1px solid #000;border-radius:99px;overflow:hidden;">' +
     '<div style="height:100%;width:' + pct + '%;background:linear-gradient(90deg,#FF6B9D,#C084FC);border-radius:99px;"></div></div>';
 }
 
@@ -214,7 +228,45 @@ function updateHomeBannerWithStory() {
   const q = getCurrentStoryQuest();
   titleEl.textContent = q.title;
   subEl.textContent = q.desc.length > 38 ? q.desc.slice(0, 38) + '...' : q.desc;
+  titleEl.classList.add('poca-text-outline');
 }
+
+// ── 퀘스트 화면에 새 스토리 탭 추가 + 텍스트 외곽선 적용 ──
+function renderStoryQuestSection() {
+  const el = document.getElementById('quest-list');
+  if (!el) return;
+  const existing = document.getElementById('story-quest-section');
+  if (existing) existing.remove();
+
+  const section = document.createElement('div');
+  section.id = 'story-quest-section';
+  section.style.cssText = 'margin-bottom:16px;';
+
+  let html = '<div class="poca-text-outline" style="font-size:13px;font-weight:900;margin-bottom:10px;">📖 스토리</div>';
+  STORY_QUESTS.forEach(function(q) {
+    const done = storyProgress[q.id] === 'done';
+    html += '<div style="background:#fff;border:1.5px solid #000;border-radius:12px;padding:12px;margin-bottom:8px;opacity:' + (done ? '0.55' : '1') + ';">' +
+      '<div style="display:flex;align-items:center;justify-content:space-between;">' +
+      '<div class="poca-text-outline" style="font-size:14px;font-weight:900;">' + (done ? '✅ ' : '') + q.title + '</div>' +
+      '<div style="font-size:11px;color:#F59E0B;font-weight:900;">🍔' + q.rewardCoins + '</div></div>' +
+      '<div style="font-size:12px;color:#333;margin-top:4px;">' + q.desc + '</div></div>';
+  });
+  section.innerHTML = html;
+  el.insertBefore(section, el.firstChild);
+}
+
+(function hookRenderQuestListForStory() {
+  if (typeof window.renderQuestList !== 'function') {
+    setTimeout(hookRenderQuestListForStory, 50);
+    return;
+  }
+  const originalRenderQuest = window.renderQuestList;
+  window.renderQuestList = function() {
+    const result = originalRenderQuest.apply(this, arguments);
+    renderStoryQuestSection();
+    return result;
+  };
+})();
 
 // ── game.js 초기 시작 시 스토리 트리거 ──
 (function triggerStoryStartOnce() {
