@@ -2084,7 +2084,7 @@ function openClothDetail(clothId, itemName) {
   if (old) old.remove();
   const overlay = document.createElement('div');
   overlay.id = 'cloth-detail-overlay';
-  overlay.style.cssText = 'position:fixed;inset:0;z-index:800;background:rgba(0,0,0,0.85);display:flex;align-items:center;justify-content:center;';
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:940;background:rgba(0,0,0,0.85);display:flex;align-items:center;justify-content:center;';
   overlay.innerHTML = `<div style="background:linear-gradient(135deg,#1a1a2e,#2d1b4e);border:2px solid ${item?.isGreat ? '#FFD700' : '#C084FC'};border-radius:20px;padding:20px;text-align:center;width:85%;max-width:300px;">
     <img src="${cloth.img}" style="width:100%;border-radius:12px;margin-bottom:12px;object-fit:contain;max-height:170px;background:#fff;" onerror="this.style.display='none'">
     <div style="font-size:16px;font-weight:900;color:#fff;margin-bottom:4px;">${displayName}</div>
@@ -2243,7 +2243,7 @@ function openSewingRecipe(clothId) {
     <div style="font-size:11px;color:#aaa;margin-bottom:10px;">보유: ${ownedQty}개</div>
     <div style="background:rgba(255,255,255,0.06);border-radius:12px;padding:10px;margin-bottom:12px;text-align:left;">${reqHtml}</div>
     <button ${canCraft ? '' : 'disabled'} onclick="craftCloth('${clothId}')" style="width:100%;padding:14px;background:${canCraft ? 'linear-gradient(135deg,#FF6B9D,#C084FC)' : 'rgba(255,255,255,0.08)'};border:none;border-radius:13px;color:${canCraft ? '#fff' : '#777'};font-size:15px;font-weight:900;cursor:${canCraft ? 'pointer' : 'default'};font-family:'Noto Sans KR',sans-serif;margin-bottom:8px;">${canCraft ? '🧵 제작하기' : '재료 부족'}</button>
-    ${ownedItem ? `<button onclick="openClothDetail('${clothId}', ${JSON.stringify(ownedItem?.name || cloth.name).replace(/"/g, '&quot;')});document.getElementById('sewing-recipe-overlay').remove();" style="width:100%;padding:12px;background:rgba(255,255,255,0.1);border:1.5px solid #FF6B9D;border-radius:12px;color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;margin-bottom:8px;">👗 착용하기</button>` : ''}
+    ${ownedItem ? `<button onclick="openClothDetail('${clothId}', ${JSON.stringify(ownedItem?.name || cloth.name).replace(/"/g, '&quot;')});" style="width:100%;padding:12px;background:rgba(255,255,255,0.1);border:1.5px solid #FF6B9D;border-radius:12px;color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;margin-bottom:8px;">👗 착용/정보 보기</button>` : ''}
     <button onclick="document.getElementById('sewing-recipe-overlay').remove()" style="width:100%;padding:11px;background:rgba(255,255,255,0.08);border:none;border-radius:12px;color:#aaa;font-size:13px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">닫기</button>
   </div>`;
   document.body.appendChild(overlay);
