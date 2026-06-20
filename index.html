@@ -497,7 +497,28 @@
     <button class="rhythm-result-btn" style="background:#444;margin-top:8px;" onclick="goTo('map')">나가기</button>
   </div>
 </div>
+<!-- 카드 재조합기 -->
+<div id="screen-recombine" class="screen">
+  <img class="rc-bg-img" src="https://raw.githubusercontent.com/chaei7775/Poca-house/main/recombine-bg.png" alt="">
+  <button class="rc-exit-btn" onclick="goTo('map')">← 나가기</button>
+  <div class="rc-content">
+    <div class="rc-title">🔮 카드 재조합기</div>
+    <div class="rc-coin-bar">🍔 보유 코인: <span id="rc-coin-display">0</span></div>
 
+    <div class="rc-card-row">
+      <div class="rc-card-box" id="rc-card-slot-0"></div>
+      <div class="rc-card-box" id="rc-card-slot-1"></div>
+    </div>
+
+    <div class="rc-material-row">
+      <div class="rc-material-box" id="rc-material-slot-1"></div>
+      <div class="rc-material-box" id="rc-material-slot-2"></div>
+      <div class="rc-material-box" id="rc-material-slot-3"></div>
+    </div>
+
+    <button id="rc-start-btn" onclick="doRecombine()">재조합 시작</button>
+  </div>
+</div>
 <!-- 맵 -->
 <div id="screen-map" class="screen" style="background:#0a1628;padding-bottom:70px;flex-direction:column;">
   <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:rgba(0,0,0,0.6);flex-shrink:0;">
