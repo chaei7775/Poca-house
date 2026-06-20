@@ -314,6 +314,26 @@ function exitRhythmGame() {
   goTo('map');
 }
 
+// ── game.js의 openPlace()를 후킹해서 shopping 장소에 이벤트 알바 버튼 표시 ──
+(function hookOpenPlaceForEventAlba() {
+  if (typeof window.openPlace !== 'function') {
+    setTimeout(hookOpenPlaceForEventAlba, 50);
+    return;
+  }
+  const originalOpenPlace = window.openPlace;
+  window.openPlace = function(id) {
+    const result = originalOpenPlace.apply(this, arguments);
+    const btn = document.getElementById('btn-event-alba');
+    if (btn) btn.style.display = (id === 'shopping') ? 'block' : 'none';
+    return result;
+  };
+})();
+
+function goToEventAlba() {
+  if (typeof closePlace === 'function') closePlace();
+  openRhythmGame();
+}
+
 // ── game.js의 goTo()를 건드리지 않고, 후킹해서 리듬게임 화면 진입을 감지 ──
 (function hookGoToForRhythm() {
   if (typeof window.goTo !== 'function') {
