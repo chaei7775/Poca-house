@@ -123,10 +123,9 @@ function renderCleanGameScreen() {
   cleanState.tools.forEach(function(tool) {
     const btn = document.createElement('button');
     btn.id = 'clean-tool-' + tool.id;
-    const color = CLEAN_TOOL_COLORS[tool.id] || '#999';
     btn.onclick = function() { selectCleanTool(tool.id); };
-    btn.style.cssText = 'flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:2px;padding:9px 14px;border-radius:14px;border:2.5px solid ' + (tool.id === cleanState.selectedTool ? '#FFD700' : color) + ';background:' + (tool.id === cleanState.selectedTool ? color : color + '55') + ';color:#fff;cursor:pointer;font-family:\'Noto Sans KR\',sans-serif;box-shadow:' + (tool.id === cleanState.selectedTool ? '0 0 10px ' + color : 'none') + ';';
-    btn.innerHTML = '<span style="font-size:24px;">' + tool.emoji + '</span><span style="font-size:10px;font-weight:900;text-shadow:0 1px 2px rgba(0,0,0,0.5);">' + tool.label + '</span>';
+    btn.style.cssText = 'flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:2px;padding:9px 14px;border-radius:14px;border:2px solid ' + (tool.id === cleanState.selectedTool ? '#FFD700' : 'rgba(255,255,255,0.25)') + ';background:' + (tool.id === cleanState.selectedTool ? 'rgba(255,215,0,0.18)' : 'rgba(255,255,255,0.08)') + ';color:#fff;cursor:pointer;font-family:\'Noto Sans KR\',sans-serif;';
+    btn.innerHTML = '<span style="font-size:24px;">' + tool.emoji + '</span><span style="font-size:10px;font-weight:700;">' + tool.label + '</span>';
     toolBar.appendChild(btn);
   });
 
@@ -148,11 +147,9 @@ function selectCleanTool(toolId) {
   cleanState.tools.forEach(function(tool) {
     const btn = document.getElementById('clean-tool-' + tool.id);
     if (!btn) return;
-    const color = CLEAN_TOOL_COLORS[tool.id] || '#999';
     const active = tool.id === toolId;
-    btn.style.border = '2.5px solid ' + (active ? '#FFD700' : color);
-    btn.style.background = active ? color : color + '55';
-    btn.style.boxShadow = active ? '0 0 10px ' + color : 'none';
+    btn.style.border = '2px solid ' + (active ? '#FFD700' : 'rgba(255,255,255,0.25)');
+    btn.style.background = active ? 'rgba(255,215,0,0.18)' : 'rgba(255,255,255,0.08)';
   });
 }
 
@@ -163,9 +160,15 @@ function handleCleanObjectTap(objId) {
   if (obj.toolId === cleanState.selectedTool) {
     obj.done = true;
     if (el) {
+      el.onclick = null;
+      el.style.pointerEvents = 'none';
+      el.style.transition = 'transform 0.18s, opacity 0.18s';
       el.style.transform = 'translate(-50%,-50%) scale(1.6)';
       el.style.opacity = '0';
-      setTimeout(function() { if (el.parentNode) el.remove(); }, 200);
+      setTimeout(function() {
+        const stillThere = document.getElementById(objId);
+        if (stillThere && stillThere.parentNode) stillThere.parentNode.removeChild(stillThere);
+      }, 200);
     }
     if (typeof recordAlbaAttempt === 'function') recordAlbaAttempt(true, 'clean');
     if (cleanState.objects.every(function(o) { return o.done; })) {
@@ -176,6 +179,7 @@ function handleCleanObjectTap(objId) {
     const mistakeText = document.getElementById('clean-mistake-text');
     if (mistakeText) mistakeText.textContent = '실수 ' + cleanState.mistakes;
     if (el) {
+      el.style.transition = 'transform 0.15s';
       el.style.transform = 'translate(-50%,-50%) scale(0.85) rotate(-8deg)';
       setTimeout(function() { if (el) el.style.transform = 'translate(-50%,-50%)'; }, 150);
     }
