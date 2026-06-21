@@ -68,10 +68,19 @@ function ensurePocaTextOutlineStyle() {
   const st = document.createElement('style');
   st.id = 'poca-text-outline-style';
   st.textContent =
-    '.poca-text-outline { color:#fff !important; text-shadow:-1.5px -1.5px 0 #000,1.5px -1.5px 0 #000,-1.5px 1.5px 0 #000,1.5px 1.5px 0 #000,0 0 4px rgba(0,0,0,0.4) !important; }';
+    '.poca-text-outline { color:#fff !important; text-shadow:-1.5px -1.5px 0 #000,1.5px -1.5px 0 #000,-1.5px 1.5px 0 #000,1.5px 1.5px 0 #000,0 0 4px rgba(0,0,0,0.4) !important; } ' +
+    '.home-banner-title, .home-banner-sub { visibility:hidden; }';
   document.head.appendChild(st);
 }
 ensurePocaTextOutlineStyle();
+
+// 내용이 채워지면 다시 보이게
+function revealHomeBanner() {
+  const titleEl = document.querySelector('.home-banner-title');
+  const subEl = document.querySelector('.home-banner-sub');
+  if (titleEl) titleEl.style.visibility = 'visible';
+  if (subEl) subEl.style.visibility = 'visible';
+}
 
 // ── 상단 배너 아래 포카하우스 레벨 표시줄 + 닉네임 이동 ──
 function ensurePocaHouseLevelBar() {
@@ -348,6 +357,7 @@ function updateHomeBannerWithStory() {
   subEl.textContent = q.desc.length > 38 ? q.desc.slice(0, 38) + '...' : q.desc;
   titleEl.classList.add('poca-text-outline');
   subEl.style.color = '#222';
+  revealHomeBanner();
 
   if (overlayEl) {
     overlayEl.style.cursor = 'pointer';
@@ -420,6 +430,9 @@ function openStoryQuestDetail(idx) {
     setTimeout(function() { checkStoryCondition('story_start'); }, 500);
   }
 })();
+
+// ── 안전장치: 혹시 스크립트 실행이 늦거나 실패해도 3초 후엔 무조건 표시 ──
+setTimeout(revealHomeBanner, 3000);
 
 // ── 첫 로드 시 즉시 홈 배너/레벨 표시 적용 ──
 setTimeout(function() {
