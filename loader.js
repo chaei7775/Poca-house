@@ -5,7 +5,7 @@
 // ════════════════════════════════
 
 const NEW_CONTENT_FILES = [
-  // 'special-explore.js',  // 예시: 다음 콘텐츠 추가하면 이렇게 한 줄
+  'special-explore.js',
 ];
 
 NEW_CONTENT_FILES.forEach(function(filename) {
