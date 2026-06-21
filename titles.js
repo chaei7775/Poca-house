@@ -96,37 +96,124 @@ function renderEquippedTitleBadge() {
   renderHomeTitleBadge();
 }
 
+function ensureTitleStyles() {
+  if (document.getElementById('ph-title-style')) return;
+  const styleEl = document.createElement('style');
+  styleEl.id = 'ph-title-style';
+  styleEl.textContent = `
+    #home-title-badge {
+      margin: -2px 42px 14px;
+      text-align: center;
+      position: relative;
+      animation: phTitlePop .22s ease-out;
+    }
+    #home-title-badge .ph-title-nick {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 92px;
+      max-width: 78%;
+      padding: 2px 12px 4px;
+      border-radius: 999px 999px 10px 10px;
+      background: rgba(255,255,255,.70);
+      color: #302635;
+      font-size: 20px;
+      line-height: 1.15;
+      font-weight: 950;
+      letter-spacing: -.04em;
+      box-shadow: 0 6px 18px rgba(255,120,170,.12);
+      backdrop-filter: blur(4px);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    #home-title-badge .ph-title-ribbon {
+      width: fit-content;
+      max-width: 92%;
+      margin: -1px auto 0;
+      padding: 7px 18px 8px;
+      border-radius: 999px;
+      color: var(--title-text, #fff);
+      background: var(--title-bg, linear-gradient(135deg,#ff7aab,#b26cff));
+      border: 1.5px solid rgba(255,255,255,.82);
+      box-shadow:
+        0 8px 18px rgba(255,103,157,.18),
+        inset 0 1px 0 rgba(255,255,255,.55),
+        inset 0 -5px 12px rgba(0,0,0,.08);
+      font-size: 12px;
+      font-weight: 950;
+      letter-spacing: -.02em;
+      line-height: 1;
+      position: relative;
+      text-shadow: 0 1px 1px rgba(0,0,0,.10);
+      overflow: hidden;
+    }
+    #home-title-badge .ph-title-ribbon::before {
+      content: '';
+      position: absolute;
+      inset: 1px 8px auto;
+      height: 40%;
+      border-radius: 999px;
+      background: linear-gradient(180deg, rgba(255,255,255,.45), rgba(255,255,255,0));
+      pointer-events: none;
+    }
+    #home-title-badge .ph-title-spark {
+      position: absolute;
+      top: 21px;
+      font-size: 12px;
+      filter: drop-shadow(0 2px 2px rgba(255,145,190,.22));
+      opacity: .95;
+    }
+    #home-title-badge .ph-title-spark.left { left: 18px; transform: rotate(-14deg); }
+    #home-title-badge .ph-title-spark.right { right: 18px; transform: rotate(14deg); }
+    @keyframes phTitlePop {
+      from { transform: translateY(4px); opacity: .3; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+  `;
+  document.head.appendChild(styleEl);
+}
+
+function escapeTitleHtml(v) {
+  return String(v == null ? '' : v).replace(/[&<>'"]/g, function(c) {
+    return ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'})[c];
+  });
+}
+
 function renderHomeTitleBadge() {
   const actions = document.querySelector('.home-actions');
   if (!actions) return;
+  ensureTitleStyles();
   let badge = document.getElementById('home-title-badge');
   const t = TITLES.find(function(x) { return x.id === equippedTitle; });
   if (!t) {
     if (badge) badge.remove();
     return;
   }
-  const style = CATEGORY_STYLE[t.cat] || { color:'#9333ea', bg:'#FFF0F5', icon:'💖' };
+  const style = CATEGORY_STYLE[t.cat] || { color:'#9333ea', bg:'linear-gradient(135deg,#ff7aab,#b26cff)', icon:'💖', text:'#fff' };
   const nick = (typeof localStorage !== 'undefined' && localStorage.getItem('ph_nickname')) || '플레이어';
   if (!badge) {
     badge = document.createElement('div');
     badge.id = 'home-title-badge';
     actions.parentNode.insertBefore(badge, actions);
   }
-  badge.style.cssText = 'margin:0 16px 10px;position:relative;background:' + style.bg + ';border:2.5px dashed ' + style.color + ';border-radius:20px;padding:14px 16px 12px;text-align:center;box-shadow:0 4px 16px #0001;';
+  badge.style.setProperty('--title-bg', style.bg);
+  badge.style.setProperty('--title-text', style.text || '#fff');
   badge.innerHTML =
-    '<span style="position:absolute;top:-12px;left:50%;transform:translateX(-50%);font-size:16px;">' + style.icon + '</span>' +
-    '<div style="display:inline-block;background:' + style.color + ';color:#fff;font-size:12px;font-weight:900;border-radius:20px;padding:4px 14px;margin-bottom:6px;">' + style.icon + ' ' + t.title + '</div>' +
-    '<div style="font-size:19px;font-weight:900;color:#333;">' + nick + '</div>';
+    '<div class="ph-title-nick">' + escapeTitleHtml(nick) + '</div>' +
+    '<span class="ph-title-spark left">✦</span>' +
+    '<span class="ph-title-spark right">✦</span>' +
+    '<div class="ph-title-ribbon">' + style.icon + ' ' + escapeTitleHtml(t.title) + ' ' + style.icon + '</div>';
 }
 
 const CATEGORY_STYLE = {
-  '🎴 수집':   { color:'#FF6B9D', bg:'#FFF0F5', icon:'🎀' },
-  '⭐ 성장':   { color:'#F59E0B', bg:'#FFFBEB', icon:'⭐' },
-  '💰 알바':   { color:'#A16207', bg:'#FEF9E7', icon:'🍂' },
-  '🧑‍🤝‍🧑 NPC':    { color:'#60A5FA', bg:'#EFF6FF', icon:'💙' },
-  '🔨 제작':   { color:'#C084FC', bg:'#FAF5FF', icon:'🧵' },
-  '🔮 재조합': { color:'#9333ea', bg:'#F3E8FF', icon:'✨' },
-  '🎭 EH칭호': { color:'#FFD700', bg:'linear-gradient(135deg,#FFF7E0,#FFE8F5,#E8F0FF)', icon:'🪽' }
+  '🎴 수집':   { color:'#FF6B9D', bg:'linear-gradient(135deg,#ff78aa,#ffb2cf,#ffd5a7)', icon:'🎀', text:'#fff' },
+  '⭐ 성장':   { color:'#F59E0B', bg:'linear-gradient(135deg,#f7b733,#ffd36b,#fff0b8)', icon:'⭐', text:'#6b3a00' },
+  '💰 알바':   { color:'#FB923C', bg:'linear-gradient(135deg,#ff8a4c,#ffbd72,#ffe0a8)', icon:'🍔', text:'#fff' },
+  '🧑‍🤝‍🧑 NPC': { color:'#60A5FA', bg:'linear-gradient(135deg,#63b3ff,#9ad8ff,#d9f0ff)', icon:'💙', text:'#16406b' },
+  '🔨 제작':   { color:'#C084FC', bg:'linear-gradient(135deg,#b46cff,#d9a7ff,#ffe1f4)', icon:'🧵', text:'#fff' },
+  '🔮 재조합': { color:'#9333ea', bg:'linear-gradient(135deg,#7c3aed,#c084fc,#f0abfc)', icon:'✨', text:'#fff' },
+  '🎭 EH칭호': { color:'#FFD700', bg:'linear-gradient(135deg,#1b1235,#6d3bff,#ffd66b)', icon:'🪽', text:'#fff7cf' }
 };
 
 function openTitleOverlay() {
@@ -153,7 +240,7 @@ function openTitleOverlay() {
     TITLES.filter(function(t) { return t.cat === cat; }).forEach(function(t) {
       const unlocked = unlockedTitles.indexOf(t.id) !== -1;
       const equipped = equippedTitle === t.id;
-      html += '<div style="position:relative;display:flex;align-items:center;justify-content:space-between;background:' + (unlocked ? style.bg : 'rgba(255,255,255,0.04)') + ';border:2px dashed ' + (unlocked ? style.color : 'rgba(255,255,255,0.15)') + ';border-radius:16px;padding:10px 12px 10px 14px;margin-bottom:9px;' + (equipped ? 'box-shadow:0 0 0 2px #FFD700;' : '') + '">' +
+      html += '<div style="position:relative;display:flex;align-items:center;justify-content:space-between;background:' + (unlocked ? 'rgba(255,255,255,0.94)' : 'rgba(255,255,255,0.04)') + ';border:1.5px solid ' + (unlocked ? 'rgba(255,255,255,0.80)' : 'rgba(255,255,255,0.12)') + ';border-left:5px solid ' + (unlocked ? style.color : 'rgba(255,255,255,0.15)') + ';border-radius:16px;padding:10px 12px 10px 14px;margin-bottom:9px;' + (equipped ? 'box-shadow:0 0 0 2px #FFD700;' : '') + '">' +
         (unlocked ? '<span style="position:absolute;top:-9px;left:10px;font-size:14px;background:' + style.bg + ';padding:0 4px;border-radius:50%;">' + style.icon + '</span>' : '') +
         '<div>' +
         '<div style="font-size:13px;font-weight:900;color:' + (unlocked ? '#222' : '#777') + ';margin-top:2px;">' + (unlocked ? '[' + t.title + ']' : '🔒 ???') + '</div>' +
@@ -201,6 +288,16 @@ function openTitleOverlay() {
     return result;
   };
 })();
+
+// ── 알바 미니게임에서 콤보 기록 갱신용: 다른 파일에서 recordTitleCombo(combo)를 호출하면 됨 ──
+window.recordTitleCombo = function(combo) {
+  combo = Number(combo || 0);
+  if (combo > (titleStats.maxCombo || 0)) {
+    titleStats.maxCombo = combo;
+    saveTitleStats();
+    checkTitles();
+  }
+};
 
 // ── 더보기 메뉴에 칭호 버튼 추가 ──
 (function hookOpenMoreMenuForTitles() {
