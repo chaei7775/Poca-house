@@ -1592,22 +1592,44 @@ function updatePlayerLevelDisplay() {
   expEls.forEach(el => { el.textContent = `${playerExp} / ${required} EXP`; });
   const barEls = document.querySelectorAll('.player-exp-bar');
   barEls.forEach(el => { el.style.width = `${Math.min(100, playerExp / required * 100)}%`; });
-  if (typeof ensureHomeLevelPanel === 'function') ensureHomeLevelPanel();
+  ensureTopbarLevelBadge();
 }
 
-function ensureHomeLevelPanel() {
-  const actions = document.querySelector('.home-actions');
-  if (!actions) return;
-  let panel = document.getElementById('home-level-panel');
-  if (!panel) {
-    panel = document.createElement('div');
-    panel.id = 'home-level-panel';
-    panel.style.cssText = 'margin:0 16px 8px;background:#fff;border:2px solid #FFB3CC;border-radius:16px;padding:11px 12px;box-shadow:0 3px 14px #FF6B9D18;';
-    actions.parentNode.insertBefore(panel, actions);
+function ensureTopbarLevelBadge() {
+  const nickEl = document.getElementById('topbar-nick');
+  if (!nickEl || !nickEl.parentNode) return;
+  let badge = document.getElementById('topbar-player-level');
+  if (!badge) {
+    badge = document.createElement('span');
+    badge.id = 'topbar-player-level';
+    badge.onclick = openPlayerLevelPopup;
+    badge.style.cssText = 'font-size:11px;font-weight:900;color:#fff;background:rgba(255,255,255,0.22);border-radius:8px;padding:2px 7px;margin-left:6px;white-space:nowrap;cursor:pointer;';
+    nickEl.parentNode.insertBefore(badge, nickEl.nextSibling);
   }
+  badge.textContent = 'Lv.' + playerLevel;
+}
+
+function openPlayerLevelPopup() {
+  const old = document.getElementById('player-level-popup');
+  if (old) { old.remove(); return; }
   const required = getExpRequired(playerLevel);
   const pct = Math.min(100, Math.round(playerExp / required * 100));
-  panel.innerHTML = `<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:7px;"><div style="font-size:13px;font-weight:900;color:#FF6B9D;white-space:nowrap;">Lv.${playerLevel} · ${playerExp}/${required} EXP</div><button onclick="useCoupon()" style="border:none;border-radius:12px;background:#FFF0F5;color:#FF6B9D;font-size:12px;font-weight:900;padding:6px 9px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;white-space:nowrap;">🎟️ 쿠폰</button></div><div style="height:8px;background:#FFE4EF;border-radius:999px;overflow:hidden;"><div class="player-exp-bar" style="height:100%;width:${pct}%;background:linear-gradient(90deg,#FF6B9D,#C084FC);border-radius:999px;"></div></div>`;
+  const popup = document.createElement('div');
+  popup.id = 'player-level-popup';
+  popup.style.cssText = 'position:fixed;top:54px;right:14px;z-index:600;background:#fff;border:2px solid #FFB3CC;border-radius:14px;padding:12px 14px;box-shadow:0 6px 20px #0002;width:200px;';
+  popup.innerHTML = '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:7px;">' +
+    '<div style="font-size:13px;font-weight:900;color:#FF6B9D;white-space:nowrap;">Lv.' + playerLevel + ' · ' + playerExp + '/' + required + ' EXP</div></div>' +
+    '<div style="height:8px;background:#FFE4EF;border-radius:999px;overflow:hidden;margin-bottom:10px;"><div class="player-exp-bar" style="height:100%;width:' + pct + '%;background:linear-gradient(90deg,#FF6B9D,#C084FC);border-radius:999px;"></div></div>' +
+    '<button onclick="useCoupon();document.getElementById(\'player-level-popup\').remove();" style="width:100%;border:none;border-radius:10px;background:#FFF0F5;color:#FF6B9D;font-size:12px;font-weight:900;padding:8px;cursor:pointer;font-family:\'Noto Sans KR\',sans-serif;">🎟️ 쿠폰 입력</button>';
+  document.body.appendChild(popup);
+  setTimeout(function() {
+    document.addEventListener('click', function closePopupOnce(e) {
+      if (!popup.contains(e.target) && e.target.id !== 'topbar-player-level') {
+        popup.remove();
+        document.removeEventListener('click', closePopupOnce);
+      }
+    });
+  }, 0);
 }
 
 let usedCoupons = JSON.parse(localStorage.getItem('ph_usedCoupons') || '[]');

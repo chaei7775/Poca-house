@@ -97,7 +97,7 @@ function ensurePocaHouseLevelBar() {
     levelWrap.id = 'pocahouse-level-wrap';
     levelWrap.style.cssText = 'flex:1;display:flex;align-items:center;gap:8px;min-width:0;';
     levelWrap.innerHTML =
-      '<span style="font-size:13px;font-weight:900;color:#9333ea;white-space:nowrap;flex-shrink:0;">🏠 포카하우스</span>' +
+      '<span style="font-size:12px;flex-shrink:0;">🏠</span>' +
       '<span id="pocahouse-level-text" style="font-size:12px;font-weight:900;color:#9333ea;white-space:nowrap;flex-shrink:0;">Lv.1</span>' +
       '<div style="flex:1;height:7px;background:#FFE4EF;border-radius:99px;overflow:hidden;min-width:30px;">' +
       '<div id="pocahouse-level-fill" style="height:100%;width:0%;background:linear-gradient(90deg,#FF6B9D,#C084FC);border-radius:99px;transition:width 0.3s;"></div></div>';

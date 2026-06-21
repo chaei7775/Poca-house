@@ -90,22 +90,20 @@ function equipTitle(titleId) {
 }
 
 function renderEquippedTitleBadge() {
-  const nickEl = document.getElementById('topbar-nick');
-  if (!nickEl || !nickEl.parentNode) return;
-  let badge = document.getElementById('equipped-title-badge');
-  const t = TITLES.find(function(x) { return x.id === equippedTitle; });
-  if (!t) {
-    if (badge) badge.remove();
-    return;
-  }
-  if (!badge) {
-    badge = document.createElement('span');
-    badge.id = 'equipped-title-badge';
-    badge.style.cssText = 'font-size:10px;font-weight:900;color:#FFD700;background:rgba(0,0,0,0.25);border-radius:6px;padding:2px 6px;margin-right:4px;white-space:nowrap;';
-    nickEl.parentNode.insertBefore(badge, nickEl);
-  }
-  badge.textContent = '[' + t.title + ']';
+  // 상단바에는 칭호를 표시하지 않음 (닉네임만 유지, 중복 방지)
+  const old = document.getElementById('equipped-title-badge');
+  if (old) old.remove();
 }
+
+const CATEGORY_STYLE = {
+  '🎴 수집':   { color:'#FF6B9D', bg:'#FFF0F5', icon:'🎀' },
+  '⭐ 성장':   { color:'#F59E0B', bg:'#FFFBEB', icon:'⭐' },
+  '💰 알바':   { color:'#A16207', bg:'#FEF9E7', icon:'🍂' },
+  '🧑‍🤝‍🧑 NPC':    { color:'#60A5FA', bg:'#EFF6FF', icon:'💙' },
+  '🔨 제작':   { color:'#C084FC', bg:'#FAF5FF', icon:'🧵' },
+  '🔮 재조합': { color:'#9333ea', bg:'#F3E8FF', icon:'✨' },
+  '🎭 EH칭호': { color:'#FFD700', bg:'linear-gradient(135deg,#FFF7E0,#FFE8F5,#E8F0FF)', icon:'🪽' }
+};
 
 function openTitleOverlay() {
   const old = document.getElementById('title-overlay');
@@ -126,15 +124,17 @@ function openTitleOverlay() {
     '<button onclick="equipTitle(null)" style="width:100%;padding:10px;margin-bottom:14px;background:' + (equippedTitle ? 'rgba(255,255,255,0.08)' : 'linear-gradient(135deg,#FF6B9D,#C084FC)') + ';border:none;border-radius:10px;color:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:\'Noto Sans KR\',sans-serif;">칭호 해제 (기본 닉네임만 표시)</button>';
 
   cats.forEach(function(cat) {
-    html += '<div style="font-size:12px;font-weight:900;color:#FFB3CC;margin:14px 0 8px;">' + cat + '</div>';
+    const style = CATEGORY_STYLE[cat] || { color:'#9333ea', bg:'#F3E8FF', icon:'🏷️' };
+    html += '<div style="font-size:12px;font-weight:900;color:' + style.color + ';margin:14px 0 8px;">' + cat + '</div>';
     TITLES.filter(function(t) { return t.cat === cat; }).forEach(function(t) {
       const unlocked = unlockedTitles.indexOf(t.id) !== -1;
       const equipped = equippedTitle === t.id;
-      html += '<div style="display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,' + (unlocked ? '0.06' : '0.02') + ');border:1.5px solid ' + (equipped ? '#FFD700' : 'rgba(255,255,255,0.1)') + ';border-radius:12px;padding:10px 12px;margin-bottom:8px;">' +
+      html += '<div style="position:relative;display:flex;align-items:center;justify-content:space-between;background:' + (unlocked ? style.bg : 'rgba(255,255,255,0.04)') + ';border:2px dashed ' + (unlocked ? style.color : 'rgba(255,255,255,0.15)') + ';border-radius:16px;padding:10px 12px 10px 14px;margin-bottom:9px;' + (equipped ? 'box-shadow:0 0 0 2px #FFD700;' : '') + '">' +
+        (unlocked ? '<span style="position:absolute;top:-9px;left:10px;font-size:14px;background:' + style.bg + ';padding:0 4px;border-radius:50%;">' + style.icon + '</span>' : '') +
         '<div>' +
-        '<div style="font-size:13px;font-weight:900;color:' + (unlocked ? '#fff' : '#666') + ';">' + (unlocked ? '[' + t.title + ']' : '🔒 ???') + '</div>' +
-        '<div style="font-size:10px;color:#888;margin-top:2px;">' + t.name + '</div></div>' +
-        (unlocked ? '<button onclick="equipTitle(\'' + t.id + '\')" style="flex-shrink:0;padding:7px 12px;background:' + (equipped ? '#FFD700' : 'rgba(192,132,252,0.25)') + ';border:1px solid #C084FC;border-radius:8px;color:' + (equipped ? '#1a1a2e' : '#fff') + ';font-size:11px;font-weight:900;cursor:pointer;font-family:\'Noto Sans KR\',sans-serif;">' + (equipped ? '장착중' : '장착') + '</button>' : '') +
+        '<div style="font-size:13px;font-weight:900;color:' + (unlocked ? '#222' : '#777') + ';margin-top:2px;">' + (unlocked ? '[' + t.title + ']' : '🔒 ???') + '</div>' +
+        '<div style="font-size:10px;color:' + (unlocked ? '#666' : '#666') + ';margin-top:2px;">' + t.name + '</div></div>' +
+        (unlocked ? '<button onclick="equipTitle(\'' + t.id + '\')" style="flex-shrink:0;padding:7px 12px;background:' + (equipped ? '#FFD700' : style.color) + ';border:none;border-radius:10px;color:' + (equipped ? '#1a1a2e' : '#fff') + ';font-size:11px;font-weight:900;cursor:pointer;font-family:\'Noto Sans KR\',sans-serif;">' + (equipped ? '장착중' : '장착') + '</button>' : '') +
         '</div>';
     });
   });
