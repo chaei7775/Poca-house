@@ -71,6 +71,8 @@ function restorePocaDataFromServer(data) {
   if (Array.isArray(data.hints)) localStorage.setItem('ph_hints', JSON.stringify(data.hints));
   if (Array.isArray(data.learnedSkills)) localStorage.setItem('ph_learnedSkills', JSON.stringify(data.learnedSkills));
   if (typeof data.albaDone === 'number') localStorage.setItem('ph_alba', data.albaDone);
+  if (typeof data.playerLevel === 'number') localStorage.setItem('ph_playerLevel', data.playerLevel);
+  if (typeof data.playerExp === 'number') localStorage.setItem('ph_playerExp', data.playerExp);
   if (data.cardLevels) localStorage.setItem('ph_cardLevels', JSON.stringify(data.cardLevels));
   if (data.cardExpData) localStorage.setItem('ph_cardExp', JSON.stringify(data.cardExpData));
   if (data.storyProgress) localStorage.setItem('ph_storyProgress', JSON.stringify(data.storyProgress));
