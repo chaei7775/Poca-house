@@ -2475,7 +2475,7 @@ syncAllAffectionLevels();
 updateCoinsDisplay();
 renderHomeIdols();
 renderHomeSpeech();
-setTimeout(checkNickname, 50);
+setTimeout(function() { checkNickname(); }, 50);
 updatePlayerLevelDisplay();
 updateStaminaDisplay();
 setInterval(updateStaminaDisplay, 1000);
