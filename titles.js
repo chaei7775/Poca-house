@@ -102,7 +102,7 @@ function ensureTitleStyles() {
   styleEl.id = 'ph-title-style';
   styleEl.textContent = `
     #home-title-badge {
-      margin: -2px 42px 14px;
+      margin: -4px 42px 22px;
       text-align: center;
       position: relative;
       animation: phTitlePop .22s ease-out;
