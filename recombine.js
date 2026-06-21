@@ -506,13 +506,17 @@ function openMoreMenu() {
     '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">' +
     '<div style="color:#fff;font-size:16px;font-weight:900;">더보기</div>' +
     '<button onclick="document.getElementById(\'more-menu-overlay\').remove()" style="background:rgba(255,255,255,0.1);border:none;border-radius:8px;color:#fff;padding:6px 12px;cursor:pointer;">닫기</button></div>' +
-    '<div style="display:flex;flex-direction:column;gap:10px;">' +
-    '<button onclick="document.getElementById(\'more-menu-overlay\').remove();openRecombine();" style="display:flex;align-items:center;gap:12px;padding:14px;background:rgba(192,132,252,0.15);border:1.5px solid #C084FC;border-radius:14px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:\'Noto Sans KR\',sans-serif;text-align:left;"><span style="font-size:24px;">🔮</span> 카드 재조합기</button>' +
-    '<button onclick="document.getElementById(\'more-menu-overlay\').remove();openHiddenCardDex();" style="display:flex;align-items:center;gap:12px;padding:14px;background:rgba(255,215,0,0.12);border:1.5px solid #FFD700;border-radius:14px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:\'Noto Sans KR\',sans-serif;text-align:left;"><span style="font-size:24px;">📖</span> 히든카드 도감</button>' +
-    '<button onclick="document.getElementById(\'more-menu-overlay\').remove();openShop(\'gift\');" style="display:flex;align-items:center;gap:12px;padding:14px;background:rgba(255,107,157,0.12);border:1.5px solid #FF6B9D;border-radius:14px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:\'Noto Sans KR\',sans-serif;text-align:left;"><span style="font-size:24px;">🛍️</span> 잡화점</button>' +
-    '<button onclick="document.getElementById(\'more-menu-overlay\').remove();openAuthOverlay();" style="display:flex;align-items:center;gap:12px;padding:14px;background:rgba(147,51,234,0.12);border:1.5px solid #9333ea;border-radius:14px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:\'Noto Sans KR\',sans-serif;text-align:left;"><span style="font-size:24px;">☁️</span> 계정 (로그인/회원가입)</button>' +
+    '<div id="more-menu-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">' +
+    moreMenuTileHtml('🔮', '카드 재조합기', '#C084FC', "openRecombine()") +
+    moreMenuTileHtml('📖', '히든카드 도감', '#FFD700', "openHiddenCardDex()") +
+    moreMenuTileHtml('🛍️', '잡화점', '#FF6B9D', "openShop('gift')") +
     '</div></div>';
   document.body.appendChild(overlay);
+}
+
+function moreMenuTileHtml(icon, label, color, onclickFn) {
+  return '<button onclick="document.getElementById(\'more-menu-overlay\').remove();' + onclickFn + ';" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;aspect-ratio:1;padding:10px;background:' + color + '1f;border:1.5px solid ' + color + ';border-radius:16px;color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:\'Noto Sans KR\',sans-serif;text-align:center;">' +
+    '<span style="font-size:28px;">' + icon + '</span><span>' + label + '</span></button>';
 }
 
 (function hookGoToForRecombine() {

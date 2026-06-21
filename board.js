@@ -159,7 +159,7 @@ async function deleteBoardPost(postId) {
   }
 }
 
-// ── 더보기 메뉴에 게시판 버튼 추가 ──
+// ── 더보기 메뉴에 게시판 + 계정 타일 추가 (계정은 맨 끝) ──
 (function hookOpenMoreMenuForBoard() {
   if (typeof window.openMoreMenu !== 'function') {
     setTimeout(hookOpenMoreMenuForBoard, 50);
@@ -169,15 +169,25 @@ async function deleteBoardPost(postId) {
   window.openMoreMenu = function() {
     const result = originalOpenMoreMenu.apply(this, arguments);
     const overlay = document.getElementById('more-menu-overlay');
-    if (overlay && !document.getElementById('more-menu-board-btn')) {
-      const list = overlay.querySelector('div > div:last-child');
-      if (list) {
-        const btn = document.createElement('button');
-        btn.id = 'more-menu-board-btn';
-        btn.style.cssText = 'display:flex;align-items:center;gap:12px;padding:14px;background:rgba(96,165,250,0.12);border:1.5px solid #60A5FA;border-radius:14px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:\'Noto Sans KR\',sans-serif;text-align:left;';
-        btn.innerHTML = '<span style="font-size:24px;">📋</span> 게시판';
-        btn.onclick = function() { overlay.remove(); openBoardOverlay(); };
-        list.appendChild(btn);
+    if (overlay) {
+      const grid = overlay.querySelector('#more-menu-grid');
+      if (grid) {
+        if (!document.getElementById('more-menu-board-btn')) {
+          const btn = document.createElement('button');
+          btn.id = 'more-menu-board-btn';
+          btn.style.cssText = 'display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;aspect-ratio:1;padding:10px;background:#60A5FA1f;border:1.5px solid #60A5FA;border-radius:16px;color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:\'Noto Sans KR\',sans-serif;text-align:center;';
+          btn.innerHTML = '<span style="font-size:28px;">📋</span><span>게시판</span>';
+          btn.onclick = function() { overlay.remove(); openBoardOverlay(); };
+          grid.appendChild(btn);
+        }
+        if (!document.getElementById('more-menu-account-btn')) {
+          const accBtn = document.createElement('button');
+          accBtn.id = 'more-menu-account-btn';
+          accBtn.style.cssText = 'display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;aspect-ratio:1;padding:10px;background:#9333ea1f;border:1.5px solid #9333ea;border-radius:16px;color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:\'Noto Sans KR\',sans-serif;text-align:center;';
+          accBtn.innerHTML = '<span style="font-size:28px;">☁️</span><span>계정</span>';
+          accBtn.onclick = function() { overlay.remove(); openAuthOverlay(); };
+          grid.appendChild(accBtn);
+        }
       }
     }
     return result;

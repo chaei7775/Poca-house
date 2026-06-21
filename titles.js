@@ -238,7 +238,7 @@ window.recordTitleCombo = function(combo) {
   }
 };
 
-// ── 더보기 메뉴에 칭호 버튼 추가 ──
+// ── 더보기 메뉴에 칭호 타일 추가 ──
 (function hookOpenMoreMenuForTitles() {
   if (typeof window.openMoreMenu !== 'function') {
     setTimeout(hookOpenMoreMenuForTitles, 50);
@@ -249,14 +249,14 @@ window.recordTitleCombo = function(combo) {
     const result = originalOpenMoreMenu.apply(this, arguments);
     const overlay = document.getElementById('more-menu-overlay');
     if (overlay && !document.getElementById('more-menu-title-btn')) {
-      const list = overlay.querySelector('div > div:last-child');
-      if (list) {
+      const grid = overlay.querySelector('#more-menu-grid');
+      if (grid) {
         const btn = document.createElement('button');
         btn.id = 'more-menu-title-btn';
-        btn.style.cssText = 'display:flex;align-items:center;gap:12px;padding:14px;background:rgba(255,215,0,0.12);border:1.5px solid #FFD700;border-radius:14px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:\'Noto Sans KR\',sans-serif;text-align:left;';
-        btn.innerHTML = '<span style="font-size:24px;">🏷️</span> 칭호';
+        btn.style.cssText = 'display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;aspect-ratio:1;padding:10px;background:#FFD7001f;border:1.5px solid #FFD700;border-radius:16px;color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:\'Noto Sans KR\',sans-serif;text-align:center;';
+        btn.innerHTML = '<span style="font-size:28px;">🏷️</span><span>칭호</span>';
         btn.onclick = function() { overlay.remove(); openTitleOverlay(); };
-        list.appendChild(btn);
+        grid.appendChild(btn);
       }
     }
     return result;
