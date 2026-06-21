@@ -12,12 +12,12 @@ const CLEAN_TOOLS = [
 ];
 
 const CLEAN_OBJECTS = {
-  broom:  [ {emoji:'💨', label:'먼지'}, {emoji:'🕸️', label:'거미줄'}, {emoji:'🌀', label:'머리카락'} ],
-  trash:  [ {emoji:'📃', label:'종이조각'}, {emoji:'🥤', label:'음료컵'}, {emoji:'🍟', label:'과자봉지'} ],
-  sponge: [ {emoji:'🟣', label:'얼룩'}, {emoji:'☕', label:'커피자국'}, {emoji:'👟', label:'발자국'} ],
-  bucket: [ {emoji:'💧', label:'물웅덩이'}, {emoji:'🟫', label:'진흙'}, {emoji:'🐾', label:'흙자국'} ],
+  broom:  [ {emoji:'💨', label:'먼지'}, {emoji:'🕸️', label:'거미줄'}, {emoji:'➿', label:'머리카락'} ],
+  trash:  [ {emoji:'📰', label:'종이조각'}, {emoji:'🥤', label:'음료컵'}, {emoji:'🍟', label:'과자봉지'} ],
+  sponge: [ {emoji:'💢', label:'얼룩'}, {emoji:'☕', label:'커피자국'}, {emoji:'👟', label:'발자국'} ],
+  bucket: [ {emoji:'💧', label:'물웅덩이'}, {emoji:'🥔', label:'진흙'}, {emoji:'🐾', label:'흙자국'} ],
   tongs:  [ {emoji:'🔻', label:'깨진유리'}, {emoji:'📌', label:'압정'}, {emoji:'🪛', label:'못'} ],
-  spray:  [ {emoji:'🌫️', label:'그림자얼룩'}, {emoji:'🔮', label:'그림자결정'}, {emoji:'⭐', label:'소원먼지'} ]
+  spray:  [ {emoji:'🦋', label:'그림자나비'}, {emoji:'🕷️', label:'그림자거미'}, {emoji:'🦇', label:'그림자박쥐'} ]
 };
 
 const CLEAN_TOOL_COLORS = {
@@ -30,9 +30,9 @@ const CLEAN_TOOL_COLORS = {
 };
 
 const CLEAN_DIFFICULTIES = {
-  easy:   { label:'초급', toolCount:2, objCount:6,  time:12, baseCoin:80,  mult:1 },
-  normal: { label:'중급', toolCount:4, objCount:12, time:20, baseCoin:100, mult:1.3 },
-  hard:   { label:'고급', toolCount:6, objCount:18, time:30, baseCoin:130, mult:1.7 }
+  easy:   { label:'초급', toolCount:2, objCount:6,  time:22, baseCoin:80,  mult:1 },
+  normal: { label:'중급', toolCount:4, objCount:12, time:30, baseCoin:100, mult:1.3 },
+  hard:   { label:'고급', toolCount:6, objCount:18, time:40, baseCoin:130, mult:1.7 }
 };
 
 let cleanState = null; // { diff, tools, objects:[{id,toolId,emoji,x,y,el,done}], selectedTool, mistakes, timer, totalTime }
@@ -112,8 +112,7 @@ function renderCleanGameScreen() {
   cleanState.objects.forEach(function(obj) {
     const el = document.createElement('div');
     el.id = obj.id;
-    const color = CLEAN_TOOL_COLORS[obj.toolId] || '#fff';
-    el.style.cssText = 'position:absolute;left:' + obj.x + '%;top:' + obj.y + '%;transform:translate(-50%,-50%);width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:26px;cursor:pointer;background:' + color + ';box-shadow:0 0 0 3px rgba(255,255,255,0.9),0 3px 8px rgba(0,0,0,0.4);transition:transform 0.15s;';
+    el.style.cssText = 'position:absolute;left:' + obj.x + '%;top:' + obj.y + '%;transform:translate(-50%,-50%);font-size:38px;cursor:pointer;filter:drop-shadow(0 2px 5px rgba(0,0,0,0.5));';
     el.textContent = obj.emoji;
     el.onclick = function() { handleCleanObjectTap(obj.id); };
     area.appendChild(el);
