@@ -32,6 +32,7 @@ function addCardExp(charId, amount) {
   cardLevels[charId] = level;
   cardExpData[charId] = exp;
   saveCardLevelData();
+  if (typeof updatePocaHouseLevelBar === 'function') updatePocaHouseLevelBar();
   if (leveledUp) {
     showCardLevelUpToast(charId, level);
     checkStoryLevelMilestone();
@@ -71,6 +72,117 @@ function ensurePocaTextOutlineStyle() {
   document.head.appendChild(st);
 }
 ensurePocaTextOutlineStyle();
+
+// ── 상단 배너 아래 포카하우스 레벨 표시줄 + 닉네임 이동 ──
+function ensurePocaHouseLevelBar() {
+  const topbar = document.querySelector('.topbar') || document.querySelector('header') || document.querySelector('.home-topbar');
+  if (!topbar) { return; }
+  let bar = document.getElementById('pocahouse-level-bar');
+  if (!bar) {
+    bar = document.createElement('div');
+    bar.id = 'pocahouse-level-bar';
+    bar.style.cssText = 'background:#fff;border-bottom:1.5px solid #FFD1E0;padding:7px 14px;display:flex;align-items:center;gap:10px;';
+    topbar.parentNode.insertBefore(bar, topbar.nextSibling);
+
+    // 닉네임을 이 줄로 이동
+    const nickEl = document.getElementById('topbar-nick');
+    if (nickEl) {
+      const nickWrap = document.createElement('div');
+      nickWrap.id = 'pocahouse-nick-wrap';
+      nickWrap.style.cssText = 'font-size:13px;font-weight:900;color:#FF6B9D;white-space:nowrap;flex-shrink:0;';
+      nickWrap.appendChild(nickEl.cloneNode(true));
+      bar.appendChild(nickWrap);
+      nickEl.style.display = 'none';
+    }
+
+    const levelWrap = document.createElement('div');
+    levelWrap.id = 'pocahouse-level-wrap';
+    levelWrap.style.cssText = 'flex:1;display:flex;align-items:center;gap:8px;min-width:0;';
+    levelWrap.innerHTML =
+      '<span id="pocahouse-level-text" style="font-size:12px;font-weight:900;color:#9333ea;white-space:nowrap;flex-shrink:0;">Lv.1</span>' +
+      '<div style="flex:1;height:7px;background:#FFE4EF;border-radius:99px;overflow:hidden;min-width:30px;">' +
+      '<div id="pocahouse-level-fill" style="height:100%;width:0%;background:linear-gradient(90deg,#FF6B9D,#C084FC);border-radius:99px;transition:width 0.3s;"></div></div>';
+    bar.appendChild(levelWrap);
+  }
+  updatePocaHouseLevelBar();
+}
+
+function updatePocaHouseLevelBar() {
+  const textEl = document.getElementById('pocahouse-level-text');
+  const fillEl = document.getElementById('pocahouse-level-fill');
+  const nickEl = document.querySelector('#pocahouse-nick-wrap #topbar-nick');
+  if (nickEl) {
+    const original = document.getElementById('topbar-nick');
+    if (original) nickEl.textContent = original.textContent;
+  }
+  if (!textEl || !fillEl) return;
+  const level = getHighestCardLevel();
+  const charId = Object.keys(CHARS).find(function(cid) { return getCardLevel(cid) === level; }) || Object.keys(CHARS)[0];
+  const exp = getCardExp(charId);
+  const required = getCardExpRequired(level);
+  const pct = level >= 20 ? 100 : Math.min(100, Math.round(exp / required * 100));
+  textEl.textContent = '🏠 Lv.' + level;
+  fillEl.style.width = pct + '%';
+}
+
+// ════════════════════════════════
+// 🔓 포카하우스 콘텐츠 해금 (방꾸미기 Lv3 / 창고 Lv5 / 가구상점 Lv10)
+// ════════════════════════════════
+const POCAHOUSE_UNLOCK = { roomDeco: 3, warehouse: 5, furnitureShop: 10 };
+
+function showPocaHouseLockedPopup(unlockLevel, featureName) {
+  const old = document.getElementById('pocahouse-locked-overlay');
+  if (old) old.remove();
+  const overlay = document.createElement('div');
+  overlay.id = 'pocahouse-locked-overlay';
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:970;background:rgba(0,0,0,0.75);display:flex;align-items:center;justify-content:center;padding:20px;';
+  overlay.onclick = function(e) { if (e.target === overlay) overlay.remove(); };
+  overlay.innerHTML = '<div style="background:#fff;border:2px solid #000;border-radius:18px;padding:24px;text-align:center;width:88%;max-width:300px;">' +
+    '<div style="font-size:40px;margin-bottom:8px;">🔒</div>' +
+    '<div class="poca-text-outline" style="font-size:16px;font-weight:900;margin-bottom:8px;">아직 잠겨있어요</div>' +
+    '<div style="font-size:13px;color:#222;line-height:1.6;margin-bottom:16px;">' + featureName + '은 포카하우스 레벨 ' + unlockLevel + '부터 이용할 수 있어요.<br>포카를 학교에 보내 레벨을 올려보세요!</div>' +
+    '<button onclick="document.getElementById(\'pocahouse-locked-overlay\').remove()" style="width:100%;padding:12px;background:linear-gradient(135deg,#FF6B9D,#C084FC);border:none;border-radius:12px;color:#fff;font-size:14px;font-weight:900;cursor:pointer;font-family:\'Noto Sans KR\',sans-serif;">확인</button></div>';
+  document.body.appendChild(overlay);
+}
+
+function isPocaHouseFeatureUnlocked(key) {
+  const need = POCAHOUSE_UNLOCK[key];
+  if (typeof need !== 'number') return true;
+  return getHighestCardLevel() >= need;
+}
+
+function patchRoomDecoButton() {
+  const btn = document.getElementById('btn-room-deco');
+  if (!btn || btn.dataset.pocaPatched) return;
+  btn.dataset.pocaPatched = '1';
+  const originalOnclick = btn.onclick;
+  btn.onclick = function(e) {
+    if (!isPocaHouseFeatureUnlocked('roomDeco')) {
+      showPocaHouseLockedPopup(POCAHOUSE_UNLOCK.roomDeco, '방꾸미기');
+      return;
+    }
+    if (typeof originalOnclick === 'function') originalOnclick.call(this, e);
+  };
+}
+
+function patchFurnitureShopButton() {
+  // 가구상점은 잡화점(shop-room 탭) 안에 있을 가능성이 높아 openShop을 후킹
+  if (typeof window.openShop !== 'function' || window._pocaShopPatched) return;
+  window._pocaShopPatched = true;
+  const originalOpenShop = window.openShop;
+  window.openShop = function(tab) {
+    if (tab === 'room' && !isPocaHouseFeatureUnlocked('furnitureShop')) {
+      showPocaHouseLockedPopup(POCAHOUSE_UNLOCK.furnitureShop, '가구상점');
+      return;
+    }
+    return originalOpenShop.apply(this, arguments);
+  };
+}
+
+setInterval(function() {
+  patchRoomDecoButton();
+  patchFurnitureShopButton();
+}, 1000);
 
 // ── 홈 화면 레벨 표시 (캐릭터 원형 아이콘 옆에 작은 텍스트만) ──
 function renderPocaLevelBar() {
@@ -127,10 +239,10 @@ function renderPocaLevelBar() {
         const vals = [scores.korean, scores.memory, scores.pe];
         if (vals.every(function(v) { return typeof v === 'number'; })) {
           const avg = Math.round(vals.reduce(function(a, b) { return a + b; }, 0) / vals.length);
-          let cardExpGain = 1;
-          if (avg >= 90) cardExpGain = 5;
-          else if (avg >= 80) cardExpGain = 4;
-          else if (avg >= 70) cardExpGain = 3;
+          let cardExpGain = 15;
+          if (avg >= 90) cardExpGain = 50;
+          else if (avg >= 80) cardExpGain = 40;
+          else if (avg >= 70) cardExpGain = 30;
           addCardExp(charIdBeforeReport, cardExpGain);
         }
       } catch (e) {}
@@ -227,7 +339,7 @@ function updateHomeBannerWithStory() {
   if (!labelEl && overlayEl) {
     labelEl = document.createElement('div');
     labelEl.id = 'home-banner-quest-label';
-    labelEl.style.cssText = 'font-size:10px;font-weight:900;color:#9333ea;letter-spacing:1.5px;margin-bottom:2px;';
+    labelEl.style.cssText = 'font-size:10px;font-weight:900;color:#F97316;letter-spacing:1.5px;margin-bottom:2px;';
     labelEl.textContent = 'QUEST';
     overlayEl.insertBefore(labelEl, titleEl);
   }
@@ -258,9 +370,9 @@ function renderStoryQuestSection() {
   STORY_QUESTS.forEach(function(q, idx) {
     const done = storyProgress[q.id] === 'done';
     html += '<div onclick="openStoryQuestDetail(' + idx + ')" style="cursor:pointer;background:#fff;border:1.5px solid #000;border-radius:12px;padding:10px 12px;margin-bottom:8px;opacity:' + (done ? '0.55' : '1') + ';">' +
-      '<div style="font-size:9px;font-weight:900;color:#9333ea;letter-spacing:1px;margin-bottom:2px;">QUEST</div>' +
+      '<div style="font-size:9px;font-weight:900;color:#F97316;letter-spacing:1px;margin-bottom:2px;">QUEST</div>' +
       '<div style="display:flex;align-items:center;justify-content:space-between;">' +
-      '<div class="poca-text-outline" style="font-size:12px;font-weight:900;">' + (done ? '✅ ' : '') + q.title + '</div>' +
+      '<div class="poca-text-outline" style="font-size:11px;font-weight:900;">' + (done ? '✅ ' : '') + q.title + '</div>' +
       '<div style="font-size:10px;color:#F59E0B;font-weight:900;">🍔' + q.rewardCoins + '</div></div>' +
       '<div style="font-size:11px;color:#222;margin-top:3px;">' + (q.desc.length > 28 ? q.desc.slice(0, 28) + '...' : q.desc) + '</div></div>';
   });
@@ -279,7 +391,7 @@ function openStoryQuestDetail(idx) {
   overlay.style.cssText = 'position:fixed;inset:0;z-index:960;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;padding:20px;';
   overlay.onclick = function(e) { if (e.target === overlay) overlay.remove(); };
   overlay.innerHTML = '<div style="background:#fff;border:2px solid #000;border-radius:18px;padding:22px;text-align:center;width:90%;max-width:320px;">' +
-    '<div style="font-size:9px;font-weight:900;color:#9333ea;letter-spacing:1.5px;margin-bottom:6px;">QUEST</div>' +
+    '<div style="font-size:9px;font-weight:900;color:#F97316;letter-spacing:1.5px;margin-bottom:6px;">QUEST</div>' +
     '<div class="poca-text-outline" style="font-size:18px;font-weight:900;margin-bottom:12px;">' + q.title + '</div>' +
     '<div style="font-size:13px;color:#222;line-height:1.6;margin-bottom:16px;">' + q.desc + '</div>' +
     '<div style="font-size:13px;color:#F59E0B;font-weight:900;margin-bottom:16px;">🍔 ' + q.rewardCoins.toLocaleString() + ' · ⭐ ' + q.rewardExp + 'xp</div>' +
@@ -313,10 +425,12 @@ function openStoryQuestDetail(idx) {
 setTimeout(function() {
   updateHomeBannerWithStory();
   renderPocaLevelBar();
+  ensurePocaHouseLevelBar();
 }, 600);
 setTimeout(function() {
   updateHomeBannerWithStory();
   renderPocaLevelBar();
+  ensurePocaHouseLevelBar();
 }, 1500);
 
 // ── checkQuestProgress 후킹: 기존 조건들과 스토리 조건 동시 체크 ──
