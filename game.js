@@ -3000,6 +3000,7 @@ function getPocaServerPayload() {
 
 async function savePocaUserToServer(reason) {
   if (!POCA_FIREBASE_TEST_MODE) return false;
+  if (!window.pocaLoggedInUid) return false; // 게스트는 서버에 저장하지 않음 (닉네임 중복 방지)
   if (!window.pocaFirebaseReady || !window.pocaFirebase) {
     console.warn('Firebase not ready yet:', reason);
     return false;
