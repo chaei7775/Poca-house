@@ -138,7 +138,9 @@ async function openCommissionDetail(commissionId) {
     '<div style="color:#fff;font-size:14px;font-weight:900;">' + club.emoji + ' ' + club.name + '</div>' +
     '<div style="width:50px;"></div></div>' +
     '<div style="flex:1;overflow-y:auto;padding:20px;text-align:center;">' +
-    '<canvas id="fanclub-thumb-canvas" width="' + design.size + '" height="' + design.size + '" style="width:200px;height:200px;border-radius:14px;border:2px solid rgba(255,255,255,0.2);image-rendering:pixelated;margin-bottom:14px;"></canvas>' +
+    '<img src="https://raw.githubusercontent.com/chaei7775/Poca-house/main/fanclub-' + commissionId + '.jpg" style="width:200px;border-radius:14px;border:2px solid rgba(255,255,255,0.2);margin-bottom:10px;" onerror="this.style.display=\'none\'">' +
+    '<div style="font-size:10px;color:#666;margin-bottom:4px;">완성하면 이 그림을 직접 색칠로 완성하게 돼요!</div>' +
+    '<canvas id="fanclub-thumb-canvas" width="' + design.size + '" height="' + design.size + '" style="width:90px;height:90px;border-radius:10px;border:1.5px solid rgba(255,255,255,0.2);image-rendering:pixelated;margin-bottom:14px;"></canvas>' +
     '<div style="font-size:17px;font-weight:900;color:#fff;margin-bottom:4px;">' + commission.title + '</div>' +
     '<div style="font-size:11px;color:#888;margin-bottom:18px;">' + commission.sizeClass + ' · ' + design.colorCountUsed + '색 · ' + design.totalCells + '칸</div>' +
     '<div style="background:rgba(255,255,255,0.08);border-radius:10px;height:10px;overflow:hidden;margin-bottom:6px;"><div style="height:100%;width:' + pct + '%;background:linear-gradient(90deg,#FF6B9D,#C084FC);"></div></div>' +
@@ -199,6 +201,7 @@ async function openColoringScreen(commissionId) {
     '<button onclick="exitColoringScreen()" style="background:rgba(255,255,255,0.15);border:none;border-radius:10px;color:#fff;padding:7px 12px;font-size:12px;cursor:pointer;font-family:\'Noto Sans KR\',sans-serif;">← 나가기(자동저장)</button>' +
     '<div id="fan-progress-text" style="color:#FFD700;font-size:12px;font-weight:900;"></div>' +
     '<div>' +
+    '<button onclick="showFanReference(\'' + commissionId + '\')" style="background:rgba(255,215,0,0.2);border:none;border-radius:8px;color:#FFD700;padding:6px 10px;font-size:11px;font-weight:700;cursor:pointer;margin-right:6px;">🖼️ 원본</button>' +
     '<button onclick="changeFanZoom(-1)" style="background:rgba(255,255,255,0.15);border:none;border-radius:8px;color:#fff;width:28px;height:28px;cursor:pointer;">－</button> ' +
     '<button onclick="changeFanZoom(1)" style="background:rgba(255,255,255,0.15);border:none;border-radius:8px;color:#fff;width:28px;height:28px;cursor:pointer;">＋</button>' +
     '</div></div>' +
@@ -223,6 +226,17 @@ async function openColoringScreen(commissionId) {
   };
 
   setupFanPinchZoom();
+}
+
+function showFanReference(commissionId) {
+  const old = document.getElementById('fan-reference-popup');
+  if (old) { old.remove(); return; }
+  const popup = document.createElement('div');
+  popup.id = 'fan-reference-popup';
+  popup.style.cssText = 'position:fixed;inset:0;z-index:1100;background:rgba(0,0,0,0.85);display:flex;align-items:center;justify-content:center;padding:20px;';
+  popup.onclick = function() { popup.remove(); };
+  popup.innerHTML = '<img src="https://raw.githubusercontent.com/chaei7775/Poca-house/main/fanclub-' + commissionId + '.jpg" style="max-width:90%;max-height:80%;border-radius:14px;border:2px solid #FFD700;box-shadow:0 0 30px #FFD70066;">';
+  document.body.appendChild(popup);
 }
 
 function setupFanPinchZoom() {
@@ -366,7 +380,8 @@ function completeFanCommission(commissionId) {
   const overlay = document.getElementById('fanclub-overlay');
   if (!overlay) return;
   overlay.innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;padding:24px;text-align:center;">' +
-    '<canvas id="fan-complete-canvas" width="' + design.size + '" height="' + design.size + '" style="width:240px;height:240px;border-radius:16px;border:2px solid #FFD700;image-rendering:pixelated;margin-bottom:16px;box-shadow:0 0 30px #FFD70066;"></canvas>' +
+    '<img src="https://raw.githubusercontent.com/chaei7775/Poca-house/main/fanclub-' + commissionId + '.jpg" style="width:240px;border-radius:16px;border:2px solid #FFD700;margin-bottom:10px;box-shadow:0 0 30px #FFD70066;" onerror="this.style.display=\'none\'">' +
+    '<canvas id="fan-complete-canvas" width="' + design.size + '" height="' + design.size + '" style="width:80px;height:80px;border-radius:10px;border:1.5px solid rgba(255,255,255,0.3);image-rendering:pixelated;margin-bottom:16px;"></canvas>' +
     '<div style="font-size:22px;font-weight:900;color:#FFD700;margin-bottom:8px;">✨ 제작 완료!</div>' +
     '<div style="font-size:14px;color:#fff;font-weight:900;margin-bottom:14px;">' + commission.title + '</div>' +
     '<div style="background:rgba(255,255,255,0.08);border-radius:14px;padding:14px 18px;margin-bottom:16px;max-width:280px;">' +
