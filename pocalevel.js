@@ -93,21 +93,11 @@ function ensurePocaHouseLevelBar() {
     bar.style.cssText = 'background:#fff;border-bottom:1.5px solid #FFD1E0;padding:7px 14px;display:flex;align-items:center;gap:10px;';
     topbar.parentNode.insertBefore(bar, topbar.nextSibling);
 
-    // 닉네임을 이 줄로 이동
-    const nickEl = document.getElementById('topbar-nick');
-    if (nickEl) {
-      const nickWrap = document.createElement('div');
-      nickWrap.id = 'pocahouse-nick-wrap';
-      nickWrap.style.cssText = 'font-size:13px;font-weight:900;color:#FF6B9D;white-space:nowrap;flex-shrink:0;';
-      nickWrap.appendChild(nickEl.cloneNode(true));
-      bar.appendChild(nickWrap);
-      nickEl.style.display = 'none';
-    }
-
     const levelWrap = document.createElement('div');
     levelWrap.id = 'pocahouse-level-wrap';
     levelWrap.style.cssText = 'flex:1;display:flex;align-items:center;gap:8px;min-width:0;';
     levelWrap.innerHTML =
+      '<span style="font-size:13px;font-weight:900;color:#9333ea;white-space:nowrap;flex-shrink:0;">🏠 포카하우스</span>' +
       '<span id="pocahouse-level-text" style="font-size:12px;font-weight:900;color:#9333ea;white-space:nowrap;flex-shrink:0;">Lv.1</span>' +
       '<div style="flex:1;height:7px;background:#FFE4EF;border-radius:99px;overflow:hidden;min-width:30px;">' +
       '<div id="pocahouse-level-fill" style="height:100%;width:0%;background:linear-gradient(90deg,#FF6B9D,#C084FC);border-radius:99px;transition:width 0.3s;"></div></div>';
@@ -119,11 +109,6 @@ function ensurePocaHouseLevelBar() {
 function updatePocaHouseLevelBar() {
   const textEl = document.getElementById('pocahouse-level-text');
   const fillEl = document.getElementById('pocahouse-level-fill');
-  const nickEl = document.querySelector('#pocahouse-nick-wrap #topbar-nick');
-  if (nickEl) {
-    const original = document.getElementById('topbar-nick');
-    if (original) nickEl.textContent = original.textContent;
-  }
   if (!textEl || !fillEl) return;
   const level = getHighestCardLevel();
   const charId = Object.keys(CHARS).find(function(cid) { return getCardLevel(cid) === level; }) || Object.keys(CHARS)[0];
@@ -380,9 +365,9 @@ function renderStoryQuestSection() {
   STORY_QUESTS.forEach(function(q, idx) {
     const done = storyProgress[q.id] === 'done';
     html += '<div onclick="openStoryQuestDetail(' + idx + ')" style="cursor:pointer;background:#fff;border:1.5px solid #000;border-radius:12px;padding:10px 12px;margin-bottom:8px;opacity:' + (done ? '0.55' : '1') + ';">' +
-      '<div style="font-size:9px;font-weight:900;color:#F97316;letter-spacing:1px;margin-bottom:2px;">QUEST</div>' +
+      '<div style="font-size:10px;font-weight:900;color:#9333ea;letter-spacing:1px;margin-bottom:2px;">QUEST</div>' +
       '<div style="display:flex;align-items:center;justify-content:space-between;">' +
-      '<div class="poca-text-outline" style="font-size:11px;font-weight:900;">' + (done ? '✅ ' : '') + q.title + '</div>' +
+      '<div class="poca-text-outline" style="font-size:9px;font-weight:900;">' + (done ? '✅ ' : '') + q.title + '</div>' +
       '<div style="font-size:10px;color:#F59E0B;font-weight:900;">🍔' + q.rewardCoins + '</div></div>' +
       '<div style="font-size:11px;color:#222;margin-top:3px;">' + (q.desc.length > 28 ? q.desc.slice(0, 28) + '...' : q.desc) + '</div></div>';
   });
