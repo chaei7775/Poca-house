@@ -676,7 +676,7 @@ updateGachaCostLabels();
   if (id === 'alba-cafe') initCafeAlba();
   if (id === 'alba-flower') initFlowerAlba();
   if (id === 'collection') renderCollection();
-  if (id === 'home') { renderHomeIdols(); renderHomeSpeech(); ensureHomeLevelPanel(); }
+  if (id === 'home') { renderHomeIdols(); renderHomeSpeech(); updatePlayerLevelDisplay(); }
   if (id === 'bond') renderBondList();
   if (id === 'bag') renderBag();
   if (id === 'quest') renderQuestList();
@@ -1661,7 +1661,7 @@ function useCoupon() {
     if (typeof saveSchool === 'function') saveSchool();
     saveAll();
     updateCoinsDisplay();
-    ensureHomeLevelPanel();
+    updatePlayerLevelDisplay();
     alert('🎁 베타테스터 보상 지급!\n\n💰 코인 30,000\n🎫 등교티켓 3장');
     return;
   }
@@ -1731,7 +1731,7 @@ function useCoupon() {
     saveAll();
     updateCoinsDisplay();
     updatePlayerLevelDisplay();
-    ensureHomeLevelPanel();
+    updatePlayerLevelDisplay();
     if (typeof renderBag === 'function') renderBag();
     if (typeof renderHomeIdols === 'function') renderHomeIdols();
     alert('🎁 스페셜 테스터 보상 지급 완료!\n\n💰 코인 3,000,000\n⭐ 레벨 30 도달\n🌿 재료 전종류 100개씩\n🎫 등교권 100장\n🎴 UR/SSR 카드 전체 획득');
@@ -2946,7 +2946,7 @@ function finishSchoolReport() {
 
 // 초기 홈 UI 보정
 setTimeout(() => {
-  try { ensureHomeLevelPanel(); updatePlayerLevelDisplay(); } catch(e) {}
+  try { updatePlayerLevelDisplay(); updatePlayerLevelDisplay(); } catch(e) {}
 }, 200);
 
 
