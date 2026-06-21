@@ -163,22 +163,26 @@ function drawFanCanvas(canvas, design, filled, activeColorId) {
   const paletteMap = {};
   design.palette.forEach(function(p) { paletteMap[p.id] = p.hex; });
 
+  // 1) 기본 칸 채우기 (채워진 칸=실제색, 안채워진 칸=회색)
   for (let y = 0; y < size; y++) {
     for (let x = 0; x < size; x++) {
       const idx = y * size + x;
       const colorId = design.grid[y][x];
       const isFilled = filled.has(idx);
-      let color;
-      if (isFilled) {
-        color = paletteMap[colorId] || '#888';
-      } else {
-        color = '#cfcfcf';
-      }
-      ctx.fillStyle = color;
+      ctx.fillStyle = isFilled ? (paletteMap[colorId] || '#888') : '#cfcfcf';
       ctx.fillRect(x, y, 1, 1);
-      if (!isFilled && activeColorId != null && colorId === activeColorId) {
-        ctx.fillStyle = 'rgba(255,255,0,0.55)';
-        ctx.fillRect(x, y, 1, 1);
+    }
+  }
+
+  // 2) 선택된 번호의 미완료 칸은 테두리(점)로만 표시 (실제 색칠과 절대 안 헷갈리게)
+  if (activeColorId != null) {
+    ctx.fillStyle = '#FF2D8A';
+    for (let y = 0; y < size; y++) {
+      for (let x = 0; x < size; x++) {
+        const idx = y * size + x;
+        if (filled.has(idx)) continue;
+        if (design.grid[y][x] !== activeColorId) continue;
+        ctx.fillRect(x + 0.25, y + 0.25, 0.5, 0.5);
       }
     }
   }
@@ -205,8 +209,8 @@ async function openColoringScreen(commissionId) {
     '<button onclick="changeFanZoom(-1)" style="background:rgba(255,255,255,0.15);border:none;border-radius:8px;color:#fff;width:28px;height:28px;cursor:pointer;">－</button> ' +
     '<button onclick="changeFanZoom(1)" style="background:rgba(255,255,255,0.15);border:none;border-radius:8px;color:#fff;width:28px;height:28px;cursor:pointer;">＋</button>' +
     '</div></div>' +
-    '<div id="fan-canvas-scroll" style="flex:1;overflow:auto;background:#0d0d18;display:flex;align-items:center;justify-content:center;">' +
-    '<canvas id="fan-main-canvas" width="' + design.size + '" height="' + design.size + '" style="image-rendering:pixelated;touch-action:manipulation;"></canvas>' +
+    '<div id="fan-canvas-scroll" style="flex:1;overflow:auto;background:#0d0d18;padding:20px;">' +
+    '<canvas id="fan-main-canvas" width="' + design.size + '" height="' + design.size + '" style="image-rendering:pixelated;touch-action:pan-x pan-y;display:block;margin:0 auto;"></canvas>' +
     '</div>' +
     '<div id="fan-palette-bar" style="display:flex;gap:6px;padding:10px 12px;background:rgba(0,0,0,0.6);flex-shrink:0;overflow-x:auto;"></div>';
 
@@ -215,15 +219,37 @@ async function openColoringScreen(commissionId) {
   redrawFanCanvas();
 
   const canvas = document.getElementById('fan-main-canvas');
-  canvas.onclick = function(e) {
-    if (Date.now() < (fanColoringState.suppressClickUntil || 0)) return;
+
+  function cellFromClientXY(clientX, clientY) {
     const rect = canvas.getBoundingClientRect();
     const scaleX = design.size / rect.width;
     const scaleY = design.size / rect.height;
-    const x = Math.floor((e.clientX - rect.left) * scaleX);
-    const y = Math.floor((e.clientY - rect.top) * scaleY);
-    handleFanCellTap(x, y);
+    const x = Math.floor((clientX - rect.left) * scaleX);
+    const y = Math.floor((clientY - rect.top) * scaleY);
+    return { x: x, y: y };
+  }
+
+  canvas.onclick = function(e) {
+    if (Date.now() < (fanColoringState.suppressClickUntil || 0)) return;
+    const cell = cellFromClientXY(e.clientX, e.clientY);
+    handleFanCellTap(cell.x, cell.y);
   };
+
+  let touchStartPos = null;
+  canvas.addEventListener('touchstart', function(e) {
+    if (e.touches.length !== 1) { touchStartPos = null; return; }
+    touchStartPos = { x: e.touches[0].clientX, y: e.touches[0].clientY, t: Date.now() };
+  }, { passive: true });
+  canvas.addEventListener('touchend', function(e) {
+    if (!touchStartPos || Date.now() < (fanColoringState.suppressClickUntil || 0)) { touchStartPos = null; return; }
+    const t = e.changedTouches[0];
+    const moved = Math.hypot(t.clientX - touchStartPos.x, t.clientY - touchStartPos.y);
+    if (moved < 10) {
+      const cell = cellFromClientXY(t.clientX, t.clientY);
+      handleFanCellTap(cell.x, cell.y);
+    }
+    touchStartPos = null;
+  }, { passive: true });
 
   setupFanPinchZoom();
 }
