@@ -423,6 +423,67 @@ function openHiddenCardDex() {
   document.body.appendChild(overlay);
 }
 
+// ── 재료 상점: 일반재료 50코인 / 희귀재료 200코인 ──
+const MATERIAL_SELL_PRICES = {
+  // 일반재료
+  '반짝이는조개':50, '달빛모래':50, '별빛모래':50, '맑은샘물':50,
+  '무지개꽃':50, '장미꽃':50, '나비가루':50, '네잎클로버':50,
+  '별빛나무':50, '고급원목':50, '신비버섯':50, '새의깃털':50,
+  '빛나는돌':50, '은빛거미줄':50, '달빛수정':50, '별의파편':50,
+  '무지개수정':50, '해바라기':50,
+  // 희귀재료
+  '바다진주':200, '달의눈물':200, '나비의날개':200, '벚꽃결정':200,
+  '행운의잎':200, '천사의깃털':200, '구름조각':200
+};
+
+function renderMaterialShop() {
+  const el = document.getElementById('material-shop-list');
+  if (!el) return;
+  const materials = (typeof bagItems !== 'undefined' ? bagItems : []).filter(function(i) {
+    return i.type === 'material' && MATERIAL_SELL_PRICES[i.name] && i.qty > 0;
+  });
+  if (materials.length === 0) {
+    el.innerHTML = '<div style="font-size:13px;color:#777;text-align:center;padding:30px 0;">팔 수 있는 재료가 없어요.<br>탐험하러 가볼까요? 🌿</div>';
+    return;
+  }
+  el.innerHTML = materials.map(function(item) {
+    const price = MATERIAL_SELL_PRICES[item.name];
+    return '<div class="shop-item"><div class="shop-item-left"><div class="shop-item-emoji">' + item.emoji + '</div>' +
+      '<div><div class="shop-item-name">' + item.name + ' (' + item.qty + '개)</div>' +
+      '<div class="shop-item-desc">🍔 ' + price + '코인/개</div></div></div>' +
+      '<button class="shop-btn shop-btn-buy" onclick="sellMaterial(\'' + item.name + '\',1)">1개 판매</button></div>';
+  }).join('');
+}
+
+function sellMaterial(name, qty) {
+  const item = bagItems.find(function(i) { return i.name === name && i.type === 'material'; });
+  if (!item || item.qty < qty) { showBagToast('재료가 부족해요!'); return; }
+  const price = MATERIAL_SELL_PRICES[name] || 0;
+  item.qty -= qty;
+  if (item.qty <= 0) {
+    bagItems = bagItems.filter(function(i) { return i !== item; });
+  }
+  coins += price * qty;
+  if (typeof saveBag === 'function') saveBag();
+  if (typeof saveAll === 'function') saveAll();
+  document.getElementById('shop-coin-display').textContent = coins;
+  renderMaterialShop();
+  showBagToast('🍔 ' + name + ' 판매! +' + (price * qty) + '코인');
+}
+
+(function hookSwitchShopTabForMaterial() {
+  if (typeof window.switchShopTab !== 'function') {
+    setTimeout(hookSwitchShopTabForMaterial, 50);
+    return;
+  }
+  const originalSwitchShopTab = window.switchShopTab;
+  window.switchShopTab = function(tab) {
+    const result = originalSwitchShopTab.apply(this, arguments);
+    if (tab === 'material') renderMaterialShop();
+    return result;
+  };
+})();
+
 function openMoreMenu() {
   const old = document.getElementById('more-menu-overlay');
   if (old) old.remove();
