@@ -1354,10 +1354,10 @@ const PLACE_BUTTONS = {
   beach: ['btn-explore-beach'],
   housing: ['btn-explore-housing'],
   mystery: ['btn-explore-mystery'],
-  square: ['btn-explore-square'],
+  square: ['btn-explore-square', 'btn-fanclub-square'],
   park: ['btn-explore-park'],
 };
-const ALL_PLACE_BTNS = ['btn-burger-alba','btn-cafe-alba','btn-meet-yuna','btn-meet-minjun','btn-meet-sion','btn-meet-doyun','btn-meet-harin','btn-meet-ara','btn-sub-library','btn-sub-music','btn-sub-council','btn-sub-rooftop','btn-tech-academy','btn-explore-forest','btn-explore-lake','btn-room-deco','btn-shop-gift','btn-shop-room','btn-explore-beach','btn-explore-housing','btn-explore-mystery','btn-explore-square','btn-explore-park'];
+const ALL_PLACE_BTNS = ['btn-burger-alba','btn-cafe-alba','btn-meet-yuna','btn-meet-minjun','btn-meet-sion','btn-meet-doyun','btn-meet-harin','btn-meet-ara','btn-sub-library','btn-sub-music','btn-sub-council','btn-sub-rooftop','btn-tech-academy','btn-explore-forest','btn-explore-lake','btn-room-deco','btn-shop-gift','btn-shop-room','btn-explore-beach','btn-explore-housing','btn-explore-mystery','btn-explore-square','btn-explore-park','btn-fanclub-square'];
 const PLACE_IMGS = { burger:'map-burger.png','cafe-street':'map-cafe.png',school:'map-school.png',library:'map-library.png',music:'map-music.png',council:'map-council.png',rooftop:'map-rooftop.png',forest:'map-forest.png',lake:'map-lake.png',room:'map-room.png',shopping:'map-village.png',beach:'map-beach.png',housing:'map-housing.png',mystery:'map-mystery.png',square:'map-square.png',park:'map-park.png' };
 const PLACE_TITLES = { burger:'🍔 포카버거','cafe-street':'☕ 카페거리',school:'🏫 연성고등학교',library:'📚 도서관',music:'🎵 음악실',council:'🏢 학생회실',rooftop:'⭐ 옥상',forest:'🌲 동쪽숲',lake:'🏞️ 동쪽호수',room:'🏠 내 집',shopping:'🛍️ 상점거리',beach:'🏖️ 해변',housing:'🏘️ 주택가',mystery:'✨ 신비의 섬',square:'🏛️ 중앙광장',park:'🌸 꽃길공원' };
 
