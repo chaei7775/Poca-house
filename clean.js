@@ -12,12 +12,21 @@ const CLEAN_TOOLS = [
 ];
 
 const CLEAN_OBJECTS = {
-  broom:  [ {emoji:'💨', label:'먼지'}, {emoji:'🕸️', label:'거미줄'}, {emoji:'➰', label:'머리카락'} ],
-  trash:  [ {emoji:'📄', label:'종이조각'}, {emoji:'🥤', label:'음료컵'}, {emoji:'🍟', label:'과자봉지'} ],
-  sponge: [ {emoji:'🟤', label:'얼룩'}, {emoji:'☕', label:'커피자국'}, {emoji:'👟', label:'발자국'} ],
-  bucket: [ {emoji:'💧', label:'물웅덩이'}, {emoji:'🟫', label:'진흙'}, {emoji:'🦶', label:'흙자국'} ],
-  tongs:  [ {emoji:'🔺', label:'깨진유리'}, {emoji:'📌', label:'압정'}, {emoji:'🔩', label:'못'} ],
-  spray:  [ {emoji:'🌫️', label:'그림자얼룩'}, {emoji:'🔮', label:'그림자결정'}, {emoji:'🌑', label:'소원먼지'} ]
+  broom:  [ {emoji:'💨', label:'먼지'}, {emoji:'🕸️', label:'거미줄'}, {emoji:'🌀', label:'머리카락'} ],
+  trash:  [ {emoji:'📃', label:'종이조각'}, {emoji:'🥤', label:'음료컵'}, {emoji:'🍟', label:'과자봉지'} ],
+  sponge: [ {emoji:'🟣', label:'얼룩'}, {emoji:'☕', label:'커피자국'}, {emoji:'👟', label:'발자국'} ],
+  bucket: [ {emoji:'💧', label:'물웅덩이'}, {emoji:'🟫', label:'진흙'}, {emoji:'🐾', label:'흙자국'} ],
+  tongs:  [ {emoji:'🔻', label:'깨진유리'}, {emoji:'📌', label:'압정'}, {emoji:'🪛', label:'못'} ],
+  spray:  [ {emoji:'🌫️', label:'그림자얼룩'}, {emoji:'🔮', label:'그림자결정'}, {emoji:'⭐', label:'소원먼지'} ]
+};
+
+const CLEAN_TOOL_COLORS = {
+  broom:  '#A0784D',
+  trash:  '#FF9F43',
+  sponge: '#A855F7',
+  bucket: '#3B9CFF',
+  tongs:  '#FF5C5C',
+  spray:  '#7C3AED'
 };
 
 const CLEAN_DIFFICULTIES = {
@@ -103,7 +112,8 @@ function renderCleanGameScreen() {
   cleanState.objects.forEach(function(obj) {
     const el = document.createElement('div');
     el.id = obj.id;
-    el.style.cssText = 'position:absolute;left:' + obj.x + '%;top:' + obj.y + '%;transform:translate(-50%,-50%);font-size:34px;cursor:pointer;filter:drop-shadow(0 2px 5px rgba(0,0,0,0.45));transition:transform 0.15s;';
+    const color = CLEAN_TOOL_COLORS[obj.toolId] || '#fff';
+    el.style.cssText = 'position:absolute;left:' + obj.x + '%;top:' + obj.y + '%;transform:translate(-50%,-50%);width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:26px;cursor:pointer;background:' + color + ';box-shadow:0 0 0 3px rgba(255,255,255,0.9),0 3px 8px rgba(0,0,0,0.4);transition:transform 0.15s;';
     el.textContent = obj.emoji;
     el.onclick = function() { handleCleanObjectTap(obj.id); };
     area.appendChild(el);
@@ -113,9 +123,10 @@ function renderCleanGameScreen() {
   cleanState.tools.forEach(function(tool) {
     const btn = document.createElement('button');
     btn.id = 'clean-tool-' + tool.id;
+    const color = CLEAN_TOOL_COLORS[tool.id] || '#999';
     btn.onclick = function() { selectCleanTool(tool.id); };
-    btn.style.cssText = 'flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:2px;padding:9px 14px;border-radius:14px;border:2px solid ' + (tool.id === cleanState.selectedTool ? '#FFD700' : 'rgba(255,255,255,0.25)') + ';background:' + (tool.id === cleanState.selectedTool ? 'rgba(255,215,0,0.18)' : 'rgba(255,255,255,0.08)') + ';color:#fff;cursor:pointer;font-family:\'Noto Sans KR\',sans-serif;';
-    btn.innerHTML = '<span style="font-size:24px;">' + tool.emoji + '</span><span style="font-size:10px;font-weight:700;">' + tool.label + '</span>';
+    btn.style.cssText = 'flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:2px;padding:9px 14px;border-radius:14px;border:2.5px solid ' + (tool.id === cleanState.selectedTool ? '#FFD700' : color) + ';background:' + (tool.id === cleanState.selectedTool ? color : color + '55') + ';color:#fff;cursor:pointer;font-family:\'Noto Sans KR\',sans-serif;box-shadow:' + (tool.id === cleanState.selectedTool ? '0 0 10px ' + color : 'none') + ';';
+    btn.innerHTML = '<span style="font-size:24px;">' + tool.emoji + '</span><span style="font-size:10px;font-weight:900;text-shadow:0 1px 2px rgba(0,0,0,0.5);">' + tool.label + '</span>';
     toolBar.appendChild(btn);
   });
 
@@ -137,9 +148,11 @@ function selectCleanTool(toolId) {
   cleanState.tools.forEach(function(tool) {
     const btn = document.getElementById('clean-tool-' + tool.id);
     if (!btn) return;
+    const color = CLEAN_TOOL_COLORS[tool.id] || '#999';
     const active = tool.id === toolId;
-    btn.style.border = '2px solid ' + (active ? '#FFD700' : 'rgba(255,255,255,0.25)');
-    btn.style.background = active ? 'rgba(255,215,0,0.18)' : 'rgba(255,255,255,0.08)';
+    btn.style.border = '2.5px solid ' + (active ? '#FFD700' : color);
+    btn.style.background = active ? color : color + '55';
+    btn.style.boxShadow = active ? '0 0 10px ' + color : 'none';
   });
 }
 
