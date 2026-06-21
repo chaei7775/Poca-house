@@ -30,14 +30,21 @@ const CLEAN_TOOL_COLORS = {
 };
 
 const CLEAN_DIFFICULTIES = {
-  easy:   { label:'초급', toolCount:2, objCount:6,  time:22, baseCoin:80,  mult:1 },
-  normal: { label:'중급', toolCount:4, objCount:12, time:30, baseCoin:100, mult:1.3 },
-  hard:   { label:'고급', toolCount:6, objCount:18, time:40, baseCoin:130, mult:1.7 }
+  easy:   { label:'초급', toolCount:2, objCount:6,  time:12, hitBase:100, mult:1 },
+  normal: { label:'중급', toolCount:4, objCount:12, time:20, hitBase:60,  mult:1.3 },
+  hard:   { label:'고급', toolCount:6, objCount:18, time:40, hitBase:50,  mult:1.7 }
 };
+const CLEAN_COMBO_STEP = 0.2; // 콤보 1당 +20%
 
 let cleanState = null; // { diff, tools, objects:[{id,toolId,emoji,x,y,el,done}], selectedTool, mistakes, timer, totalTime }
 
 function openCleanAlba() {
+  if (!document.getElementById('clean-style')) {
+    const st = document.createElement('style');
+    st.id = 'clean-style';
+    st.textContent = '@keyframes cleanCoinFloat { 0%{opacity:0;transform:translate(-50%,-50%) scale(0.7);} 20%{opacity:1;} 100%{opacity:0;transform:translate(-50%,-160%) scale(1.1);} }';
+    document.head.appendChild(st);
+  }
   if (isAlbaPenaltyActive && isAlbaPenaltyActive(true)) return;
   const old = document.getElementById('clean-overlay');
   if (old) old.remove();
@@ -84,7 +91,7 @@ function startCleanGame(diffKey) {
     objects.push({ id: 'cleanobj_' + i, toolId: tool.id, emoji: obj.emoji, label: obj.label, x: x, y: y, done: false });
   }
 
-  cleanState = { diff: diff, diffKey: diffKey, tools: tools, objects: objects, selectedTool: tools[0].id, mistakes: 0, totalTime: diff.time, timeLeft: diff.time, timerInterval: null };
+  cleanState = { diff: diff, diffKey: diffKey, tools: tools, objects: objects, selectedTool: tools[0].id, mistakes: 0, combo: 0, earnedCoins: 0, totalTime: diff.time, timeLeft: diff.time, timerInterval: null };
 
   renderCleanGameScreen();
 }
@@ -102,6 +109,7 @@ function renderCleanGameScreen() {
     '<div id="clean-timer-text" style="color:#FFD700;font-size:14px;font-weight:900;">⏱️ ' + cleanState.timeLeft + 's</div>' +
     '<div id="clean-mistake-text" style="color:#ff8a8a;font-size:12px;font-weight:700;">실수 0</div>' +
     '</div>' +
+    '<div id="clean-combo-display" style="text-align:center;padding:4px 0;font-size:13px;font-weight:900;color:#FFD700;flex-shrink:0;min-height:20px;"></div>' +
     '<div id="clean-timer-bar-wrap" style="height:6px;background:rgba(255,255,255,0.15);flex-shrink:0;"><div id="clean-timer-bar" style="height:100%;width:100%;background:linear-gradient(90deg,#FF6B9D,#C084FC);transition:width 0.2s linear;"></div></div>' +
     '<div id="clean-play-area" style="flex:1;position:relative;background:url(\'https://raw.githubusercontent.com/chaei7775/Poca-house/main/clean-living-bg.png\') center/cover; overflow:hidden;"></div>' +
     '<div id="clean-tool-bar" style="display:flex;gap:8px;padding:12px 14px;background:rgba(0,0,0,0.55);flex-shrink:0;overflow-x:auto;"></div>';
@@ -158,6 +166,15 @@ function handleCleanObjectTap(objId) {
   const el = document.getElementById(objId);
   if (obj.toolId === cleanState.selectedTool) {
     obj.done = true;
+    cleanState.combo++;
+    const hitValue = Math.round(cleanState.diff.hitBase * (1 + CLEAN_COMBO_STEP * (cleanState.combo - 1)));
+    cleanState.earnedCoins += hitValue;
+
+    const comboEl = document.getElementById('clean-combo-display');
+    if (comboEl) {
+      comboEl.textContent = cleanState.combo >= 2 ? '🔥 ' + cleanState.combo + ' COMBO' : '';
+    }
+
     if (el) {
       el.onclick = null;
       el.style.pointerEvents = 'none';
@@ -168,6 +185,15 @@ function handleCleanObjectTap(objId) {
         const stillThere = document.getElementById(objId);
         if (stillThere && stillThere.parentNode) stillThere.parentNode.removeChild(stillThere);
       }, 200);
+
+      // 떠오르는 +코인 효과
+      const popup = document.createElement('div');
+      const popupScale = Math.min(1.6, 1 + cleanState.combo * 0.04);
+      popup.style.cssText = 'position:absolute;left:' + obj.x + '%;top:' + obj.y + '%;transform:translate(-50%,-50%) scale(' + popupScale + ');font-size:16px;font-weight:900;color:#FFD700;text-shadow:0 2px 4px rgba(0,0,0,0.6);pointer-events:none;animation:cleanCoinFloat 0.7s ease-out forwards;z-index:50;';
+      popup.textContent = '+' + hitValue;
+      const area = document.getElementById('clean-play-area');
+      if (area) area.appendChild(popup);
+      setTimeout(function() { if (popup.parentNode) popup.remove(); }, 700);
     }
     if (typeof recordAlbaAttempt === 'function') recordAlbaAttempt(true, 'clean');
     if (cleanState.objects.every(function(o) { return o.done; })) {
@@ -175,6 +201,9 @@ function handleCleanObjectTap(objId) {
     }
   } else {
     cleanState.mistakes++;
+    cleanState.combo = 0;
+    const comboEl = document.getElementById('clean-combo-display');
+    if (comboEl) comboEl.textContent = '';
     const mistakeText = document.getElementById('clean-mistake-text');
     if (mistakeText) mistakeText.textContent = '실수 ' + cleanState.mistakes;
     if (el) {
@@ -192,8 +221,7 @@ function endCleanGame() {
   let grade = 'GOOD';
   if (mistakes === 0) grade = 'PERFECT';
   else if (mistakes <= 2) grade = 'GREAT';
-  const gradeMult = grade === 'PERFECT' ? 1.5 : (grade === 'GREAT' ? 1.2 : 1.0);
-  const earn = Math.round(cleanState.diff.baseCoin * cleanState.diff.mult * gradeMult);
+  const earn = cleanState.earnedCoins;
 
   coins += earn;
   albaDone++;
