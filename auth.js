@@ -2,8 +2,37 @@
 // ☁️ 계정 시스템 (회원가입/로그인 + 데이터 동기화)
 // ════════════════════════════════
 
-window.pocaLoggedInUid = null;
-window.pocaLoggedInEmail = null;
+// ── 최초 접속 온보딩 (회원가입/로그인 vs 게스트로 시작) ──
+function openOnboardingOverlay() {
+  if (document.getElementById('onboarding-overlay')) return;
+  const overlay = document.createElement('div');
+  overlay.id = 'onboarding-overlay';
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:1001;background:linear-gradient(135deg,#FF6B9D,#C084FC);display:flex;align-items:center;justify-content:center;padding:24px;';
+  overlay.innerHTML = '<div style="width:100%;max-width:340px;background:#fff;border-radius:22px;padding:28px 22px;text-align:center;">' +
+    '<div style="font-size:48px;margin-bottom:10px;">🌸</div>' +
+    '<div style="font-size:18px;font-weight:900;color:#222;margin-bottom:6px;">포카하우스에 오신걸 환영해요!</div>' +
+    '<div style="font-size:13px;color:#888;margin-bottom:20px;">계정을 만들면 캐시를 지워도, 기기를 바꿔도 데이터가 안전하게 보관돼요</div>' +
+    '<button onclick="document.getElementById(\'onboarding-overlay\').remove();openAuthOverlay();" style="width:100%;padding:14px;margin-bottom:10px;background:linear-gradient(135deg,#FF6B9D,#C084FC);border:none;border-radius:14px;color:#fff;font-size:15px;font-weight:900;cursor:pointer;font-family:\'Noto Sans KR\',sans-serif;">☁️ 회원가입 / 로그인</button>' +
+    '<button onclick="document.getElementById(\'onboarding-overlay\').remove();const p=document.getElementById(\'nickname-popup\');if(p)p.style.display=\'flex\';" style="width:100%;padding:12px;background:#f3f3f3;border:none;border-radius:14px;color:#666;font-size:13px;font-weight:700;cursor:pointer;font-family:\'Noto Sans KR\',sans-serif;">게스트로 시작하기</button>' +
+    '</div>';
+  document.body.appendChild(overlay);
+}
+
+(function hookCheckNicknameForOnboarding() {
+  if (typeof window.checkNickname !== 'function') {
+    setTimeout(hookCheckNicknameForOnboarding, 50);
+    return;
+  }
+  const originalCheckNickname = window.checkNickname;
+  window.checkNickname = function() {
+    const nick = localStorage.getItem('ph_nickname');
+    if (!nick) {
+      openOnboardingOverlay();
+      return;
+    }
+    return originalCheckNickname.apply(this, arguments);
+  };
+})();
 
 // Firebase Auth 준비되면 로그인 상태 추적
 (function watchAuthState() {
@@ -48,9 +77,37 @@ function restorePocaDataFromServer(data) {
 }
 
 // ── 회원가입 ──
+// ── 닉네임 중복 체크 (Firestore users 컬렉션 조회) ──
+async function checkNicknameUnique(nick, excludeUid) {
+  if (!window.pocaFirebaseReady || !window.pocaFirebase) return false; // 서버 연결 안 되면 그냥 통과시킴
+  const { db, collection, getDocs, query, where } = window.pocaFirebase;
+  try {
+    const q = query(collection(db, 'users'), where('nickname', '==', nick));
+    const snap = await getDocs(q);
+    let taken = false;
+    snap.forEach(function(d) {
+      if (d.id !== excludeUid) taken = true;
+    });
+    return taken;
+  } catch (err) {
+    return false; // 체크 실패해도 막지 않음 (사용성 우선)
+  }
+}
+
 async function pocaSignup(email, pw) {
   if (!window.pocaAuth || !window.pocaFirebaseReady) {
     pocaAuthMessage('서버 연결을 기다리는 중이에요. 잠시 후 다시 시도해주세요.', true);
+    return;
+  }
+  const nickInput = document.getElementById('auth-nickname');
+  const nick = nickInput ? nickInput.value.trim() : '';
+  if (!nick || nick.length < 2) {
+    pocaAuthMessage('닉네임을 2자 이상 입력해주세요.', true);
+    return;
+  }
+  const taken = await checkNicknameUnique(nick);
+  if (taken) {
+    pocaAuthMessage('이미 사용 중인 닉네임이에요.', true);
     return;
   }
   const { auth, createUserWithEmailAndPassword } = window.pocaAuth;
@@ -58,12 +115,20 @@ async function pocaSignup(email, pw) {
     const cred = await createUserWithEmailAndPassword(auth, email, pw);
     window.pocaLoggedInUid = cred.user.uid;
     window.pocaLoggedInEmail = cred.user.email;
+    localStorage.setItem('ph_nickname', nick);
+    const topbarNick = document.getElementById('topbar-nick');
+    if (topbarNick) topbarNick.textContent = nick;
     // 지금까지 모은 데이터를 새 계정으로 백업
     if (typeof savePocaUserToServer === 'function') {
       await savePocaUserToServer('signup');
     }
     pocaAuthMessage('회원가입 완료! 지금 데이터가 계정에 저장됐어요 🎉');
     updateAuthOverlayStatus();
+    const onboard = document.getElementById('onboarding-overlay');
+    if (onboard) onboard.remove();
+    const nickPopup = document.getElementById('nickname-popup');
+    if (nickPopup) nickPopup.style.display = 'none';
+    if (typeof checkAttendance === 'function') checkAttendance();
   } catch (err) {
     pocaAuthMessage(pocaAuthErrorText(err), true);
   }
@@ -151,6 +216,7 @@ function openAuthOverlay() {
     '<div style="font-size:17px;font-weight:900;color:#222;">☁️ 계정</div>' +
     '<button onclick="document.getElementById(\'auth-overlay\').remove()" style="background:#f3f3f3;border:none;border-radius:8px;color:#666;padding:6px 12px;cursor:pointer;">닫기</button></div>' +
     '<div id="auth-status" style="font-size:12px;color:#9333ea;font-weight:700;margin-bottom:14px;"></div>' +
+    '<input id="auth-nickname" type="text" placeholder="닉네임 (회원가입 시, 2-8자)" maxlength="8" style="width:100%;padding:12px;border:1.5px solid #eee;border-radius:10px;font-size:14px;margin-bottom:8px;font-family:\'Noto Sans KR\',sans-serif;">' +
     '<input id="auth-email" type="email" placeholder="이메일" style="width:100%;padding:12px;border:1.5px solid #eee;border-radius:10px;font-size:14px;margin-bottom:8px;font-family:\'Noto Sans KR\',sans-serif;">' +
     '<input id="auth-pw" type="password" placeholder="비밀번호 (6자 이상)" style="width:100%;padding:12px;border:1.5px solid #eee;border-radius:10px;font-size:14px;margin-bottom:12px;font-family:\'Noto Sans KR\',sans-serif;">' +
     '<div style="display:flex;gap:8px;margin-bottom:8px;">' +

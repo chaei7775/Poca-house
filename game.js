@@ -1475,16 +1475,29 @@ function checkNickname() {
     checkAttendance();
   }
 }
-function saveNickname() {
+async function saveNickname() {
   const input = document.getElementById('nickname-input');
+  const msgEl = document.getElementById('nickname-check-msg');
+  const btn = document.getElementById('nickname-submit-btn');
   if (!input) return;
   const val = input.value.trim();
-  if (val.length < 2) { alert('닉네임은 2자 이상이에요!'); return; }
+  if (val.length < 2) { if (msgEl) { msgEl.textContent = '닉네임은 2자 이상이에요!'; msgEl.style.color = '#fff'; } return; }
+  if (btn) { btn.disabled = true; btn.textContent = '확인 중...'; }
+  if (msgEl) msgEl.textContent = '';
+  if (typeof checkNicknameUnique === 'function') {
+    const isTaken = await checkNicknameUnique(val);
+    if (isTaken) {
+      if (msgEl) { msgEl.textContent = '이미 사용 중인 닉네임이에요!'; msgEl.style.color = '#fff'; }
+      if (btn) { btn.disabled = false; btn.textContent = '시작하기 ✨'; }
+      return;
+    }
+  }
   localStorage.setItem('ph_nickname', val);
   const popup = document.getElementById('nickname-popup');
   if (popup) popup.style.display = 'none';
   const topbarNick = document.getElementById('topbar-nick');
   if (topbarNick) topbarNick.textContent = val;
+  if (btn) { btn.disabled = false; btn.textContent = '시작하기 ✨'; }
   checkAttendance();
 }
 

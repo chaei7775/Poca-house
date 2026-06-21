@@ -246,7 +246,7 @@
 <!-- Firebase TEST 연결: firebase-test 브랜치에서만 사용 -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
-  import { getFirestore, doc, getDoc, setDoc, serverTimestamp, collection, addDoc, getDocs, query, orderBy, limit, updateDoc, deleteDoc, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+  import { getFirestore, doc, getDoc, setDoc, serverTimestamp, collection, addDoc, getDocs, query, where, orderBy, limit, updateDoc, deleteDoc, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
   import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
 
   const firebaseConfig = {
@@ -262,7 +262,7 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const auth = getAuth(app);
-    window.pocaFirebase = { db, doc, getDoc, setDoc, serverTimestamp, collection, addDoc, getDocs, query, orderBy, limit, updateDoc, deleteDoc, arrayUnion, arrayRemove };
+    window.pocaFirebase = { db, doc, getDoc, setDoc, serverTimestamp, collection, addDoc, getDocs, query, where, orderBy, limit, updateDoc, deleteDoc, arrayUnion, arrayRemove };
     window.pocaAuth = { auth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged };
     window.pocaFirebaseReady = true;
     console.log("✅ Poca Firebase ready");
@@ -282,7 +282,8 @@
     <div class="nickname-title">포카하우스에 오신걸 환영해요!</div>
     <div class="nickname-sub">닉네임을 입력해주세요</div>
     <input class="nickname-input" id="nickname-input" type="text" placeholder="닉네임 (2-8자)" maxlength="8">
-    <button class="nickname-btn" onclick="saveNickname()">시작하기 ✨</button>
+    <div id="nickname-check-msg" style="font-size:12px;margin-top:6px;min-height:16px;"></div>
+    <button class="nickname-btn" id="nickname-submit-btn" onclick="saveNickname()">시작하기 ✨</button>
   </div>
 </div>
 
