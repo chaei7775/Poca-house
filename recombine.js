@@ -28,6 +28,11 @@ function getRcTableKey(gradeA, gradeB) {
   return lo + '_' + hi;
 }
 
+// SSR 이하 조합은 소원의 조각 불필요 (UR이 포함된 조합만 소원의 조각 10개 소모)
+function rcNeedsWish(recipe) {
+  return !!recipe && recipe.key.indexOf('UR') !== -1;
+}
+
 const HIDDEN_CARDS = [
   { id:'hidden_ara_rare',    charId:'ara',    grade:'레어히든', name:'아라 - 흑요석 공방장', img:B+'hidden-ara-rare.jpg',
     effects:[{ label:'제작 대성공 확률', value:'+3%' }] },
@@ -174,7 +179,10 @@ function renderRcMaterialSlots() {
     if (need.epic > 0) slot2.innerHTML = rcMaterialSlotHtml('💠', '에픽 재조합석', haveEpic, need.epic);
     else slot2.innerHTML = '<div class="rc-mat-empty" style="opacity:0.4;">필요 없음</div>';
   }
-  if (slot3) slot3.innerHTML = rcMaterialSlotHtml('🧩', '소원의조각', haveWish, 10);
+  if (slot3) {
+    if (rcNeedsWish(recipe)) slot3.innerHTML = rcMaterialSlotHtml('🧩', '소원의조각', haveWish, 10);
+    else slot3.innerHTML = '<div class="rc-mat-empty" style="opacity:0.4;">필요 없음</div>';
+  }
 }
 
 function rcMaterialSlotHtml(emoji, name, have, need) {
@@ -196,7 +204,7 @@ function canDoRecombine() {
   const need = recipe.table.stones;
   if (getMaterialQty('재조합석') < need.normal) return false;
   if (need.epic > 0 && getMaterialQty('에픽 재조합석') < need.epic) return false;
-  if (wishFragments < 10) return false;
+  if (rcNeedsWish(recipe) && wishFragments < 10) return false;
   if (coins < recipe.table.coin) return false;
   return true;
 }
@@ -228,8 +236,10 @@ function doRecombine() {
   coins -= recipe.table.coin;
   if (need.normal > 0) useFromBag('재조합석', need.normal);
   if (need.epic > 0) useFromBag('에픽 재조합석', need.epic);
-  wishFragments -= 10;
-  localStorage.setItem('ph_wish', wishFragments);
+  if (rcNeedsWish(recipe)) {
+    wishFragments -= 10;
+    localStorage.setItem('ph_wish', wishFragments);
+  }
 
   [rcSelectedCards[0], rcSelectedCards[1]].forEach(function(cardId) {
     if (cardCounts[cardId] && cardCounts[cardId] > 0) {
