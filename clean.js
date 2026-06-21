@@ -186,11 +186,13 @@ function handleCleanObjectTap(objId) {
         if (stillThere && stillThere.parentNode) stillThere.parentNode.removeChild(stillThere);
       }, 200);
 
-      // 떠오르는 +코인 효과
+      // 떠오르는 +코인 / 콤보 효과 (클릭 위치에)
       const popup = document.createElement('div');
       const popupScale = Math.min(1.6, 1 + cleanState.combo * 0.04);
-      popup.style.cssText = 'position:absolute;left:' + obj.x + '%;top:' + obj.y + '%;transform:translate(-50%,-50%) scale(' + popupScale + ');font-size:16px;font-weight:900;color:#FFD700;text-shadow:0 2px 4px rgba(0,0,0,0.6);pointer-events:none;animation:cleanCoinFloat 0.7s ease-out forwards;z-index:50;';
-      popup.textContent = '+' + hitValue;
+      popup.style.cssText = 'position:absolute;left:' + obj.x + '%;top:' + obj.y + '%;transform:translate(-50%,-50%) scale(' + popupScale + ');text-align:center;pointer-events:none;animation:cleanCoinFloat 0.7s ease-out forwards;z-index:50;';
+      popup.innerHTML =
+        (cleanState.combo >= 2 ? '<div style="font-size:14px;font-weight:900;color:#FF6B9D;text-shadow:0 2px 4px rgba(0,0,0,0.6);white-space:nowrap;">🔥' + cleanState.combo + ' COMBO</div>' : '') +
+        '<div style="font-size:16px;font-weight:900;color:#FFD700;text-shadow:0 2px 4px rgba(0,0,0,0.6);white-space:nowrap;">+' + hitValue + '</div>';
       const area = document.getElementById('clean-play-area');
       if (area) area.appendChild(popup);
       setTimeout(function() { if (popup.parentNode) popup.remove(); }, 700);
