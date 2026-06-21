@@ -333,7 +333,7 @@ function updateHomeBannerWithStory() {
   if (!labelEl && overlayEl) {
     labelEl = document.createElement('div');
     labelEl.id = 'home-banner-quest-label';
-    labelEl.style.cssText = 'font-size:10px;font-weight:900;color:#F97316;letter-spacing:1.5px;margin-bottom:2px;';
+    labelEl.style.cssText = 'font-size:14px;font-weight:900;color:#9333ea;letter-spacing:1.5px;margin-bottom:2px;text-shadow:-1px -1px 0 #000,1px -1px 0 #000,-1px 1px 0 #000,1px 1px 0 #000;';
     labelEl.textContent = 'QUEST';
     overlayEl.insertBefore(labelEl, titleEl);
   }
