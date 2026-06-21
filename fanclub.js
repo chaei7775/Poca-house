@@ -209,7 +209,7 @@ async function openColoringScreen(commissionId) {
     '<button onclick="changeFanZoom(-1)" style="background:rgba(255,255,255,0.15);border:none;border-radius:8px;color:#fff;width:28px;height:28px;cursor:pointer;">－</button> ' +
     '<button onclick="changeFanZoom(1)" style="background:rgba(255,255,255,0.15);border:none;border-radius:8px;color:#fff;width:28px;height:28px;cursor:pointer;">＋</button>' +
     '</div></div>' +
-    '<div id="fan-canvas-scroll" style="flex:1;overflow:auto;background:#0d0d18;padding:20px;">' +
+    '<div id="fan-canvas-scroll" style="flex:1;min-height:0;min-width:0;overflow:auto;-webkit-overflow-scrolling:touch;background:#0d0d18;padding:20px;">' +
     '<canvas id="fan-main-canvas" width="' + design.size + '" height="' + design.size + '" style="image-rendering:pixelated;touch-action:pan-x pan-y;display:block;margin:0 auto;"></canvas>' +
     '</div>' +
     '<div id="fan-palette-bar" style="display:flex;gap:6px;padding:10px 12px;background:rgba(0,0,0,0.6);flex-shrink:0;overflow-x:auto;"></div>';
@@ -252,6 +252,35 @@ async function openColoringScreen(commissionId) {
   }, { passive: true });
 
   setupFanPinchZoom();
+  setupFanMouseDrag();
+}
+
+function setupFanMouseDrag() {
+  const scrollEl = document.getElementById('fan-canvas-scroll');
+  if (!scrollEl) return;
+  let dragging = false;
+  let moved = false;
+  let startX = 0, startY = 0, startScrollLeft = 0, startScrollTop = 0;
+  scrollEl.addEventListener('mousedown', function(e) {
+    dragging = true;
+    moved = false;
+    startX = e.clientX; startY = e.clientY;
+    startScrollLeft = scrollEl.scrollLeft; startScrollTop = scrollEl.scrollTop;
+    scrollEl.style.cursor = 'grabbing';
+  });
+  window.addEventListener('mousemove', function(e) {
+    if (!dragging) return;
+    const dx = e.clientX - startX, dy = e.clientY - startY;
+    if (Math.hypot(dx, dy) > 5) moved = true;
+    scrollEl.scrollLeft = startScrollLeft - dx;
+    scrollEl.scrollTop = startScrollTop - dy;
+  });
+  window.addEventListener('mouseup', function() {
+    if (dragging && moved && fanColoringState) fanColoringState.suppressClickUntil = Date.now() + 150;
+    dragging = false;
+    scrollEl.style.cursor = 'grab';
+  });
+  scrollEl.style.cursor = 'grab';
 }
 
 function showFanReference(commissionId) {
