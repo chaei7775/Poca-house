@@ -246,7 +246,8 @@
 <!-- Firebase TEST 연결: firebase-test 브랜치에서만 사용 -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
-  import { getFirestore, doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+  import { getFirestore, doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+  import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyA59X0WsN0vngqfhPR3yT4Ra7Ort3xZb1I",
@@ -260,7 +261,9 @@
   try {
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
-    window.pocaFirebase = { db, doc, setDoc, serverTimestamp };
+    const auth = getAuth(app);
+    window.pocaFirebase = { db, doc, getDoc, setDoc, serverTimestamp };
+    window.pocaAuth = { auth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged };
     window.pocaFirebaseReady = true;
     console.log("✅ Poca Firebase ready");
   } catch (err) {
@@ -730,6 +733,7 @@
   <script src="audio.js"></script>
 <script src="rhythm.js"></script>
   <script src="recombine.js"></script>
+  <script src="auth.js"></script>
   
 </body>
 </html>

@@ -2924,6 +2924,7 @@ let pocaServerSaveTimer = null;
 let pocaServerLastSaveAt = 0;
 
 function getPocaServerUid() {
+  if (window.pocaLoggedInUid) return window.pocaLoggedInUid;
   let uid = localStorage.getItem('ph_server_uid');
   if (!uid) {
     uid = 'poca_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 8);
@@ -2949,6 +2950,14 @@ function getPocaServerPayload() {
     playerLevel: Number(typeof playerLevel !== 'undefined' ? playerLevel : 1),
     playerExp: Number(typeof playerExp !== 'undefined' ? playerExp : 0),
     currentRoom: currentRoom || 'basic',
+    affection: affection || {},
+    ownedRooms: Array.isArray(ownedRooms) ? ownedRooms : [],
+    hints: Array.isArray(hints) ? hints : [],
+    learnedSkills: Array.isArray(learnedSkills) ? learnedSkills : [],
+    albaDone: Number(albaDone || 0),
+    cardLevels: JSON.parse(localStorage.getItem('ph_cardLevels') || '{}'),
+    cardExpData: JSON.parse(localStorage.getItem('ph_cardExp') || '{}'),
+    storyProgress: JSON.parse(localStorage.getItem('ph_storyProgress') || '{}'),
     updatedAt: window.pocaFirebase?.serverTimestamp ? window.pocaFirebase.serverTimestamp() : new Date().toISOString(),
     testBranch: 'firebase-test'
   };
