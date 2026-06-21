@@ -93,6 +93,30 @@ function renderEquippedTitleBadge() {
   // 상단바에는 칭호를 표시하지 않음 (닉네임만 유지, 중복 방지)
   const old = document.getElementById('equipped-title-badge');
   if (old) old.remove();
+  renderHomeTitleBadge();
+}
+
+function renderHomeTitleBadge() {
+  const actions = document.querySelector('.home-actions');
+  if (!actions) return;
+  let badge = document.getElementById('home-title-badge');
+  const t = TITLES.find(function(x) { return x.id === equippedTitle; });
+  if (!t) {
+    if (badge) badge.remove();
+    return;
+  }
+  const style = CATEGORY_STYLE[t.cat] || { color:'#9333ea', bg:'#FFF0F5', icon:'💖' };
+  const nick = (typeof localStorage !== 'undefined' && localStorage.getItem('ph_nickname')) || '플레이어';
+  if (!badge) {
+    badge = document.createElement('div');
+    badge.id = 'home-title-badge';
+    actions.parentNode.insertBefore(badge, actions);
+  }
+  badge.style.cssText = 'margin:0 16px 10px;position:relative;background:' + style.bg + ';border:2.5px dashed ' + style.color + ';border-radius:20px;padding:14px 16px 12px;text-align:center;box-shadow:0 4px 16px #0001;';
+  badge.innerHTML =
+    '<span style="position:absolute;top:-12px;left:50%;transform:translateX(-50%);font-size:16px;">' + style.icon + '</span>' +
+    '<div style="display:inline-block;background:' + style.color + ';color:#fff;font-size:12px;font-weight:900;border-radius:20px;padding:4px 14px;margin-bottom:6px;">' + style.icon + ' ' + t.title + '</div>' +
+    '<div style="font-size:19px;font-weight:900;color:#333;">' + nick + '</div>';
 }
 
 const CATEGORY_STYLE = {
