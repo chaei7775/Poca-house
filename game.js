@@ -6,17 +6,6 @@ const CONFIG = {
   alba: { burger: 17, cafeHigh: 30, cafeMid: 20, cafeLow: 10 },
   gacha: { one: 540, three: 1620 },
 };
-// ── 아이템별 고유 이모지 사전 ──
-const ITEM_EMOJIS = {
-  '무지개꽃': '🌈', '장미꽃': '🌹', '해바라기': '🌻', '네잎클로버': '🍀',
-  '나비가루': '🦋', '맑은샘물': '💧', '달빛모래': '🌙', '벚꽃결정': '💎',
-  '나비의날개': '🦋', '행운의잎': '🍀', '새의깃털': '🪶', '빛나는돌': '🪨',
-  '반짝이는조개': '🐚', '별빛모래': '⭐', '고급원목': '🪵', '은빛거미줄': '🕸️',
-  '달빛수정': '🌙', '무지개수정': '🌈', '별의파편': '⭐', '바다진주': '🦪',
-  '별빛나무': '🌳', '신비버섯': '🍄', '구름조각': '☁️', '천사의깃털': '🪽',
-  '달의눈물': '💧', '사과주스': '🍎', '딸기스무디': '🍓', '에너지드링크': '⚡',
-  '소원의 조각': '🧩', '소원의 결정': '💎', '무지개색 이슬': '🌈', '프리미엄 선물권': '🎴'
-};
 
 // ── 저장 데이터 ──
 let coins = parseInt(localStorage.getItem('ph_coins') || '0');
@@ -29,8 +18,9 @@ let hints = JSON.parse(localStorage.getItem('ph_hints') || '[]');
 let ownedRooms = JSON.parse(localStorage.getItem('ph_ownedRooms') || '[]');
 let currentRoom = localStorage.getItem('ph_currentRoom') || 'basic';
 let stamina = parseInt(localStorage.getItem('ph_stamina') || '100');
-const STAMINA_MAX = 100;
-const STAMINA_REGEN_MS = 4 * 60 * 1000; // 4분마다 +1
+const STAMINA_MAX = 1000;
+const STAMINA_REGEN_MS = 5 * 60 * 1000; // 5분마다 +10
+const STAMINA_REGEN_AMOUNT = 10;
 let lastStaminaRegen = parseInt(localStorage.getItem('ph_lastStaminaRegen') || Date.now().toString());
 let wishFragments = parseInt(localStorage.getItem('ph_wish') || '0');
 let cardCounts = JSON.parse(localStorage.getItem('ph_cardCounts') || '{}');
@@ -66,7 +56,6 @@ function saveBag() {
 
 function addToBag(emoji, name, type, qty, desc, affExp) {
   qty = qty || 1;
-  emoji = ITEM_EMOJIS[name] || emoji;
   const existing = bagItems.find(i => i.name === name);
   if (existing) { existing.qty += qty; saveBag(); return true; }
   if (bagItems.length >= bagSlots) {
@@ -87,18 +76,6 @@ function useFromBag(name, qty) {
   saveBag();
   return true;
 }
-function migrateBagEmojis() {
-  let changed = false;
-  bagItems.forEach(item => {
-    if (ITEM_EMOJIS[item.name] && item.emoji !== ITEM_EMOJIS[item.name]) {
-      item.emoji = ITEM_EMOJIS[item.name];
-      changed = true;
-    }
-  });
-  if (changed) saveBag(); 
-}
-migrateBagEmojis(); //
-
 
 function expandBag() {
   const cost = getBagExpandCost();
@@ -200,10 +177,11 @@ function processStaminaRegen() {
     return;
   }
   const elapsed = now - lastStaminaRegen;
-  const gained = Math.floor(elapsed / STAMINA_REGEN_MS);
-  if (gained > 0) {
+  const ticks = Math.floor(elapsed / STAMINA_REGEN_MS);
+  if (ticks > 0) {
+    const gained = ticks * STAMINA_REGEN_AMOUNT;
     stamina = Math.min(STAMINA_MAX, stamina + gained);
-    lastStaminaRegen += gained * STAMINA_REGEN_MS;
+    lastStaminaRegen += ticks * STAMINA_REGEN_MS;
     if (stamina >= STAMINA_MAX) lastStaminaRegen = now;
     localStorage.setItem('ph_stamina', stamina);
     localStorage.setItem('ph_lastStaminaRegen', lastStaminaRegen);
@@ -228,7 +206,7 @@ function updateStaminaDisplay() {
   }
   if (!el) return;
   const next = stamina >= STAMINA_MAX ? 'FULL' : formatStaminaTime(STAMINA_REGEN_MS - ((Date.now() - lastStaminaRegen) % STAMINA_REGEN_MS));
-  el.innerHTML = `⚡ ${stamina}/${STAMINA_MAX}<br><span style="font-size:10px;color:#555;">다음 +1 ${next}</span>`;
+  el.innerHTML = `⚡ ${stamina}/${STAMINA_MAX}<br><span style="font-size:10px;color:#555;">다음 +${STAMINA_REGEN_AMOUNT} ${next}</span>`;
 }
 
 function saveStamina() {
@@ -517,12 +495,13 @@ function buyGift(itemName, price) {
 function buyDrink(itemName, price, staminaUp) {
   if (coins < price) { alert(`코인이 부족해요! 🍔 ${price} 필요 (현재: ${coins})`); return; }
   coins -= price;
-  stamina = Math.min(STAMINA_MAX, stamina + staminaUp);
-  saveStamina();
+  const emoji = itemName.match(/[\u{1F300}-\u{1FFFF}]|[\u2600-\u26FF]/gu)?.[0] || '🥤';
+  const cleanName = itemName.replace(/[\u{1F300}-\u{1FFFF}]|[\u2600-\u26FF]/gu,'').trim();
+  addToBag(emoji, cleanName || itemName, 'drink', 1, `스태미나 +${staminaUp} 회복 음료`);
   saveAll();
   document.getElementById('shop-coin-display').textContent = coins;
   spawnCoinFloat(-price);
-  showShopToast(`${itemName} 마심! ⚡ 스태미나 +${staminaUp}`);
+  showShopToast(`${itemName} 구매 완료! 🎒 가방에서 마실 수 있어요`);
 }
 function renderInventoryDisplay() {
   const el = document.getElementById('inventory-display');
