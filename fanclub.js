@@ -213,12 +213,50 @@ async function openColoringScreen(commissionId) {
 
   const canvas = document.getElementById('fan-main-canvas');
   canvas.onclick = function(e) {
+    if (Date.now() < (fanColoringState.suppressClickUntil || 0)) return;
     const rect = canvas.getBoundingClientRect();
     const scaleX = design.size / rect.width;
     const scaleY = design.size / rect.height;
     const x = Math.floor((e.clientX - rect.left) * scaleX);
     const y = Math.floor((e.clientY - rect.top) * scaleY);
     handleFanCellTap(x, y);
+  };
+
+  setupFanPinchZoom();
+}
+
+function setupFanPinchZoom() {
+  const scrollEl = document.getElementById('fan-canvas-scroll');
+  if (!scrollEl || !fanColoringState) return;
+  let pinchStartDist = 0;
+  let pinchStartZoom = 1;
+
+  function getDist(touches) {
+    const dx = touches[0].clientX - touches[1].clientX;
+    const dy = touches[0].clientY - touches[1].clientY;
+    return Math.hypot(dx, dy);
+  }
+
+  scrollEl.ontouchstart = function(e) {
+    if (e.touches.length === 2) {
+      pinchStartDist = getDist(e.touches);
+      pinchStartZoom = fanColoringState.zoom;
+    }
+  };
+  scrollEl.ontouchmove = function(e) {
+    if (e.touches.length === 2 && pinchStartDist > 0) {
+      e.preventDefault();
+      const newDist = getDist(e.touches);
+      const newZoom = Math.max(1, Math.min(6, pinchStartZoom * (newDist / pinchStartDist)));
+      fanColoringState.zoom = newZoom;
+      updateFanCanvasSize();
+    }
+  };
+  scrollEl.ontouchend = function(e) {
+    if (e.touches.length < 2) {
+      pinchStartDist = 0;
+      fanColoringState.suppressClickUntil = Date.now() + 250;
+    }
   };
 }
 
@@ -233,7 +271,7 @@ function updateFanCanvasSize() {
 
 function changeFanZoom(dir) {
   if (!fanColoringState) return;
-  fanColoringState.zoom = Math.max(1, Math.min(4, fanColoringState.zoom + dir));
+  fanColoringState.zoom = Math.max(1, Math.min(6, fanColoringState.zoom + dir));
   updateFanCanvasSize();
 }
 
