@@ -96,84 +96,6 @@ function renderEquippedTitleBadge() {
   renderHomeTitleBadge();
 }
 
-function ensureTitleStyles() {
-  if (document.getElementById('ph-title-style')) return;
-  const styleEl = document.createElement('style');
-  styleEl.id = 'ph-title-style';
-  styleEl.textContent = `
-    #home-title-badge {
-      margin: 8px 42px 10px;
-      text-align: center;
-      position: relative;
-      animation: phTitlePop .22s ease-out;
-    }
-    #home-title-badge .ph-title-nick {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      min-width: 92px;
-      max-width: 78%;
-      padding: 2px 12px 4px;
-      border-radius: 999px 999px 10px 10px;
-      background: rgba(255,255,255,.70);
-      color: #302635;
-      font-size: 20px;
-      line-height: 1.15;
-      font-weight: 950;
-      letter-spacing: -.04em;
-      box-shadow: 0 6px 18px rgba(255,120,170,.12);
-      backdrop-filter: blur(4px);
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-    #home-title-badge .ph-title-ribbon {
-      width: fit-content;
-      max-width: 92%;
-      margin: -1px auto 0;
-      padding: 7px 18px 8px;
-      border-radius: 999px;
-      color: var(--title-text, #fff);
-      background: var(--title-bg, linear-gradient(135deg,#ff7aab,#b26cff));
-      border: 1.5px solid rgba(255,255,255,.82);
-      box-shadow:
-        0 8px 18px rgba(255,103,157,.18),
-        inset 0 1px 0 rgba(255,255,255,.55),
-        inset 0 -5px 12px rgba(0,0,0,.08);
-      font-size: 12px;
-      font-weight: 950;
-      letter-spacing: -.02em;
-      line-height: 1;
-      position: relative;
-      text-shadow: 0 1px 1px rgba(0,0,0,.10);
-      overflow: hidden;
-    }
-    #home-title-badge .ph-title-ribbon::before {
-      content: '';
-      position: absolute;
-      inset: 1px 8px auto;
-      height: 40%;
-      border-radius: 999px;
-      background: linear-gradient(180deg, rgba(255,255,255,.45), rgba(255,255,255,0));
-      pointer-events: none;
-    }
-    #home-title-badge .ph-title-spark {
-      position: absolute;
-      top: 21px;
-      font-size: 12px;
-      filter: drop-shadow(0 2px 2px rgba(255,145,190,.22));
-      opacity: .95;
-    }
-    #home-title-badge .ph-title-spark.left { left: 18px; transform: rotate(-14deg); }
-    #home-title-badge .ph-title-spark.right { right: 18px; transform: rotate(14deg); }
-    @keyframes phTitlePop {
-      from { transform: translateY(4px); opacity: .3; }
-      to { transform: translateY(0); opacity: 1; }
-    }
-  `;
-  document.head.appendChild(styleEl);
-}
-
 function escapeTitleHtml(v) {
   return String(v == null ? '' : v).replace(/[&<>'"]/g, function(c) {
     return ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'})[c];
@@ -183,37 +105,54 @@ function escapeTitleHtml(v) {
 function renderHomeTitleBadge() {
   const actions = document.querySelector('.home-actions');
   if (!actions) return;
-  ensureTitleStyles();
   let badge = document.getElementById('home-title-badge');
   const t = TITLES.find(function(x) { return x.id === equippedTitle; });
   if (!t) {
     if (badge) badge.remove();
     return;
   }
-  const style = CATEGORY_STYLE[t.cat] || { color:'#9333ea', bg:'linear-gradient(135deg,#ff7aab,#b26cff)', icon:'💖', text:'#fff' };
+  const style = CATEGORY_STYLE[t.cat] || { color:'#9333ea', bg:'linear-gradient(135deg,#ff7aab,#b26cff)', icon:'💖', shadow:'0 6px 16px rgba(0,0,0,.12)' };
   const nick = (typeof localStorage !== 'undefined' && localStorage.getItem('ph_nickname')) || '플레이어';
   if (!badge) {
     badge = document.createElement('div');
     badge.id = 'home-title-badge';
     actions.parentNode.insertBefore(badge, actions);
   }
-  badge.style.setProperty('--title-bg', style.bg);
-  badge.style.setProperty('--title-text', style.text || '#fff');
+  badge.style.cssText =
+    'margin:8px 16px 10px;' +
+    'text-align:center;' +
+    'position:relative;' +
+    'pointer-events:none;';
+
   badge.innerHTML =
-    '<div class="ph-title-nick">' + escapeTitleHtml(nick) + '</div>' +
-    '<span class="ph-title-spark left">✦</span>' +
-    '<span class="ph-title-spark right">✦</span>' +
-    '<div class="ph-title-ribbon">' + style.icon + ' ' + escapeTitleHtml(t.title) + ' ' + style.icon + '</div>';
+    '<div style="font-size:19px;font-weight:900;color:#2b2230;margin-bottom:5px;">' + escapeTitleHtml(nick) + '</div>' +
+    '<div style="' +
+      'display:inline-flex;align-items:center;gap:5px;' +
+      'padding:5px 14px 6px;' +
+      'border-radius:999px;' +
+      'background:' + style.bg + ';' +
+      'color:#fff;' +
+      'font-size:12px;' +
+      'font-weight:900;' +
+      'letter-spacing:-.2px;' +
+      'border:2px solid rgba(255,255,255,.85);' +
+      'box-shadow:' + (style.shadow || '0 6px 16px rgba(0,0,0,.12)') + ';' +
+      'text-shadow:0 1px 2px rgba(0,0,0,.22);' +
+    '">' +
+      '<span>' + style.icon + '</span>' +
+      '<span>' + escapeTitleHtml(t.title) + '</span>' +
+      '<span>' + style.icon + '</span>' +
+    '</div>';
 }
 
 const CATEGORY_STYLE = {
-  '🎴 수집':   { color:'#FF6B9D', bg:'linear-gradient(135deg,#ff78aa,#ffb2cf,#ffd5a7)', icon:'🎀', text:'#fff' },
-  '⭐ 성장':   { color:'#F59E0B', bg:'linear-gradient(135deg,#f7b733,#ffd36b,#fff0b8)', icon:'⭐', text:'#6b3a00' },
-  '💰 알바':   { color:'#FB923C', bg:'linear-gradient(135deg,#ff8a4c,#ffbd72,#ffe0a8)', icon:'🍔', text:'#fff' },
-  '🧑‍🤝‍🧑 NPC': { color:'#60A5FA', bg:'linear-gradient(135deg,#63b3ff,#9ad8ff,#d9f0ff)', icon:'💙', text:'#16406b' },
-  '🔨 제작':   { color:'#C084FC', bg:'linear-gradient(135deg,#b46cff,#d9a7ff,#ffe1f4)', icon:'🧵', text:'#fff' },
-  '🔮 재조합': { color:'#9333ea', bg:'linear-gradient(135deg,#7c3aed,#c084fc,#f0abfc)', icon:'✨', text:'#fff' },
-  '🎭 EH칭호': { color:'#FFD700', bg:'linear-gradient(135deg,#1b1235,#6d3bff,#ffd66b)', icon:'🪽', text:'#fff7cf' }
+  '🎴 수집': { color:'#FF4FA3', bg:'linear-gradient(135deg,#FFF1F8 0%,#FFD4EA 45%,#FF9FD0 100%)', icon:'🎀', shadow:'0 6px 18px rgba(255,79,163,.28)' },
+  '⭐ 성장': { color:'#E6A700', bg:'linear-gradient(135deg,#FFF8D7 0%,#FFE58A 45%,#FFC94A 100%)', icon:'⭐', shadow:'0 6px 18px rgba(230,167,0,.30)' },
+  '💰 알바': { color:'#F97316', bg:'linear-gradient(135deg,#FFF1DC 0%,#FFD39A 45%,#FF9B45 100%)', icon:'🍔', shadow:'0 6px 18px rgba(249,115,22,.28)' },
+  '🧑‍🤝‍🧑 NPC': { color:'#3B82F6', bg:'linear-gradient(135deg,#EFF8FF 0%,#BFE3FF 45%,#7DBDFF 100%)', icon:'💙', shadow:'0 6px 18px rgba(59,130,246,.25)' },
+  '🔨 제작': { color:'#A855F7', bg:'linear-gradient(135deg,#FAF0FF 0%,#E2C7FF 45%,#C084FC 100%)', icon:'🧵', shadow:'0 6px 18px rgba(168,85,247,.28)' },
+  '🔮 재조합': { color:'#6D28D9', bg:'linear-gradient(135deg,#F1E8FF 0%,#C4B5FD 45%,#7C3AED 100%)', icon:'✨', shadow:'0 6px 18px rgba(109,40,217,.32)' },
+  '🎭 EH칭호': { color:'#FFD86B', bg:'linear-gradient(135deg,#15112A 0%,#4C1D95 35%,#FF4FA3 65%,#FFD86B 100%)', icon:'🪽', shadow:'0 0 18px rgba(255,216,107,.55)' }
 };
 
 function openTitleOverlay() {
