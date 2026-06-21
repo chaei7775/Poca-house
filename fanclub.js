@@ -88,7 +88,7 @@ function openFanclubOverlay() {
   if (old) old.remove();
   const overlay = document.createElement('div');
   overlay.id = 'fanclub-overlay';
-  overlay.style.cssText = 'position:fixed;inset:0;z-index:700;background:#1a1a2e;display:flex;flex-direction:column;';
+  overlay.style.cssText = 'position:fixed;top:0;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;z-index:700;background:#1a1a2e;display:flex;flex-direction:column;';
 
   overlay.innerHTML =
     '<div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid rgba(255,255,255,0.1);flex-shrink:0;">' +
@@ -210,7 +210,7 @@ async function openColoringScreen(commissionId) {
     '<button onclick="changeFanZoom(1)" style="background:rgba(255,255,255,0.15);border:none;border-radius:8px;color:#fff;width:28px;height:28px;cursor:pointer;">＋</button>' +
     '</div></div>' +
     '<div id="fan-canvas-scroll" style="flex:1;min-height:0;min-width:0;overflow:auto;-webkit-overflow-scrolling:touch;background:#0d0d18;padding:20px;">' +
-    '<canvas id="fan-main-canvas" width="' + design.size + '" height="' + design.size + '" style="image-rendering:pixelated;touch-action:pan-x pan-y;display:block;margin:0 auto;"></canvas>' +
+    '<canvas id="fan-main-canvas" width="' + design.size + '" height="' + design.size + '" style="image-rendering:pixelated;touch-action:none;display:block;margin:0;"></canvas>' +
     '</div>' +
     '<div id="fan-palette-bar" style="display:flex;gap:6px;padding:10px 12px;background:rgba(0,0,0,0.6);flex-shrink:0;overflow-x:auto;"></div>';
 
@@ -236,15 +236,29 @@ async function openColoringScreen(commissionId) {
   };
 
   let touchStartPos = null;
+  let touchScrollStart = null;
   canvas.addEventListener('touchstart', function(e) {
     if (e.touches.length !== 1) { touchStartPos = null; return; }
-    touchStartPos = { x: e.touches[0].clientX, y: e.touches[0].clientY, t: Date.now() };
+    const scrollEl = document.getElementById('fan-canvas-scroll');
+    touchStartPos = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+    touchScrollStart = { left: scrollEl.scrollLeft, top: scrollEl.scrollTop };
   }, { passive: true });
+  canvas.addEventListener('touchmove', function(e) {
+    if (e.touches.length !== 1 || !touchStartPos) return;
+    const scrollEl = document.getElementById('fan-canvas-scroll');
+    const dx = e.touches[0].clientX - touchStartPos.x;
+    const dy = e.touches[0].clientY - touchStartPos.y;
+    if (Math.hypot(dx, dy) > 6) {
+      e.preventDefault();
+      scrollEl.scrollLeft = touchScrollStart.left - dx;
+      scrollEl.scrollTop = touchScrollStart.top - dy;
+    }
+  }, { passive: false });
   canvas.addEventListener('touchend', function(e) {
     if (!touchStartPos || Date.now() < (fanColoringState.suppressClickUntil || 0)) { touchStartPos = null; return; }
     const t = e.changedTouches[0];
     const moved = Math.hypot(t.clientX - touchStartPos.x, t.clientY - touchStartPos.y);
-    if (moved < 10) {
+    if (moved < 6) {
       const cell = cellFromClientXY(t.clientX, t.clientY);
       handleFanCellTap(cell.x, cell.y);
     }
