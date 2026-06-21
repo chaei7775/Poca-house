@@ -176,17 +176,6 @@ function renderRcMaterialSlots() {
   }
   if (slot3) slot3.innerHTML = rcMaterialSlotHtml('🧩', '소원의조각', haveWish, 10);
 }
-  const container = slot1 ? slot1.parentElement.parentElement : null;
-  if (container) {
-    let btnArea = document.getElementById('rc-btn-area');
-    if (!btnArea) {
-      btnArea = document.createElement('div');
-      btnArea.id = 'rc-btn-area';
-      btnArea.style.cssText = 'width:100%; padding: 0 20px; margin-top: 20px; box-sizing: border-box; text-align: center;';
-      container.appendChild(btnArea);
-    }
-    btnArea.innerHTML = '<button id="rc-start-btn" onclick="doRecombine()" style="width:100%; max-width:400px; padding:16px; background:linear-gradient(135deg,#FF6B9D,#C084FC); border:2px solid #FFD700; border-radius:16px; color:#fff; font-size:18px; font-weight:900; cursor:pointer; box-shadow:0 0 20px rgba(192,132,252,0.6); font-family:\'Noto Sans KR\',sans-serif; transition:all 0.3s;">재조합 시작</button>';
-  }
 
 function rcMaterialSlotHtml(emoji, name, have, need) {
   const ok = have >= need;
