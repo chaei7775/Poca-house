@@ -1936,6 +1936,12 @@ function collectExploreItem(idx, item, el) {
     localStorage.setItem('ph_wish', wishFragments);
     addToBag('🧩', '소원의 조각', 'wish', 1, `100개 모으면 소원의 결정! (현재: ${wishFragments}개)`);
     exploreCollected.push('🧩 소원의 조각');
+    if (typeof showWishFragment === 'function') showWishFragment();
+    if (wishFragments >= 100) {
+      wishFragments = 0;
+      localStorage.setItem('ph_wish', wishFragments);
+      setTimeout(() => { if (typeof showWishCrystalEarned === 'function') showWishCrystalEarned(); }, 1500);
+    }
   } else {
     addToBag('🌿', item.name, 'material', 1, '제작 재료');
     exploreCollected.push(item.name);
