@@ -84,6 +84,8 @@ async function loadFanDesign(designId) {
 
 // ── 메인 팬클럽 목록 ──
 function openFanclubOverlay() {
+  const bgmBtn = document.getElementById('bgm-toggle-btn');
+  if (bgmBtn) bgmBtn.style.display = '';
   const old = document.getElementById('fanclub-overlay');
   if (old) old.remove();
   const overlay = document.createElement('div');
@@ -197,7 +199,10 @@ async function openColoringScreen(commissionId) {
   const commission = FAN_COMMISSIONS.find(function(c) { return c.id === commissionId; });
   const filled = getFilledSet(commissionId);
 
-  fanColoringState = { commissionId: commissionId, design: design, filled: filled, activeColorId: design.palette[0].id, zoom: 1, saveTimer: null };
+  fanColoringState = { commissionId: commissionId, design: design, filled: filled, activeColorId: design.palette[0].id, zoom: 1, panX: 0, panY: 0, saveTimer: null };
+
+  const bgmBtn = document.getElementById('bgm-toggle-btn');
+  if (bgmBtn) bgmBtn.style.display = 'none';
 
   const overlay = document.getElementById('fanclub-overlay');
   overlay.innerHTML =
@@ -209,16 +214,17 @@ async function openColoringScreen(commissionId) {
     '<button onclick="changeFanZoom(-1)" style="background:rgba(255,255,255,0.15);border:none;border-radius:8px;color:#fff;width:28px;height:28px;cursor:pointer;">－</button> ' +
     '<button onclick="changeFanZoom(1)" style="background:rgba(255,255,255,0.15);border:none;border-radius:8px;color:#fff;width:28px;height:28px;cursor:pointer;">＋</button>' +
     '</div></div>' +
-    '<div id="fan-canvas-scroll" style="flex:1;min-height:0;min-width:0;overflow:auto;-webkit-overflow-scrolling:touch;background:#0d0d18;padding:20px;">' +
-    '<canvas id="fan-main-canvas" width="' + design.size + '" height="' + design.size + '" style="image-rendering:pixelated;touch-action:none;display:block;margin:0;"></canvas>' +
+    '<div id="fan-canvas-scroll" style="flex:1;min-height:0;min-width:0;overflow:hidden;position:relative;background:#0d0d18;touch-action:none;">' +
+    '<canvas id="fan-main-canvas" width="' + design.size + '" height="' + design.size + '" style="image-rendering:pixelated;position:absolute;top:0;left:0;transform-origin:top left;"></canvas>' +
     '</div>' +
     '<div id="fan-palette-bar" style="display:flex;gap:6px;padding:10px 12px;background:rgba(0,0,0,0.6);flex-shrink:0;overflow-x:auto;"></div>';
 
   renderFanPaletteBar();
-  updateFanCanvasSize();
+  applyFanTransform();
   redrawFanCanvas();
 
   const canvas = document.getElementById('fan-main-canvas');
+  const container = document.getElementById('fan-canvas-scroll');
 
   function cellFromClientXY(clientX, clientY) {
     const rect = canvas.getBoundingClientRect();
@@ -235,38 +241,80 @@ async function openColoringScreen(commissionId) {
     handleFanCellTap(cell.x, cell.y);
   };
 
-  let touchStartPos = null;
-  let touchScrollStart = null;
-  canvas.addEventListener('touchstart', function(e) {
-    if (e.touches.length !== 1) { touchStartPos = null; return; }
-    const scrollEl = document.getElementById('fan-canvas-scroll');
-    touchStartPos = { x: e.touches[0].clientX, y: e.touches[0].clientY };
-    touchScrollStart = { left: scrollEl.scrollLeft, top: scrollEl.scrollTop };
+  // ── 한손가락: 드래그=이동, 짧게탭=색칠 / 두손가락: 핀치줌 ──
+  let touches1 = null; // {x,y,panX,panY}
+  let pinch = null; // {dist, zoom, midClientX, midClientY, panX, panY}
+
+  container.addEventListener('touchstart', function(e) {
+    if (e.touches.length === 1) {
+      touches1 = { x: e.touches[0].clientX, y: e.touches[0].clientY, panX: fanColoringState.panX, panY: fanColoringState.panY, moved: false };
+      pinch = null;
+    } else if (e.touches.length === 2) {
+      const dx = e.touches[0].clientX - e.touches[1].clientX;
+      const dy = e.touches[0].clientY - e.touches[1].clientY;
+      pinch = { dist: Math.hypot(dx, dy), zoom: fanColoringState.zoom, panX: fanColoringState.panX, panY: fanColoringState.panY };
+      touches1 = null;
+    }
   }, { passive: true });
-  canvas.addEventListener('touchmove', function(e) {
-    if (e.touches.length !== 1 || !touchStartPos) return;
-    const scrollEl = document.getElementById('fan-canvas-scroll');
-    const dx = e.touches[0].clientX - touchStartPos.x;
-    const dy = e.touches[0].clientY - touchStartPos.y;
-    if (Math.hypot(dx, dy) > 6) {
+
+  container.addEventListener('touchmove', function(e) {
+    if (e.touches.length === 1 && touches1) {
+      const dx = e.touches[0].clientX - touches1.x;
+      const dy = e.touches[0].clientY - touches1.y;
+      if (Math.hypot(dx, dy) > 6) touches1.moved = true;
       e.preventDefault();
-      scrollEl.scrollLeft = touchScrollStart.left - dx;
-      scrollEl.scrollTop = touchScrollStart.top - dy;
+      fanColoringState.panX = touches1.panX + dx;
+      fanColoringState.panY = touches1.panY + dy;
+      clampFanPan();
+      applyFanTransform();
+    } else if (e.touches.length === 2 && pinch) {
+      e.preventDefault();
+      const dx = e.touches[0].clientX - e.touches[1].clientX;
+      const dy = e.touches[0].clientY - e.touches[1].clientY;
+      const newDist = Math.hypot(dx, dy);
+      fanColoringState.zoom = Math.max(1, Math.min(6, pinch.zoom * (newDist / pinch.dist)));
+      clampFanPan();
+      applyFanTransform();
     }
   }, { passive: false });
-  canvas.addEventListener('touchend', function(e) {
-    if (!touchStartPos || Date.now() < (fanColoringState.suppressClickUntil || 0)) { touchStartPos = null; return; }
-    const t = e.changedTouches[0];
-    const moved = Math.hypot(t.clientX - touchStartPos.x, t.clientY - touchStartPos.y);
-    if (moved < 6) {
+
+  container.addEventListener('touchend', function(e) {
+    if (touches1 && !touches1.moved && Date.now() >= (fanColoringState.suppressClickUntil || 0)) {
+      const t = e.changedTouches[0];
       const cell = cellFromClientXY(t.clientX, t.clientY);
       handleFanCellTap(cell.x, cell.y);
     }
-    touchStartPos = null;
+    if (e.touches.length === 0) { touches1 = null; pinch = null; }
   }, { passive: true });
 
-  setupFanPinchZoom();
   setupFanMouseDrag();
+}
+
+// 캔버스가 컨테이너보다 작으면 가운데, 크면 화면 밖으로 못 나가게 보정
+function clampFanPan() {
+  if (!fanColoringState) return;
+  const container = document.getElementById('fan-canvas-scroll');
+  if (!container) return;
+  const cw = fanColoringState.design.size * 5 * fanColoringState.zoom;
+  const ch = cw; // 정사각형 도안
+  const vw = container.clientWidth;
+  const vh = container.clientHeight;
+
+  if (cw <= vw) fanColoringState.panX = (vw - cw) / 2;
+  else fanColoringState.panX = Math.min(0, Math.max(vw - cw, fanColoringState.panX));
+
+  if (ch <= vh) fanColoringState.panY = (vh - ch) / 2;
+  else fanColoringState.panY = Math.min(0, Math.max(vh - ch, fanColoringState.panY));
+}
+
+function applyFanTransform() {
+  const canvas = document.getElementById('fan-main-canvas');
+  if (!canvas || !fanColoringState) return;
+  const px = fanColoringState.design.size * 5 * fanColoringState.zoom;
+  canvas.style.width = px + 'px';
+  canvas.style.height = px + 'px';
+  clampFanPan();
+  canvas.style.transform = 'translate(' + fanColoringState.panX + 'px,' + fanColoringState.panY + 'px)';
 }
 
 function setupFanMouseDrag() {
@@ -274,20 +322,22 @@ function setupFanMouseDrag() {
   if (!scrollEl) return;
   let dragging = false;
   let moved = false;
-  let startX = 0, startY = 0, startScrollLeft = 0, startScrollTop = 0;
+  let startX = 0, startY = 0, startPanX = 0, startPanY = 0;
   scrollEl.addEventListener('mousedown', function(e) {
     dragging = true;
     moved = false;
     startX = e.clientX; startY = e.clientY;
-    startScrollLeft = scrollEl.scrollLeft; startScrollTop = scrollEl.scrollTop;
+    startPanX = fanColoringState.panX; startPanY = fanColoringState.panY;
     scrollEl.style.cursor = 'grabbing';
   });
   window.addEventListener('mousemove', function(e) {
     if (!dragging) return;
     const dx = e.clientX - startX, dy = e.clientY - startY;
     if (Math.hypot(dx, dy) > 5) moved = true;
-    scrollEl.scrollLeft = startScrollLeft - dx;
-    scrollEl.scrollTop = startScrollTop - dy;
+    fanColoringState.panX = startPanX + dx;
+    fanColoringState.panY = startPanY + dy;
+    clampFanPan();
+    applyFanTransform();
   });
   window.addEventListener('mouseup', function() {
     if (dragging && moved && fanColoringState) fanColoringState.suppressClickUntil = Date.now() + 150;
@@ -295,6 +345,12 @@ function setupFanMouseDrag() {
     scrollEl.style.cursor = 'grab';
   });
   scrollEl.style.cursor = 'grab';
+}
+
+function changeFanZoom(dir) {
+  if (!fanColoringState) return;
+  fanColoringState.zoom = Math.max(1, Math.min(6, fanColoringState.zoom + dir));
+  applyFanTransform();
 }
 
 function showFanReference(commissionId) {
@@ -306,56 +362,6 @@ function showFanReference(commissionId) {
   popup.onclick = function() { popup.remove(); };
   popup.innerHTML = '<img src="https://raw.githubusercontent.com/chaei7775/Poca-house/main/fanclub-' + commissionId + '.jpg" style="max-width:90%;max-height:80%;border-radius:14px;border:2px solid #FFD700;box-shadow:0 0 30px #FFD70066;">';
   document.body.appendChild(popup);
-}
-
-function setupFanPinchZoom() {
-  const scrollEl = document.getElementById('fan-canvas-scroll');
-  if (!scrollEl || !fanColoringState) return;
-  let pinchStartDist = 0;
-  let pinchStartZoom = 1;
-
-  function getDist(touches) {
-    const dx = touches[0].clientX - touches[1].clientX;
-    const dy = touches[0].clientY - touches[1].clientY;
-    return Math.hypot(dx, dy);
-  }
-
-  scrollEl.ontouchstart = function(e) {
-    if (e.touches.length === 2) {
-      pinchStartDist = getDist(e.touches);
-      pinchStartZoom = fanColoringState.zoom;
-    }
-  };
-  scrollEl.ontouchmove = function(e) {
-    if (e.touches.length === 2 && pinchStartDist > 0) {
-      e.preventDefault();
-      const newDist = getDist(e.touches);
-      const newZoom = Math.max(1, Math.min(6, pinchStartZoom * (newDist / pinchStartDist)));
-      fanColoringState.zoom = newZoom;
-      updateFanCanvasSize();
-    }
-  };
-  scrollEl.ontouchend = function(e) {
-    if (e.touches.length < 2) {
-      pinchStartDist = 0;
-      fanColoringState.suppressClickUntil = Date.now() + 250;
-    }
-  };
-}
-
-function updateFanCanvasSize() {
-  const canvas = document.getElementById('fan-main-canvas');
-  if (!canvas || !fanColoringState) return;
-  const base = 5; // 기본 1칸당 5px
-  const px = base * fanColoringState.zoom;
-  canvas.style.width = (fanColoringState.design.size * px) + 'px';
-  canvas.style.height = (fanColoringState.design.size * px) + 'px';
-}
-
-function changeFanZoom(dir) {
-  if (!fanColoringState) return;
-  fanColoringState.zoom = Math.max(1, Math.min(6, fanColoringState.zoom + dir));
-  updateFanCanvasSize();
 }
 
 function renderFanPaletteBar() {
@@ -425,6 +431,8 @@ function handleFanCellTap(x, y) {
 }
 
 function exitColoringScreen() {
+  const bgmBtn = document.getElementById('bgm-toggle-btn');
+  if (bgmBtn) bgmBtn.style.display = '';
   if (fanColoringState) {
     saveFilledSet(fanColoringState.commissionId, fanColoringState.filled);
   }
@@ -432,6 +440,8 @@ function exitColoringScreen() {
 }
 
 function completeFanCommission(commissionId) {
+  const bgmBtn = document.getElementById('bgm-toggle-btn');
+  if (bgmBtn) bgmBtn.style.display = '';
   const commission = FAN_COMMISSIONS.find(function(c) { return c.id === commissionId; });
   const design = fanColoringState.design;
 
