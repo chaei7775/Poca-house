@@ -55,6 +55,7 @@ function saveBag() {
 
 function addToBag(emoji, name, type, qty, desc, affExp) {
   qty = qty || 1;
+  emoji = ITEM_EMOJIS[name] || emoji;
   const existing = bagItems.find(i => i.name === name);
   if (existing) { existing.qty += qty; saveBag(); return true; }
   if (bagItems.length >= bagSlots) {
@@ -75,6 +76,18 @@ function useFromBag(name, qty) {
   saveBag();
   return true;
 }
+function migrateBagEmojis() {
+  let changed = false;
+  bagItems.forEach(item => {
+    if (ITEM_EMOJIS[item.name] && item.emoji !== ITEM_EMOJIS[item.name]) {
+      item.emoji = ITEM_EMOJIS[item.name];
+      changed = true;
+    }
+  });
+  if (changed) saveBag(); 
+}
+migrateBagEmojis(); //
+
 
 function expandBag() {
   const cost = getBagExpandCost();
