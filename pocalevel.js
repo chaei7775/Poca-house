@@ -115,7 +115,7 @@ function updatePocaHouseLevelBar() {
   const exp = getCardExp(charId);
   const required = getCardExpRequired(level);
   const pct = level >= 20 ? 100 : Math.min(100, Math.round(exp / required * 100));
-  textEl.textContent = '🏠 Lv.' + level;
+  textEl.textContent = 'Lv.' + level;
   fillEl.style.width = pct + '%';
 }
 
@@ -339,6 +339,7 @@ function updateHomeBannerWithStory() {
   }
 
   titleEl.textContent = q.title;
+  titleEl.style.fontSize = '20px';
   subEl.textContent = q.desc.length > 38 ? q.desc.slice(0, 38) + '...' : q.desc;
   titleEl.classList.add('poca-text-outline');
   subEl.style.color = '#222';
