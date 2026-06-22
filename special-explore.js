@@ -365,12 +365,26 @@ function resolveSpecialCapture(success) {
 
   const isFirstCapture = addDexCaptured(creature.id);
 
-  const dropHtml = '<div style="font-size:12px;color:#ddd;line-height:1.8;margin-bottom:6px;">' +
-    '⭐ ' + CHARS[charId].name + ' +' + expGain + ' EXP<br>' +
-    (gotJaptem ? (japtemItem.emoji + ' ' + japtemItem.name + ' x1<br>') : '') +
-    (gotGear ? ('✨ [' + SPECIAL_GEAR_GRADES[gearGrade] + '] ' + gearItem.name + ' 획득!<br>') : '') +
-    (gotTicket ? '🎫 등교권 +1<br>' : '') +
-    (gotTicketFragment ? '🎫 등교권 조각 +1<br>' : '') +
+  const rewardItems = [];
+  rewardItems.push({ icon:'⭐', text: CHARS[charId].name + ' +' + expGain + ' EXP', color:'#FFD700' });
+  if (gotJaptem) rewardItems.push({ icon: japtemItem.emoji, text: japtemItem.name + ' x1', color:'#fff' });
+  if (gotGear) rewardItems.push({ icon:'✨', text: '[' + SPECIAL_GEAR_GRADES[gearGrade] + '] ' + gearItem.name, color:'#C084FC' });
+  if (gotTicket) rewardItems.push({ icon:'🎫', text: '등교권 +1', color:'#60A5FA' });
+  if (gotTicketFragment) rewardItems.push({ icon:'🎫', text: '등교권 조각 +1', color:'#60A5FA' });
+
+  if (!document.getElementById('special-reward-style')) {
+    const st = document.createElement('style');
+    st.id = 'special-reward-style';
+    st.textContent = '@keyframes specialRewardPop { 0%{opacity:0;transform:translateY(14px) scale(0.7);} 60%{opacity:1;transform:translateY(-3px) scale(1.05);} 100%{opacity:1;transform:translateY(0) scale(1);} }';
+    document.head.appendChild(st);
+  }
+
+  const dropHtml = '<div style="display:flex;flex-direction:column;gap:7px;align-items:center;margin-bottom:6px;">' +
+    rewardItems.map(function(r, idx) {
+      return '<div style="opacity:0;animation:specialRewardPop 0.45s ease-out forwards;animation-delay:' + (idx * 0.22) + 's;display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,0.1);border:1.5px solid ' + r.color + ';border-radius:999px;padding:8px 16px;font-size:13px;font-weight:900;color:#fff;box-shadow:0 4px 10px rgba(0,0,0,0.3);">' +
+        '<span style="font-size:16px;">' + r.icon + '</span>' + r.text +
+        '</div>';
+    }).join('') +
     '</div>';
 
   area.innerHTML =
