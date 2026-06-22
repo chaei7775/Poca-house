@@ -1,0 +1,22 @@
+{
+  "name": "포카하우스",
+  "short_name": "포카하우스",
+  "start_url": "https://chaei7775.github.io/Poca-house/",
+  "scope": "https://chaei7775.github.io/Poca-house/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#FFF0F5",
+  "theme_color": "#FF6B9D",
+  "icons": [
+    {
+      "src": "https://raw.githubusercontent.com/chaei7775/Poca-house/main/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://raw.githubusercontent.com/chaei7775/Poca-house/main/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
