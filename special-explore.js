@@ -25,10 +25,34 @@ function creatureImgHtml(creature, size) {
   return '<img src="https://raw.githubusercontent.com/chaei7775/Poca-house/main/' + creature.img + '" style="width:' + size + 'px;height:' + size + 'px;object-fit:contain;" onerror="this.outerHTML=\'<div style=&quot;font-size:' + size + 'px;&quot;>' + creature.emoji + '</div>\'">';
 }
 
-const SPECIAL_JAPTEM = ['별빛 털', '반짝이는 날개가루', '은빛 깃털', '신비한 꽃가루', '달빛 잎사귀', '수정 조각'];
+const LOCATION_CREATURES = {
+  sky_ruins:         ['rainbow_butterfly', 'silver_sparrow', 'crystal_deer'],
+  moonlit_corridor:  ['moon_rabbit', 'star_fox', 'aurora_peacock'],
+  workshop_basement: ['silver_salmon', 'wish_dragon']
+};
+
+const RARE_VARIANTS = {
+  rainbow_butterfly: { name:'프리즘 나비',       img:'variant-prism_butterfly.png' },
+  silver_sparrow:    { name:'황금 깃털 참새',     img:'variant-gold_feather_sparrow.png' },
+  crystal_deer:      { name:'다이아 수정사슴',     img:'variant-diamond_deer.png' },
+  moon_rabbit:       { name:'월광 달토끼',         img:'variant-moonlight_rabbit.png' },
+  star_fox:          { name:'은하수 별빛 여우',    img:'variant-galaxy_fox.png' },
+  aurora_peacock:    { name:'성운 공작',           img:'variant-nebula_peacock.png' },
+  silver_salmon:     { name:'붉은비늘 연어',       img:'variant-red_scale_salmon.png' },
+  wish_dragon:       { name:'별빛 새끼용',         img:'variant-starlight_dragon.png' }
+};
+
+const SPECIAL_JAPTEM = [
+  { emoji:'🧶', name:'별빛 털' },
+  { emoji:'🌟', name:'반짝이는 날개가루' },
+  { emoji:'🕊️', name:'은빛 깃털' },
+  { emoji:'🌼', name:'신비한 꽃가루' },
+  { emoji:'🍂', name:'달빛 잎사귀' },
+  { emoji:'🔷', name:'수정 조각' }
+];
 const SPECIAL_GEAR = [
-  { name:'월광 브로치', emoji:'🌹' }, { name:'응원 리본', emoji:'🎀' }, { name:'팬클럽 배지', emoji:'🏅' },
-  { name:'기념 목걸이', emoji:'📿' }, { name:'천사의 깃털 장식', emoji:'🪽' }, { name:'별빛 펜던트', emoji:'💎' }
+  { name:'월광 브로치', emoji:'🌜' }, { name:'응원 리본', emoji:'🎀' }, { name:'팬클럽 배지', emoji:'🏅' },
+  { name:'기념 목걸이', emoji:'📿' }, { name:'천사의 깃털 장식', emoji:'👼' }, { name:'별빛 펜던트', emoji:'🔮' }
 ];
 const SPECIAL_GEAR_GRADES = { common:'일반', great:'고급', rare:'희귀', legend:'전설' };
 
@@ -133,14 +157,25 @@ function renderSpecialExploreScreen() {
 }
 
 function encounterSpecialCreature() {
+  const allowedIds = LOCATION_CREATURES[specialExploreState.locationId] || SPECIAL_CREATURES.map(function(c) { return c.id; });
+  const candidates = SPECIAL_CREATURES.filter(function(c) { return allowedIds.indexOf(c.id) !== -1; });
   const pool = [];
-  SPECIAL_CREATURES.forEach(function(c) {
+  candidates.forEach(function(c) {
     const weight = c.rare ? 1 : 6;
     for (let i = 0; i < weight; i++) pool.push(c);
   });
-  const creature = pool[Math.floor(Math.random() * pool.length)];
+  const baseCreature = pool[Math.floor(Math.random() * pool.length)];
+
+  // 5% 확률로 레어 변종 등장
+  const isVariant = Math.random() < 0.05 && RARE_VARIANTS[baseCreature.id];
+  const creature = isVariant ?
+    Object.assign({}, baseCreature, { isVariant: true, variantName: RARE_VARIANTS[baseCreature.id].name, variantImg: RARE_VARIANTS[baseCreature.id].img }) :
+    Object.assign({}, baseCreature, { isVariant: false });
+
   specialExploreState.creature = creature;
   specialExploreState.foodChosen = null;
+  specialExploreState.feedRound = 1;
+  specialExploreState.chance = null;
   renderSpecialFeedScreen();
 }
 
@@ -148,11 +183,17 @@ function renderSpecialFeedScreen() {
   const creature = specialExploreState.creature;
   const area = document.getElementById('special-main-area');
   const alreadyCaptured = getDexCaptured().indexOf(creature.id) !== -1;
+  const round = specialExploreState.feedRound || 1;
+  const displayName = creature.isVariant ? creature.variantName : creature.name;
+  const displayImgHtml = creature.isVariant ? variantImgHtml(creature, 100) : creatureImgHtml(creature, 100);
+
   area.innerHTML =
-    '<div style="font-size:13px;color:#FFD700;font-weight:900;margin-bottom:6px;">✨ ' + (creature.rare ? '희귀 생물 발견!' : '생물 발견!') + '</div>' +
-    '<div style="margin-bottom:8px;">' + creatureImgHtml(creature, 100) + '</div>' +
-    '<div style="font-size:16px;font-weight:900;color:#fff;margin-bottom:4px;">' + creature.name + '</div>' +
-    '<div style="font-size:11px;color:#888;margin-bottom:18px;">' + (alreadyCaptured ? '(도감에 등록된 생물이에요)' : '(아직 도감에 없는 생물이에요!)') + '</div>' +
+    '<div style="font-size:13px;font-weight:900;margin-bottom:6px;' + (creature.isVariant ? 'color:#FFD700;' : 'color:#FFB3CC;') + '">' +
+      (creature.isVariant ? '🌈 레어 변종 발견!!' : (creature.rare ? '✨ 희귀 생물 발견!' : '생물 발견!')) +
+    '</div>' +
+    '<div style="margin-bottom:8px;">' + displayImgHtml + '</div>' +
+    '<div style="font-size:16px;font-weight:900;color:#fff;margin-bottom:4px;">' + displayName + '</div>' +
+    '<div style="font-size:11px;color:#888;margin-bottom:18px;">' + (alreadyCaptured ? '(도감에 등록된 생물이에요)' : '(아직 도감에 없는 생물이에요!)') + (creature.isVariant ? '<br>관찰을 두 번 해야 포획할 수 있어요 (' + round + '/2)' : '') + '</div>' +
     '<div style="font-size:13px;color:#ccc;margin-bottom:12px;">어떤 먹이를 줄까요?</div>' +
     '<div style="display:flex;gap:10px;">' +
     SPECIAL_FOODS.map(function(food) {
@@ -161,44 +202,59 @@ function renderSpecialFeedScreen() {
     '</div>';
 }
 
+function variantImgHtml(creature, size) {
+  const v = RARE_VARIANTS[creature.id];
+  return '<img src="https://raw.githubusercontent.com/chaei7775/Poca-house/main/' + v.img + '" style="width:' + size + 'px;height:' + size + 'px;object-fit:contain;filter:drop-shadow(0 0 14px #FFD700);" onerror="this.outerHTML=\'<div style=&quot;font-size:' + size + 'px;&quot;>' + creature.emoji + '</div>\'">';
+}
+
 function chooseSpecialFood(food) {
   specialExploreState.foodChosen = food;
   const creature = specialExploreState.creature;
   const correct = food === creature.correctFood;
+  const round = specialExploreState.feedRound || 1;
 
-  let chance = 0.5;
-  chance += correct ? 0.3 : -0.2;
-  chance = Math.max(0.05, Math.min(0.95, chance));
-  const success = Math.random() < chance;
+  specialExploreState.chance = (specialExploreState.chance != null ? specialExploreState.chance : 0.5) + (correct ? 0.3 : -0.2);
 
+  const displayName = creature.isVariant ? creature.variantName : creature.name;
+  const displayImgHtml = creature.isVariant ? variantImgHtml(creature, 100) : creatureImgHtml(creature, 100);
   const area = document.getElementById('special-main-area');
   area.innerHTML =
-    '<div style="margin-bottom:10px;">' + creatureImgHtml(creature, 100) + '</div>' +
-    '<div style="font-size:14px;color:' + (correct ? '#4ade80' : '#ff8a8a') + ';font-weight:900;margin-bottom:16px;">' + (correct ? (creature.name + '이(가) 좋아하는 먹이였어요!') : (creature.name + '이(가) 별로 안 좋아하는 먹이였어요...')) + '</div>' +
+    '<div style="margin-bottom:10px;">' + displayImgHtml + '</div>' +
+    '<div style="font-size:14px;color:' + (correct ? '#4ade80' : '#ff8a8a') + ';font-weight:900;margin-bottom:16px;">' + (correct ? (displayName + '이(가) 좋아하는 먹이였어요!') : (displayName + '이(가) 별로 안 좋아하는 먹이였어요...')) + '</div>' +
     '<div style="font-size:13px;color:#aaa;">관찰하는 중...</div>';
 
-  setTimeout(function() { resolveSpecialCapture(success); }, 1400);
+  if (creature.isVariant && round < 2) {
+    setTimeout(function() {
+      specialExploreState.feedRound = 2;
+      renderSpecialFeedScreen();
+    }, 1400);
+  } else {
+    const chance = Math.max(0.05, Math.min(0.95, specialExploreState.chance));
+    const success = Math.random() < chance;
+    setTimeout(function() { resolveSpecialCapture(success); }, 1400);
+  }
 }
 
 function resolveSpecialCapture(success) {
   const creature = specialExploreState.creature;
   const area = document.getElementById('special-main-area');
+  const displayName = creature.isVariant ? creature.variantName : creature.name;
+  const displayImgHtml = creature.isVariant ? variantImgHtml(creature, 100) : creatureImgHtml(creature, 100);
 
   if (!success) {
     area.innerHTML =
-      '<div style="margin-bottom:10px;opacity:0.5;">' + creatureImgHtml(creature, 90) + '<span style="font-size:30px;">💨</span></div>' +
-      '<div style="font-size:15px;color:#ff8a8a;font-weight:900;margin-bottom:18px;">' + creature.name + '이(가) 도망가버렸어요...</div>' +
+      '<div style="margin-bottom:10px;opacity:0.5;">' + displayImgHtml + '<span style="font-size:30px;">💨</span></div>' +
+      '<div style="font-size:15px;color:#ff8a8a;font-weight:900;margin-bottom:18px;">' + displayName + '이(가) 도망가버렸어요...</div>' +
       '<button onclick="renderSpecialExploreScreen()" style="padding:13px 28px;background:rgba(255,255,255,0.1);border:none;border-radius:14px;color:#fff;font-size:14px;font-weight:900;cursor:pointer;font-family:\'Noto Sans KR\',sans-serif;">다시 둘러보기</button>';
     return;
   }
 
   // 보상 계산
-  const expGain = 100 + Math.floor(Math.random() * 100);
+  const expGain = (creature.isVariant ? 200 : 100) + Math.floor(Math.random() * 100);
   const charId = specialExploreState.charId;
   if (typeof addCardExp === 'function') {
     addCardExp(charId, expGain);
   } else {
-    // pocalevel.js 의 카드 경험치 시스템 직접 사용
     try {
       const cardExpData = JSON.parse(localStorage.getItem('ph_cardExp') || '{}');
       cardExpData[charId] = (cardExpData[charId] || 0) + expGain;
@@ -206,41 +262,72 @@ function resolveSpecialCapture(success) {
     } catch (e) {}
   }
 
-  let dropHtml = '';
   let gotJaptem = false, japtemItem = null;
-
   if (Math.random() < 0.9) {
     gotJaptem = true;
     japtemItem = SPECIAL_JAPTEM[Math.floor(Math.random() * SPECIAL_JAPTEM.length)];
-    if (typeof addToBag === 'function') addToBag('✨', japtemItem, 'material', 1, '특별탐험 재료');
+    if (typeof addToBag === 'function') addToBag(japtemItem.emoji, japtemItem.name, 'material', 1, '특별탐험 재료');
   }
 
-  const gearRoll = Math.random();
-  let gotGear = gearRoll < 0.05;
+  // 장착아이템: 레어변종은 100% 드랍, 일반은 5%
+  const gotGear = creature.isVariant ? true : Math.random() < 0.05;
   let gearGrade = null;
-  if (gearRoll < 0.001) gearGrade = 'legend';
-  else if (gearRoll < 0.01) gearGrade = 'rare';
-  else if (gearRoll < 0.02) gearGrade = 'great';
-  else if (gearRoll < 0.05) gearGrade = 'common';
   let gearItem = null;
   if (gotGear) {
+    const gearRoll = Math.random();
+    if (gearRoll < 0.001) gearGrade = 'legend';
+    else if (gearRoll < 0.01) gearGrade = 'rare';
+    else if (gearRoll < 0.05) gearGrade = 'great';
+    else gearGrade = 'common';
     gearItem = SPECIAL_GEAR[Math.floor(Math.random() * SPECIAL_GEAR.length)];
     const gradeLabel = SPECIAL_GEAR_GRADES[gearGrade];
     if (typeof addToBag === 'function') addToBag(gearItem.emoji, '[' + gradeLabel + '] ' + gearItem.name, 'gear', 1, '특별탐험 장착아이템 (효과는 추후 적용 예정)');
   }
 
+  // 등교권 / 등교권 조각 드랍 (일반: 등교권0.2%·조각5% / 변종: 등교권3%·조각15%)
+  let gotTicket = false, gotTicketFragment = false;
+  const ticketChance = creature.isVariant ? 0.03 : 0.002;
+  const fragmentChance = creature.isVariant ? 0.15 : 0.05;
+  if (Math.random() < ticketChance) {
+    gotTicket = true;
+    if (typeof schoolDaily !== 'undefined') {
+      schoolDaily.tickets = (schoolDaily.tickets || 0) + 1;
+      if (typeof saveSchoolDaily === 'function') saveSchoolDaily();
+    }
+  } else if (Math.random() < fragmentChance) {
+    gotTicketFragment = true;
+    if (typeof addToBag === 'function') addToBag('🎫', '등교권 조각', 'ticket_fragment', 1, '10개 모으면 등교권 1장으로 교환!');
+    const fragCount = (function() {
+      const store = JSON.parse(localStorage.getItem('ph_ticketFragments') || '0');
+      const next = (typeof store === 'number' ? store : 0) + 1;
+      localStorage.setItem('ph_ticketFragments', JSON.stringify(next));
+      return next;
+    })();
+    if (fragCount >= 10) {
+      localStorage.setItem('ph_ticketFragments', JSON.stringify(0));
+      if (typeof schoolDaily !== 'undefined') {
+        schoolDaily.tickets = (schoolDaily.tickets || 0) + 1;
+        if (typeof saveSchoolDaily === 'function') saveSchoolDaily();
+      }
+      gotTicket = true;
+      gotTicketFragment = false;
+    }
+  }
+
   const isFirstCapture = addDexCaptured(creature.id);
 
-  dropHtml = '<div style="font-size:12px;color:#ddd;line-height:1.8;margin-bottom:6px;">' +
+  const dropHtml = '<div style="font-size:12px;color:#ddd;line-height:1.8;margin-bottom:6px;">' +
     '⭐ ' + CHARS[charId].name + ' +' + expGain + ' EXP<br>' +
-    (gotJaptem ? ('🧷 ' + japtemItem + ' x1<br>') : '') +
+    (gotJaptem ? (japtemItem.emoji + ' ' + japtemItem.name + ' x1<br>') : '') +
     (gotGear ? ('✨ [' + SPECIAL_GEAR_GRADES[gearGrade] + '] ' + gearItem.name + ' 획득!<br>') : '') +
+    (gotTicket ? '🎫 등교권 +1<br>' : '') +
+    (gotTicketFragment ? '🎫 등교권 조각 +1<br>' : '') +
     '</div>';
 
   area.innerHTML =
-    '<div style="font-size:13px;color:#FFD700;font-weight:900;margin-bottom:6px;">🎉 포획 성공!</div>' +
-    '<div style="margin-bottom:8px;">' + creatureImgHtml(creature, 100) + '</div>' +
-    '<div style="font-size:16px;font-weight:900;color:#fff;margin-bottom:4px;">' + creature.name + '</div>' +
+    '<div style="font-size:13px;font-weight:900;margin-bottom:6px;' + (creature.isVariant ? 'color:#FFD700;' : 'color:#FFD700;') + '">' + (creature.isVariant ? '🌈 레어 변종 포획 성공!' : '🎉 포획 성공!') + '</div>' +
+    '<div style="margin-bottom:8px;">' + displayImgHtml + '</div>' +
+    '<div style="font-size:16px;font-weight:900;color:#fff;margin-bottom:4px;">' + displayName + '</div>' +
     (isFirstCapture ? '<div style="font-size:12px;color:#FF6B9D;font-weight:900;margin-bottom:12px;">📖 도감 신규 등록!</div>' : '<div style="font-size:11px;color:#888;margin-bottom:12px;">(반복 포획)</div>') +
     dropHtml +
     '<button onclick="renderSpecialExploreScreen()" style="margin-top:10px;padding:13px 28px;background:linear-gradient(135deg,#FF6B9D,#C084FC);border:none;border-radius:14px;color:#fff;font-size:14px;font-weight:900;cursor:pointer;font-family:\'Noto Sans KR\',sans-serif;">계속 탐험하기</button>';
