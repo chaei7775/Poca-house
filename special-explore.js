@@ -57,7 +57,7 @@ function renderSpecialExploreList() {
       '<span style="font-size:24px;">' + loc.emoji + '</span><span>' + loc.name + '</span>' +
       '<span style="margin-left:auto;color:#888;font-size:16px;">›</span></button>';
   }).join('') +
-  '<button onclick="openDexOverlay()" style="width:100%;padding:11px;margin-top:4px;background:rgba(255,255,255,0.06);border:1.5px solid rgba(255,255,255,0.2);border-radius:14px;color:#ccc;font-size:13px;font-weight:700;cursor:pointer;font-family:\'Noto Sans KR\',sans-serif;">📖 생물도감 (' + getDexCaptured().length + '/' + SPECIAL_CREATURES.length + ')</button>';
+  '<button onclick="openDexOverlay()" style="width:100%;padding:7px;margin-top:4px;margin-bottom:80px;background:rgba(255,255,255,0.06);border:1.5px solid rgba(255,255,255,0.2);border-radius:10px;color:#ccc;font-size:12px;font-weight:700;cursor:pointer;font-family:\'Noto Sans KR\',sans-serif;">📖 생물도감 (' + getDexCaptured().length + '/' + SPECIAL_CREATURES.length + ')</button>';
 }
 setTimeout(renderSpecialExploreList, 300);
 
@@ -76,12 +76,17 @@ function openSpecialCardSelect(locationId) {
     '<div style="padding:16px;">' +
     '<div style="font-size:13px;color:#ccc;margin-bottom:12px;">출전할 포카를 선택해주세요 (탐험 경험치를 획득해요)</div>' +
     '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">' +
-    Object.keys(CHARS).map(function(cid) {
+    Object.keys(CHARS).filter(function(cid) {
+      return (typeof ownedHiddenCards !== 'undefined') && ownedHiddenCards.some(function(hid) { return hid.indexOf('hidden_' + cid + '_') === 0; });
+    }).map(function(cid) {
       const ch = CHARS[cid];
       return '<button onclick="startSpecialExplore(\'' + locationId + '\',\'' + cid + '\')" style="display:flex;flex-direction:column;align-items:center;gap:6px;padding:14px 8px;background:rgba(255,255,255,0.06);border:1.5px solid ' + ch.gradeColor + ';border-radius:14px;color:#fff;cursor:pointer;font-family:\'Noto Sans KR\',sans-serif;">' +
         '<span style="font-size:28px;">' + ch.emoji + '</span><span style="font-size:13px;font-weight:900;">' + ch.name + '</span></button>';
     }).join('') +
-    '</div></div>';
+    '</div>' +
+    (!(typeof ownedHiddenCards !== 'undefined' && ownedHiddenCards.length > 0) ?
+      '<div style="font-size:12px;color:#888;text-align:center;margin-top:14px;">히든(EH) 카드를 보유한 포카만 출전할 수 있어요. 재조합기에서 히든카드를 먼저 획득해보세요!</div>' : '') +
+    '</div>';
   document.body.appendChild(overlay);
 }
 

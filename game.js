@@ -4,7 +4,7 @@
 const CONFIG = {
   roomPrice: { pink: 15000, plant: 22000, doll: 35000 },
   alba: { burger: 17, cafeHigh: 30, cafeMid: 20, cafeLow: 10 },
-  gacha: { one: 540, three: 1620 },
+  gacha: { one: 270, three: 810 },
 };
 
 // ── 저장 데이터 ──

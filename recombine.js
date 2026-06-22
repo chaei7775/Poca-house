@@ -11,15 +11,15 @@ function rcHigherGrade(g) {
 }
 
 const RC_TABLE = {
-  'N_N':     { upgrade: 70,   same: 29.97, rareHidden: 0.03, epicHidden: 0,    coin: 1000,   stones: { normal: 1, epic: 0 } },
-  'N_R':     { upgrade: 50,   same: 49.95, rareHidden: 0.05, epicHidden: 0,    coin: 1000,   stones: { normal: 1, epic: 0 } },
-  'R_R':     { upgrade: 45,   same: 54.95, rareHidden: 0.05, epicHidden: 0,    coin: 5000,   stones: { normal: 2, epic: 0 } },
-  'R_SR':    { upgrade: 35,   same: 64.9,  rareHidden: 0.1,  epicHidden: 0,    coin: 5000,   stones: { normal: 2, epic: 0 } },
-  'SR_SR':   { upgrade: 25,   same: 74.9,  rareHidden: 0.1,  epicHidden: 0,    coin: 20000,  stones: { normal: 3, epic: 0 } },
-  'SR_SSR':  { upgrade: 18,   same: 81.7,  rareHidden: 0.25, epicHidden: 0.05, coin: 20000,  stones: { normal: 3, epic: 0 } },
-  'SSR_SSR': { upgrade: 8,    same: 91.7,  rareHidden: 0.25, epicHidden: 0.05, coin: 70000,  stones: { normal: 3, epic: 1 } },
-  'SSR_UR':  { upgrade: 5,    same: 94.5,  rareHidden: 0.4,  epicHidden: 0.1,  coin: 70000,  stones: { normal: 3, epic: 1 } },
-  'UR_UR':   { upgrade: 0,    same: 88,    rareHidden: 8,    epicHidden: 4,    coin: 200000, stones: { normal: 5, epic: 2 } },
+  'N_N':     { upgrade: 70,   same: 29.97, rareHidden: 0.03, epicHidden: 0,    coin: 500,    stones: { normal: 1, epic: 0 } },
+  'N_R':     { upgrade: 50,   same: 49.95, rareHidden: 0.05, epicHidden: 0,    coin: 500,    stones: { normal: 1, epic: 0 } },
+  'R_R':     { upgrade: 45,   same: 54.95, rareHidden: 0.05, epicHidden: 0,    coin: 2500,   stones: { normal: 2, epic: 0 } },
+  'R_SR':    { upgrade: 35,   same: 64.9,  rareHidden: 0.1,  epicHidden: 0,    coin: 2500,   stones: { normal: 2, epic: 0 } },
+  'SR_SR':   { upgrade: 25,   same: 74.9,  rareHidden: 0.1,  epicHidden: 0,    coin: 10000,  stones: { normal: 3, epic: 0 } },
+  'SR_SSR':  { upgrade: 18,   same: 81.7,  rareHidden: 0.25, epicHidden: 0.05, coin: 10000,  stones: { normal: 3, epic: 0 } },
+  'SSR_SSR': { upgrade: 8,    same: 91.7,  rareHidden: 0.25, epicHidden: 0.05, coin: 35000,  stones: { normal: 3, epic: 1 } },
+  'SSR_UR':  { upgrade: 5,    same: 94.5,  rareHidden: 0.4,  epicHidden: 0.1,  coin: 35000,  stones: { normal: 3, epic: 1 } },
+  'UR_UR':   { upgrade: 0,    same: 88,    rareHidden: 8,    epicHidden: 4,    coin: 100000, stones: { normal: 5, epic: 2 } },
 };
 
 function getRcTableKey(gradeA, gradeB) {
