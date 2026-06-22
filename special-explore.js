@@ -94,14 +94,13 @@ function renderSpecialExploreScreen() {
   const loc = SPECIAL_LOCATIONS.find(function(l) { return l.id === specialExploreState.locationId; });
   const ch = CHARS[specialExploreState.charId];
   const overlay = document.getElementById('special-overlay');
-  overlay.innerHTML = '<div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid rgba(255,255,255,0.1);">' +
-    '<div style="color:#fff;font-size:15px;font-weight:900;">' + loc.emoji + ' ' + loc.name + '</div>' +
-    '<button onclick="document.getElementById(\'special-overlay\').remove()" style="background:rgba(255,255,255,0.1);border:none;border-radius:10px;color:#fff;padding:7px 12px;cursor:pointer;">나가기</button></div>' +
-    '<div id="special-main-area" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center;">' +
-    '<div style="font-size:13px;color:#FFB3CC;margin-bottom:8px;">' + ch.emoji + ' ' + ch.name + ' 출전 중</div>' +
-    '<div style="font-size:48px;margin-bottom:18px;">' + loc.emoji + '</div>' +
-    '<div style="font-size:13px;color:#aaa;margin-bottom:20px;">조용히 주변을 둘러보면, 무언가 나타날지도 몰라요...</div>' +
-    '<button onclick="encounterSpecialCreature()" style="padding:14px 32px;background:linear-gradient(135deg,' + loc.color + ',#C084FC);border:none;border-radius:16px;color:#fff;font-size:15px;font-weight:900;cursor:pointer;font-family:\'Noto Sans KR\',sans-serif;">🔍 탐험하기</button>' +
+  overlay.innerHTML = '<div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:rgba(0,0,0,0.45);position:relative;z-index:2;">' +
+    '<div style="color:#fff;font-size:15px;font-weight:900;text-shadow:0 2px 6px rgba(0,0,0,0.8);">' + loc.emoji + ' ' + loc.name + '</div>' +
+    '<button onclick="document.getElementById(\'special-overlay\').remove()" style="background:rgba(255,255,255,0.15);border:none;border-radius:10px;color:#fff;padding:7px 12px;cursor:pointer;">나가기</button></div>' +
+    '<div id="special-main-area" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center;position:relative;background:linear-gradient(to bottom,rgba(0,0,0,0.25),rgba(0,0,0,0.6)),url(\'' + loc.bg + '\') center/cover;">' +
+    '<div style="font-size:13px;color:#FFB3CC;margin-bottom:8px;text-shadow:0 2px 6px rgba(0,0,0,0.9);">' + ch.emoji + ' ' + ch.name + ' 출전 중</div>' +
+    '<div style="font-size:13px;color:#eee;margin-bottom:20px;text-shadow:0 2px 6px rgba(0,0,0,0.9);">조용히 주변을 둘러보면, 무언가 나타날지도 몰라요...</div>' +
+    '<button onclick="encounterSpecialCreature()" style="padding:14px 32px;background:linear-gradient(135deg,' + loc.color + ',#C084FC);border:none;border-radius:16px;color:#fff;font-size:15px;font-weight:900;cursor:pointer;font-family:\'Noto Sans KR\',sans-serif;box-shadow:0 4px 16px rgba(0,0,0,0.5);">🔍 탐험하기</button>' +
     '</div>';
 }
 
