@@ -8,15 +8,16 @@ const SPECIAL_LOCATIONS = [
   { id:'workshop_basement', name:'공방 지하',     emoji:'🔮', color:'#F472B6', bg:'https://raw.githubusercontent.com/chaei7775/Poca-house/main/special-workshop_basement.png' }
 ];
 
-const SPECIAL_FOODS = ['반짝열매', '달빛열매', '무지개꽃'];
+const SPECIAL_FOODS = ['반짝열매', '달빛열매', '오색열매'];
+const SPECIAL_FOOD_PRICE = 30;
 
 const SPECIAL_CREATURES = [
-  { id:'rainbow_butterfly', emoji:'🦋', name:'무지개 나비',   correctFood:'무지개꽃', rare:false, img:'creature-rainbow_butterfly.png' },
+  { id:'rainbow_butterfly', emoji:'🦋', name:'무지개 나비',   correctFood:'오색열매', rare:false, img:'creature-rainbow_butterfly.png' },
   { id:'silver_sparrow',    emoji:'🕊️', name:'은빛 참새',     correctFood:'반짝열매', rare:false, img:'creature-silver_sparrow.png' },
   { id:'star_fox',          emoji:'🦊', name:'별빛 여우',     correctFood:'달빛열매', rare:false, img:'creature-star_fox.png' },
   { id:'silver_salmon',     emoji:'🐟', name:'은빛 연어',     correctFood:'반짝열매', rare:false, img:'creature-silver_salmon.png' },
   { id:'moon_rabbit',       emoji:'🐇', name:'달토끼',        correctFood:'달빛열매', rare:false, img:'creature-moon_rabbit.png' },
-  { id:'crystal_deer',      emoji:'🦌', name:'수정 사슴',     correctFood:'무지개꽃', rare:false, img:'creature-crystal_deer.png' },
+  { id:'crystal_deer',      emoji:'🦌', name:'수정 사슴',     correctFood:'오색열매', rare:false, img:'creature-crystal_deer.png' },
   { id:'aurora_peacock',    emoji:'🦚', name:'오로라 공작',   correctFood:'반짝열매', rare:true,  img:'creature-aurora_peacock.png' },
   { id:'wish_dragon',       emoji:'🐉', name:'소원의 새끼용', correctFood:'달빛열매', rare:true,  img:'creature-wish_dragon.png' }
 ];
@@ -179,6 +180,12 @@ function encounterSpecialCreature() {
   renderSpecialFeedScreen();
 }
 
+function getFoodQty(food) {
+  if (typeof bagItems === 'undefined') return 0;
+  const item = bagItems.find(function(i) { return i.name === food && i.type === 'food'; });
+  return item ? item.qty : 0;
+}
+
 function renderSpecialFeedScreen() {
   const creature = specialExploreState.creature;
   const area = document.getElementById('special-main-area');
@@ -195,11 +202,48 @@ function renderSpecialFeedScreen() {
     '<div style="font-size:16px;font-weight:900;color:#fff;margin-bottom:4px;">' + displayName + '</div>' +
     '<div style="font-size:11px;color:#888;margin-bottom:18px;">' + (alreadyCaptured ? '(도감에 등록된 생물이에요)' : '(아직 도감에 없는 생물이에요!)') + (creature.isVariant ? '<br>관찰을 두 번 해야 포획할 수 있어요 (' + round + '/2)' : '') + '</div>' +
     '<div style="font-size:13px;color:#ccc;margin-bottom:12px;">어떤 먹이를 줄까요?</div>' +
-    '<div style="display:flex;gap:10px;">' +
+    '<div style="display:flex;gap:10px;margin-bottom:10px;">' +
     SPECIAL_FOODS.map(function(food) {
-      return '<button onclick="chooseSpecialFood(\'' + food + '\')" style="padding:12px 16px;background:rgba(255,255,255,0.08);border:1.5px solid rgba(255,255,255,0.25);border-radius:14px;color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:\'Noto Sans KR\',sans-serif;">' + food + '</button>';
+      const qty = getFoodQty(food);
+      const disabled = qty <= 0;
+      return '<button onclick="' + (disabled ? '' : 'chooseSpecialFood(\'' + food + '\')') + '" style="padding:12px 14px;background:' + (disabled ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.08)') + ';border:1.5px solid ' + (disabled ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.25)') + ';border-radius:14px;color:' + (disabled ? '#555' : '#fff') + ';font-size:13px;font-weight:700;cursor:' + (disabled ? 'default' : 'pointer') + ';font-family:\'Noto Sans KR\',sans-serif;">' + food + '<br><span style="font-size:10px;color:' + (disabled ? '#555' : '#FFD700') + ';">보유 ' + qty + '개</span></button>';
     }).join('') +
+    '</div>' +
+    '<button onclick="openFoodShop()" style="padding:8px 16px;background:rgba(255,215,0,0.15);border:1.5px solid #FFD700;border-radius:12px;color:#FFD700;font-size:12px;font-weight:700;cursor:pointer;font-family:\'Noto Sans KR\',sans-serif;">🛒 먹이 구매하기</button>';
+}
+
+function openFoodShop() {
+  const old = document.getElementById('food-shop-popup');
+  if (old) old.remove();
+  const popup = document.createElement('div');
+  popup.id = 'food-shop-popup';
+  popup.style.cssText = 'position:fixed;inset:0;z-index:1100;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;padding:20px;';
+  popup.onclick = function(e) { if (e.target === popup) popup.remove(); };
+  popup.innerHTML = '<div style="width:100%;max-width:320px;background:#fff;border-radius:18px;padding:20px;">' +
+    '<div style="font-size:15px;font-weight:900;color:#222;margin-bottom:4px;">🛒 먹이 구매</div>' +
+    '<div style="font-size:11px;color:#888;margin-bottom:14px;">보유 코인: 🍔 ' + (typeof coins !== 'undefined' ? coins : 0) + '</div>' +
+    SPECIAL_FOODS.map(function(food) {
+      return '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid #eee;">' +
+        '<div style="font-size:13px;font-weight:700;color:#333;">' + food + ' <span style="color:#aaa;font-size:11px;">(보유 ' + getFoodQty(food) + ')</span></div>' +
+        '<button onclick="buySpecialFood(\'' + food + '\')" style="padding:7px 14px;background:linear-gradient(135deg,#FF6B9D,#C084FC);border:none;border-radius:10px;color:#fff;font-size:12px;font-weight:900;cursor:pointer;font-family:\'Noto Sans KR\',sans-serif;">🍔' + SPECIAL_FOOD_PRICE + ' 구매</button>' +
+        '</div>';
+    }).join('') +
+    '<button onclick="document.getElementById(\'food-shop-popup\').remove()" style="width:100%;margin-top:14px;padding:10px;background:#f3f3f3;border:none;border-radius:10px;color:#666;cursor:pointer;font-family:\'Noto Sans KR\',sans-serif;">닫기</button>' +
     '</div>';
+  document.body.appendChild(popup);
+}
+
+function buySpecialFood(food) {
+  if (typeof coins === 'undefined' || coins < SPECIAL_FOOD_PRICE) {
+    if (typeof showBagToast === 'function') showBagToast('코인이 부족해요!');
+    return;
+  }
+  coins -= SPECIAL_FOOD_PRICE;
+  if (typeof addToBag === 'function') addToBag('🍓', food, 'food', 1, '특별탐험 먹이');
+  if (typeof saveAll === 'function') saveAll();
+  if (typeof updateCoinsDisplay === 'function') updateCoinsDisplay();
+  openFoodShop();
+  renderSpecialFeedScreen();
 }
 
 function variantImgHtml(creature, size) {
@@ -208,6 +252,11 @@ function variantImgHtml(creature, size) {
 }
 
 function chooseSpecialFood(food) {
+  if (getFoodQty(food) <= 0) {
+    if (typeof showBagToast === 'function') showBagToast('이 먹이가 없어요! 🛒에서 구매해주세요');
+    return;
+  }
+  if (typeof useFromBag === 'function') useFromBag(food, 1);
   specialExploreState.foodChosen = food;
   const creature = specialExploreState.creature;
   const correct = food === creature.correctFood;
