@@ -311,13 +311,18 @@ function checkStoryLevelMilestone() {
 }
 
 function showStoryQuestToast(q) {
+  if (typeof window.activeQuestToastCount !== 'number') window.activeQuestToastCount = 0;
+  const myIndex = window.activeQuestToastCount++;
   const popup = document.createElement('div');
-  popup.style.cssText = 'position:fixed;top:100px;left:50%;transform:translateX(-50%);z-index:899;background:linear-gradient(135deg,#1a1a2e,#2d1b4e);border:2px solid #FFD700;border-radius:16px;padding:16px 20px;text-align:center;width:85%;max-width:320px;animation:fadeInUp 0.4s ease;';
+  popup.style.cssText = 'position:fixed;top:' + (20 + myIndex * 92) + 'px;left:50%;transform:translateX(-50%);z-index:900;background:linear-gradient(135deg,#1a1a2e,#2d1b4e);border:2px solid #FFD700;border-radius:16px;padding:16px 20px;text-align:center;width:85%;max-width:320px;animation:fadeInUp 0.4s ease;transition:top 0.3s;';
   popup.innerHTML = '<div style="font-size:12px;color:#FFD700;font-weight:700;margin-bottom:4px;">📖 이야기가 진행됐어요</div>' +
     '<div style="font-size:15px;font-weight:900;color:#fff;margin-bottom:4px;">' + q.title + '</div>' +
     '<div style="font-size:13px;color:#FFD700;margin-top:6px;">🍔 +' + q.rewardCoins + ' · ⭐ +' + q.rewardExp + 'xp</div>';
   document.body.appendChild(popup);
-  setTimeout(function() { popup.style.opacity = '0'; popup.style.transition = 'opacity 0.5s'; setTimeout(function() { popup.remove(); }, 500); }, 3000);
+  setTimeout(function() {
+    popup.style.opacity = '0'; popup.style.transition = 'opacity 0.5s';
+    setTimeout(function() { popup.remove(); window.activeQuestToastCount = Math.max(0, window.activeQuestToastCount - 1); }, 500);
+  }, 3000);
 }
 
 // ── 홈 배너 문구를 현재 스토리 퀘스트로 교체 (클릭하면 상세 팝업) ──

@@ -337,12 +337,12 @@ const CARDS = [
 function drawOne() {
   const rand = Math.random() * 100;
   let pool;
-  // v2.4 밸런스: N 51% / R 15% / SR 20% / SSR 10% / UR 4%
-  if (rand < 4)          pool = CARDS.filter(c => c.grade === 'UR');
-  else if (rand < 14)    pool = CARDS.filter(c => c.grade === 'SSR');
-  else if (rand < 34)    pool = CARDS.filter(c => c.grade === 'SR');
-  else if (rand < 49)    pool = CARDS.filter(c => c.grade === 'R');
-  else                   pool = CARDS.filter(c => c.grade === 'N');
+  // v2.5 밸런스: N 56% / R 15% / SR 20% / SSR 7% / UR 2%
+  if (rand < 2)           pool = CARDS.filter(c => c.grade === 'UR');
+  else if (rand < 9)      pool = CARDS.filter(c => c.grade === 'SSR');
+  else if (rand < 29)     pool = CARDS.filter(c => c.grade === 'SR');
+  else if (rand < 44)     pool = CARDS.filter(c => c.grade === 'R');
+  else                    pool = CARDS.filter(c => c.grade === 'N');
 
   const card = pool[Math.floor(Math.random() * pool.length)];
   const beforeAffInfo = card.charId ? getAffectionInfo(card.charId) : null;
@@ -2456,15 +2456,20 @@ function completeQuest(id, quest) {
   showQuestComplete(quest);
 }
 
+window.activeQuestToastCount = window.activeQuestToastCount || 0;
 function showQuestComplete(quest) {
+  const myIndex = window.activeQuestToastCount++;
   const popup = document.createElement('div');
-  popup.style.cssText = 'position:fixed;top:20px;left:50%;transform:translateX(-50%);z-index:900;background:linear-gradient(135deg,#1a1a2e,#2d1b4e);border:2px solid #FFD700;border-radius:16px;padding:16px 20px;text-align:center;width:85%;max-width:320px;animation:fadeInUp 0.4s ease;';
+  popup.style.cssText = `position:fixed;top:${20 + myIndex * 92}px;left:50%;transform:translateX(-50%);z-index:900;background:linear-gradient(135deg,#1a1a2e,#2d1b4e);border:2px solid #FFD700;border-radius:16px;padding:16px 20px;text-align:center;width:85%;max-width:320px;animation:fadeInUp 0.4s ease;transition:top 0.3s;`;
   popup.innerHTML = `<div style="font-size:12px;color:#FFD700;font-weight:700;margin-bottom:4px;">✅ 퀘스트 완료!</div>
     <div style="font-size:15px;font-weight:900;color:#fff;margin-bottom:4px;">${quest.title}</div>
     <div style="font-size:13px;color:#aaa;">"${quest.desc.slice(0,40)}..."</div>
     <div style="font-size:13px;color:#FFD700;margin-top:6px;">🍔 +${quest.rewardCoins} · ⭐ +${quest.rewardExp}xp</div>`;
   document.body.appendChild(popup);
-  setTimeout(() => { popup.style.opacity='0'; popup.style.transition='opacity 0.5s'; setTimeout(() => popup.remove(), 500); }, 3000);
+  setTimeout(() => {
+    popup.style.opacity='0'; popup.style.transition='opacity 0.5s';
+    setTimeout(() => { popup.remove(); window.activeQuestToastCount = Math.max(0, window.activeQuestToastCount - 1); }, 500);
+  }, 3000);
 }
 
 function renderQuestList() {
