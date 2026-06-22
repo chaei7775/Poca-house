@@ -11,15 +11,19 @@ const SPECIAL_LOCATIONS = [
 const SPECIAL_FOODS = ['반짝열매', '달빛열매', '무지개꽃'];
 
 const SPECIAL_CREATURES = [
-  { id:'rainbow_butterfly', emoji:'🦋', name:'무지개 나비',   correctFood:'무지개꽃', rare:false },
-  { id:'silver_sparrow',    emoji:'🕊️', name:'은빛 참새',     correctFood:'반짝열매', rare:false },
-  { id:'star_fox',          emoji:'🦊', name:'별빛 여우',     correctFood:'달빛열매', rare:false },
-  { id:'silver_salmon',     emoji:'🐟', name:'은빛 연어',     correctFood:'반짝열매', rare:false },
-  { id:'moon_rabbit',       emoji:'🐇', name:'달토끼',        correctFood:'달빛열매', rare:false },
-  { id:'crystal_deer',      emoji:'🦌', name:'수정 사슴',     correctFood:'무지개꽃', rare:false },
-  { id:'aurora_peacock',    emoji:'🦚', name:'오로라 공작',   correctFood:'반짝열매', rare:true },
-  { id:'wish_dragon',       emoji:'🐉', name:'소원의 새끼용', correctFood:'달빛열매', rare:true }
+  { id:'rainbow_butterfly', emoji:'🦋', name:'무지개 나비',   correctFood:'무지개꽃', rare:false, img:'creature-rainbow_butterfly.png' },
+  { id:'silver_sparrow',    emoji:'🕊️', name:'은빛 참새',     correctFood:'반짝열매', rare:false, img:'creature-silver_sparrow.png' },
+  { id:'star_fox',          emoji:'🦊', name:'별빛 여우',     correctFood:'달빛열매', rare:false, img:'creature-star_fox.png' },
+  { id:'silver_salmon',     emoji:'🐟', name:'은빛 연어',     correctFood:'반짝열매', rare:false, img:'creature-silver_salmon.png' },
+  { id:'moon_rabbit',       emoji:'🐇', name:'달토끼',        correctFood:'달빛열매', rare:false, img:'creature-moon_rabbit.png' },
+  { id:'crystal_deer',      emoji:'🦌', name:'수정 사슴',     correctFood:'무지개꽃', rare:false, img:'creature-crystal_deer.png' },
+  { id:'aurora_peacock',    emoji:'🦚', name:'오로라 공작',   correctFood:'반짝열매', rare:true,  img:'creature-aurora_peacock.png' },
+  { id:'wish_dragon',       emoji:'🐉', name:'소원의 새끼용', correctFood:'달빛열매', rare:true,  img:'creature-wish_dragon.png' }
 ];
+
+function creatureImgHtml(creature, size) {
+  return '<img src="https://raw.githubusercontent.com/chaei7775/Poca-house/main/' + creature.img + '" style="width:' + size + 'px;height:' + size + 'px;object-fit:contain;" onerror="this.outerHTML=\'<div style=&quot;font-size:' + size + 'px;&quot;>' + creature.emoji + '</div>\'">';
+}
 
 const SPECIAL_JAPTEM = ['별빛 털', '반짝이는 날개가루', '은빛 깃털', '신비한 꽃가루', '달빛 잎사귀', '수정 조각'];
 const SPECIAL_GEAR = [
@@ -119,7 +123,7 @@ function renderSpecialFeedScreen() {
   const alreadyCaptured = getDexCaptured().indexOf(creature.id) !== -1;
   area.innerHTML =
     '<div style="font-size:13px;color:#FFD700;font-weight:900;margin-bottom:6px;">✨ ' + (creature.rare ? '희귀 생물 발견!' : '생물 발견!') + '</div>' +
-    '<div style="font-size:64px;margin-bottom:8px;">' + creature.emoji + '</div>' +
+    '<div style="margin-bottom:8px;">' + creatureImgHtml(creature, 100) + '</div>' +
     '<div style="font-size:16px;font-weight:900;color:#fff;margin-bottom:4px;">' + creature.name + '</div>' +
     '<div style="font-size:11px;color:#888;margin-bottom:18px;">' + (alreadyCaptured ? '(도감에 등록된 생물이에요)' : '(아직 도감에 없는 생물이에요!)') + '</div>' +
     '<div style="font-size:13px;color:#ccc;margin-bottom:12px;">어떤 먹이를 줄까요?</div>' +
@@ -142,7 +146,7 @@ function chooseSpecialFood(food) {
 
   const area = document.getElementById('special-main-area');
   area.innerHTML =
-    '<div style="font-size:64px;margin-bottom:10px;">' + creature.emoji + '</div>' +
+    '<div style="margin-bottom:10px;">' + creatureImgHtml(creature, 100) + '</div>' +
     '<div style="font-size:14px;color:' + (correct ? '#4ade80' : '#ff8a8a') + ';font-weight:900;margin-bottom:16px;">' + (correct ? (creature.name + '이(가) 좋아하는 먹이였어요!') : (creature.name + '이(가) 별로 안 좋아하는 먹이였어요...')) + '</div>' +
     '<div style="font-size:13px;color:#aaa;">관찰하는 중...</div>';
 
@@ -155,7 +159,7 @@ function resolveSpecialCapture(success) {
 
   if (!success) {
     area.innerHTML =
-      '<div style="font-size:56px;margin-bottom:10px;opacity:0.5;">' + creature.emoji + '💨</div>' +
+      '<div style="margin-bottom:10px;opacity:0.5;">' + creatureImgHtml(creature, 90) + '<span style="font-size:30px;">💨</span></div>' +
       '<div style="font-size:15px;color:#ff8a8a;font-weight:900;margin-bottom:18px;">' + creature.name + '이(가) 도망가버렸어요...</div>' +
       '<button onclick="renderSpecialExploreScreen()" style="padding:13px 28px;background:rgba(255,255,255,0.1);border:none;border-radius:14px;color:#fff;font-size:14px;font-weight:900;cursor:pointer;font-family:\'Noto Sans KR\',sans-serif;">다시 둘러보기</button>';
     return;
@@ -208,7 +212,7 @@ function resolveSpecialCapture(success) {
 
   area.innerHTML =
     '<div style="font-size:13px;color:#FFD700;font-weight:900;margin-bottom:6px;">🎉 포획 성공!</div>' +
-    '<div style="font-size:64px;margin-bottom:8px;">' + creature.emoji + '</div>' +
+    '<div style="margin-bottom:8px;">' + creatureImgHtml(creature, 100) + '</div>' +
     '<div style="font-size:16px;font-weight:900;color:#fff;margin-bottom:4px;">' + creature.name + '</div>' +
     (isFirstCapture ? '<div style="font-size:12px;color:#FF6B9D;font-weight:900;margin-bottom:12px;">📖 도감 신규 등록!</div>' : '<div style="font-size:11px;color:#888;margin-bottom:12px;">(반복 포획)</div>') +
     dropHtml +
@@ -234,7 +238,7 @@ function openDexOverlay() {
     SPECIAL_CREATURES.map(function(c) {
       const got = captured.indexOf(c.id) !== -1;
       return '<div style="background:' + (got ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.03)') + ';border:1.5px solid ' + (got ? '#FFD700' : 'rgba(255,255,255,0.1)') + ';border-radius:14px;padding:14px;text-align:center;">' +
-        '<div style="font-size:34px;margin-bottom:6px;' + (got ? '' : 'filter:grayscale(1) brightness(0.4);') + '">' + c.emoji + '</div>' +
+        '<div style="margin-bottom:6px;' + (got ? '' : 'filter:grayscale(1) brightness(0.3);') + '">' + creatureImgHtml(c, 50) + '</div>' +
         '<div style="font-size:12px;font-weight:900;color:' + (got ? '#fff' : '#555') + ';">' + (got ? c.name : '???') + '</div>' +
         (c.rare ? '<div style="font-size:9px;color:#FFD700;margin-top:2px;">희귀</div>' : '') +
         '</div>';
