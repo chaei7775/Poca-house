@@ -1738,6 +1738,24 @@ function useCoupon() {
     return;
   }
 
+  if (coupon === 'EPIC7777') {
+    if (typeof ownedHiddenCards === 'undefined' || typeof HIDDEN_CARDS === 'undefined') {
+      alert('재조합기 데이터가 아직 로드되지 않았어요. 잠시 후 다시 시도해주세요!');
+      return;
+    }
+    let count = 0;
+    HIDDEN_CARDS.filter(function(h) { return h.grade === '에픽히든'; }).forEach(function(h) {
+      if (!ownedHiddenCards.includes(h.id)) { ownedHiddenCards.push(h.id); count++; }
+    });
+    localStorage.setItem('ph_hiddenCards', JSON.stringify(ownedHiddenCards));
+
+    usedCoupons.push(coupon);
+    localStorage.setItem('ph_usedCoupons', JSON.stringify(usedCoupons));
+    saveAll();
+    alert('🎁 에픽 히든카드 테스터 쿠폰!\n\n✨ 전 캐릭터 에픽히든카드 ' + count + '장 지급 완료');
+    return;
+  }
+
   alert('유효하지 않은 쿠폰입니다.');
 }
 
