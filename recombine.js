@@ -443,7 +443,10 @@ const MATERIAL_SELL_PRICES = {
   '무지개수정':50, '해바라기':50,
   // 희귀재료
   '바다진주':200, '달의눈물':200, '나비의날개':200, '벚꽃결정':200,
-  '행운의잎':200, '천사의깃털':200, '구름조각':200
+  '행운의잎':200, '천사의깃털':200, '구름조각':200,
+  // 특별탐험 재료 (희귀생물 포획 전용, 비싸게 매입)
+  '별빛 털':300, '반짝이는 날개가루':300, '은빛 깃털':300,
+  '신비한 꽃가루':300, '달빛 잎사귀':300, '수정 조각':300
 };
 
 function renderMaterialShop() {
@@ -502,11 +505,11 @@ function openMoreMenu() {
   overlay.style.cssText = 'position:fixed;inset:0;z-index:900;background:rgba(0,0,0,0.6);display:flex;align-items:flex-end;';
   overlay.onclick = function(e) { if (e.target === overlay) overlay.remove(); };
 
-  overlay.innerHTML = '<div style="width:100%;max-width:430px;margin:0 auto;background:#1a1a2e;border-radius:24px 24px 0 0;padding:20px 16px 36px;">' +
-    '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">' +
+  overlay.innerHTML = '<div style="width:100%;max-width:430px;margin:0 auto;background:#1a1a2e;border-radius:24px 24px 0 0;padding:20px 16px 36px;max-height:85vh;overflow-y:auto;display:flex;flex-direction:column;">' +
+    '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-shrink:0;">' +
     '<div style="color:#fff;font-size:16px;font-weight:900;">더보기</div>' +
     '<button onclick="document.getElementById(\'more-menu-overlay\').remove()" style="background:rgba(255,255,255,0.1);border:none;border-radius:8px;color:#fff;padding:6px 12px;cursor:pointer;">닫기</button></div>' +
-    '<div id="more-menu-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">' +
+    '<div id="more-menu-grid" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">' +
     moreMenuTileHtml('🔮', '카드 재조합기', '#C084FC', "openRecombine()") +
     moreMenuTileHtml('📖', '히든카드 도감', '#FFD700', "openHiddenCardDex()") +
     moreMenuTileHtml('🛍️', '잡화점', '#FF6B9D', "openShop('gift')") +
@@ -515,8 +518,8 @@ function openMoreMenu() {
 }
 
 function moreMenuTileHtml(icon, label, color, onclickFn) {
-  return '<button onclick="document.getElementById(\'more-menu-overlay\').remove();' + onclickFn + ';" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;aspect-ratio:1;padding:10px;background:' + color + '1f;border:1.5px solid ' + color + ';border-radius:16px;color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:\'Noto Sans KR\',sans-serif;text-align:center;">' +
-    '<span style="font-size:28px;">' + icon + '</span><span>' + label + '</span></button>';
+  return '<button onclick="document.getElementById(\'more-menu-overlay\').remove();' + onclickFn + ';" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;aspect-ratio:0.95;padding:6px 4px;background:' + color + '1f;border:1.5px solid ' + color + ';border-radius:12px;color:#fff;font-size:10px;font-weight:700;cursor:pointer;font-family:\'Noto Sans KR\',sans-serif;text-align:center;line-height:1.2;">' +
+    '<span style="font-size:19px;">' + icon + '</span><span>' + label + '</span></button>';
 }
 
 (function hookGoToForRecombine() {
