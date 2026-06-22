@@ -594,11 +594,27 @@ function checkWishFragment(rate) {
   }
 }
 function showWishFragment() {
+  const exploreActive = !!document.getElementById('explore-overlay');
+  if (exploreActive) {
+    explorePaused = true;
+    explorePauseStarted = Date.now();
+  }
   const popup = document.createElement('div');
   popup.className = 'wish-popup';
-  popup.innerHTML = `<div class="wish-inner"><div style="font-size:48px;margin-bottom:12px;">🧩</div><div style="font-size:20px;font-weight:900;color:#FFD700;margin-bottom:8px;">소원의 조각 발견!</div><div style="font-size:14px;color:#aaa;margin-bottom:16px;">보유: 🧩 ${wishFragments}개 / 100개</div><button onclick="this.closest('.wish-popup').remove()" style="padding:10px 28px;background:linear-gradient(135deg,#FFD700,#F59E0B);border:none;border-radius:12px;color:#1a1a2e;font-size:14px;font-weight:900;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">확인</button></div>`;
+  popup.innerHTML = `<div class="wish-inner"><div style="font-size:48px;margin-bottom:12px;">🧩</div><div style="font-size:20px;font-weight:900;color:#FFD700;margin-bottom:8px;">소원의 조각 발견!</div><div style="font-size:14px;color:#aaa;margin-bottom:16px;">보유: 🧩 ${wishFragments}개 / 100개</div><button onclick="resumeExploreAfterWishPopup(this)" style="padding:10px 28px;background:linear-gradient(135deg,#FFD700,#F59E0B);border:none;border-radius:12px;color:#1a1a2e;font-size:14px;font-weight:900;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">확인</button></div>`;
   document.body.appendChild(popup);
-  setTimeout(() => { if (popup.parentNode) popup.remove(); }, 3000);
+  setTimeout(() => { if (popup.parentNode) { popup.remove(); resumeExploreTimer(); } }, 3000);
+}
+function resumeExploreAfterWishPopup(btn) {
+  const popup = btn.closest('.wish-popup');
+  if (popup) popup.remove();
+  resumeExploreTimer();
+}
+function resumeExploreTimer() {
+  if (explorePaused) {
+    exploreStartTime += (Date.now() - explorePauseStarted);
+    explorePaused = false;
+  }
 }
 function showWishCrystalEarned() {
   addToBag('💎', '소원의 결정', 'crystal', 1, '소원의 결정 — 특별한 소원을 이룰 수 있어!');
@@ -983,7 +999,7 @@ function tapCafeGauge() {
   cafeScores.push(score); cafeStep++; renderCafeStep();
 }
 function selectAndDrawLatte(art, emoji) {
-  const score = (art === '하트' || art === '곰돌이') ? 40 : 25;
+  const score = 40;
   if (score >= 40 && cafeScores[0] >= 40 && cafeScores[1] >= 40) showComboPopup('🔥 X3 COMBO!');
   cafeScores.push(score);
   const h = document.getElementById('cafe-hotspots');
@@ -1646,6 +1662,19 @@ function openPlayerLevelPopup() {
 }
 
 let usedCoupons = JSON.parse(localStorage.getItem('ph_usedCoupons') || '[]');
+const MATERIAL_EMOJI_MAP = {
+  '무지개꽃':'🌈', '장미꽃':'🌹', '해바라기':'🌻', '네잎클로버':'🍀',
+  '나비가루':'🦋', '맑은샘물':'💧', '달빛모래':'🌙', '벚꽃결정':'💎',
+  '나비의날개':'🦋', '행운의잎':'🍀', '새의깃털':'🪶', '빛나는돌':'🪨',
+  '반짝이는조개':'🐚', '별빛모래':'⭐', '고급원목':'🪵', '은빛거미줄':'🕸️',
+  '달빛수정':'🌙', '무지개수정':'🌈', '별의파편':'⭐', '바다진주':'🦪',
+  '별빛나무':'🌳', '신비버섯':'🍄', '구름조각':'☁️', '천사의깃털':'🪽',
+  '달의눈물':'💧'
+};
+function getMaterialEmoji(name) {
+  return MATERIAL_EMOJI_MAP[name] || '🌿';
+}
+
 function useCoupon() {
   const code = prompt('쿠폰 코드를 입력하세요');
   if (!code) return;
@@ -1698,7 +1727,7 @@ function useCoupon() {
       checkPlayerLevelUp();
     }
 
-    const allMaterials = [
+const allMaterials = [
       ['🌈', '무지개꽃'], ['🌹', '장미꽃'], ['🌻', '해바라기'], ['🍀', '네잎클로버'],
       ['🦋', '나비가루'], ['💧', '맑은샘물'], ['🌙', '달빛모래'], ['💎', '벚꽃결정'],
       ['🦋', '나비의날개'], ['🍀', '행운의잎'], ['🪶', '새의깃털'], ['🪨', '빛나는돌'],
@@ -1849,6 +1878,9 @@ const EXPLORE_MATERIALS = {
 };
 
 let exploreTimer = null;
+let exploreStartTime = 0;
+let explorePaused = false;
+let explorePauseStarted = 0;
 let exploreItems = [];
 let exploreCollected = [];
 
@@ -1925,9 +1957,11 @@ function startExplore(placeId) {
 
   // 타이머
   let timeLeft = 3000;
-  const startTime = Date.now();
+  exploreStartTime = Date.now();
+  explorePaused = false;
   exploreTimer = setInterval(() => {
-    const elapsed = Date.now() - startTime;
+    if (explorePaused) return;
+    const elapsed = Date.now() - exploreStartTime;
     const remaining = Math.max(0, 3000 - elapsed);
     const pct = remaining / 3000 * 100;
     const fill = document.getElementById('explore-timer-fill');
@@ -1961,7 +1995,7 @@ function collectExploreItem(idx, item, el) {
       setTimeout(() => { if (typeof showWishCrystalEarned === 'function') showWishCrystalEarned(); }, 1500);
     }
   } else {
-    addToBag('🌿', item.name, 'material', 1, '제작 재료');
+    addToBag(getMaterialEmoji(item.name), item.name, 'material', 1, '제작 재료');
     exploreCollected.push(item.name);
     addPlayerExp(10);
   }

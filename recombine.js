@@ -565,7 +565,7 @@ function moreMenuTileHtml(icon, label, color, onclickFn) {
       if (typeof EXPLORE_MATERIALS !== 'undefined' && EXPLORE_MATERIALS.mystery && Math.random() < 0.15) {
         const rarePool = EXPLORE_MATERIALS.mystery.rare;
         const bonusMat = rarePool[Math.floor(Math.random() * rarePool.length)];
-        addToBag('🌿', bonusMat, 'material', 1, '제작 재료 (신비의 섬 보너스)');
+        addToBag(typeof getMaterialEmoji === 'function' ? getMaterialEmoji(bonusMat) : '🌿', bonusMat, 'material', 1, '제작 재료 (신비의 섬 보너스)');
         if (typeof exploreCollected !== 'undefined') exploreCollected.push(bonusMat);
       }
     } else {
