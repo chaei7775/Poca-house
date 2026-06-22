@@ -70,23 +70,46 @@ function openSpecialCardSelect(locationId) {
   overlay.style.cssText = 'position:fixed;top:0;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;z-index:700;background:#1a1a2e;display:flex;flex-direction:column;';
 
   const loc = SPECIAL_LOCATIONS.find(function(l) { return l.id === locationId; });
+  const hiddenOwned = typeof ownedHiddenCards !== 'undefined' ? ownedHiddenCards : [];
+  const eligibleChars = Object.keys(CHARS).filter(function(cid) {
+    return hiddenOwned.some(function(hid) { return hid.indexOf('hidden_' + cid + '_') === 0; });
+  });
+
+  let bodyHtml;
+  if (eligibleChars.length === 0) {
+    bodyHtml =
+      '<div style="text-align:center;padding:10px 0 20px;">' +
+      '<div style="font-size:32px;margin-bottom:8px;">🔒</div>' +
+      '<div style="font-size:14px;font-weight:900;color:#fff;margin-bottom:4px;">특별 탐험 입장 조건</div>' +
+      '<div style="font-size:12px;color:#aaa;margin-bottom:6px;">히든(EH) 카드를 보유해야 입장할 수 있어요</div>' +
+      '<div style="font-size:12px;color:#FFD700;margin-bottom:16px;">현재 보유: ' + hiddenOwned.length + '장</div>' +
+      '<button onclick="document.getElementById(\'special-overlay\').remove();if(typeof openRecombine===\'function\')openRecombine();" style="padding:12px 24px;background:linear-gradient(135deg,#C084FC,#7c3aed);border:none;border-radius:14px;color:#fff;font-size:13px;font-weight:900;cursor:pointer;font-family:\'Noto Sans KR\',sans-serif;">🔮 재조합기로 이동</button>' +
+      '</div>' +
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">' +
+      Object.keys(CHARS).map(function(cid) {
+        const ch = CHARS[cid];
+        return '<div style="display:flex;align-items:center;gap:8px;padding:10px 12px;background:rgba(255,255,255,0.04);border:1.5px solid rgba(255,255,255,0.1);border-radius:12px;">' +
+          '<span style="font-size:20px;filter:grayscale(1) brightness(0.5);">' + ch.emoji + '</span>' +
+          '<span style="font-size:12px;font-weight:700;color:#777;">' + ch.name + ' EH</span>' +
+          '<span style="margin-left:auto;font-size:14px;">🔒</span></div>';
+      }).join('') +
+      '</div>';
+  } else {
+    bodyHtml =
+      '<div style="font-size:13px;color:#ccc;margin-bottom:12px;">출전할 포카를 선택해주세요 (탐험 경험치를 획득해요)</div>' +
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">' +
+      eligibleChars.map(function(cid) {
+        const ch = CHARS[cid];
+        return '<button onclick="startSpecialExplore(\'' + locationId + '\',\'' + cid + '\')" style="display:flex;flex-direction:column;align-items:center;gap:6px;padding:14px 8px;background:rgba(255,255,255,0.06);border:1.5px solid ' + ch.gradeColor + ';border-radius:14px;color:#fff;cursor:pointer;font-family:\'Noto Sans KR\',sans-serif;">' +
+          '<span style="font-size:28px;">' + ch.emoji + '</span><span style="font-size:13px;font-weight:900;">' + ch.name + '</span></button>';
+      }).join('') +
+      '</div>';
+  }
+
   overlay.innerHTML = '<div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid rgba(255,255,255,0.1);">' +
     '<div style="color:#fff;font-size:15px;font-weight:900;">' + loc.emoji + ' ' + loc.name + '</div>' +
     '<button onclick="document.getElementById(\'special-overlay\').remove()" style="background:rgba(255,255,255,0.1);border:none;border-radius:10px;color:#fff;padding:7px 12px;cursor:pointer;">닫기</button></div>' +
-    '<div style="padding:16px;">' +
-    '<div style="font-size:13px;color:#ccc;margin-bottom:12px;">출전할 포카를 선택해주세요 (탐험 경험치를 획득해요)</div>' +
-    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">' +
-    Object.keys(CHARS).filter(function(cid) {
-      return (typeof ownedHiddenCards !== 'undefined') && ownedHiddenCards.some(function(hid) { return hid.indexOf('hidden_' + cid + '_') === 0; });
-    }).map(function(cid) {
-      const ch = CHARS[cid];
-      return '<button onclick="startSpecialExplore(\'' + locationId + '\',\'' + cid + '\')" style="display:flex;flex-direction:column;align-items:center;gap:6px;padding:14px 8px;background:rgba(255,255,255,0.06);border:1.5px solid ' + ch.gradeColor + ';border-radius:14px;color:#fff;cursor:pointer;font-family:\'Noto Sans KR\',sans-serif;">' +
-        '<span style="font-size:28px;">' + ch.emoji + '</span><span style="font-size:13px;font-weight:900;">' + ch.name + '</span></button>';
-    }).join('') +
-    '</div>' +
-    (!(typeof ownedHiddenCards !== 'undefined' && ownedHiddenCards.length > 0) ?
-      '<div style="font-size:12px;color:#888;text-align:center;margin-top:14px;">히든(EH) 카드를 보유한 포카만 출전할 수 있어요. 재조합기에서 히든카드를 먼저 획득해보세요!</div>' : '') +
-    '</div>';
+    '<div style="padding:16px;overflow-y:auto;">' + bodyHtml + '</div>';
   document.body.appendChild(overlay);
 }
 
