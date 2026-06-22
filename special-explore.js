@@ -61,27 +61,51 @@ const SPECIAL_GEAR = [
   { name:'성운 펜던트',     emoji:'🌠', effect:'flee',    value:25 },
   { name:'용의 심장 브로치', emoji:'❤️', effect:'variant', value:50 }
 ];
-const CAPTURE_TOOL_NAME = '포획망';
-const CAPTURE_TOOL_PRICE = 50;
+const CAPTURE_TOOLS = [
+  { id:'net',   name:'포획망',     emoji:'🥅', price:50, value:20 },
+  { id:'spray', name:'수면스프레이', emoji:'💤', price:80, value:35 },
+  { id:'scent', name:'유인향수',   emoji:'🌸', price:65, value:25 }
+];
+const VARIANT_CORRECT_TOOL = {
+  rainbow_butterfly: 'scent',
+  silver_sparrow:    'net',
+  crystal_deer:       'spray',
+  moon_rabbit:        'spray',
+  star_fox:           'net',
+  aurora_peacock:     'scent',
+  silver_salmon:       'net',
+  wish_dragon:        'spray'
+};
+
+function getEquippedGearMap() {
+  try { return JSON.parse(localStorage.getItem('ph_equippedGearByChar') || '{}'); } catch (e) { return {}; }
+}
+function getEquippedGearFor(charId) {
+  const map = getEquippedGearMap();
+  const name = map[charId];
+  if (!name) return null;
+  return SPECIAL_GEAR.find(function(g) { return g.name === name; }) || null;
+}
+function setEquippedGearFor(charId, gearName) {
+  const map = getEquippedGearMap();
+  if (gearName) map[charId] = gearName;
+  else delete map[charId];
+  localStorage.setItem('ph_equippedGearByChar', JSON.stringify(map));
+}
 const SPECIAL_GEAR_GRADES = { common:'일반', great:'고급', rare:'희귀', legend:'전설' };
 
 let specialExploreState = null; // { locationId, charId, creature, foodChosen }
 
-function getEquippedGear() {
-  const name = localStorage.getItem('ph_equippedGear');
-  if (!name) return null;
-  return SPECIAL_GEAR.find(function(g) { return g.name === name; }) || null;
-}
-function getGearBonus(effectType) {
-  const gear = getEquippedGear();
+function getGearBonus(charId, effectType) {
+  const gear = getEquippedGearFor(charId);
   if (!gear || gear.effect !== effectType) return 0;
   return gear.value;
 }
-function hasRetryGear() {
-  return getGearBonus('retry') > 0;
+function hasRetryGear(charId) {
+  return getGearBonus(charId, 'retry') > 0;
 }
 
-function openGearEquipScreen() {
+function openGearEquipScreen(charId) {
   const old = document.getElementById('gear-equip-popup');
   if (old) old.remove();
   const popup = document.createElement('div');
@@ -90,7 +114,8 @@ function openGearEquipScreen() {
   popup.onclick = function(e) { if (e.target === popup) popup.remove(); };
 
   const owned = (typeof bagItems !== 'undefined' ? bagItems : []).filter(function(i) { return i.type === 'gear'; });
-  const equipped = getEquippedGear();
+  const equipped = getEquippedGearFor(charId);
+  const ch = CHARS[charId];
 
   let listHtml;
   if (owned.length === 0) {
@@ -108,25 +133,25 @@ function openGearEquipScreen() {
         '<div style="display:flex;align-items:center;gap:10px;"><span style="font-size:22px;">' + gear.emoji + '</span>' +
         '<div><div style="font-size:13px;font-weight:900;color:#fff;">' + item.name + '</div>' +
         '<div style="font-size:11px;color:#FFD700;margin-top:2px;">' + effectText + '</div></div></div>' +
-        '<button onclick="equipSpecialGear(\'' + gear.name + '\')" style="flex-shrink:0;padding:7px 12px;background:' + (isEquipped ? '#FFD700' : '#C084FC') + ';border:none;border-radius:10px;color:' + (isEquipped ? '#1a1a2e' : '#fff') + ';font-size:11px;font-weight:900;cursor:pointer;">' + (isEquipped ? '장착중' : '장착') + '</button>' +
+        '<button onclick="equipSpecialGear(\'' + charId + '\',\'' + gear.name + '\')" style="flex-shrink:0;padding:7px 12px;background:' + (isEquipped ? '#FFD700' : '#C084FC') + ';border:none;border-radius:10px;color:' + (isEquipped ? '#1a1a2e' : '#fff') + ';font-size:11px;font-weight:900;cursor:pointer;">' + (isEquipped ? '장착중' : '장착') + '</button>' +
         '</div>';
     }).join('');
   }
 
   popup.innerHTML = '<div style="width:100%;max-width:360px;max-height:80vh;overflow-y:auto;background:#1a1a2e;border-radius:18px;padding:18px;">' +
     '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">' +
-    '<div style="font-size:15px;font-weight:900;color:#fff;">🎽 장비 장착</div>' +
+    '<div style="font-size:15px;font-weight:900;color:#fff;">🎽 ' + (ch ? ch.emoji + ' ' + ch.name + '의 ' : '') + '장비 장착</div>' +
     '<button onclick="document.getElementById(\'gear-equip-popup\').remove()" style="background:rgba(255,255,255,0.1);border:none;border-radius:8px;color:#fff;padding:6px 12px;cursor:pointer;">닫기</button></div>' +
-    (equipped ? '<button onclick="equipSpecialGear(null)" style="width:100%;padding:9px;margin-bottom:10px;background:rgba(255,255,255,0.08);border:none;border-radius:10px;color:#aaa;font-size:12px;cursor:pointer;">장비 해제</button>' : '') +
+    '<div style="font-size:11px;color:#888;margin-bottom:10px;">장비는 캐릭터마다 따로 장착돼요 (1캐릭터당 1슬롯)</div>' +
+    (equipped ? '<button onclick="equipSpecialGear(\'' + charId + '\',null)" style="width:100%;padding:9px;margin-bottom:10px;background:rgba(255,255,255,0.08);border:none;border-radius:10px;color:#aaa;font-size:12px;cursor:pointer;">장비 해제</button>' : '') +
     listHtml +
     '</div>';
   document.body.appendChild(popup);
 }
 
-function equipSpecialGear(gearName) {
-  if (gearName) localStorage.setItem('ph_equippedGear', gearName);
-  else localStorage.removeItem('ph_equippedGear');
-  openGearEquipScreen();
+function equipSpecialGear(charId, gearName) {
+  setEquippedGearFor(charId, gearName);
+  openGearEquipScreen(charId);
 }
 function getDexCaptured() {
   return JSON.parse(localStorage.getItem('ph_dex_captured') || '[]');
@@ -194,11 +219,15 @@ function openSpecialCardSelect(locationId) {
       '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">' +
       eligibleChars.map(function(cid) {
         const ch = CHARS[cid];
-        return '<button onclick="startSpecialExplore(\'' + locationId + '\',\'' + cid + '\')" style="display:flex;flex-direction:column;align-items:center;gap:6px;padding:14px 8px;background:rgba(255,255,255,0.06);border:1.5px solid ' + ch.gradeColor + ';border-radius:14px;color:#fff;cursor:pointer;font-family:\'Noto Sans KR\',sans-serif;">' +
-          '<span style="font-size:28px;">' + ch.emoji + '</span><span style="font-size:13px;font-weight:900;">' + ch.name + '</span></button>';
+        const eq = getEquippedGearFor(cid);
+        return '<div style="position:relative;">' +
+          '<button onclick="startSpecialExplore(\'' + locationId + '\',\'' + cid + '\')" style="width:100%;display:flex;flex-direction:column;align-items:center;gap:6px;padding:14px 8px;background:rgba(255,255,255,0.06);border:1.5px solid ' + ch.gradeColor + ';border-radius:14px;color:#fff;cursor:pointer;font-family:\'Noto Sans KR\',sans-serif;">' +
+          '<span style="font-size:28px;">' + ch.emoji + '</span><span style="font-size:13px;font-weight:900;">' + ch.name + '</span></button>' +
+          '<button onclick="event.stopPropagation();openGearEquipScreen(\'' + cid + '\')" style="position:absolute;top:-6px;right:-6px;width:24px;height:24px;border-radius:50%;background:' + (eq ? '#FFD700' : '#444') + ';border:1.5px solid #1a1a2e;font-size:12px;cursor:pointer;">' + (eq ? eq.emoji : '🎽') + '</button>' +
+          '</div>';
       }).join('') +
       '</div>' +
-      '<button onclick="openGearEquipScreen()" style="width:100%;margin-top:14px;padding:10px;background:rgba(255,215,0,0.12);border:1.5px solid #FFD700;border-radius:12px;color:#FFD700;font-size:12px;font-weight:700;cursor:pointer;font-family:\'Noto Sans KR\',sans-serif;">🎽 장비 장착 (' + (getEquippedGear() ? getEquippedGear().emoji + ' ' + getEquippedGear().name : '없음') + ')</button>';
+      '<div style="font-size:10px;color:#666;text-align:center;margin-top:10px;">카드 모서리의 🎽 버튼으로 캐릭터별 장비를 장착할 수 있어요</div>';
   }
 
   overlay.innerHTML = '<div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid rgba(255,255,255,0.1);">' +
@@ -238,7 +267,7 @@ function encounterSpecialCreature() {
   const baseCreature = pool[Math.floor(Math.random() * pool.length)];
 
   // 5% 확률로 레어 변종 등장 (+장비 보너스)
-  const variantChance = 0.05 + (getGearBonus('variant') / 100);
+  const variantChance = 0.05 + (getGearBonus(specialExploreState.charId, 'variant') / 100);
   const isVariant = Math.random() < variantChance && RARE_VARIANTS[baseCreature.id];
   const creature = isVariant ?
     Object.assign({}, baseCreature, { isVariant: true, variantName: RARE_VARIANTS[baseCreature.id].name, variantImg: RARE_VARIANTS[baseCreature.id].img }) :
@@ -249,6 +278,7 @@ function encounterSpecialCreature() {
   specialExploreState.feedRound = 1;
   specialExploreState.chance = null;
   specialExploreState.retryUsed = false;
+  specialExploreState.instantFleeRisk = 0;
   renderSpecialFeedScreen();
 }
 
@@ -352,22 +382,28 @@ function chooseSpecialFood(food) {
   }, 1400);
 }
 
-function getCaptureToolQty() {
+function getToolQty(toolId) {
   if (typeof bagItems === 'undefined') return 0;
-  const item = bagItems.find(function(i) { return i.name === CAPTURE_TOOL_NAME && i.type === 'tool'; });
+  const tool = CAPTURE_TOOLS.find(function(t) { return t.id === toolId; });
+  const item = bagItems.find(function(i) { return i.name === tool.name && i.type === 'tool'; });
   return item ? item.qty : 0;
 }
 
 function renderCaptureToolScreen() {
   const creature = specialExploreState.creature;
   const area = document.getElementById('special-main-area');
-  const qty = getCaptureToolQty();
   area.innerHTML =
-    '<div style="font-size:13px;font-weight:900;color:#FFD700;margin-bottom:6px;">🥅 이제 포획도구로 마무리하세요!</div>' +
+    '<div style="font-size:13px;font-weight:900;color:#FFD700;margin-bottom:6px;">🎯 어떤 도구로 마무리할까요?</div>' +
     '<div style="margin-bottom:8px;">' + variantImgHtml(creature, 100) + '</div>' +
     '<div style="font-size:16px;font-weight:900;color:#fff;margin-bottom:18px;">' + creature.variantName + '</div>' +
-    '<button onclick="' + (qty > 0 ? 'useCaptureTool()' : '') + '" style="padding:13px 28px;margin-bottom:10px;background:' + (qty > 0 ? 'linear-gradient(135deg,#FF6B9D,#C084FC)' : 'rgba(255,255,255,0.08)') + ';border:none;border-radius:14px;color:' + (qty > 0 ? '#fff' : '#666') + ';font-size:14px;font-weight:900;cursor:pointer;font-family:\'Noto Sans KR\',sans-serif;">🥅 포획망 사용하기 (보유 ' + qty + '개)</button><br>' +
-    '<button onclick="openToolShop()" style="padding:8px 16px;background:rgba(255,215,0,0.15);border:1.5px solid #FFD700;border-radius:12px;color:#FFD700;font-size:12px;font-weight:700;cursor:pointer;font-family:\'Noto Sans KR\',sans-serif;">🛒 포획망 구매하기</button>';
+    '<div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;justify-content:center;">' +
+    CAPTURE_TOOLS.map(function(tool) {
+      const qty = getToolQty(tool.id);
+      const disabled = qty <= 0;
+      return '<button onclick="' + (disabled ? '' : 'useCaptureTool(\'' + tool.id + '\')') + '" style="padding:10px 12px;background:' + (disabled ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.08)') + ';border:1.5px solid ' + (disabled ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.25)') + ';border-radius:14px;color:' + (disabled ? '#555' : '#fff') + ';font-size:12px;font-weight:700;cursor:' + (disabled ? 'default' : 'pointer') + ';font-family:\'Noto Sans KR\',sans-serif;">' + tool.emoji + ' ' + tool.name + '<br><span style="font-size:9px;color:' + (disabled ? '#555' : '#FFD700') + ';">보유 ' + qty + '개</span></button>';
+    }).join('') +
+    '</div>' +
+    '<button onclick="openToolShop()" style="padding:8px 16px;background:rgba(255,215,0,0.15);border:1.5px solid #FFD700;border-radius:12px;color:#FFD700;font-size:12px;font-weight:700;cursor:pointer;font-family:\'Noto Sans KR\',sans-serif;">🛒 도구 구매하기</button>';
 }
 
 function openToolShop() {
@@ -377,51 +413,72 @@ function openToolShop() {
   popup.id = 'tool-shop-popup';
   popup.style.cssText = 'position:fixed;inset:0;z-index:1100;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;padding:20px;';
   popup.onclick = function(e) { if (e.target === popup) popup.remove(); };
-  popup.innerHTML = '<div style="width:100%;max-width:300px;background:#fff;border-radius:18px;padding:20px;text-align:center;">' +
-    '<div style="font-size:30px;margin-bottom:6px;">🥅</div>' +
-    '<div style="font-size:14px;font-weight:900;color:#222;margin-bottom:4px;">포획망</div>' +
-    '<div style="font-size:11px;color:#888;margin-bottom:4px;">보유: ' + getCaptureToolQty() + '개</div>' +
+  popup.innerHTML = '<div style="width:100%;max-width:320px;background:#fff;border-radius:18px;padding:20px;">' +
+    '<div style="font-size:14px;font-weight:900;color:#222;margin-bottom:4px;">🛒 포획도구 구매</div>' +
     '<div style="font-size:11px;color:#888;margin-bottom:14px;">보유 코인: 🍔 ' + (typeof coins !== 'undefined' ? coins : 0) + '</div>' +
-    '<button onclick="buyCaptureTool()" style="width:100%;padding:11px;background:linear-gradient(135deg,#FF6B9D,#C084FC);border:none;border-radius:12px;color:#fff;font-size:13px;font-weight:900;cursor:pointer;font-family:\'Noto Sans KR\',sans-serif;margin-bottom:8px;">🍔' + CAPTURE_TOOL_PRICE + ' 구매</button>' +
-    '<button onclick="document.getElementById(\'tool-shop-popup\').remove()" style="width:100%;padding:9px;background:#f3f3f3;border:none;border-radius:10px;color:#666;cursor:pointer;font-family:\'Noto Sans KR\',sans-serif;">닫기</button>' +
+    CAPTURE_TOOLS.map(function(tool) {
+      return '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid #eee;">' +
+        '<div style="font-size:13px;font-weight:700;color:#333;">' + tool.emoji + ' ' + tool.name + ' <span style="color:#aaa;font-size:11px;">(보유 ' + getToolQty(tool.id) + ')</span></div>' +
+        '<button onclick="buyCaptureTool(\'' + tool.id + '\')" style="padding:7px 14px;background:linear-gradient(135deg,#FF6B9D,#C084FC);border:none;border-radius:10px;color:#fff;font-size:12px;font-weight:900;cursor:pointer;font-family:\'Noto Sans KR\',sans-serif;">🍔' + tool.price + '</button>' +
+        '</div>';
+    }).join('') +
+    '<button onclick="document.getElementById(\'tool-shop-popup\').remove()" style="width:100%;margin-top:14px;padding:9px;background:#f3f3f3;border:none;border-radius:10px;color:#666;cursor:pointer;font-family:\'Noto Sans KR\',sans-serif;">닫기</button>' +
     '</div>';
   document.body.appendChild(popup);
 }
 
-function buyCaptureTool() {
-  if (typeof coins === 'undefined' || coins < CAPTURE_TOOL_PRICE) {
+function buyCaptureTool(toolId) {
+  const tool = CAPTURE_TOOLS.find(function(t) { return t.id === toolId; });
+  if (typeof coins === 'undefined' || coins < tool.price) {
     if (typeof showBagToast === 'function') showBagToast('코인이 부족해요!');
     return;
   }
-  coins -= CAPTURE_TOOL_PRICE;
-  if (typeof addToBag === 'function') addToBag('🥅', CAPTURE_TOOL_NAME, 'tool', 1, '레어 변종 포획 마무리용');
+  coins -= tool.price;
+  if (typeof addToBag === 'function') addToBag(tool.emoji, tool.name, 'tool', 1, '레어 변종 포획 마무리용');
   if (typeof saveAll === 'function') saveAll();
   if (typeof updateCoinsDisplay === 'function') updateCoinsDisplay();
   openToolShop();
   renderCaptureToolScreen();
 }
 
-function useCaptureTool() {
-  if (getCaptureToolQty() <= 0) return;
-  if (typeof useFromBag === 'function') useFromBag(CAPTURE_TOOL_NAME, 1);
-  specialExploreState.chance = (specialExploreState.chance || 0.5) + 0.25;
+function useCaptureTool(toolId) {
+  if (getToolQty(toolId) <= 0) return;
+  const tool = CAPTURE_TOOLS.find(function(t) { return t.id === toolId; });
+  if (typeof useFromBag === 'function') useFromBag(tool.name, 1);
   const creature = specialExploreState.creature;
+  const correctToolId = VARIANT_CORRECT_TOOL[creature.id];
+  const correct = toolId === correctToolId;
+
+  if (correct) {
+    specialExploreState.chance = (specialExploreState.chance || 0.5) + (tool.value / 100);
+  } else {
+    specialExploreState.chance = (specialExploreState.chance || 0.5) - 0.15;
+    // 도구가 안 맞으면 그 자리에서 도망갈 위험이 있음
+    specialExploreState.instantFleeRisk = 0.25;
+  }
+
   const area = document.getElementById('special-main-area');
   area.innerHTML =
     '<div style="margin-bottom:10px;">' + variantImgHtml(creature, 100) + '</div>' +
-    '<div style="font-size:13px;color:#aaa;">포획망을 던졌어요...</div>';
+    '<div style="font-size:13px;color:' + (correct ? '#4ade80' : '#ff8a8a') + ';">' + (correct ? (tool.name + '이(가) 효과적이었어요!') : (tool.name + '은(는) 별로 효과가 없는 것 같아요...')) + '</div>';
   setTimeout(function() { finalizeSpecialCapture(); }, 1400);
 }
 
 function retrySpecialCapture() {
   specialExploreState.retryUsed = true;
+  specialExploreState.instantFleeRisk = 0;
   finalizeSpecialCapture();
 }
 
 function finalizeSpecialCapture() {
+  // 도구를 잘못 써서 즉시 도망갈 위험 체크
+  if (specialExploreState.instantFleeRisk && Math.random() < specialExploreState.instantFleeRisk) {
+    resolveSpecialCapture(false);
+    return;
+  }
   let chance = specialExploreState.chance != null ? specialExploreState.chance : 0.5;
-  chance += getGearBonus('flee') / 100;
-  chance += getGearBonus('chance') / 100;
+  chance += getGearBonus(specialExploreState.charId, 'flee') / 100;
+  chance += getGearBonus(specialExploreState.charId, 'chance') / 100;
   chance = Math.max(0.05, Math.min(0.97, chance));
   const success = Math.random() < chance;
   resolveSpecialCapture(success);
@@ -434,7 +491,7 @@ function resolveSpecialCapture(success) {
   const displayImgHtml = creature.isVariant ? variantImgHtml(creature, 100) : creatureImgHtml(creature, 100);
 
   if (!success) {
-    const canRetry = hasRetryGear() && !specialExploreState.retryUsed;
+    const canRetry = hasRetryGear(specialExploreState.charId) && !specialExploreState.retryUsed;
     area.innerHTML =
       '<div style="margin-bottom:10px;opacity:0.5;">' + displayImgHtml + '<span style="font-size:30px;">💨</span></div>' +
       '<div style="font-size:15px;color:#ff8a8a;font-weight:900;margin-bottom:18px;">' + displayName + '이(가) 도망가려고 해요!' + (canRetry ? '' : '') + '</div>' +
@@ -478,7 +535,13 @@ function resolveSpecialCapture(success) {
     else gearGrade = 'common';
     gearItem = SPECIAL_GEAR[Math.floor(Math.random() * SPECIAL_GEAR.length)];
     const gradeLabel = SPECIAL_GEAR_GRADES[gearGrade];
-    if (typeof addToBag === 'function') addToBag(gearItem.emoji, '[' + gradeLabel + '] ' + gearItem.name, 'gear', 1, '특별탐험 장착아이템 (효과는 추후 적용 예정)');
+    if (typeof addToBag === 'function') {
+      const effectDesc = gearItem.effect === 'flee' ? '도망확률 -' + gearItem.value + '%' :
+        gearItem.effect === 'chance' ? '포획확률 +' + gearItem.value + '%' :
+        gearItem.effect === 'variant' ? '변종 출현 +' + gearItem.value + '%' :
+        '포획 실패시 재도전 ' + gearItem.value + '회';
+      addToBag(gearItem.emoji, '[' + gradeLabel + '] ' + gearItem.name, 'gear', 1, '특별탐험 장착아이템 · ' + effectDesc);
+    }
   }
 
   // 등교권 / 등교권 조각 드랍 (일반: 등교권0.2%·조각5% / 변종: 등교권3%·조각15%)
