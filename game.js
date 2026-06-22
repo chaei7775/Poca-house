@@ -337,11 +337,11 @@ const CARDS = [
 function drawOne() {
   const rand = Math.random() * 100;
   let pool;
-  // v2.2 밸런스: N 75% / R 18% / SR 5% / SSR 1.93% / UR 0.07%
-  if (rand < 0.07)       pool = CARDS.filter(c => c.grade === 'UR');
-  else if (rand < 2.00)  pool = CARDS.filter(c => c.grade === 'SSR');
-  else if (rand < 7.00)  pool = CARDS.filter(c => c.grade === 'SR');
-  else if (rand < 25.00) pool = CARDS.filter(c => c.grade === 'R');
+  // v2.4 밸런스: N 51% / R 15% / SR 20% / SSR 10% / UR 4%
+  if (rand < 4)          pool = CARDS.filter(c => c.grade === 'UR');
+  else if (rand < 14)    pool = CARDS.filter(c => c.grade === 'SSR');
+  else if (rand < 34)    pool = CARDS.filter(c => c.grade === 'SR');
+  else if (rand < 49)    pool = CARDS.filter(c => c.grade === 'R');
   else                   pool = CARDS.filter(c => c.grade === 'N');
 
   const card = pool[Math.floor(Math.random() * pool.length)];

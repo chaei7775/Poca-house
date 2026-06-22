@@ -19,7 +19,7 @@ const RC_TABLE = {
   'SR_SSR':  { upgrade: 18,   same: 81.7,  rareHidden: 0.25, epicHidden: 0.05, coin: 20000,  stones: { normal: 3, epic: 0 } },
   'SSR_SSR': { upgrade: 8,    same: 91.7,  rareHidden: 0.25, epicHidden: 0.05, coin: 70000,  stones: { normal: 3, epic: 1 } },
   'SSR_UR':  { upgrade: 5,    same: 94.5,  rareHidden: 0.4,  epicHidden: 0.1,  coin: 70000,  stones: { normal: 3, epic: 1 } },
-  'UR_UR':   { upgrade: 0,    same: 98.5,  rareHidden: 1,    epicHidden: 0.5,  coin: 200000, stones: { normal: 5, epic: 2 } },
+  'UR_UR':   { upgrade: 0,    same: 88,    rareHidden: 8,    epicHidden: 4,    coin: 200000, stones: { normal: 5, epic: 2 } },
 };
 
 function getRcTableKey(gradeA, gradeB) {
