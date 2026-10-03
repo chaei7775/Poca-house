@@ -524,7 +524,7 @@ function resolveSpecialCapture(success) {
   }
 
   // 장착아이템: 레어변종은 100% 드랍, 일반은 5%
-  const gotGear = creature.isVariant ? true : Math.random() < 0.05;
+  const gotGear = Math.random() < (creature.isVariant ? 0.10 : 0.03);
   let gearGrade = null;
   let gearItem = null;
   if (gotGear) {
