@@ -21,6 +21,7 @@ const NEW_CONTENT_FILES = [
   'cf-shoot.js',
   'sfx.js',
   'coupon-patch.js',
+  'quest-guide.js',
 ];
 NEW_CONTENT_FILES.forEach(function(filename) {
   const s = document.createElement('script');
