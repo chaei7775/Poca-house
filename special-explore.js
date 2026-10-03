@@ -223,14 +223,32 @@ function addDexCaptured(creatureId) {
   return false;
 }
 
+// ── 포카하우스 레벨 해금: 천공성 유적은 처음부터, 달빛 회랑/공방 지하는 레벨이 필요 ──
+const SPECIAL_LOCATION_UNLOCK = { moonlit_corridor: 'specialMoonlit', workshop_basement: 'specialWorkshop' };
+function isSpecialLocationLocked(locationId) {
+  const key = SPECIAL_LOCATION_UNLOCK[locationId];
+  if (!key || typeof isPocaHouseFeatureUnlocked !== 'function') return false;
+  return !isPocaHouseFeatureUnlocked(key);
+}
+let specialListLockSig = '';
+setInterval(function() {
+  if (!document.getElementById('special-explore-list')) return;
+  const sig = SPECIAL_LOCATIONS.map(function(l) { return isSpecialLocationLocked(l.id) ? 1 : 0; }).join('');
+  if (sig !== specialListLockSig) renderSpecialExploreList();
+}, 3000);
+
 // ── 까만 빈 공간에 장소 목록 렌더 ──
 function renderSpecialExploreList() {
   const el = document.getElementById('special-explore-list');
   if (!el) { setTimeout(renderSpecialExploreList, 200); return; }
+  specialListLockSig = SPECIAL_LOCATIONS.map(function(l) { return isSpecialLocationLocked(l.id) ? 1 : 0; }).join('');
   el.innerHTML = SPECIAL_LOCATIONS.map(function(loc) {
+    const lockKey = SPECIAL_LOCATION_UNLOCK[loc.id];
+    const locked = isSpecialLocationLocked(loc.id);
     return '<button onclick="openSpecialCardSelect(\'' + loc.id + '\')" style="width:100%;display:flex;align-items:center;gap:12px;padding:13px 14px;margin-bottom:9px;background:' + loc.color + '1f;border:1.5px solid ' + loc.color + ';border-radius:14px;color:#fff;font-size:14px;font-weight:900;cursor:pointer;font-family:\'Noto Sans KR\',sans-serif;text-align:left;">' +
       '<span style="font-size:24px;">' + loc.emoji + '</span><span>' + loc.name + '</span>' +
-      '<span style="margin-left:auto;color:#888;font-size:16px;">›</span></button>';
+      (locked ? '<span style="margin-left:auto;color:#aaa;font-size:11px;">🔒 Lv.' + POCAHOUSE_UNLOCK[lockKey] + '</span></button>' :
+        '<span style="margin-left:auto;color:#888;font-size:16px;">›</span></button>');
   }).join('') +
   '<button onclick="openDexOverlay()" style="width:100%;padding:7px;margin-top:4px;margin-bottom:80px;background:rgba(255,255,255,0.06);border:1.5px solid rgba(255,255,255,0.2);border-radius:10px;color:#ccc;font-size:12px;font-weight:700;cursor:pointer;font-family:\'Noto Sans KR\',sans-serif;">📖 화보집 (' + getDexCaptured().length + '/' + SPECIAL_CREATURES.length + ')</button>';
 }
@@ -238,6 +256,10 @@ setTimeout(renderSpecialExploreList, 300);
 
 // ── 출전카드 선택 ──
 function openSpecialCardSelect(locationId) {
+  if (isSpecialLocationLocked(locationId)) {
+    showPocaHouseLockedPopup(POCAHOUSE_UNLOCK[SPECIAL_LOCATION_UNLOCK[locationId]], (SPECIAL_LOCATIONS.find(function(l) { return l.id === locationId; }) || {}).name || '이 장소');
+    return;
+  }
   const old = document.getElementById('special-overlay');
   if (old) old.remove();
   const overlay = document.createElement('div');
