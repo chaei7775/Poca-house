@@ -125,7 +125,7 @@
       var status, action;
       if (done) {
         status = '<span style="color:#4ade80;font-weight:900;">✅ 데뷔 완료</span> <span style="color:#aaa;">· 🍔 ' + INCOME_PER_HOUR + '/시간</span>';
-        action = '<div style="font-size:11px;color:#888;text-align:right;line-height:1.5;">🎬 CF · 📺 드라마 · 🎵 노래<br><span style="color:#C084FC;">곧 오픈!</span></div>';
+        action = '';
       } else if (!have) {
         status = '<span style="color:#888;">🔒 카드를 뽑아야 연습생이 돼요</span>';
         action = '';
