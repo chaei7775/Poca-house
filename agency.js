@@ -32,7 +32,7 @@
     { name: '장미꽃', qty: 6, where: '🌸 공원' }
   ];
   var REFUND_RATE = 0.5;        // 실패했을 때 돌려받는 재료 비율
-  var INCOME_PER_HOUR = 60;     // 데뷔한 캐릭터 1명당 시간당 수익(코인)
+  var INCOME_PER_HOUR = 10000;  // 데뷔한 캐릭터 1명당 시간당 기본 수익(코인) — 히든카드 강화/초월하면 enhance.js가 배율을 곱함
   var INCOME_CAP_HOURS = 8;     // 정산 안 하고 쌓아둘 수 있는 최대 시간
   var STORAGE_KEY = 'ph_agency';
 
@@ -54,11 +54,14 @@
     if (pity >= PITY_HARD - 1) return true;                 // 천장
     return rng() * 100 < debutChance(pity, picks, wish);
   }
+  function incomeMult(cid) {             // 히든카드 강화 배율 (enhance.js가 없으면 1배)
+    return (typeof window.getEnhanceIncomeMult === 'function') ? window.getEnhanceIncomeMult(cid) : 1;
+  }
   function claimable(debutTimes, now) {  // debutTimes: { charId: sinceMs }
     var sum = 0;
     Object.keys(debutTimes || {}).forEach(function (cid) {
       var hours = Math.max(0, (now - debutTimes[cid]) / 3600000);
-      sum += Math.min(INCOME_CAP_HOURS, hours) * INCOME_PER_HOUR;
+      sum += Math.min(INCOME_CAP_HOURS, hours) * INCOME_PER_HOUR * incomeMult(cid);
     });
     return Math.floor(sum);
   }
@@ -133,7 +136,7 @@
         (ch.img ? '<img src="' + ch.img + '" style="width:100%;height:100%;object-fit:cover;object-position:top;" onerror="this.outerHTML=\'' + ch.emoji + '\'">' : ch.emoji) + '</div>';
       var status, action;
       if (done) {
-        status = '<span style="color:#4ade80;font-weight:900;">✅ 데뷔 완료</span> <span style="color:#aaa;">· 🍔 ' + INCOME_PER_HOUR + '/시간</span>';
+        status = '<span style="color:#4ade80;font-weight:900;">✅ 데뷔 완료</span> <span style="color:#aaa;">· 🍔 ' + Math.round(INCOME_PER_HOUR * incomeMult(cid)).toLocaleString() + '/시간</span>';
         action = '';
       } else if (!have) {
         status = '<span style="color:#888;">🔒 카드를 뽑아야 연습생이 돼요</span>';
@@ -291,7 +294,7 @@
         ov.innerHTML = '<div style="width:100%;max-width:320px;background:linear-gradient(135deg,#1a1a2e,#2d1b4e);border:2px solid #FFD700;border-radius:20px;padding:28px 22px;text-align:center;">' +
           '<div style="font-size:50px;margin-bottom:6px;">🎉✨</div><div style="font-size:20px;font-weight:900;color:#FFD700;margin-bottom:6px;">데뷔 성공!</div>' +
           '<div style="font-size:14px;color:#fff;line-height:1.7;margin-bottom:6px;">' + esc(ch.name) + '이(가) 정식으로 데뷔했어요!</div>' +
-          '<div style="font-size:12px;color:#aaa;margin-bottom:6px;">이제 시간이 지나면 수익이 쌓여요 (🍔 ' + INCOME_PER_HOUR + '/시간)</div>' + wishLine +
+          '<div style="font-size:12px;color:#aaa;margin-bottom:6px;">이제 시간이 지나면 수익이 쌓여요 (🍔 ' + INCOME_PER_HOUR.toLocaleString() + '/시간)</div>' + wishLine +
           '<div style="height:10px;"></div>' +
           '<button id="agency-ok" style="' + BTN + 'width:100%;padding:13px;background:linear-gradient(135deg,#FF6B9D,#C084FC);color:#fff;font-size:15px;">확인</button></div>';
       } else {
