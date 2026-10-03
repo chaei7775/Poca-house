@@ -13,6 +13,7 @@ const NEW_CONTENT_FILES = [
   'sparkle-dust.js',
   'qty-picker.js',
   'forest-explore.js',
+  'beach-explore.js',
 ];
 NEW_CONTENT_FILES.forEach(function(filename) {
   const s = document.createElement('script');
