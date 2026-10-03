@@ -183,6 +183,7 @@
       if (S.msgT <= 0) say('🌊 파도가 덮고 있어요! 잠깐만 기다려요', 1);
       return;
     }
+    if (window.pocaSfx) window.pocaSfx.play('dig'); 
     len = Math.min(len, 120);                                     // 한 번에 너무 멀리 훑어도 인정은 일정하게
     // 파인 자국
     var t = S.tctx;
@@ -204,6 +205,7 @@
   }
 
   function reveal(sp) {
+    if (window.pocaSfx) window.pocaSfx.play('digFind'); 
     sp.done = true;
     var d = sp.d, label = null, emoji = '✨';
     var before = exploreCollected.length;
