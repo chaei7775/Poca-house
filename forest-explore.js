@@ -196,6 +196,7 @@
     if (t.done) { say('이 나무는 이미 다 털었어요 🍂', 1.2); return; }
     t.shake += 1;
     t.anim = 0.25;
+    if (window.pocaSfx) window.pocaSfx.play('shake'); 
     for (var i = 0; i < 3; i++) addLeaf(t.x + (Math.random() - 0.5) * 220, 40 + Math.random() * 260);
     if (navigator.vibrate) { try { navigator.vibrate(12); } catch (e) {} }
     if (t.shake >= SHAKE_NEED) dropFromTree(t);
@@ -207,6 +208,7 @@
   }
 
   function dropFromTree(t) {
+    if (window.pocaSfx) window.pocaSfx.play('treeDrop'); 
     t.done = true; t.shake = SHAKE_NEED;
     var luck = typeof getEquippedStat === 'function' ? getEquippedStat('luck') : 0;
     var drops = planDrops(luck, Math.random, t.golden);
