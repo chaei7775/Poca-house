@@ -688,3 +688,26 @@ function openDexOverlay() {
     '</div>';
   document.body.appendChild(overlay);
 }
+
+// ── 홈에서 '내 컬렉션' 버튼을 '스케줄 가기'로 바꿨기 때문에, 컬렉션은 더보기 메뉴에서 열 수 있게 타일 추가 ──
+(function hookOpenMoreMenuForCollection() {
+  if (typeof window.openMoreMenu !== 'function') {
+    setTimeout(hookOpenMoreMenuForCollection, 50);
+    return;
+  }
+  const originalOpenMoreMenu = window.openMoreMenu;
+  window.openMoreMenu = function() {
+    const result = originalOpenMoreMenu.apply(this, arguments);
+    const overlay = document.getElementById('more-menu-overlay');
+    const grid = overlay && overlay.querySelector('#more-menu-grid');
+    if (grid && !document.getElementById('more-menu-collection-btn')) {
+      const btn = document.createElement('button');
+      btn.id = 'more-menu-collection-btn';
+      btn.style.cssText = 'display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;aspect-ratio:0.95;padding:6px 4px;background:#FF6B9D1f;border:1.5px solid #FF6B9D;border-radius:12px;color:#fff;font-size:10px;font-weight:700;line-height:1.2;cursor:pointer;font-family:\'Noto Sans KR\',sans-serif;text-align:center;';
+      btn.innerHTML = '<span style="font-size:19px;">📁</span><span>내 컬렉션</span>';
+      btn.onclick = function() { overlay.remove(); goTo('collection'); };
+      grid.appendChild(btn);
+    }
+    return result;
+  };
+})();
