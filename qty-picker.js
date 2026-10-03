@@ -3,6 +3,7 @@
 // game.js / recombine.js / special-explore.js 는 건드리지 않고 아래 함수만 덮어쓴다.
 //  - 상점 선물/음료 구매 (buyGift, buyDrink)
 //  - 재료 판매 (재료 탭의 '판매' 버튼)
+//  - 가방에서 음료 마시기 (useDrinkFromBag)
 //  - 특별탐험 먹이/포획도구 구매 (buySpecialFood, buyCaptureTool)
 // 한 번에 고를 수 있는 최대 수량만 바꾸고 싶으면 아래 한 줄만 수정.
 // ════════════════════════════════
@@ -48,7 +49,7 @@ function qpOpen(cfg) {
     '<div style="width:100%;max-width:320px;background:linear-gradient(135deg,#1a1a2e,#2d1b4e);border:2px solid #C084FC;border-radius:20px;padding:22px 20px;text-align:center;">' +
       '<div style="font-size:44px;margin-bottom:4px;">' + qpEsc(cfg.emoji) + '</div>' +
       '<div style="font-size:16px;font-weight:900;color:#fff;margin-bottom:2px;">' + qpEsc(cfg.name) + '</div>' +
-      '<div style="font-size:12px;color:#aaa;margin-bottom:14px;">개당 🍔 ' + cfg.unit.toLocaleString() + '코인 · ' + (isBuy ? '최대 ' + max + '개' : '보유 ' + cfg.max + '개') + (cfg.max > QP_MAX ? ' · 한 번에 ' + QP_MAX + '개까지' : '') + '</div>' +
+      '<div style="font-size:12px;color:#aaa;margin-bottom:14px;">' + (cfg.sub ? qpEsc(cfg.sub) : '개당 🍔 ' + cfg.unit.toLocaleString() + '코인 · ') + (cfg.sub ? ' · ' : '') + (isBuy ? '최대 ' + max + '개' : '보유 ' + cfg.max + '개') + (cfg.max > QP_MAX ? ' · 한 번에 ' + QP_MAX + '개까지' : '') + '</div>' +
       '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">' +
         '<button id="qp-minus" style="' + btn + 'width:40px;height:40px;background:rgba(255,255,255,0.1);color:#fff;font-size:20px;">−</button>' +
         '<input id="qp-range" type="range" min="1" max="' + max + '" value="1" step="1" style="flex:1;accent-color:#FF6B9D;height:28px;">' +
@@ -77,6 +78,7 @@ function qpOpen(cfg) {
     range.value = n;
     num.value = n;
     const sum = n * cfg.unit;
+    if (cfg.totalText) { total.textContent = cfg.totalText(n); ok.textContent = n + '개 ' + (cfg.okLabel || '사용'); return; }
     total.textContent = isBuy ? ('합계 🍔 ' + sum.toLocaleString() + '코인 (남는 코인 ' + (coins - sum).toLocaleString() + ')')
                               : ('합계 🍔 +' + sum.toLocaleString() + '코인');
     ok.textContent = n + '개 ' + (isBuy ? '구매' : '판매');
@@ -104,7 +106,7 @@ function qpAfterShopBuy() {
 }
 
 (function applyQtyPickerPatch() {
-  const need = ['buyGift', 'buyDrink', 'renderMaterialShop', 'sellMaterial', 'buySpecialFood', 'buyCaptureTool', 'addToBag', 'saveAll'];
+  const need = ['useDrinkFromBag', 'renderBag', 'saveStamina', 'buyGift', 'buyDrink', 'renderMaterialShop', 'sellMaterial', 'buySpecialFood', 'buyCaptureTool', 'addToBag', 'saveAll'];
   for (let i = 0; i < need.length; i++) {
     if (typeof window[need[i]] !== 'function') { setTimeout(applyQtyPickerPatch, 50); return; }
   }
@@ -178,6 +180,33 @@ function qpAfterShopBuy() {
     qpOpen({
       mode: 'sell', emoji: item.emoji, name: name, unit: price, max: item.qty,
       onConfirm: function(n) { window.sellMaterial(name, n); }
+    });
+  };
+
+  // ── 가방에서 음료 마시기 ──
+  window.useDrinkFromBag = function(idx) {
+    const item = bagItems[idx];
+    if (!item) return;
+    const staminaMap = { '사과주스': 10, '딸기스무디': 20, '에너지드링크': 30 };
+    const up = staminaMap[item.name] || 10;
+    const need = Math.ceil((STAMINA_MAX - stamina) / up);
+    if (need < 1) { showBagToast('스태미나가 이미 가득 찼어요!'); return; }
+    const name = item.name;
+    qpOpen({
+      mode: 'use', emoji: item.emoji, name: name, unit: 0, max: Math.min(item.qty, need),
+      sub: '보유 ' + item.qty + '개 · 1개당 ⚡ +' + up,
+      totalText: function(n) { return '⚡ 스태미나 ' + stamina + ' → ' + Math.min(STAMINA_MAX, stamina + up * n) + ' / ' + STAMINA_MAX; },
+      okLabel: '마시기',
+      onConfirm: function(n) {
+        const cur = bagItems.find(function(i) { return i.name === name; });
+        if (!cur || cur.qty < n) { showBagToast('음료가 부족해요!'); return; }
+        useFromBag(name, n);
+        stamina = Math.min(STAMINA_MAX, stamina + up * n);
+        saveStamina();
+        saveAll();
+        renderBag();
+        showBagToast(item.emoji + ' ' + name + ' ' + n + '개 사용! ⚡ 스태미나 +' + (up * n));
+      }
     });
   };
 
