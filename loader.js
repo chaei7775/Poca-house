@@ -23,6 +23,7 @@ const NEW_CONTENT_FILES = [
   'coupon-patch.js',
   'quest-guide.js',
   'ticket-popup.js',
+  'fancafe.js',
 ];
 NEW_CONTENT_FILES.forEach(function(filename) {
   const s = document.createElement('script');
