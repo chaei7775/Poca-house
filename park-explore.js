@@ -210,6 +210,7 @@
     if (best) { S.rings.push({ x: x, y: y, t: 0 }); catchButterfly(best); return; }
     if (x < 110 && y < 56) { finish(); return; }          // 나가기 (나비가 없는 곳을 눌렀을 때만)
     S.rings.push({ x: x, y: y, t: 0 });
+    if (window.pocaSfx) window.pocaSfx.play('bfMiss'); 
     // 헛탭: 주변 나비가 놀람
     var spooked = false;
     S.bfs.forEach(function (b) {
@@ -223,6 +224,7 @@
   }
 
   function catchButterfly(b) {
+    if (window.pocaSfx) window.pocaSfx.play('bfCatch'); 
     b.gone = true; S.resolved++;
     var d = b.d, label = null, emoji = '✨';
     var before = exploreCollected.length;
