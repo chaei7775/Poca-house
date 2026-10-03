@@ -2517,8 +2517,8 @@ function doDrawAnimation() {
 function updateGachaCostLabels() {
   try {
     document.querySelectorAll('button').forEach(btn => {
-      if (btn.innerHTML && btn.innerHTML.includes('1뽑') && btn.innerHTML.includes('🍔')) btn.innerHTML = `1뽑<br><span style="font-size:11px;opacity:0.8;font-weight:400;">🍔 ${CONFIG.gacha.one}</span>`;
-      if (btn.innerHTML && btn.innerHTML.includes('3뽑') && btn.innerHTML.includes('🍔')) btn.innerHTML = `3뽑<br><span style="font-size:11px;opacity:0.8;font-weight:400;">🍔 ${CONFIG.gacha.three}</span>`;
+      if (btn.innerHTML && btn.innerHTML.includes('1회') && btn.innerHTML.includes('🍔')) btn.innerHTML = `1회<br><span style="font-size:11px;opacity:0.8;font-weight:400;">🍔 ${CONFIG.gacha.one}</span>`;
+      if (btn.innerHTML && btn.innerHTML.includes('3회') && btn.innerHTML.includes('🍔')) btn.innerHTML = `3회<br><span style="font-size:11px;opacity:0.8;font-weight:400;">🍔 ${CONFIG.gacha.three}</span>`;
     });
   } catch(e) {}
 }
