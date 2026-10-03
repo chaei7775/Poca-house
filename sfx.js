@@ -13,6 +13,7 @@
   var SFX_VOLUME = 1.0;     // 0 ~ 1 (효과음 전체 크기. 합성음 자체가 작아서 최대로 둠)
   var SFX_FILES = {};       // 소리 파일을 쓸 때만 채움 (비워두면 전부 합성음)
   var MIN_GAP_MS = 120;     // 같은 소리가 너무 자주 겹치지 않게
+  var GAPS = { dig: 170, bfMiss: 160 };   // 소리별로 간격을 따로 주고 싶을 때
 
   var audioCtx = null;
 
@@ -62,7 +63,7 @@
     o.start(start);
     o.stop(start + dur + 0.03);
   }
-  function noise(t0, dur, vol) {
+  function noise(t0, dur, vol, ftype, ffreq) {
     var c = ensureCtx();
     if (!c) return;
     var start = c.currentTime + t0;
@@ -73,8 +74,9 @@
     var src = c.createBufferSource();
     var g = c.createGain();
     var f = c.createBiquadFilter();
-    f.type = 'highpass';
-    f.frequency.value = 1800;
+    f.type = ftype || 'highpass';
+    f.frequency.value = ffreq || 1800;
+    if (f.type === 'bandpass') f.Q.value = 0.8;
     src.buffer = buf;
     g.gain.value = Math.max(0.0001, (vol || 0.3) * getVolume());
     src.connect(f);
@@ -107,6 +109,35 @@
     },
     fail: function () { tone(330, 0, 0.18, 'triangle', 0.25, 247); tone(247, 0.16, 0.32, 'triangle', 0.25, 165); },
     camera: function () { noise(0, 0.05, 0.35); tone(2000, 0, 0.03, 'square', 0.1); noise(0.09, 0.07, 0.3); },
+    // 숲: 나무 흔들 때 잎 부스럭 + 다 털리면 우수수
+    shake: function () {
+      noise(0, 0.22, 0.35, 'bandpass', 2600);
+      noise(0.07, 0.2, 0.25, 'bandpass', 3400);
+      tone(130, 0, 0.12, 'sine', 0.18, 90);
+    },
+    treeDrop: function () {
+      noise(0, 0.55, 0.45, 'bandpass', 1700);
+      noise(0.12, 0.4, 0.3, 'bandpass', 2800);
+      tone(95, 0, 0.22, 'sine', 0.3, 50);
+    },
+    // 해변: 모래 파는 소리 + 뭔가 찾았을 때
+    dig: function () {
+      noise(0, 0.13, 0.5, 'lowpass', 900);
+      noise(0.02, 0.07, 0.2, 'highpass', 3200);
+    },
+    digFind: function () {
+      noise(0, 0.12, 0.3, 'lowpass', 1200);
+      arp([784, 1047, 1319], 0.07, 0.16, 'triangle', 0.25);
+    },
+    // 공원: 나비 잡을 때 (휙 + 반짝), 헛탭은 작은 날갯짓
+    bfCatch: function () {
+      noise(0, 0.13, 0.3, 'bandpass', 1300);
+      arp([1568, 2093, 2637], 0.055, 0.14, 'sine', 0.2);
+    },
+    bfMiss: function () {
+      noise(0, 0.05, 0.16, 'highpass', 4200);
+      noise(0.07, 0.05, 0.12, 'highpass', 4800);
+    },
     debutSuccess: function () {
       arp([523, 659, 784, 1047, 784, 1047, 1319, 1568], 0.11, 0.28, 'triangle', 0.28);
       tone(2093, 0.95, 0.6, 'sine', 0.16);
@@ -129,7 +160,7 @@
   function play(name) {
     if (!isOn() || getVolume() <= 0) return;
     var now = Date.now();
-    if (lastPlayed[name] && now - lastPlayed[name] < MIN_GAP_MS) return;
+    if (lastPlayed[name] && now - lastPlayed[name] < (GAPS[name] || MIN_GAP_MS)) return;
     lastPlayed[name] = now;
     try {
       if (playFile(name)) return;
