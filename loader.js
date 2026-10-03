@@ -19,6 +19,7 @@ const NEW_CONTENT_FILES = [
   'wish-hidden-patch.js',
   'cf-shoot.js',
   'sfx.js',
+  'coupon-patch.js',
 ];
 NEW_CONTENT_FILES.forEach(function(filename) {
   const s = document.createElement('script');
