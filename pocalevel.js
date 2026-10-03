@@ -9,7 +9,13 @@ let cardExpData = JSON.parse(localStorage.getItem('ph_cardExp') || '{}');
 
 function getCardLevel(charId) { return cardLevels[charId] || 1; }
 function getCardExp(charId) { return cardExpData[charId] || 0; }
-function getCardExpRequired(level) { return level * 20; }
+// 만렙 50. 1~19레벨은 예전과 같고(레벨×20), 20레벨부터 점점 가팔라짐 (20→50 합계 약 4.5만 경험치)
+const POCAHOUSE_MAX_LEVEL = 50;
+function getCardExpRequired(level) {
+  if (level < 20) return level * 20;
+  const k = level - 19;
+  return Math.round(400 + 3.5 * k * k);
+}
 
 function saveCardLevelData() {
   localStorage.setItem('ph_cardLevels', JSON.stringify(cardLevels));
@@ -19,9 +25,12 @@ function saveCardLevelData() {
 function addCardExp(charId, amount) {
   if (!charId) return;
   let level = getCardLevel(charId);
-  let exp = getCardExp(charId) + amount;
+  let exp = getCardExp(charId);
+  // 예전 만렙(20) 때 쌓여 있던 남은 경험치가 한꺼번에 레벨을 올리지 않도록, 현재 레벨 필요치 미만으로만 인정
+  if (level >= 20 && level < POCAHOUSE_MAX_LEVEL) exp = Math.min(exp, getCardExpRequired(level) - 1);
+  exp += amount;
   let leveledUp = false;
-  while (level < 20) {
+  while (level < POCAHOUSE_MAX_LEVEL) {
     const required = getCardExpRequired(level);
     if (exp >= required) {
       exp -= required;
@@ -114,7 +123,7 @@ function updatePocaHouseLevelBar() {
   const charId = Object.keys(CHARS).find(function(cid) { return getCardLevel(cid) === level; }) || Object.keys(CHARS)[0];
   const exp = getCardExp(charId);
   const required = getCardExpRequired(level);
-  const pct = level >= 20 ? 100 : Math.min(100, Math.round(exp / required * 100));
+  const pct = level >= POCAHOUSE_MAX_LEVEL ? 100 : Math.min(100, Math.round(exp / required * 100));
   textEl.textContent = 'Lv.' + level;
   fillEl.style.width = pct + '%';
 }
@@ -122,7 +131,7 @@ function updatePocaHouseLevelBar() {
 // ════════════════════════════════
 // 🔓 포카하우스 콘텐츠 해금 (방꾸미기 Lv3 / 창고 Lv5 / 가구상점 Lv10)
 // ════════════════════════════════
-const POCAHOUSE_UNLOCK = { roomDeco: 3, warehouse: 5, furnitureShop: 10 };
+const POCAHOUSE_UNLOCK = { roomDeco: 3, warehouse: 5, furnitureShop: 10, agency: 10, specialMoonlit: 20, specialWorkshop: 30 };
 
 function showPocaHouseLockedPopup(unlockLevel, featureName) {
   const old = document.getElementById('pocahouse-locked-overlay');
@@ -265,7 +274,7 @@ const STORY_QUESTS = [
   { id:'story_14', title:'세 번째 빛', desc:'포카가 레벨 15에 도달했다. 포카하우스가 조금씩 또렷해진다.', condition:'poca_level_15', rewardCoins:3000, rewardExp:600 },
   { id:'story_15', title:'거의 다 왔어', desc:'포카하우스가 거의 본래 모습을 찾아가고 있다.', condition:'mystery_island_unlock', rewardCoins:1000, rewardExp:300 },
   { id:'story_16', title:'잊혀진 기억', desc:'신비의 섬에서 작은 기억의 조각을 발견했다.', condition:'first_wish_fragment', rewardCoins:1500, rewardExp:300 },
-  { id:'story_17', title:'한 걸음 더', desc:'포카가 레벨 20, 최고 레벨에 도달했다! 포카하우스의 절반쯤... 아니, 아직 머나먼 여정이 남아있다는 걸 느꼈다. 하지만 분명히, 무언가 달라지고 있었다.', condition:'poca_level_20', rewardCoins:10000, rewardExp:1000 },
+  { id:'story_17', title:'한 걸음 더', desc:'포카가 레벨 20에 도달했다! 포카하우스의 절반쯤... 아니, 아직 머나먼 여정이 남아있다는 걸 느꼈다. 하지만 분명히, 무언가 달라지고 있었다.', condition:'poca_level_20', rewardCoins:10000, rewardExp:1000 },
   { id:'story_18', title:'약속', desc:'모든 게 돌아왔다. 그런데... 정말 떠나야 할까?', condition:'story_ending_tease', rewardCoins:5000, rewardExp:500 },
 ];
 
