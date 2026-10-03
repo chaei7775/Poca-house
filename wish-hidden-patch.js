@@ -61,4 +61,16 @@
     document.body.appendChild(popup);
     if (typeof playFanfare === 'function') playFanfare();
   };
+
+  // 조각 100개 → 결정 전환 때 가방에 남는 🧩 아이템 정리
+  // 전환 직후에는 조각 카운트가 0이라서, 그 상태에서 결정이 들어오면 가방 🧩을 통째로 지운다.
+  // (결정 직접 드랍 0.01%일 때는 카운트가 남아 있으니 건드리지 않음)
+  var originalEarned = window.showWishCrystalEarned;
+  window.showWishCrystalEarned = function () {
+    if (wishFragments === 0) {
+      var frag = bagItems.find(function (i) { return i.name === '소원의 조각'; });
+      if (frag) useFromBag('소원의 조각', frag.qty);
+    }
+    return originalEarned.apply(this, arguments);
+  };
 })();
