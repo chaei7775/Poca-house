@@ -15,6 +15,7 @@ const NEW_CONTENT_FILES = [
   'forest-explore.js',
   'beach-explore.js',
   'park-explore.js',
+  'mystery-explore.js',
   'agency.js',
   'wish-hidden-patch.js',
   'cf-shoot.js',
