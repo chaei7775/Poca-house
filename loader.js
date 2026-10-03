@@ -11,6 +11,7 @@ const NEW_CONTENT_FILES = [
   'recombine-patch.js',
   'fishing.js',
   'sparkle-dust.js',
+  'qty-picker.js',
 ];
 NEW_CONTENT_FILES.forEach(function(filename) {
   const s = document.createElement('script');
