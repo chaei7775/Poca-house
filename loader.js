@@ -24,6 +24,7 @@ const NEW_CONTENT_FILES = [
   'quest-guide.js',
   'ticket-popup.js',
   'fancafe.js',
+  'enhance.js',
 ];
 NEW_CONTENT_FILES.forEach(function(filename) {
   const s = document.createElement('script');
