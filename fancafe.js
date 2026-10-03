@@ -8,6 +8,9 @@
 // - 내가 하는 일: ♥ 누르기, 답글 톤 고르기(다정 / 장난 / 담백). 팬마다 좋아하는 톤이 달라서 애착도가 다르게 오른다.
 // - 애착도가 낮아진 팬은 "탈덕할까 고민중" 글을 올린다. 48시간 안에 붙잡지 못하면 떠난다 (CF 성공 때 돌아올 수도 있음).
 // - CF(cf-shoot.js)에서 별 1개 이상으로 성공하면 반응이 오고, 가끔 "커뮤니티에서 언급" 바이럴로 회원이 폭증한다.
+// - 팬 포카(2단계): 팬과의 관계로만 얻는 별도 앨범 (가챠 카드 등급과 무관). 선물 글의 "포카 받기"를 눌러 받는다.
+//     · 바이럴이 처음 터졌을 때 / 금손 팬(찰칵찰칵)과 아주 친해졌을 때 / 고인물 팬(첫눈이오면)과 아주 친해졌을 때
+//     · 이미지: fan-sion-viral.jpg, fan-sion-photo.jpg, fan-sion-veteran.jpg (저장소 루트)
 // - 저장: localStorage 'ph_fancafe' (기획사 / CF와 같은 방식 — 이 기기에만 저장됨)
 //
 // 값을 바꾸고 싶으면 아래 설정과 팬 명단(ROSTER)만 고치면 됨.
@@ -78,6 +81,20 @@
     '얘 누구임?', 'CF에 나온 분 맞지?', '{brand} CF 그 사람 팬카페 어디예요',
     '목소리 뭐야 소름', '실검 1위 실화?', '이 사람 노래 있나요?', '나만 몰랐어?? 지금 입덕함'
   ];
+
+  // ── 팬 포카 (가챠 카드와 별개의 "팬 포카 앨범") ──
+  // fanId가 있으면 그 팬의 애착도가 GIFT_AFF 이상일 때 선물, 없으면 첫 바이럴 때 선물
+  var GIFT_AFF = { veteran: 90, photo: 80 };
+  var FAN_CARDS = {
+    sion: [
+      { id: 'viral', title: 'CF 비하인드 · Viral', img: 'fan-sion-viral.jpg', from: '📱 바이럴 기념', hint: 'CF가 커뮤니티에서 화제가 되면…',
+        giftTitle: '🎁 바이럴 기념 포카가 도착했어요', giftBody: 'CF 비하인드 컷이 화제가 됐어요.\n이 순간을 기념 포카로 간직하세요.' },
+      { id: 'photo', title: 'Fan Cam', img: 'fan-sion-photo.jpg', from: '📸 금손 팬의 직캠', fanId: 'photo', hint: '금손 팬과 아주 가까워지면…',
+        giftTitle: '직캠 보내드려요 📸', giftBody: '저번 무대 직캠인데, 제일 잘 나온 컷만 인화했어요. 받아주세요!' },
+      { id: 'veteran', title: '데뷔 기념', img: 'fan-sion-veteran.jpg', from: '🎖️ 고인물의 기념 선물', fanId: 'veteran', hint: '고인물 팬과 아주 가까워지면…',
+        giftTitle: '고인물이 드리는 기념 포카', giftBody: '데뷔 때부터 같이 있었잖아요. 제 보물 1호인데 이제 그쪽 거예요.' }
+    ]
+  };
 
   // ── 대표 팬 10명 (가입하는 순서대로) ──
   // tone: 이 팬이 좋아하는 답글 톤 / rate: 3시간마다 글을 쓸 확률
@@ -216,7 +233,7 @@
 
   function blankIdol(now) {
     return { openedAt: now, lastTick: now, lastCare: 0, lastCfTs: now, lastCfSuccess: 0,
-             seenAt: 0, anon: 0, seq: 0, fans: {}, posts: [] };
+             seenAt: 0, anon: 0, seq: 0, fans: {}, posts: [], cards: {}, gifted: {} };
   }
   function normalize(ic, now) {
     if (typeof ic.openedAt !== 'number') ic.openedAt = now;
@@ -229,6 +246,8 @@
     if (typeof ic.seq !== 'number') ic.seq = 0;
     if (!ic.fans || typeof ic.fans !== 'object') ic.fans = {};
     if (!Array.isArray(ic.posts)) ic.posts = [];
+    if (!ic.cards || typeof ic.cards !== 'object') ic.cards = {};
+    if (!ic.gifted || typeof ic.gifted !== 'object') ic.gifted = {};
     return ic;
   }
   function getIdol(s, cid, now) {
@@ -285,7 +304,7 @@
       var drop = ic.posts.length - POST_MAX;
       for (var i = ic.posts.length - 1; i >= 0 && drop > 0; i--) {
         var q = ic.posts[i];
-        if (q.kind === 'quit' && !q.resolved) continue;      // 진행 중인 탈덕 고민 글은 지우지 않음
+        if ((q.kind === 'quit' || q.kind === 'gift') && !q.resolved) continue;   // 진행 중인 탈덕 고민 글 / 안 받은 포카 선물은 지우지 않음
         ic.posts.splice(i, 1); drop--;
       }
     }
@@ -413,6 +432,7 @@
       for (var t = start + TICK_MS; t <= aligned; t += TICK_MS) doTick(ic, cid, t, rng);
       ic.lastTick = aligned;
     }
+    checkGifts(ic, cid, now);
   }
 
   // CF 결과 반응 (cf-shoot.js가 저장한 포스터를 읽어서 처리)
@@ -456,6 +476,8 @@
                     title: '📱 커뮤니티에서 ' + idolName(cid) + '이(가) 언급되고 있습니다',
                     body: quotes.map(function (q) { return '“' + q + '”'; }).join('\n') + '\n실시간 검색량 +' + pct + '%\n팬카페 ' + before + '명 → ' + after + '명',
                     hearts: 0 });
+      var vcard = cardDef(cid, 'viral');
+      if (vcard && !ic.gifted.viral) giveGift(ic, cid, vcard, ts + 6000, null);
       out.viral = true;
     }
     out.to = members(ic);
@@ -476,6 +498,34 @@
       sum.reacted += r.reacted; sum.joined += r.joined; sum.returned += r.returned;
     });
     return sum;
+  }
+
+  // ── 팬 포카 선물 ──
+  function cardDefs(cid) { return FAN_CARDS[cid] || []; }
+  function cardDef(cid, cardId) {
+    var l = cardDefs(cid);
+    for (var i = 0; i < l.length; i++) if (l[i].id === cardId) return l[i];
+    return null;
+  }
+  function giftCount(ic) { return ic.posts.filter(function (p) { return p.kind === 'gift'; }).length; }
+  function giveGift(ic, cid, def, ts, fanId) {
+    if (!ic.gifted) ic.gifted = {};
+    ic.gifted[def.id] = true;                         // 한 번만 선물 (받기 전에 글이 지워져도 다시 안 줌)
+    addPost(ic, { ts: ts, fanId: fanId || null, kind: 'gift', cardId: def.id, title: def.giftTitle, body: def.giftBody, hearts: 0 });
+  }
+  function checkGifts(ic, cid, ts) {                  // 팬과 친해졌는지 확인해서 선물 글을 올림
+    cardDefs(cid).forEach(function (def) {
+      if (ic.gifted[def.id] || !def.fanId) return;
+      var fan = ic.fans[def.fanId];
+      if (fan && fan.status === 'active' && fan.aff >= GIFT_AFF[def.fanId]) giveGift(ic, cid, def, ts, def.fanId);
+    });
+  }
+  function claimGift(ic, cid, postId, now) {
+    var p = postById(ic, postId); if (!p || p.kind !== 'gift' || p.resolved) return null;
+    var def = cardDef(cid, p.cardId); if (!def) return null;
+    p.resolved = 'claimed';
+    ic.cards[def.id] = now;
+    return def;
   }
 
   // ── 내가 하는 행동 ──
@@ -555,8 +605,8 @@
     var def = p.fanId ? defOf(p.fanId) : null;
     var fan = p.fanId ? ic.fans[p.fanId] : null;
     var sys = !def;
-    var border = p.kind === 'viral' ? '#FFD700' : p.kind === 'sys' ? '#60A5FA' : p.kind === 'quit' && !p.resolved ? '#FF6B6B' : 'rgba(255,255,255,0.1)';
-    var bg = p.kind === 'viral' ? 'rgba(255,215,0,0.10)' : p.kind === 'quit' && !p.resolved ? 'rgba(255,107,107,0.10)' : 'rgba(255,255,255,0.06)';
+    var border = (p.kind === 'viral' || p.kind === 'gift') ? '#FFD700' : p.kind === 'sys' ? '#60A5FA' : p.kind === 'quit' && !p.resolved ? '#FF6B6B' : 'rgba(255,255,255,0.1)';
+    var bg = (p.kind === 'viral' || p.kind === 'gift') ? 'rgba(255,215,0,0.10)' : p.kind === 'quit' && !p.resolved ? 'rgba(255,107,107,0.10)' : 'rgba(255,255,255,0.06)';
     var head = '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">' +
       (sys ? '<div style="width:30px;height:30px;border-radius:50%;background:rgba(96,165,250,0.25);display:flex;align-items:center;justify-content:center;font-size:16px;">📢</div>' : fanAvatar(def, 30)) +
       '<div style="flex:1;min-width:0;"><div style="font-size:12px;font-weight:900;color:' + (sys ? '#93C5FD' : '#FFB3CC') + ';">' + (sys ? '알림' : esc(def.nick)) + newTag + '</div>' +
@@ -577,6 +627,14 @@
       } else {
         foot = '<div style="margin-top:8px;font-size:12px;font-weight:900;color:' + (p.resolved === 'stayed' ? '#4ade80' : '#aaa') + ';">' + (p.resolved === 'stayed' ? '✅ 붙잡았어요' : '💔 떠났어요') + '</div>';
       }
+    } else if (p.kind === 'gift') {
+      var gc = cardDef(ui.cid, p.cardId);
+      foot = '<div style="margin-top:10px;display:flex;align-items:center;gap:12px;">' +
+        (gc ? '<img src="' + gc.img + '" alt="" style="width:64px;border-radius:8px;box-shadow:0 2px 10px rgba(0,0,0,0.5);flex-shrink:0;" onerror="this.style.display=\'none\'">' : '') +
+        (p.resolved
+          ? '<div style="font-size:12px;font-weight:900;color:#4ade80;">✅ 팬 포카 앨범에 저장됐어요</div>'
+          : '<button data-act="claim" data-id="' + p.id + '" style="' + BTN + 'padding:12px 18px;background:linear-gradient(135deg,#FFD700,#F59E0B);color:#3a2600;font-size:14px;">🎁 포카 받기</button>') +
+        '</div>';
     } else if (def && p.kind !== 'leave') {
       var gone = !fan || fan.status === 'left';
       var heartBtn = '<button data-act="heart" data-id="' + p.id + '" style="' + BTN + 'background:none;padding:4px 0;font-size:13px;color:' + (p.myHeart ? '#FF6B9D' : '#888') + ';">' + (p.myHeart ? '💖' : '🤍') + ' ' + p.hearts + '</button>';
@@ -618,6 +676,52 @@
     return rows;
   }
 
+  function albumHtml(ic, cid) {
+    var defs = cardDefs(cid);
+    var have = defs.filter(function (d) { return ic.cards[d.id]; }).length;
+    var cells = defs.map(function (d) {
+      if (ic.cards[d.id]) {
+        return '<button data-act="card" data-id="' + d.id + '" style="' + BTN + 'padding:0;background:none;text-align:center;">' +
+          '<img src="' + d.img + '" alt="" style="width:100%;aspect-ratio:2/3;object-fit:cover;border-radius:10px;border:2px solid #FFD700;box-shadow:0 4px 14px rgba(0,0,0,0.5);display:block;background:#222;" onerror="this.style.opacity=0.3">' +
+          '<div style="font-size:11px;color:#fff;font-weight:900;margin-top:6px;">' + esc(d.title) + '</div>' +
+          '<div style="font-size:10px;color:#aaa;margin-top:2px;">' + esc(d.from) + '</div></button>';
+      }
+      return '<div style="text-align:center;"><div style="width:100%;aspect-ratio:2/3;border-radius:10px;border:2px dashed rgba(255,255,255,0.2);background:rgba(255,255,255,0.05);display:flex;align-items:center;justify-content:center;font-size:30px;">🔒</div>' +
+        '<div style="font-size:11px;color:#888;font-weight:900;margin-top:6px;">???</div>' +
+        '<div style="font-size:10px;color:#777;margin-top:2px;line-height:1.4;">' + esc(d.hint) + '</div></div>';
+    }).join('');
+    return '<div style="font-size:13px;color:#ddd;margin-bottom:10px;">모은 팬 포카 <b style="color:#FFD700;">' + have + ' / ' + defs.length + '</b> ' +
+      '<span style="color:#888;font-size:11px;">(가챠 카드와 별개의 앨범이에요)</span></div>' +
+      '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;">' + cells + '</div>' +
+      (have ? '<div style="font-size:11px;color:#888;text-align:center;margin-top:12px;">카드를 누르면 크게 볼 수 있어요</div>' : '');
+  }
+
+  function showFanCardPopup(def, isNew) {
+    var old = document.getElementById('fancafe-card-popup'); if (old) old.remove();
+    if (!document.getElementById('fancafe-card-style')) {
+      var st = document.createElement('style');
+      st.id = 'fancafe-card-style';
+      st.textContent =
+        '@keyframes fcPopIn{0%{opacity:0;transform:scale(0.4) rotate(-6deg);}55%{opacity:1;transform:scale(1.06) rotate(2deg);}100%{opacity:1;transform:scale(1) rotate(0);}}' +
+        '@keyframes fcGlow{0%,100%{filter:drop-shadow(0 0 12px #FFD700);}50%{filter:drop-shadow(0 0 28px #FFF3A0);}}' +
+        '@keyframes fcUp{0%{opacity:0;transform:translateY(12px);}100%{opacity:1;transform:translateY(0);}}';
+      document.head.appendChild(st);
+    }
+    var ov = document.createElement('div');
+    ov.id = 'fancafe-card-popup';
+    ov.style.cssText = 'position:fixed;inset:0;z-index:99999;background:rgba(10,8,25,0.9);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px;box-sizing:border-box;' + FONT;
+    ov.innerHTML =
+      (isNew ? '<div style="font-size:15px;font-weight:900;color:#FFD700;margin-bottom:10px;animation:fcUp 0.5s ease-out 0.2s both;">🃏 팬 포카 획득!</div>' : '') +
+      '<img src="' + def.img + '" alt="' + esc(def.title) + '" style="max-width:min(86vw,380px);max-height:68vh;width:auto;height:auto;border-radius:14px;' +
+        (isNew ? 'animation:fcPopIn 0.6s cubic-bezier(.2,.9,.3,1.2) both,fcGlow 2s ease-in-out 0.6s infinite;' : 'filter:drop-shadow(0 0 14px #FFD700);') + '" onerror="this.outerHTML=\'<div style=&quot;font-size:100px;&quot;>🃏</div>\'">' +
+      '<div style="font-size:15px;font-weight:900;color:#fff;margin-top:14px;' + (isNew ? 'animation:fcUp 0.5s ease-out 0.5s both;' : '') + '">' + esc(def.title) + '</div>' +
+      '<div style="font-size:12px;color:#bbb;margin-top:4px;' + (isNew ? 'animation:fcUp 0.5s ease-out 0.6s both;' : '') + '">' + esc(def.from) + '</div>' +
+      '<button style="' + BTN + 'margin-top:16px;padding:12px 34px;background:linear-gradient(135deg,#FF6B9D,#C084FC);color:#fff;font-size:14px;">확인</button>';
+    ov.onclick = function () { ov.remove(); };
+    document.body.appendChild(ov);
+    try { if (isNew && window.pocaSfx && typeof window.pocaSfx.play === 'function') window.pocaSfx.play('gachaHigh'); } catch (e) {}
+  }
+
   function render() {
     var ov = document.getElementById('fancafe-overlay');
     if (!ov || !ui.cid) return;
@@ -630,6 +734,7 @@
       ? '<div style="font-size:13px;color:#ddd;line-height:1.6;">회원 한 명… 바로 나예요 🥲<br><span style="font-size:12px;color:#aaa;">활동하면 사람들이 하나둘 찾아와요. (🎬 CF 촬영이 제일 빨라요)' + (alone ? '<br>첫 팬이 올 때까지 약 ' + wait + '분…' : '') + '</span></div>'
       : '<div style="font-size:12px;color:#aaa;">대표 팬 ' + named + '명 활동 중 · 이름 없는 회원 ' + (ic.anon || 0) + '명</div>';
 
+    var cardHave = cardDefs(cid).filter(function (d) { return ic.cards[d.id]; }).length;
     var tabBtn = function (key, label) {
       var on = ui.tab === key;
       return '<button data-act="tab" data-tab="' + key + '" style="' + BTN + 'flex:1;padding:10px;background:' + (on ? 'linear-gradient(135deg,#FF6B9D,#C084FC)' : 'rgba(255,255,255,0.08)') + ';color:' + (on ? '#fff' : '#aaa') + ';font-size:13px;">' + label + '</button>';
@@ -637,7 +742,7 @@
 
     var content = ui.tab === 'board'
       ? (ic.posts.length ? ic.posts.map(function (p) { return postHtml(p, ic, now); }).join('') : '<div style="text-align:center;color:#888;font-size:13px;padding:40px 0;">아직 글이 없어요</div>')
-      : fansHtml(ic);
+      : ui.tab === 'album' ? albumHtml(ic, cid) : fansHtml(ic);
 
     ov.innerHTML = '<div style="max-width:430px;margin:0 auto;padding:18px 16px 40px;">' +
       '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">' +
@@ -645,7 +750,7 @@
       '<button data-act="close" style="' + BTN + 'padding:8px 14px;background:rgba(255,255,255,0.1);color:#fff;font-size:13px;">닫기</button></div>' +
       '<div style="background:linear-gradient(135deg,rgba(255,107,157,0.18),rgba(192,132,252,0.18));border:1.5px solid #C084FC;border-radius:16px;padding:14px;margin-bottom:14px;">' +
       '<div style="font-size:12px;color:#aaa;">회원 수</div><div style="font-size:28px;font-weight:900;color:#FFD700;margin-bottom:6px;">👥 ' + total.toLocaleString() + '명</div>' + summary + '</div>' +
-      '<div style="display:flex;gap:8px;margin-bottom:14px;">' + tabBtn('board', '📋 게시판') + tabBtn('fans', '🧑‍🤝‍🧑 팬 명단') + '</div>' +
+      '<div style="display:flex;gap:8px;margin-bottom:14px;">' + tabBtn('board', '📋 게시판') + tabBtn('fans', '🧑‍🤝‍🧑 팬 명단') + tabBtn('album', '🃏 포카 ' + cardHave + '/' + cardDefs(cid).length) + '</div>' +
       content + '</div>';
   }
 
@@ -657,6 +762,8 @@
     if (act === 'close') { var ov = document.getElementById('fancafe-overlay'); if (ov) ov.remove(); return; }
     if (act === 'tab') { ui.tab = t.getAttribute('data-tab'); ui.replyOpen = null; render(); return; }
     if (act === 'replytoggle') { ui.replyOpen = ui.replyOpen === id ? null : id; render(); return; }
+    if (act === 'card') { var cd0 = cardDef(cid, id); if (cd0) showFanCardPopup(cd0, false); return; }
+    var claimed = null;
     var s = loadAll(), ic = getIdol(s, cid, now);
     if (act === 'heart') { heartPost(ic, id, now); }
     else if (act === 'reply') {
@@ -666,9 +773,13 @@
     } else if (act === 'quit') {
       var q = resolveQuit(ic, cid, id, tone, now);
       if (q) toast(q.stayed ? '🥹 마음을 돌렸어요!' : '💔 결국 떠났어요…');
+    } else if (act === 'claim') {
+      claimed = claimGift(ic, cid, id, now);
     }
+    checkGifts(ic, cid, now);
     saveAllState(s);
     render();
+    if (claimed) { toast('🃏 팬 포카를 받았어요!'); showFanCardPopup(claimed, true); }
   }
 
   // ════════ 살아 있는 카페: CF 결과 · 첫 팬 가입을 실시간으로 반영 ════════
@@ -677,13 +788,14 @@
     var s = loadAll(), now = Date.now(), changedAny = false, toastMsg = null;
     IDOLS.forEach(function (cid) {
       if (!s.idols[cid] || typeof CHARS === 'undefined' || !CHARS[cid]) return;
-      var ic = normalize(s.idols[cid], now), sig = signature(ic), hadFans = Object.keys(ic.fans).length > 0;
+      var ic = normalize(s.idols[cid], now), sig = signature(ic), hadFans = Object.keys(ic.fans).length > 0, g0 = giftCount(ic);
       sync(ic, cid, now);
       var cf = processCF(ic, cid);
       if (signature(ic) !== sig) {
         changedAny = true;
         if (cf.handled) toastMsg = cf.viral ? '📱 커뮤니티에서 화제! 팬카페 ' + cf.from + '명 → ' + cf.to + '명' : '☕ 팬카페에 CF 반응 글이 올라왔어요';
         else if (!hadFans && Object.keys(ic.fans).length > 0) toastMsg = '☕ 팬카페에 첫 회원이 찾아왔어요!';
+        if (giftCount(ic) > g0) toastMsg = (toastMsg ? toastMsg + ' · ' : '') + '🎁 팬 포카 선물이 도착했어요!';
       }
     });
     if (changedAny) {
@@ -698,7 +810,7 @@
   window.__fancafeTest = {
     ROSTER: ROSTER, TONES: TONES, STORAGE_KEY: STORAGE_KEY, loadAll: loadAll, saveAllState: saveAllState, getIdol: getIdol,
     sync: sync, processCF: processCF, handleCF: handleCF, members: members, heartPost: heartPost, replyPost: replyPost,
-    resolveQuit: resolveQuit, quitChance: quitChance, live: live, open: openFanCafe, isDebuted: isDebuted,
+    resolveQuit: resolveQuit, quitChance: quitChance, claimGift: claimGift, checkGifts: checkGifts, FAN_CARDS: FAN_CARDS, GIFT_AFF: GIFT_AFF, showFanCardPopup: showFanCardPopup, live: live, open: openFanCafe, isDebuted: isDebuted,
     CONST: { TICK_MS: TICK_MS, MAX_TICKS: MAX_TICKS, FIRST_FAN_DELAY: FIRST_FAN_DELAY, QUIT_AFF: QUIT_AFF, QUIT_WAIT: QUIT_WAIT,
              QUIT_GRACE: QUIT_GRACE, DAY: DAY, HOUR: HOUR, POST_MAX: POST_MAX }
   };
