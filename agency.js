@@ -104,6 +104,11 @@
 
   // ════════ 기획사 메인 화면 ════════
   function openAgency() {
+    if (typeof isPocaHouseFeatureUnlocked === 'function' && !isPocaHouseFeatureUnlocked('agency')) {
+      if (typeof closePlace === 'function') closePlace();
+      showPocaHouseLockedPopup(POCAHOUSE_UNLOCK.agency, '기획사');
+      return;
+    }
     if (typeof closePlace === 'function') closePlace();
     renderAgency();
   }
