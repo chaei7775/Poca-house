@@ -7,6 +7,7 @@
 //   성공 확률 기본 15%. 실패할 때마다 +1%p (천장: 20번째 도전은 확정)
 //   응원 카드: 그 캐릭터의 "중복 카드"를 최대 3장까지 걸면 확률 증가 (실패하면 카드는 그대로 돌려받음, 성공하면 소모)
 //   실패하면 재료의 절반을 돌려받음 (코인은 안 돌려줌)
+//   🧩 소원의 조각 걸기: 1개당 +10%p, 최대 3개. 성공하든 실패하든 걸어둔 조각은 소모됨 (돌려받지 않음)
 // - 데뷔한 캐릭터는 시간이 지날수록 수익이 쌓이고, 기획사에서 "정산하기"로 받는다.
 // - CF / 드라마 / 노래 스케줄은 다음 단계 (지금은 자리만 표시)
 //
@@ -22,6 +23,8 @@
   var MAX_CHANCE = 95;          // 확률 상한(%)
   var CARD_PCT = { N: 1, R: 2, SR: 3, SSR: 5, UR: 8 };   // 응원 카드 1장당 늘어나는 확률(%p)
   var CARD_MAX = 3;             // 응원 카드 최대 장수
+  var WISH_PCT = 10;            // 소원의 조각 1개당 늘어나는 확률(%p)
+  var WISH_MAX = 3;             // 한 번에 걸 수 있는 소원의 조각 최대 개수 (성공/실패 상관없이 소모)
   var DEBUT_COIN = 2000;        // 도전할 때 내는 코인
   var DEBUT_NEED = [            // 도전할 때 내는 재료
     { name: '고급원목', qty: 6, where: '🌲 숲' },
@@ -41,14 +44,15 @@
     });
     return n > CARD_MAX ? null : total;
   }
-  function debutChance(pity, picks) {
+  function debutChance(pity, picks, wish) {
     var bonus = cardBonus(picks) || 0;
-    return Math.min(MAX_CHANCE, DEBUT_BASE + pity * PITY_STEP + bonus);
+    var wishBonus = Math.min(WISH_MAX, Math.max(0, wish || 0)) * WISH_PCT;
+    return Math.min(MAX_CHANCE, DEBUT_BASE + pity * PITY_STEP + bonus + wishBonus);
   }
-  function rollDebut(pity, picks, rng) {
+  function rollDebut(pity, picks, rng, wish) {
     rng = rng || Math.random;
     if (pity >= PITY_HARD - 1) return true;                 // 천장
-    return rng() * 100 < debutChance(pity, picks);
+    return rng() * 100 < debutChance(pity, picks, wish);
   }
   function claimable(debutTimes, now) {  // debutTimes: { charId: sinceMs }
     var sum = 0;
@@ -177,6 +181,7 @@
     var ch = CHARS[cid], st = load();
     if (!ch || !hasChar(cid) || st.done[cid]) return;
     var picks = { N: 0, R: 0, SR: 0, SSR: 0, UR: 0 };
+    var wishPick = 0;                    // 걸어둘 소원의 조각 개수
     var old = document.getElementById('agency-debut-overlay'); if (old) old.remove();
     var ov = document.createElement('div');
     ov.id = 'agency-debut-overlay';
@@ -187,7 +192,9 @@
       var pity = load().pity[cid] || 0;
       var dups = dupsByGrade(cid);
       var total = picks.N + picks.R + picks.SR + picks.SSR + picks.UR;
-      var chance = debutChance(pity, picks);
+      var haveWish = (typeof wishFragments !== 'undefined') ? wishFragments : 0;
+      if (wishPick > haveWish) wishPick = haveWish;
+      var chance = debutChance(pity, picks, wishPick);
       var sure = pity >= PITY_HARD - 1;
       var canPay = coins >= DEBUT_COIN && DEBUT_NEED.every(function (n) { return bagQty(n.name) >= n.qty; });
 
@@ -202,10 +209,15 @@
           '<button data-g="' + g + '" data-d="1" style="' + BTN + 'width:28px;height:28px;background:rgba(255,255,255,0.12);color:#fff;">+</button></span></div>';
       }).join('') || '<div style="font-size:12px;color:#888;">걸 수 있는 중복 카드가 없어요</div>';
 
+      var wishHtml = '<div style="display:flex;align-items:center;justify-content:space-between;padding:4px 0;font-size:13px;color:#fff;"><span>🧩 소원의 조각 <span style="color:#888;font-size:11px;">(+' + WISH_PCT + '%p · 보유 ' + haveWish + '개)</span></span>' +
+        '<span><button data-wish="-1" style="' + BTN + 'width:28px;height:28px;background:rgba(255,255,255,0.12);color:#fff;">−</button> <b style="display:inline-block;min-width:20px;text-align:center;">' + wishPick + '</b> ' +
+        '<button data-wish="1" style="' + BTN + 'width:28px;height:28px;background:rgba(255,255,255,0.12);color:#fff;">+</button></span></div>';
+
       ov.innerHTML = '<div style="width:100%;max-width:340px;max-height:92vh;overflow-y:auto;background:linear-gradient(135deg,#1a1a2e,#2d1b4e);border:2px solid ' + ch.gradeColor + ';border-radius:20px;padding:22px 20px;">' +
         '<div style="text-align:center;margin-bottom:12px;"><div style="font-size:30px;">🎤</div><div style="font-size:17px;font-weight:900;color:#fff;">' + esc(ch.name) + ' 데뷔 도전</div></div>' +
         '<div style="background:rgba(255,255,255,0.05);border-radius:12px;padding:10px 12px;margin-bottom:12px;"><div style="font-size:12px;font-weight:900;color:#C084FC;margin-bottom:4px;">준비물</div>' + need + '</div>' +
         '<div style="background:rgba(255,255,255,0.05);border-radius:12px;padding:10px 12px;margin-bottom:12px;"><div style="font-size:12px;font-weight:900;color:#C084FC;margin-bottom:4px;">응원 카드 <span style="color:#888;font-weight:400;">(최대 ' + CARD_MAX + '장 · 실패하면 돌려받아요)</span></div>' + gradesHtml + '</div>' +
+        '<div style="background:rgba(255,226,122,0.07);border-radius:12px;padding:10px 12px;margin-bottom:12px;"><div style="font-size:12px;font-weight:900;color:#FFE27A;margin-bottom:4px;">소원 걸기 <span style="color:#888;font-weight:400;">(최대 ' + WISH_MAX + '개 · 실패해도 돌려받지 않아요)</span></div>' + wishHtml + '</div>' +
         '<div style="text-align:center;margin-bottom:12px;"><div style="font-size:12px;color:#aaa;">성공 확률</div><div style="font-size:26px;font-weight:900;color:#FFD700;">' + (sure ? '확정!' : chance + '%') + '</div>' +
         '<div style="font-size:11px;color:#888;">천장 ' + pity + ' / ' + (PITY_HARD - 1) + (sure ? ' · 이번엔 무조건 데뷔' : '') + '</div></div>' +
         '<button id="agency-go" style="' + BTN + 'width:100%;padding:14px;margin-bottom:8px;background:' + (canPay ? 'linear-gradient(135deg,#FF6B9D,#C084FC)' : 'rgba(255,255,255,0.1)') + ';color:' + (canPay ? '#fff' : '#777') + ';font-size:15px;">' + (canPay ? '🎤 데뷔 도전!' : '준비물이 부족해요') + '</button>' +
@@ -220,21 +232,45 @@
           picks[g] = nv; draw();
         };
       });
+      ov.querySelectorAll('[data-wish]').forEach(function (b) {
+        b.onclick = function () {
+          var nv = wishPick + parseInt(b.getAttribute('data-wish'), 10);
+          if (nv < 0 || nv > WISH_MAX || nv > haveWish) return;
+          wishPick = nv; draw();
+        };
+      });
       ov.querySelector('#agency-cancel').onclick = function () { ov.remove(); };
-      ov.querySelector('#agency-go').onclick = function () { if (canPay) attempt(cid, picks, ov); else toast('준비물이 부족해요!'); };
+      ov.querySelector('#agency-go').onclick = function () { if (canPay) attempt(cid, picks, ov, wishPick); else toast('준비물이 부족해요!'); };
     }
     draw();
   }
 
-  function attempt(cid, picks, ov) {
+  // 소원의 조각 걸기: 실제로 소모 (재조합기와 같은 방식으로 wishFragments를 줄이고, 0이 되면 가방 표시 아이템도 정리)
+  function spendWish(n) {
+    if (!n || n <= 0) return;
+    wishFragments -= n;
+    localStorage.setItem('ph_wish', wishFragments);
+    if (wishFragments <= 0) {
+      wishFragments = 0;
+      localStorage.setItem('ph_wish', 0);
+      var frag = bagItems.find(function (i) { return i.name === '소원의 조각'; });
+      if (frag) useFromBag('소원의 조각', frag.qty);
+    }
+  }
+
+  function attempt(cid, picks, ov, wish) {
     var ch = CHARS[cid], st = load();
     if (st.done[cid]) return;
+    wish = Math.min(WISH_MAX, Math.max(0, wish || 0));
+    if (typeof wishFragments !== 'undefined' && wish > wishFragments) wish = wishFragments;
     var pity = st.pity[cid] || 0;
     // 1) 비용은 먼저 낸다 (닫아도 도망 못 가게)
     coins -= DEBUT_COIN;
     DEBUT_NEED.forEach(function (n) { useFromBag(n.name, n.qty); });
+    spendWish(wish);                                          // 소원의 조각은 성공/실패 상관없이 소모
     // 2) 판정
-    var win = rollDebut(pity, picks);
+    var win = rollDebut(pity, picks, null, wish);
+    var wishLine = wish > 0 ? '<div style="font-size:12px;color:#FFE27A;margin-bottom:6px;">🧩 소원의 조각 ' + wish + '개를 사용했어요</div>' : '';
     var refunds = [];
     if (win) {
       spendDups(cid, picks);
@@ -255,12 +291,13 @@
         ov.innerHTML = '<div style="width:100%;max-width:320px;background:linear-gradient(135deg,#1a1a2e,#2d1b4e);border:2px solid #FFD700;border-radius:20px;padding:28px 22px;text-align:center;">' +
           '<div style="font-size:50px;margin-bottom:6px;">🎉✨</div><div style="font-size:20px;font-weight:900;color:#FFD700;margin-bottom:6px;">데뷔 성공!</div>' +
           '<div style="font-size:14px;color:#fff;line-height:1.7;margin-bottom:6px;">' + esc(ch.name) + '이(가) 정식으로 데뷔했어요!</div>' +
-          '<div style="font-size:12px;color:#aaa;margin-bottom:16px;">이제 시간이 지나면 수익이 쌓여요 (🍔 ' + INCOME_PER_HOUR + '/시간)</div>' +
+          '<div style="font-size:12px;color:#aaa;margin-bottom:6px;">이제 시간이 지나면 수익이 쌓여요 (🍔 ' + INCOME_PER_HOUR + '/시간)</div>' + wishLine +
+          '<div style="height:10px;"></div>' +
           '<button id="agency-ok" style="' + BTN + 'width:100%;padding:13px;background:linear-gradient(135deg,#FF6B9D,#C084FC);color:#fff;font-size:15px;">확인</button></div>';
       } else {
         ov.innerHTML = '<div style="width:100%;max-width:320px;background:linear-gradient(135deg,#1a1a2e,#2d1b4e);border:2px solid #777;border-radius:20px;padding:28px 22px;text-align:center;">' +
           '<div style="font-size:46px;margin-bottom:6px;">😢</div><div style="font-size:18px;font-weight:900;color:#fff;margin-bottom:6px;">이번엔 아쉽게 탈락…</div>' +
-          '<div style="font-size:12px;color:#aaa;line-height:1.7;margin-bottom:6px;">재료 일부를 돌려받았어요<br>' + (refunds.length ? refunds.join(' · ') : '') + '</div>' +
+          '<div style="font-size:12px;color:#aaa;line-height:1.7;margin-bottom:6px;">재료 일부를 돌려받았어요<br>' + (refunds.length ? refunds.join(' · ') : '') + '</div>' + wishLine +
           '<div style="font-size:12px;color:#C084FC;margin-bottom:16px;">천장 ' + st.pity[cid] + ' / ' + (PITY_HARD - 1) + ' · ' + (left === 0 ? '다음엔 무조건 데뷔!' : left + '번 안에 확정') + '</div>' +
           '<button id="agency-ok" style="' + BTN + 'width:100%;padding:13px;background:linear-gradient(135deg,#FF6B9D,#C084FC);color:#fff;font-size:15px;">확인</button></div>';
       }
