@@ -44,13 +44,32 @@ const RARE_VARIANTS = {
 };
 
 const SPECIAL_JAPTEM = [
-  { emoji:'🧶', name:'별빛 털' },
-  { emoji:'🌟', name:'반짝이는 날개가루' },
-  { emoji:'🕊️', name:'은빛 깃털' },
-  { emoji:'🌼', name:'신비한 꽃가루' },
-  { emoji:'🍂', name:'달빛 잎사귀' },
-  { emoji:'🔷', name:'수정 조각' }
+  { emoji:'🦄', name:'별빛 털' },
+  { emoji:'🪄', name:'반짝이는 날개가루' },
+  { emoji:'🦢', name:'은빛 깃털' },
+  { emoji:'🪷', name:'신비한 꽃가루' },
+  { emoji:'🌾', name:'달빛 잎사귀' },
+  { emoji:'🧊', name:'수정 조각' }
 ];
+// 이미 가방에 있는 옛 이모지 재료/소품을 새 값으로 갱신 (가방은 이름으로 찾음)
+function migrateSpecialMaterialEmoji() {
+  if (typeof bagItems === 'undefined' || !Array.isArray(bagItems)) return;
+  let changed = false;
+  bagItems.forEach(function(i) {
+    if (i.type === 'material') {
+      const m = SPECIAL_JAPTEM.find(function(j) { return j.name === i.name; });
+      if (m && i.emoji !== m.emoji) { i.emoji = m.emoji; changed = true; }
+    } else if (i.type === 'gear') {
+      const parsed = parseGearBagName(i.name);
+      if (parsed) {
+        const desc = '특별탐험 촬영 소품 · ' + gearEffectText(parsed.effect, parsed.value);
+        if (i.desc !== desc || i.emoji !== parsed.emoji) { i.desc = desc; i.emoji = parsed.emoji; changed = true; }
+      }
+    }
+  });
+  if (changed && typeof saveBag === 'function') saveBag();
+}
+setInterval(migrateSpecialMaterialEmoji, 2000);
 const SPECIAL_GEAR = [
   { name:'월광 리본',       emoji:'🎀', effect:'flee',    value:10 },
   { name:'프리즘 브로치',   emoji:'🌈', effect:'chance',  value:15 },
@@ -97,11 +116,34 @@ const VARIANT_CORRECT_TOOL = {
 function getEquippedGearMap() {
   try { return JSON.parse(localStorage.getItem('ph_equippedGearByChar') || '{}'); } catch (e) { return {}; }
 }
+// 소품 능력: 등급이 높을수록 수치가 커짐 (재도전 횟수는 전설만 2회)
+const SPECIAL_GEAR_GRADE_MULT = { common:1, great:1.2, rare:1.5, legend:2 };
+function gearScaledValue(gear, grade) {
+  if (gear.effect === 'retry') return grade === 'legend' ? 2 : 1;
+  return Math.round(gear.value * (SPECIAL_GEAR_GRADE_MULT[grade] || 1));
+}
+function gearEffectText(effect, value) {
+  return effect === 'flee' ? '도망확률 -' + value + '%' :
+    effect === 'chance' ? '촬영확률 +' + value + '%' :
+    effect === 'variant' ? '변종 출현 +' + value + '%' :
+    '촬영 실패시 재도전 ' + value + '회';
+}
+// 가방 이름 '[고급] 월광 리본' → { name, baseName, emoji, effect, value, grade }
+function parseGearBagName(bagName) {
+  const labels = Object.keys(SPECIAL_GEAR_GRADES);
+  let grade = 'common';
+  for (let k = 0; k < labels.length; k++) {
+    if (bagName.indexOf('[' + SPECIAL_GEAR_GRADES[labels[k]] + ']') === 0) { grade = labels[k]; break; }
+  }
+  const base = SPECIAL_GEAR.find(function(g) { return bagName.indexOf(g.name) !== -1; });
+  if (!base) return null;
+  return { name: bagName, baseName: base.name, emoji: base.emoji, effect: base.effect, value: gearScaledValue(base, grade), grade: grade };
+}
 function getEquippedGearFor(charId) {
   const map = getEquippedGearMap();
   const name = map[charId];
   if (!name) return null;
-  return SPECIAL_GEAR.find(function(g) { return g.name === name; }) || null;
+  return parseGearBagName(name);
 }
 function setEquippedGearFor(charId, gearName) {
   const map = getEquippedGearMap();
@@ -139,18 +181,15 @@ function openGearEquipScreen(charId) {
     listHtml = '<div style="font-size:12px;color:#888;text-align:center;padding:20px 0;">아직 보유한 촬영 소품이 없어요.<br>레어 변종을 촬영하면 소품을 얻을 수 있어요!</div>';
   } else {
     listHtml = owned.map(function(item) {
-      const gear = SPECIAL_GEAR.find(function(g) { return item.name.indexOf(g.name) !== -1; });
+      const gear = parseGearBagName(item.name);
       if (!gear) return '';
-      const isEquipped = equipped && equipped.name === gear.name;
-      const effectText = gear.effect === 'flee' ? '도망확률 -' + gear.value + '%' :
-        gear.effect === 'chance' ? '촬영확률 +' + gear.value + '%' :
-        gear.effect === 'variant' ? '변종 출현 +' + gear.value + '%' :
-        '촬영 실패시 재도전 ' + gear.value + '회';
+      const isEquipped = equipped && equipped.name === item.name;
+      const effectText = gearEffectText(gear.effect, gear.value);
       return '<div style="display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,0.06);border:1.5px solid ' + (isEquipped ? '#FFD700' : 'rgba(255,255,255,0.15)') + ';border-radius:14px;padding:12px 14px;margin-bottom:8px;">' +
         '<div style="display:flex;align-items:center;gap:10px;"><span style="font-size:22px;">' + gear.emoji + '</span>' +
         '<div><div style="font-size:13px;font-weight:900;color:#fff;">' + item.name + '</div>' +
         '<div style="font-size:11px;color:#FFD700;margin-top:2px;">' + effectText + '</div></div></div>' +
-        '<button onclick="equipSpecialGear(\'' + charId + '\',\'' + gear.name + '\')" style="flex-shrink:0;padding:7px 12px;background:' + (isEquipped ? '#FFD700' : '#C084FC') + ';border:none;border-radius:10px;color:' + (isEquipped ? '#1a1a2e' : '#fff') + ';font-size:11px;font-weight:900;cursor:pointer;">' + (isEquipped ? '장착중' : '장착') + '</button>' +
+        '<button onclick="equipSpecialGear(\'' + charId + '\',\'' + item.name + '\')" style="flex-shrink:0;padding:7px 12px;background:' + (isEquipped ? '#FFD700' : '#C084FC') + ';border:none;border-radius:10px;color:' + (isEquipped ? '#1a1a2e' : '#fff') + ';font-size:11px;font-weight:900;cursor:pointer;">' + (isEquipped ? '장착중' : '장착') + '</button>' +
         '</div>';
     }).join('');
   }
@@ -284,7 +323,7 @@ function encounterSpecialCreature() {
   const baseCreature = pool[Math.floor(Math.random() * pool.length)];
 
   // 5% 확률로 레어 변종 등장 (+촬영 소품 보너스)
-  const variantChance = 0.05 + (getGearBonus(specialExploreState.charId, 'variant') / 100);
+  const variantChance = Math.min(0.6, 0.05 + (getGearBonus(specialExploreState.charId, 'variant') / 100));
   const isVariant = Math.random() < variantChance && RARE_VARIANTS[baseCreature.id];
   const creature = isVariant ?
     Object.assign({}, baseCreature, { isVariant: true, variantName: RARE_VARIANTS[baseCreature.id].name, variantImg: RARE_VARIANTS[baseCreature.id].img }) :
@@ -554,10 +593,7 @@ function resolveSpecialCapture(success) {
     gearItem = SPECIAL_GEAR[Math.floor(Math.random() * SPECIAL_GEAR.length)];
     const gradeLabel = SPECIAL_GEAR_GRADES[gearGrade];
     if (typeof addToBag === 'function') {
-      const effectDesc = gearItem.effect === 'flee' ? '도망확률 -' + gearItem.value + '%' :
-        gearItem.effect === 'chance' ? '촬영확률 +' + gearItem.value + '%' :
-        gearItem.effect === 'variant' ? '변종 출현 +' + gearItem.value + '%' :
-        '촬영 실패시 재도전 ' + gearItem.value + '회';
+      const effectDesc = gearEffectText(gearItem.effect, gearScaledValue(gearItem, gearGrade));
       addToBag(gearItem.emoji, '[' + gradeLabel + '] ' + gearItem.name, 'gear', 1, '특별탐험 촬영 소품 · ' + effectDesc);
     }
   }
@@ -597,7 +633,7 @@ function resolveSpecialCapture(success) {
   const rewardItems = [];
   rewardItems.push({ icon:'⭐', text: CHARS[charId].name + ' +' + expGain + ' EXP', color:'#FFD700' });
   if (gotJaptem) rewardItems.push({ icon: japtemItem.emoji, text: japtemItem.name + ' x1', color:'#fff' });
-  if (gotGear) rewardItems.push({ icon:'✨', text: '[' + SPECIAL_GEAR_GRADES[gearGrade] + '] ' + gearItem.name, color:'#C084FC' });
+  if (gotGear) rewardItems.push({ icon: gearItem.emoji, text: '[' + SPECIAL_GEAR_GRADES[gearGrade] + '] ' + gearItem.name + ' (' + gearEffectText(gearItem.effect, gearScaledValue(gearItem, gearGrade)) + ')', color:'#C084FC' });
   if (gotTicket) rewardItems.push({ icon:'🎫', text: '등교권 +1', color:'#60A5FA' });
   if (gotTicketFragment) rewardItems.push({ icon:'🎫', text: '등교권 조각 +1', color:'#60A5FA' });
 
