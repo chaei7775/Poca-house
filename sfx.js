@@ -10,11 +10,14 @@
 (function () {
   'use strict';
 
-  var SFX_VOLUME = 0.5;     // 0 ~ 1 (효과음 전체 크기. 배경음악보다 작게 시작)
+  var SFX_VOLUME = 1.0;     // 0 ~ 1 (효과음 전체 크기. 합성음 자체가 작아서 최대로 둠)
   var SFX_FILES = {};       // 소리 파일을 쓸 때만 채움 (비워두면 전부 합성음)
   var MIN_GAP_MS = 120;     // 같은 소리가 너무 자주 겹치지 않게
 
   var audioCtx = null;
+
+  // 아이폰 무음(진동) 모드에서도 효과음이 나오게 함 (지원 안 하는 기기에선 그냥 무시됨)
+  try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch (e) {}
   var lastPlayed = {};
   var fileCache = {};
 
@@ -85,7 +88,7 @@
 
   // ── 소리 목록 ──
   var SYNTH = {
-    coin: function () { tone(1319, 0, 0.08, 'square', 0.12); tone(1760, 0.07, 0.16, 'square', 0.12); },
+    coin: function () { tone(1319, 0, 0.08, 'square', 0.22); tone(1760, 0.07, 0.16, 'square', 0.22); },
     reward: function () { arp([523, 659, 784, 1047], 0.08, 0.18, 'triangle', 0.25); },
     levelup: function () {
       arp([523, 659, 784, 1047, 1319], 0.09, 0.22, 'triangle', 0.28);
