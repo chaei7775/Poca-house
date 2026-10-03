@@ -1,27 +1,34 @@
 // ════════════════════════════════
 // 🔮 카드 재조합기 천장 패치
 // recombine.js는 건드리지 않고, doRecombine / updateRcStartButton만 덮어써서 천장을 넣는다.
-//  - 실패(히든 미등장) 1번당 레어히든 확률 +RC_PITY_STEP %
-//  - 연속 RC_PITY_HARD 번째 시도에서는 레어히든 확정 (에픽이 먼저 뜨면 에픽)
+//  - 천장은 RC_PITY_KEYS에 적힌 조합(SR_SR 이상)에서만 적용된다. 낮은 조합은 기존 확률 그대로.
+//  - 천장 적용 조합에서 실패(히든 미등장) 1번당 레어히든 확률 +RC_PITY_STEP %
+//  - 천장 적용 조합의 연속 RC_PITY_HARD 번째 시도에서는 레어히든 확정 (에픽이 먼저 뜨면 에픽)
 //  - 재조합 화면에 천장 카운터와 현재 히든 확률 표시
-// 값을 바꾸고 싶으면 아래 두 줄만 수정하면 됨.
+// 값을 바꾸고 싶으면 아래 세 줄만 수정하면 됨.
 // ════════════════════════════════
 
 const RC_PITY_STEP = 0.5;   // 실패 1번당 늘어나는 레어히든 확률(%p)
 const RC_PITY_HARD = 30;    // 이 번째 시도에서 레어히든 확정
+const RC_PITY_KEYS = ['SR_SR', 'SR_SSR', 'SSR_SSR', 'SSR_UR', 'UR_UR']; // 천장이 적용되는 조합
+
+function rcPityApplies(key) {
+  return RC_PITY_KEYS.indexOf(key) !== -1;
+}
 
 function rcPityBonus(pityCount) {
   return Math.min(pityCount, RC_PITY_HARD - 1) * RC_PITY_STEP;
 }
 
 // 결과 판정만 따로 뺀 순수 함수: 'epic' | 'rare' | 'upgrade' | 'same'
-function rcRollOutcome(table, pityCount, rand) {
+// pityOn이 false면 천장 없이 기본 확률로만 판정한다.
+function rcRollOutcome(table, pityCount, rand, pityOn) {
   rand = rand || Math.random;
   const epicChance = table.epicHidden;
-  const rareChance = table.rareHidden + rcPityBonus(pityCount);
+  const rareChance = table.rareHidden + (pityOn ? rcPityBonus(pityCount) : 0);
   const roll = rand() * 100;
   if (roll < epicChance) return 'epic';
-  if (pityCount >= RC_PITY_HARD - 1 || roll < epicChance + rareChance) return 'rare';
+  if ((pityOn && pityCount >= RC_PITY_HARD - 1) || roll < epicChance + rareChance) return 'rare';
   if (roll < epicChance + rareChance + table.upgrade) return 'upgrade';
   return 'same';
 }
@@ -40,12 +47,20 @@ function rcUpdatePityInfo() {
   }
   const n = rcPityCount;
   const left = Math.max(1, RC_PITY_HARD - n);
+  const recipe = getRcCurrentRecipe();
+  const pityOn = recipe ? rcPityApplies(recipe.key) : true;
+
   let html = '🍀 히든 천장 ' + n + ' / ' + RC_PITY_HARD +
     ' <span style="color:#aaa;font-weight:400;">(' + left + '번 안에 레어히든 확정)</span>';
-  const recipe = getRcCurrentRecipe();
   if (recipe) {
-    const chance = recipe.table.rareHidden + recipe.table.epicHidden + rcPityBonus(n);
+    const base = recipe.table.rareHidden + recipe.table.epicHidden;
+    const chance = base + (pityOn ? rcPityBonus(n) : 0);
     html += '<br><span style="color:#FFD700;">현재 히든 확률 ' + chance.toFixed(2) + '%</span>';
+    if (!pityOn) {
+      html += '<br><span style="color:#aaa;font-weight:400;">이 조합은 천장 미적용 (SR_SR 이상부터 적용)</span>';
+    }
+  } else {
+    html += '<br><span style="color:#aaa;font-weight:400;">SR_SR 이상 조합에서만 쌓여요</span>';
   }
   el.innerHTML = html;
 }
@@ -87,7 +102,8 @@ function rcUpdatePityInfo() {
     localStorage.setItem('ph_cardCounts', JSON.stringify(cardCounts));
     localStorage.setItem('ph_owned', JSON.stringify(owned));
 
-    const outcome = rcRollOutcome(recipe.table, rcPityCount);
+    const pityOn = rcPityApplies(recipe.key);
+    const outcome = rcRollOutcome(recipe.table, rcPityCount, null, pityOn);
     let result;
     if (outcome === 'epic') {
       result = rollHiddenCard('에픽히든', recipe);
@@ -99,10 +115,13 @@ function rcUpdatePityInfo() {
       result = { type: 'card', grade: recipe.lowerGrade };
     }
 
-    if (result.type === 'hidden') {
-      rcPityCount = 0;
-    } else {
-      rcPityCount += 1;
+    // 천장 카운터는 천장 적용 조합에서만 움직인다 (낮은 조합은 건드리지 않음)
+    if (pityOn) {
+      if (result.type === 'hidden') {
+        rcPityCount = 0;
+      } else {
+        rcPityCount += 1;
+      }
     }
     saveRcData();
 
