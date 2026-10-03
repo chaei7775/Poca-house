@@ -2,9 +2,9 @@
 // 🎣 동쪽호수 낚시 (fishing.js)
 // 호수의 "🎣 낚시하기" 버튼(explorePlace('lake'))만 진짜 낚시로 바꾼다. 다른 지역 탐험은 그대로.
 //
-// 흐름: 스태미나 10 소모 → 60초 동안 낚시
+// 흐름: 스태미나 10 소모 → 60초 동안 낚시 (물고기와 싸우는 중이면 그 한 마리까지)
 //   물을 탭해서 찌 던지기 → 물고기 그림자가 다가와 입질 → 타이밍 맞춰 탭 → 릴링(꾹 눌러서 초록 칸 맞추기)
-//   ✨ 반짝이는 곳에 던지면 기존 호수 재료(맑은샘물 등)가 올라와요 (제작 재료 공급처 유지)
+//   (✨ 반짝이는 곳 = 기존 호수 재료는 지금 꺼져 있음. TREASURE_COUNT를 올리면 다시 나옴)
 // 세션이 끝나면 재조합석 15% 판정도 기존 탐험처럼 그대로 한다.
 //
 // 값을 바꾸고 싶으면 아래 설정 / SPECIES 표만 고치면 됨.
@@ -13,8 +13,9 @@
   'use strict';
 
   // ── 설정 ──
-  var SESSION_SEC = 60;       // 낚시 시간(릴링 중엔 멈춤)
+  var SESSION_SEC = 60;       // 낚시 시간 (싸우는 중에 끝나면 그 한 마리는 끝까지)
   var STAMINA_COST = 10;      // 기존 탐험과 동일
+  var WEB_DROP = 0.15;        // 물고기를 잡을 때 은빛거미줄이 같이 올라올 확률 (의상 제작 재료, 호수에서만 나오던 것)
   var STONE_DROP = 0.15;      // 세션 종료 시 재조합석 확률 (기존 호수 탐험과 동일)
   var BG_FILE = 'map-lake.png';
 
@@ -26,19 +27,21 @@
   ].map(function (p) { return [p[0] * IMG_W, p[1] * IMG_H]; });
 
   // ── 물고기 표 ──
-  // weight: 등장 비중 / size: 그림자 크기 / speed: 헤엄 속도 / price: 재료 상점 판매가
-  // zh: 초록 칸 크기(클수록 쉬움) / fs: 물고기 움직임 속도 / ri: 방향 바꾸는 간격 / gain·loss: 게이지 차오름·줄어듦 / bite: 입질 유지 시간
+  // weight: 등장 비중 / size: 그림자 크기 / speed: 헤엄 속도 / price: 재료 상점 판매가 / bite: 입질 유지 시간
+  // hz: 타이밍 칸 크기(클수록 쉬움) / ht: 구슬이 한 번 왕복하는 시간(초, 짧을수록 빠름)
+  // pull: 힘겨루기에서 물고기가 끌어당기는 힘(클수록 힘듦)
   var SPECIES = [
-    { id: 'songsari', name: '별빛 송사리', emoji: '🐟', weight: 40, size: 20, speed: 70, price: 40, zh: 0.17, fs: 0.55, ri: [0.7, 1.3], gain: 0.32, loss: 0.16, bite: 1.4, rare: false },
-    { id: 'bungeo',   name: '은빛 붕어',   emoji: '🐟', weight: 28, size: 30, speed: 60, price: 60, zh: 0.15, fs: 0.70, ri: [0.6, 1.2], gain: 0.30, loss: 0.18, bite: 1.3, rare: false },
-    { id: 'ingeo',    name: '달빛 잉어',   emoji: '🐠', weight: 17, size: 42, speed: 52, price: 100, zh: 0.14, fs: 0.75, ri: [0.5, 1.0], gain: 0.30, loss: 0.18, bite: 1.2, rare: true },
-    { id: 'goldfish', name: '꽃잎 금붕어', emoji: '🐠', weight: 10, size: 34, speed: 80, price: 180, zh: 0.135, fs: 0.85, ri: [0.45, 0.9], gain: 0.30, loss: 0.19, bite: 1.1, rare: true },
-    { id: 'goldcarp', name: '황금 잉어',   emoji: '🐡', weight: 5,  size: 54, speed: 66, price: 350, zh: 0.125, fs: 0.95, ri: [0.4, 0.8], gain: 0.29, loss: 0.20, bite: 1.0, rare: true }
+    { id: 'songsari', name: '별빛 송사리', emoji: '🐟', weight: 40, size: 20, speed: 70, price: 20,  hz: 0.30, ht: 1.8, pull: 0.06, bite: 1.4, rare: false },
+    { id: 'bungeo',   name: '은빛 붕어',   emoji: '🐟', weight: 28, size: 30, speed: 60, price: 30,  hz: 0.26, ht: 1.6, pull: 0.10, bite: 1.3, rare: false },
+    { id: 'ingeo',    name: '달빛 잉어',   emoji: '🐠', weight: 17, size: 42, speed: 52, price: 50, hz: 0.22, ht: 1.4, pull: 0.14, bite: 1.2, rare: true },
+    { id: 'goldfish', name: '꽃잎 금붕어', emoji: '🐠', weight: 10, size: 34, speed: 80, price: 90, hz: 0.18, ht: 1.2, pull: 0.17, bite: 1.1, rare: true },
+    { id: 'goldcarp', name: '황금 잉어',   emoji: '🐡', weight: 5,  size: 54, speed: 66, price: 180, hz: 0.14, ht: 1.0, pull: 0.20, bite: 1.0, rare: true }
   ];
-  // ✨ 반짝이는 곳 (기존 호수 재료가 올라옴)
-  var TREASURE = { id: 'treasure', name: '반짝이는 것', emoji: '✨', size: 16, speed: 8, zh: 0.20, fs: 0.45, ri: [0.9, 1.5], gain: 0.36, loss: 0.12, bite: 2.0, treasure: true };
+  // ✨ 반짝이는 곳 (기존 호수 재료가 올라옴, 타이밍만 맞추면 끝)
+  var TREASURE = { id: 'treasure', name: '반짝이는 것', emoji: '✨', size: 16, speed: 8, hz: 0.40, ht: 2.0, pull: 0, bite: 2.0, treasure: true };
 
-  var FISH_COUNT = 6, TREASURE_COUNT = 2;
+  var FISH_COUNT = 6;
+  var TREASURE_COUNT = 0;   // ✨ 반짝이는 곳(기존 호수 재료) 개수. 0이면 아예 안 나옴. 되살리려면 2 정도로
 
   // ════════ 순수 로직 (화면 없이도 테스트 가능) ════════
   function pointInPoly(x, y, poly) {
@@ -59,33 +62,45 @@
     return SPECIES[0];
   }
 
-  function makeReel(sp) {
-    return { sp: sp, zc: 0.5, zv: 0, fp: 0.5, ft: 0.5, fr: 0.6, p: 0.35, t: 0, inZone: true };
+  var HOOK_TRIES = 2;       // 챔질(타이밍) 기회
+  var TAP_GAIN = 0.05;      // 힘겨루기에서 탭 1번이 끌어당기는 양
+  var TUG_LIMIT = 18;       // 힘겨루기 제한 시간(초)
+
+  // ① 타이밍 게이지: 구슬이 왔다갔다하고, 임팩트존에 있을 때 탭
+  function newZone(hz, rng) { return 0.25 + (rng || Math.random)() * 0.5; }
+  function makeHook(sp, rng) { return { sp: sp, pos: 0, dir: 1, tries: HOOK_TRIES, zc: newZone(sp.hz, rng), freeze: 0 }; }
+  function stepHook(h, dt) {
+    if (h.freeze > 0) { h.freeze -= dt; return; }
+    h.pos += h.dir * (2 / h.sp.ht) * dt;
+    if (h.pos >= 1) { h.pos = 1; h.dir = -1; }
+    if (h.pos <= 0) { h.pos = 0; h.dir = 1; }
+  }
+  // 'perfect'(존 가운데 40%) | 'good'(존 안) | 'miss'
+  function judgeHook(h) {
+    var d = Math.abs(h.pos - h.zc);
+    if (d <= h.sp.hz * 0.2) return 'perfect';
+    if (d <= h.sp.hz * 0.5) return 'good';
+    return 'miss';
   }
 
-  // 릴링 1프레임. 'go' | 'win' | 'lose'
-  function stepReel(r, hold, dt, rng) {
+  // ② 힘겨루기: 연타로 당기고, 물고기는 계속 끌어당기며 가끔 발버둥
+  function makeTug(sp, bonus, rng) {
+    return { sp: sp, pos: 0.5 + (bonus || 0), t: 0, surge: 0, nextSurge: 1.2 + (rng || Math.random)() * 1.5 };
+  }
+  function tapTug(g) { g.pos = Math.min(1.05, g.pos + TAP_GAIN); }
+  function stepTug(g, dt, rng) {
     rng = rng || Math.random;
-    var sp = r.sp;
-    r.t += dt;
-    r.zv += (hold ? 2.4 : -2.0) * dt;
-    r.zv = Math.max(-0.8, Math.min(0.8, r.zv));
-    r.zc += r.zv * dt;
-    if (r.zc < sp.zh) { r.zc = sp.zh; if (r.zv < 0) r.zv = 0; }
-    if (r.zc > 1 - sp.zh) { r.zc = 1 - sp.zh; if (r.zv > 0) r.zv = 0; }
-    r.fr -= dt;
-    if (r.fr <= 0) { r.ft = 0.08 + rng() * 0.84; r.fr = sp.ri[0] + rng() * (sp.ri[1] - sp.ri[0]); }
-    var d = r.ft - r.fp, mv = sp.fs * dt;
-    r.fp += Math.abs(d) <= mv ? d : (d > 0 ? mv : -mv);
-    r.inZone = Math.abs(r.fp - r.zc) <= sp.zh;
-    r.p += (r.inZone ? sp.gain : -sp.loss) * dt;
-    if (r.p >= 1) return 'win';
-    if (r.p <= 0 || r.t >= 25) return 'lose';
+    g.t += dt; g.nextSurge -= dt;
+    if (g.surge > 0) g.surge -= dt;
+    else if (g.nextSurge <= 0) { g.surge = 0.7; g.nextSurge = 1.8 + rng() * 1.4; }
+    g.pos -= g.sp.pull * (g.surge > 0 ? 1.8 : 1) * dt;
+    if (g.pos >= 1) return 'win';
+    if (g.pos <= 0 || g.t >= TUG_LIMIT) return 'lose';
     return 'go';
   }
 
   if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { SPECIES: SPECIES, TREASURE: TREASURE, WATER_POLY: WATER_POLY, pointInPoly: pointInPoly, pickSpecies: pickSpecies, makeReel: makeReel, stepReel: stepReel };
+    module.exports = { SPECIES: SPECIES, TREASURE: TREASURE, WATER_POLY: WATER_POLY, pointInPoly: pointInPoly, pickSpecies: pickSpecies, makeHook: makeHook, stepHook: stepHook, judgeHook: judgeHook, makeTug: makeTug, stepTug: stepTug, tapTug: tapTug, HOOK_TRIES: HOOK_TRIES };
   }
   if (typeof document === 'undefined') return;
 
@@ -134,7 +149,7 @@
     S = {
       overlay: overlay, canvas: canvas, ctx: canvas.getContext('2d'), bg: bg, bgOk: false,
       W: 0, H: 0, dpr: 1, s: 1, ox: 0, oy: 0,
-      state: 'idle', timeLeft: SESSION_SEC, fishes: [], bobber: null, bite: null, reel: null, hold: false,
+      state: 'idle', timeLeft: SESSION_SEC, fishes: [], bobber: null, bite: null, hook: null, tug: null, shake: 0,
       msg: '', msgT: 0, pops: [], ripples: [], catches: [], last: performance.now(), raf: 0, t: 0, ended: false
     };
     bg.onload = function () { if (S) S.bgOk = true; };
@@ -195,8 +210,9 @@
     var r = S.canvas.getBoundingClientRect();
     var x = e.clientX - r.left, y = e.clientY - r.top;
     if (x < 110 && y < 56) { finish(); return; }          // 나가기
-    if (S.state === 'reel') { S.hold = true; return; }
-    if (S.state === 'bite') { startReel(); S.hold = true; return; }
+    if (S.state === 'tug') { tapTug(S.tug); S.shake = 0.08; return; }
+    if (S.state === 'hook') { hookTap(); return; }
+    if (S.state === 'bite') { startHook(); return; }
     if (S.state === 'waiting') { reelIn(true); return; }  // 너무 일찍 당김
     if (S.state === 'idle') {
       var ip = toImage(x, y);
@@ -204,7 +220,7 @@
       cast(ip[0], ip[1]);
     }
   }
-  function onUp() { if (S) S.hold = false; }
+  function onUp() {}
 
   function cast(x, y) {
     S.bobber = { x: x, y: y, t: 0, fly: 0.45, from: [S.W * 0.55, S.H + 20], dip: 0 };
@@ -219,12 +235,38 @@
     say(early ? '너무 일찍 당겼어요! 물고기가 놀랐어요 💦' : '다시 던져봐요 🎣', 2);
   }
 
-  function startReel() {
+  // ① 입질 → 타이밍 게이지 시작
+  function startHook() {
     var f = S.bite.fish;
-    S.reel = makeReel(f.sp);
-    S.state = 'reel';
-    S.hold = true;
+    S.hook = makeHook(f.sp);
+    S.state = 'hook';
     if (navigator.vibrate) { try { navigator.vibrate(40); } catch (e) {} }
+  }
+
+  function hookTap() {
+    var h = S.hook;
+    if (h.freeze > 0) return;
+    var res = judgeHook(h);
+    if (res === 'miss') {
+      h.tries--;
+      S.pops.push({ text: '아쉬워요!', t: 0 });
+      if (h.tries <= 0) { escape('줄이 풀렸어요... 물고기가 도망갔어요 💦'); return; }
+      h.zc = newZone(h.sp.hz); h.pos = 0; h.dir = 1; h.freeze = 0.4;
+      say('기회가 ' + h.tries + '번 남았어요!', 1.4);
+      return;
+    }
+    S.pops.push({ text: res === 'perfect' ? '🌟 PERFECT!' : '👍 GOOD!', t: 0 });
+    if (h.sp.treasure) { landCatch(); return; }
+    // ② 힘겨루기 시작 (퍼펙트면 유리하게 시작)
+    S.tug = makeTug(h.sp, res === 'perfect' ? 0.14 : 0);
+    S.hook = null; S.state = 'tug';
+    if (navigator.vibrate) { try { navigator.vibrate(40); } catch (e) {} }
+  }
+
+  function escape(msg) {
+    var f = S.bite.fish; f.state = 'flee'; f.dwell = 3;
+    S.bobber = null; S.bite = null; S.hook = null; S.tug = null; S.state = 'idle';
+    say(msg, 2.2);
   }
 
   // ── 매 프레임 ──
@@ -242,9 +284,12 @@
     S.pops = S.pops.filter(function (p) { p.t += dt; return p.t < 1.6; });
     S.ripples = S.ripples.filter(function (r) { r.t += dt; return r.t < 1.2; });
 
-    if (S.state !== 'reel') {
-      S.timeLeft -= dt;
-      if (S.timeLeft <= 0) { S.timeLeft = 0; finish(); return; }
+    if (S.shake > 0) S.shake -= dt;
+    // 시간은 계속 흐르고, 물고기와 싸우는 중에 끝나면 그 한 마리는 끝까지 상대한 뒤 마무리
+    S.timeLeft -= dt;
+    if (S.timeLeft <= 0) {
+      S.timeLeft = 0;
+      if (S.state !== 'hook' && S.state !== 'tug') { finish(); return; }
     }
 
     var b = S.bobber;
@@ -269,14 +314,11 @@
       }
     }
 
-    if (S.state === 'reel' && S.reel) {
-      var res = stepReel(S.reel, S.hold, dt);
+    if (S.state === 'hook' && S.hook) stepHook(S.hook, dt);
+    if (S.state === 'tug' && S.tug) {
+      var res = stepTug(S.tug, dt);
       if (res === 'win') landCatch();
-      else if (res === 'lose') {
-        var f = S.bite.fish; f.state = 'flee'; f.dwell = 3;
-        S.bobber = null; S.bite = null; S.reel = null; S.state = 'idle'; S.hold = false;
-        say('놓쳤어요... 줄이 풀렸어요 💦', 2.2);
-      }
+      else if (res === 'lose') escape('힘 싸움에서 졌어요... 물고기가 도망갔어요 💦');
     }
   }
 
@@ -359,6 +401,12 @@
         if (typeof addPlayerExp === 'function') addPlayerExp(10);
         if (typeof checkQuestProgress === 'function') checkQuestProgress('first_explore');
         exploreCollected.push(sp.emoji + ' ' + sp.name);
+        // 은빛거미줄: 호수 탐험이 낚시로 바뀌면서 얻을 곳이 없어지지 않게, 물고기와 함께 가끔 올라옴
+        if (Math.random() < WEB_DROP && addToBag('🕸️', '은빛거미줄', 'material', 1, '제작 재료 (낚시 중 낚싯줄에 걸려 올라왔어요)')) {
+          S.catches.push('은빛거미줄');
+          exploreCollected.push('은빛거미줄');
+          S.pops.push({ text: '🕸️ 은빛거미줄도 걸렸어요!', t: 0.5 });
+        }
       }
     }
     if (ok) {
@@ -369,7 +417,7 @@
     // 잡힌 개체는 사라지고 새로 등장
     S.fishes = S.fishes.filter(function (x) { return x !== f; });
     spawn(!!sp.treasure);
-    S.bobber = null; S.bite = null; S.reel = null; S.state = 'idle'; S.hold = false;
+    S.bobber = null; S.bite = null; S.hook = null; S.tug = null; S.state = 'idle';
     say(ok ? '좋아요! 계속 던져봐요 🎣' : '가방이 꽉 차서 놓쳤어요 🎒', 2);
   }
 
@@ -430,7 +478,8 @@
     }
 
     // 릴링 UI
-    if (S.state === 'reel' && S.reel) drawReel(c);
+    if (S.state === 'hook' && S.hook) drawHook(c);
+    if (S.state === 'tug' && S.tug) drawTug(c);
 
     // 상단 HUD
     c.textBaseline = 'middle'; c.textAlign = 'left';
@@ -455,27 +504,51 @@
     });
   }
 
-  function drawReel(c) {
-    var r = S.reel, W = S.W, H = S.H;
-    var bx = W - 78, by = H * 0.18, bw = 44, bh = H * 0.5;
-    c.fillStyle = 'rgba(0,0,0,0.55)'; roundRect(c, bx - 8, by - 8, bw + 16, bh + 16, 18); c.fill();
-    c.fillStyle = 'rgba(20,60,90,0.9)'; roundRect(c, bx, by, bw, bh, 12); c.fill();
-    // 초록 칸 (아래가 0, 위가 1)
-    var zt = by + bh * (1 - (r.zc + r.sp.zh)), zh = bh * r.sp.zh * 2;
-    c.fillStyle = r.inZone ? 'rgba(74,222,128,0.85)' : 'rgba(74,222,128,0.5)'; roundRect(c, bx + 2, zt, bw - 4, zh, 10); c.fill();
-    // 물고기
-    c.font = '28px sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle';
-    c.fillText(r.sp.treasure ? '✨' : r.sp.emoji, bx + bw / 2, by + bh * (1 - r.fp));
-    // 게이지
-    var gx = W / 2 - 110, gy = H - 150;
-    c.fillStyle = 'rgba(0,0,0,0.55)'; roundRect(c, gx - 8, gy - 8, 236, 34, 14); c.fill();
-    c.fillStyle = 'rgba(255,255,255,0.18)'; roundRect(c, gx, gy, 220, 18, 9); c.fill();
-    c.fillStyle = r.p > 0.3 ? '#FF6B9D' : '#ff3b3b'; roundRect(c, gx, gy, Math.max(8, 220 * r.p), 18, 9); c.fill();
-    c.font = '700 14px sans-serif'; c.fillStyle = '#fff';
-    var t = '꾹 누르면 올라가요 · 초록 칸에 물고기를 맞춰요';
-    var tw = c.measureText(t).width + 28;
-    c.fillStyle = 'rgba(0,0,0,0.6)'; roundRect(c, W / 2 - tw / 2, H - 112, tw, 40, 14); c.fill();
-    c.fillStyle = '#fff'; c.fillText(t, W / 2, H - 92);
+  function drawHook(c) {
+    var h = S.hook, W = S.W, H = S.H;
+    c.fillStyle = 'rgba(0,0,20,0.35)'; c.fillRect(0, 0, W, H);
+    var bw = Math.min(W - 48, 340), bh = 34, bx = (W - bw) / 2, by = H * 0.46;
+    c.fillStyle = 'rgba(0,0,0,0.62)'; roundRect(c, bx - 12, by - 46, bw + 24, bh + 84, 20); c.fill();
+    c.font = '700 14px sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillStyle = '#fff';
+    c.fillText('구슬이 노란 칸에 오면 탭!', W / 2, by - 22);
+    c.fillStyle = 'rgba(255,255,255,0.15)'; roundRect(c, bx, by, bw, bh, 17); c.fill();
+    // 임팩트존 (가운데 흰 부분이 PERFECT)
+    var zw = bw * h.sp.hz, zx = bx + bw * h.zc - zw / 2;
+    c.fillStyle = 'rgba(255,214,10,0.6)'; roundRect(c, zx, by + 2, zw, bh - 4, 12); c.fill();
+    var pw = zw * 0.4;
+    c.fillStyle = 'rgba(255,255,255,0.8)'; roundRect(c, bx + bw * h.zc - pw / 2, by + 2, pw, bh - 4, 10); c.fill();
+    // 구슬
+    var px = bx + bw * h.pos, py = by + bh / 2;
+    var grd = c.createRadialGradient(px - 4, py - 4, 2, px, py, 16);
+    grd.addColorStop(0, '#ffffff'); grd.addColorStop(0.5, '#7dd3fc'); grd.addColorStop(1, '#2563eb');
+    c.save(); c.globalAlpha = h.freeze > 0 ? 0.45 : 1; c.shadowColor = '#7dd3fc'; c.shadowBlur = 14;
+    c.fillStyle = grd; c.beginPath(); c.arc(px, py, 16, 0, 6.2832); c.fill(); c.restore();
+    // 기회
+    var hearts = ''; for (var i = 0; i < HOOK_TRIES; i++) hearts += i < h.tries ? '💙' : '🤍';
+    c.font = '14px sans-serif'; c.fillStyle = '#fff'; c.fillText('기회 ' + hearts, W / 2, by + bh + 24);
+  }
+
+  function drawTug(c) {
+    var g = S.tug, W = S.W, H = S.H, surge = g.surge > 0;
+    c.fillStyle = 'rgba(0,0,20,0.35)'; c.fillRect(0, 0, W, H);
+    var amp = surge ? 7 : (S.shake > 0 ? 3 : 0);
+    var sx = amp ? (Math.random() - 0.5) * amp : 0, sy = amp ? (Math.random() - 0.5) * amp : 0;
+    var bw = Math.min(W - 140, 280), bh = 30, bx = (W - bw) / 2 + sx, by = H * 0.47 + sy, ky = by + bh / 2;
+    c.fillStyle = 'rgba(0,0,0,0.62)'; roundRect(c, bx - 62, by - 52, bw + 124, bh + 96, 20); c.fill();
+    c.font = '900 15px sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle';
+    c.fillStyle = surge ? '#ff6b6b' : '#fff';
+    c.fillText(surge ? '🐟 발버둥 쳐요!! 더 빨리 연타!' : '연타해서 끌어당겨요! 👊', W / 2 + sx, by - 26);
+    var grad = c.createLinearGradient(bx, 0, bx + bw, 0);
+    grad.addColorStop(0, '#ef4444'); grad.addColorStop(0.5, '#fbbf24'); grad.addColorStop(1, '#22c55e');
+    c.fillStyle = grad; roundRect(c, bx, by, bw, bh, 15); c.fill();
+    // 매듭: 오른쪽 끝에 닿으면 내 승리, 왼쪽 끝이면 물고기 승리
+    var kx = bx + bw * Math.max(0, Math.min(1, g.pos));
+    c.fillStyle = '#fff'; c.beginPath(); c.arc(kx, ky, 17, 0, 6.2832); c.fill();
+    c.fillStyle = '#1e293b'; c.beginPath(); c.arc(kx, ky, 8, 0, 6.2832); c.fill();
+    c.font = '30px sans-serif'; c.fillStyle = '#fff';
+    c.fillText(g.sp.emoji, bx - 32, ky); c.fillText('🎣', bx + bw + 32, ky);
+    c.font = '700 12px sans-serif'; c.fillStyle = '#ddd';
+    c.fillText('물고기', bx - 32, ky + 30); c.fillText('나', bx + bw + 32, ky + 30);
   }
 
   function roundRect(c, x, y, w, h, r) {
