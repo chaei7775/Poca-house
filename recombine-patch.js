@@ -25,7 +25,9 @@ function rcPityBonus(pityCount) {
 function rcRollOutcome(table, pityCount, rand, pityOn) {
   rand = rand || Math.random;
   const epicChance = table.epicHidden;
-  const rareChance = table.rareHidden + (pityOn ? rcPityBonus(pityCount) : 0);
+  // window.__rcExtraRare: 반짝이 가루 같은 1회성 보너스(%p). 천장 적용 조합에서만 반영
+  const extra = pityOn ? (window.__rcExtraRare || 0) : 0;
+  const rareChance = table.rareHidden + (pityOn ? rcPityBonus(pityCount) : 0) + extra;
   const roll = rand() * 100;
   if (roll < epicChance) return 'epic';
   if ((pityOn && pityCount >= RC_PITY_HARD - 1) || roll < epicChance + rareChance) return 'rare';
