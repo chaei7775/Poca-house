@@ -4,7 +4,7 @@
 //  - 상점 선물/음료 구매 (buyGift, buyDrink)
 //  - 재료 판매 (재료 탭의 '판매' 버튼)
 //  - 가방에서 음료 마시기 (useDrinkFromBag)
-//  - 특별탐험 먹이/포획도구 구매 (buySpecialFood, buyCaptureTool)
+//  - 특별탐험 먹이/촬영도구 구매 (buySpecialFood, buyCaptureTool)
 // 한 번에 고를 수 있는 최대 수량만 바꾸고 싶으면 아래 한 줄만 수정.
 // ════════════════════════════════
 
@@ -228,7 +228,7 @@ function qpAfterShopBuy() {
     });
   };
 
-  // ── 특별탐험 포획도구 구매 ──
+  // ── 특별탐험 촬영도구 구매 ──
   window.buyCaptureTool = function(toolId) {
     const tool = CAPTURE_TOOLS.find(function(t) { return t.id === toolId; });
     if (!tool) return;
@@ -237,7 +237,7 @@ function qpAfterShopBuy() {
       onConfirm: function(n) {
         if (coins < tool.price * n) { showBagToast('코인이 부족해요!'); return; }
         if (!qpCanFit(tool.name)) { showBagToast('가방이 꽉 찼어요! 🎒 슬롯을 확장해주세요'); return; }
-        if (!addToBag(tool.emoji, tool.name, 'tool', n, '레어 변종 포획 마무리용')) return;
+        if (!addToBag(tool.emoji, tool.name, 'tool', n, '레어 변종 촬영 마무리용')) return;
         coins -= tool.price * n;
         saveAll();
         qpAfterShopBuy();
