@@ -10,6 +10,7 @@ const NEW_CONTENT_FILES = [
   'special-explore.js',
   'recombine-patch.js',
   'fishing.js',
+  'sparkle-dust.js',
 ];
 NEW_CONTENT_FILES.forEach(function(filename) {
   const s = document.createElement('script');
