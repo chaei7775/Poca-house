@@ -15,6 +15,7 @@ const NEW_CONTENT_FILES = [
   'forest-explore.js',
   'beach-explore.js',
   'park-explore.js',
+  'agency.js',
 ];
 NEW_CONTENT_FILES.forEach(function(filename) {
   const s = document.createElement('script');
