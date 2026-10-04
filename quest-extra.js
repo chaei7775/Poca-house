@@ -41,6 +41,7 @@
     var d = J('ph_premiumCards', {}) || {};
     return keys(d).filter(function (k) { return d[k] && d[k].lv >= 1; }).map(function (k) { return d[k].lv; });
   }
+  function goodsFlag(n) { return !!(J('ph_goods_flags', {}) || {})[n]; }   // goods-gear.js 가 기록
   function plv() { try { return typeof playerLevel !== 'undefined' ? playerLevel : 1; } catch (e) { return 1; } }
 
   // ── 퀘스트 정의 ──  detect(): 달성 여부
@@ -61,6 +62,8 @@
     tut_room: { title:'내 방 꾸미기', desc:'🛍️ 상점거리 → 방 테마 구매 → 🏠 내 집에서 적용. 방을 바꾸면 기분이 달라져.',
       condition:'q2_room', rewardCoins:500, rewardExp:80, type:'tutorial',
       detect:function () { try { return typeof ownedRooms !== 'undefined' && ownedRooms.length > 0; } catch (e) { return false; } } },
+    tut_goods: { title:'굿즈 만들기', desc:'🛍️ 상점거리 → 🎁 굿즈 공방에서 굿즈를 만들어봐. 재료 + 코인으로 만들면 능력치가 랜덤으로 붙어. (실패할 수도 있어!)',
+      condition:'q2_goods_craft', rewardCoins:500, rewardExp:80, type:'tutorial', detect:function () { return goodsFlag('crafted'); } },
 
     // ───── 메인: 데뷔·활동 ─────
     main_hidden: { title:'첫 히든카드', desc:'⋯ 더보기 → 🔮 카드 재조합기에서 히든카드에 도전! 실패가 쌓이면 확률이 올라가.',
@@ -78,6 +81,12 @@
       condition:'q2_expedition', rewardCoins:1000, rewardExp:150, type:'main', detect:function () { return !!F.expedition; } },
     main_crystal: { title:'소원의 결정', desc:'🧩 소원의 조각 100개를 모으면 💎 소원의 결정! 신비의 섬 소원의 샘이 제일 빨라.',
       condition:'q2_crystal', rewardCoins:2000, rewardExp:300, type:'main', detect:function () { return !!F.crystal; } },
+    main_goods_equip: { title:'굿즈 장착', desc:'🎁 굿즈 공방 → 🎒 장착 탭. 캐릭터 카드 옆 네모 칸을 눌러 굿즈를 달아줘. 그 캐릭터 팬덤 원정이 강해져!',
+      condition:'q2_goods_equip', rewardCoins:1000, rewardExp:150, type:'main', detect:function () { return goodsFlag('equipped'); } },
+    main_goods_full: { title:'풀세팅', desc:'🎁 한 캐릭터의 머리·손·액세서리 3칸을 굿즈로 전부 채우기!',
+      condition:'q2_goods_full', rewardCoins:2000, rewardExp:300, type:'main', detect:function () { return goodsFlag('full'); } },
+    main_goods_rare: { title:'레어 굿즈 획득', desc:'🎁 굿즈 공방에서 제작하면 낮은 확률(약 4%)로 ✨ 레어 굿즈가 나와. 능력치가 2개 붙어!',
+      condition:'q2_goods_rare', rewardCoins:3000, rewardExp:500, type:'main', detect:function () { return goodsFlag('rare'); } },
 
     // ───── 메인: 강화 ─────
     main_enh1: { title:'첫 강화', desc:'⋯ 더보기 → 🎤 트레이닝룸. 히든카드 + 강화석 + 코인으로 강화해봐. 수익이 올라가.',
