@@ -43,6 +43,7 @@ const NEW_CONTENT_FILES = [
   'square-explore.js',
   'daily-quest.js',
   'trade.js',
+  'trap.js',
 ];
 NEW_CONTENT_FILES.forEach(function(filename) {
   const s = document.createElement('script');
