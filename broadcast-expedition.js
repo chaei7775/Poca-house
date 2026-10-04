@@ -448,10 +448,10 @@
       lines.push({ icon: '⭐', text: nm + ' +' + r.exp + ' EXP', color: '#FFD700' });
     }
     if (r.pieces > 0) {
-      if (addToBag(PIECE_EMOJI, PIECE_NAME, 'piece', r.pieces, '프리미엄 카드 조각 · ' + PIECE_GOAL + '개를 모으면 프리미엄 카드 1장 (교환은 곧 열려요)')) {
+      if (addToBag(PIECE_EMOJI, PIECE_NAME, 'piece', r.pieces, '프리미엄 카드 조각 · ' + PIECE_GOAL + '개를 모으면 더보기 > 프리미엄 카드에서 교환')) {
         var have = pieceCount();
         lines.push({ icon: PIECE_EMOJI, text: PIECE_NAME + ' +' + r.pieces + ' (' + have + '/' + PIECE_GOAL + ')', color: '#7dd3fc' });
-        if (have >= PIECE_GOAL) toast('🖼️ 프리미엄 조각 ' + PIECE_GOAL + '개 달성! 프리미엄 카드 교환은 곧 열려요');
+        if (have >= PIECE_GOAL) toast('🖼️ 프리미엄 조각 ' + PIECE_GOAL + '개 달성! 더보기 > 프리미엄 카드에서 교환해요');
       }
     }
     for (var i = 0; i < r.mats; i++) {
@@ -473,8 +473,16 @@
 
   function finish(ev, type, grade) {
     var r = rewardFor(type, grade);
-    if (grade !== 'MISS' && grade !== 'FAIL') r.ticketOf = type;
-    var lines = grant(r);
+    var success = grade !== 'MISS' && grade !== 'FAIL';
+    if (success) r.ticketOf = type;
+    // 프리미엄 카드 효과 (premium-cards.js): 이 캐릭터의 카드를 갖고 있을 때만 적용
+    var pb = (typeof window.getPremiumBonus === 'function') ? window.getPremiumBonus(S.charId) : null;
+    var notes = [];
+    if (pb && success) {
+      if (r.pieces === 0 && Math.random() < pb.skill) { r.pieces = 1; notes.push({ icon: '📸', text: pb.skillName + ' 발동!', color: '#FFD700' }); }
+      if (r.pieces > 0 && Math.random() < pb.extra) { r.pieces += 1; notes.push({ icon: '🎬', text: pb.effectName + ' 발동! 조각 +1', color: '#7dd3fc' }); }
+    }
+    var lines = grant(r).concat(notes);
     var heads = {
       PERFECT: '✨ PERFECT!', GREAT: '👍 GREAT!', GOOD: '😊 GOOD', MISS: '💦 MISS…',
       OPEN: type === 'letter' ? '💌 팬레터 도착!' : '🎁 굿즈 획득!',
