@@ -139,6 +139,9 @@ const CSS=`#dr-root{position:fixed;inset:0;z-index:780;overflow:hidden;
 #dr-root .ctimer{height:5px;border-radius:99px;background:var(--panel-2);overflow:hidden}
 #dr-root .ctimer i{display:block;height:100%;width:100%;background:var(--slate)}
 #dr-root .cue{font-size:12.5px;color:var(--muted)}
+#dr-root .slots.dense{gap:8px}
+#dr-root .slots.dense .slot{width:62px}
+#dr-root .slots.dense .slot .orb{width:56px;height:56px}
 #dr-root .slots{display:flex;gap:14px;justify-content:center;padding-bottom:max(4px,env(safe-area-inset-bottom,0px))}
 #dr-root .slot{display:grid;justify-items:center;gap:4px;width:76px}
 #dr-root .slot .orb{width:64px;height:64px;border-radius:50%;display:grid;place-items:center;font-family:var(--f-display);font-size:24px;color:#1a1405;position:relative;overflow:hidden}
@@ -237,7 +240,8 @@ const R=document.createElement('div');R.id='dr-root';R.hidden=true;R.innerHTML=H
 
 "use strict";
 /* ====================== DATA ====================== */
-const CFG={SK:0.6,AUTO:0.25,TIME:60,TAPWIN:1.6,CHANCE:2.5,CHOICE:3,HEAL_FREE:3,SMALL:30000,BIG:80000};
+const CFG={SK:0.6,AUTO:0.25,TIME:60,TAPWIN:1.6,CHANCE:2.5,CHOICE:3,HEAL_FREE:3,SMALL:30000,BIG:80000,SLOT_MAX:5,SLOT_EXP_MAX:2,SLOT_DROP:0.04,SLOT_DROP_GOOD:0.08};
+const SLOTX='슬롯 확장권';
 const GR={'일반':0,'레어':1,'히든':2,'프리미엄':3};
 const CATS=['감정','액션','애드리브','보조'];
 const KIND_LABEL={emotion:'감정',action:'액션',adlib:'애드리브'};
@@ -341,11 +345,12 @@ function fresh(){
 let S;
 function load(){try{const r=localStorage.getItem(KEY);if(r){S=JSON.parse(r)}}catch(e){}
   if(!S||!S.inv)S=fresh();
-  if(!S.equip)S.equip={};if(!S.fame)S.fame={};if(!S.star)S.star={};if(!S.learned)S.learned={};
+  if(!S.equip)S.equip={};if(!S.slotExp)S.slotExp={};if(!S.fame)S.fame={};if(!S.star)S.star={};if(!S.learned)S.learned={};
   if(S.day!==today()){S.day=today();S.free=CFG.HEAL_FREE}}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
 load();
 /* 게임 본체와 연결: 코인(coins) · 소원의 조각(wishFragments) · 보유 카드(owned/ownedHiddenCards) · 기획사 데뷔(__agencyTest) */
+function slotxQty(){try{const b=bagItems.find(i=>i.name===SLOTX);return b?b.qty:0}catch(e){return 0}}
 function saveGame(){try{if(typeof saveAll==='function')saveAll()}catch(e){}}
 function debutMap(){try{return (window.__agencyTest&&window.__agencyTest.load().done)||{}}catch(e){return {}}}
 const isDebut=id=>!!debutMap()[id];
@@ -374,7 +379,7 @@ function ownedCards(){
 /* ====================== HELPERS ====================== */
 const $=s=>R.querySelector(s);
 const charOf=id=>CHARS.find(c=>c.id===id);
-function info(o){const ch=charOf(o.char),g=TIER_OF[o.raw]||'일반';return {id:o.id,char:o.char,name:o.name,raw:o.raw,img:o.img,grade:g,trait:ch.trait,color:ch.color,init:ch.init,slots:BASE_SLOTS[g]+(S.star[o.char]?1:0)}}
+function info(o){const ch=charOf(o.char),g=TIER_OF[o.raw]||'일반';return {id:o.id,char:o.char,name:o.name,raw:o.raw,img:o.img,grade:g,trait:ch.trait,color:ch.color,init:ch.init,slots:Math.min(CFG.SLOT_MAX,BASE_SLOTS[g]+(S.star[o.char]?1:0)+(S.slotExp[o.id]||0))}}
 const cardsOf=ch=>ownedCards().filter(x=>x.char===ch).sort((a,b)=>(RANK[b.raw]||0)-(RANK[a.raw]||0)).map(info);
 const card=id=>{const o=ownedCards().find(x=>x.id===id);return o?info(o):null};
 function pickDefault(){const ok=CHARS.find(c=>isDebut(c.id)&&cardsOf(c.id).length);return ok?ok.id:CHARS[0].id}
@@ -434,6 +439,7 @@ function renderPrep(){
     <div class="sec"><h2><span class="n">4</span>스킬 세팅 · ${c_.name} ${c_.grade}</h2>
       ${locked?`<div class="s" style="color:var(--muted)">${lockWhy}</div>`:`
       <div class="slotrow"><span class="lab">슬롯</span>${Array.from({length:c_.slots},(_,i)=>{const it=mine[i];return it?`<button class="sl c-${SKILLS[it.s].cat} g-${SKILLS[it.s].gr} ic ic-${it.s}" data-a="eq" data-u="${it.u}">${SKILLS[it.s].i}</button>`:`<span class="sl empty">+</span>`}).join('')}</div>
+      ${(()=>{const base=c_.slots,ex=S.slotExp[c_.id]||0,q=slotxQty(),full=base>=CFG.SLOT_MAX||ex>=CFG.SLOT_EXP_MAX;return `<button class="btn" data-a="slotx" style="width:100%;margin-bottom:12px;padding:10px 12px;font-size:13px" ${(q<1||full)?'disabled':''}>🎟️ 슬롯 확장권 사용 · 보유 ${q}개 · 이 카드 확장 ${ex}/${CFG.SLOT_EXP_MAX}${full?' (최대)':''}</button>`})()}
       ${groups}`}
     </div>
 
@@ -456,6 +462,13 @@ $('#dr-prep').addEventListener('click',e=>{
   else if(a==='card')S.sel.card=b.dataset.id;
   else if(a==='char'){S.sel.char=b.dataset.id;const l=cardsOf(S.sel.char);S.sel.card=l[0].id}
   else if(a==='close'){closeDrama();return}
+  else if(a==='slotx'){
+    const c=card(S.sel.card);
+    if(c&&isDebut(c.char)&&slotxQty()>0&&c.slots<CFG.SLOT_MAX&&(S.slotExp[c.id]||0)<CFG.SLOT_EXP_MAX){
+      try{useFromBag(SLOTX,1)}catch(e){return}
+      S.slotExp[c.id]=(S.slotExp[c.id]||0)+1;snack(c.name+' 스킬 슬롯이 늘었어요!');
+    }
+  }
   else if(a==='eq'){
     const cid=S.sel.card,c=card(cid),u=+b.dataset.u,cur=onCard(u);
     if(!c||!isDebut(c.char))return;
@@ -498,6 +511,7 @@ function buildSlots(){
     h.push(k?`<button class="slot ${k.passive?'pas':''}" data-i="${i}"><span class="orb c-${k.cat} ic ic-${k.id}">${k.i}<i class="cd"></i><span class="cdn"></span></span><small>${k.n}</small></button>`
       :`<div class="slot emptyslot"><span class="orb">+</span><small>빈 슬롯</small></div>`)}
   $('#dr-slots').innerHTML=h.join('');
+  $('#dr-slots').classList.toggle('dense',c.slots>=5);
 }
 $('#dr-slots').addEventListener('pointerdown',e=>{const b=e.target.closest('.slot[data-i]');if(!b||!G)return;e.preventDefault();useSkill(+b.dataset.i)});
 $('#dr-stageWrap').addEventListener('pointerdown',e=>{if(!G||G.frozen)return;doTap()});
@@ -714,6 +728,8 @@ function finish(ok){
   const learned=G.correct>=3;
   let fameGain=0,promoted=false;
   if(hid&&!star){fameGain=Math.round(r*2);S.fame[ch]=(S.fame[ch]||0)+fameGain;if(S.fame[ch]>=100){S.star[ch]=true;promoted=true}}
+  let slotGot=0;
+  if(Math.random()<(ok||r>=10?CFG.SLOT_DROP_GOOD:CFG.SLOT_DROP)){try{slotGot=addToBag('🎟️',SLOTX,'material',1,'스킬 슬롯을 영구로 1칸 늘려줘요 (드라마 촬영 · 카드당 최대 +2, 총 5칸)')?1:-1}catch(e){slotGot=-1}}
   coins+=pay;awardShards(shards);giveSkill(drop);saveGame();try{if(typeof spawnCoinFloat==='function')spawnCoinFloat(pay)}catch(e){}
   if(learned)S.learned[G.dir.id]=true;
   S.best=Math.max(S.best,r);
@@ -728,6 +744,7 @@ function finish(ok){
    <div class="rows">
      <div><span>출연료</span><b>${won(pay)}</b></div>
      <div><span>소원의조각</span><b>+${shards}</b></div>
+     ${slotGot===1?`<div><span>🎟️ 슬롯 확장권</span><b>획득!</b></div>`:slotGot===-1?`<div><span>🎟️ 슬롯 확장권</span><b>가방이 꽉 차서 못 받았어요</b></div>`:''}
      <div><span>화제성</span><b>+${buzz}</b></div>
      ${star?'<div><span>탑스타 보너스</span><b>출연료 ×1.5</b></div>':''}
      ${capped?`<div><span>시청률 상한</span><b>일반·레어 카드는 ${CAP}.0%까지</b></div>`:''}
