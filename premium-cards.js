@@ -215,7 +215,7 @@
       (lv < MAX_LV ? '<button id="pc-enh" style="width:100%;padding:13px;border:none;border-radius:13px;font-size:15px;font-weight:900;color:#fff;cursor:pointer;font-family:\'Noto Sans KR\',sans-serif;background:linear-gradient(135deg,#FF6B9D,#C084FC);">⚒️ 강화하기 (Lv.' + lv + ' → Lv.' + (lv + 1) + ')</button>' : '<div style="text-align:center;color:#FFD700;font-weight:900;font-size:14px;">✨ 최대 레벨이에요</div>') +
       '<button id="pc-reveal-ok" style="width:100%;margin-top:8px;padding:11px;border:none;border-radius:13px;background:rgba(255,255,255,.14);color:#fff;font-size:14px;font-weight:900;cursor:pointer;font-family:\'Noto Sans KR\',sans-serif;">닫기</button></div>';
     document.body.appendChild(o);
-    $('pc-reveal-ok').onclick = function () { o.remove(); render(); };
+    $('pc-reveal-ok').onclick = function () { o.remove(); render(); if (window.__pcAfterClose) window.__pcAfterClose(); };
     var eb = $('pc-enh');
     if (eb) eb.onclick = function () {
       var r = tryEnhance(c);
@@ -237,7 +237,7 @@
         if (img) img.style.animation = 'pcShake .4s';
       }
     }
-    o.onclick = function (e) { if (e.target === o) { o.remove(); render(); } };
+    o.onclick = function (e) { if (e.target === o) { o.remove(); render(); if (window.__pcAfterClose) window.__pcAfterClose(); } };
   }
 
   function render() {
@@ -275,6 +275,30 @@
       };
     });
   }
+
+  // 트레이닝룸(enhance.js) 프리미엄 탭에서 쓰는 목록
+  window.premiumTrainingHtml = function () {
+    var cells = CARDS.map(function (c) {
+      var lv = levelOf(c.id);
+      return '<div data-pc-open="' + c.id + '" style="position:relative;cursor:' + (lv ? 'pointer' : 'default') + ';">' +
+        '<img src="' + imgUrl(c) + '" style="width:100%;aspect-ratio:2/3;object-fit:cover;border-radius:10px;border:2px solid ' + (lv ? c.color : 'rgba(255,255,255,.15)') + ';' + (lv ? '' : 'filter:grayscale(1) brightness(.25);') + '">' +
+        (lv ? '<div style="position:absolute;top:5px;left:5px;background:rgba(0,0,0,.75);color:' + (lv >= MAX_LV ? '#FFD700' : '#fff') + ';font-size:12px;font-weight:900;border-radius:8px;padding:2px 7px;">Lv.' + lv + '</div>'
+            : '<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:900;color:#FF6B9D;">미획득</div>') +
+        '<div style="text-align:center;font-size:10px;font-weight:900;margin-top:3px;color:' + (lv ? '#fff' : '#666') + ';">' + (lv ? c.name : '???') + '</div></div>';
+    }).join('');
+    return '<div style="font-size:11px;color:#aaa;line-height:1.6;margin-bottom:12px;">프리미엄 카드는 팬덤 원정 · 방송국 앞에서 조각 ' + GOAL + '개를 모아 받아요. 카드를 눌러 강화하면 그 멤버가 방송국 앞 원정에서 프리미엄 조각을 더 잘 모아요.</div>' +
+      '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;">' + cells + '</div>';
+  };
+  window.premiumTrainingBind = function (root) {
+    Array.prototype.forEach.call(root.querySelectorAll('[data-pc-open]'), function (el) {
+      el.onclick = function () {
+        var c = CARDS.find(function (x) { return x.id === el.getAttribute('data-pc-open'); });
+        if (!c) return;
+        if (levelOf(c.id) > 0) { ensureStyle(); showViewer(c); }
+        else if (typeof showBagToast === 'function') showBagToast('프리미엄 카드를 먼저 받아야 해요');
+      };
+    });
+  };
 
   function openPremium() {
     ensureStyle();
