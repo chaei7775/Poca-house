@@ -252,8 +252,8 @@
 
 <!-- Firebase TEST 연결: firebase-test 브랜치에서만 사용 -->
 <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
-  import { getFirestore, doc, getDoc, setDoc, serverTimestamp, collection, addDoc, getDocs, query, where, orderBy, limit, updateDoc, deleteDoc, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
+  import { getFirestore, doc, getDoc, setDoc, serverTimestamp, collection, addDoc, getDocs, query, where, orderBy, limit, updateDoc, deleteDoc, arrayUnion, arrayRemove, runTransaction } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
   import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
 
   const firebaseConfig = {
@@ -269,7 +269,7 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const auth = getAuth(app);
-    window.pocaFirebase = { db, doc, getDoc, setDoc, serverTimestamp, collection, addDoc, getDocs, query, where, orderBy, limit, updateDoc, deleteDoc, arrayUnion, arrayRemove };
+    window.pocaFirebase = { db, doc, getDoc, setDoc, serverTimestamp, collection, addDoc, getDocs, query, where, orderBy, limit, updateDoc, deleteDoc, arrayUnion, arrayRemove, runTransaction };
     window.pocaAuth = { auth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged };
     window.pocaFirebaseReady = true;
     console.log("✅ Poca Firebase ready");
