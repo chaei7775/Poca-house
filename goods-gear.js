@@ -12,9 +12,9 @@
   var CRAFT_COIN = 5000;
     var P_FAIL = 0.15, P_RARE = 0.04, P_GOOD = 0.18;   // 실패 15% / 레어 4% / 고급 18% / 나머지 일반
   var SLOTS = {
-    hat:  { label: '머리', mats: [['고급원목', 8], ['별빛나무', 6]], items: [['🎀', '응원 머리띠'], ['🧢', '팬클럽 야구모자'], ['👑', '반짝 왕관']] },
-    hand: { label: '손',   mats: [['빛나는돌', 8], ['해바라기', 6]], items: [['📣', '응원 메가폰'], ['🪄', '야광봉'],       ['💐', '꽃다발']] },
-    acc:  { label: '액세서리', mats: [['별빛모래', 8], ['네잎클로버', 6]], items: [['📿', '팬클럽 목걸이'], ['🎧', '투어 헤드폰'], ['💍', '기념 반지']] }
+    hat:  { label: '머리', mats: [['고급원목', 8], ['별빛나무', 6]], items: [['🎀', '응원 머리띠', 'goods-hat-1.png'], ['🧢', '팬클럽 야구모자', 'goods-hat-2.png'], ['👑', '반짝 왕관', 'goods-hat-3.png']] },
+    hand: { label: '손',   mats: [['빛나는돌', 8], ['해바라기', 6]], items: [['📣', '응원 메가폰', 'goods-hand-1.png'], ['🪄', '야광봉', 'goods-hand-2.png'], ['💐', '꽃다발', 'goods-hand-3.png']] },
+    acc:  { label: '액세서리', mats: [['별빛모래', 8], ['네잎클로버', 6]], items: [['📿', '팬클럽 목걸이', 'goods-acc-1.png'], ['🎧', '투어 헤드폰', 'goods-acc-2.png'], ['💍', '기념 반지', 'goods-acc-3.png']] }
   };
   var SLOT_KEYS = ['hat', 'hand', 'acc'];
   // 능력치 종류. scope 'char' = 그 캐릭터 원정에만 / 'all' = 모든 캐릭터 굿즈 합산(탐험·학교처럼 캐릭터와 상관없는 곳)
@@ -33,6 +33,21 @@
     good:   { label: '고급', color: '#4ade80', n: 1, i: 1 },
     rare:   { label: '레어', color: '#FFD700', n: 2, i: 2 }
   };
+
+
+  // 굿즈 이미지: repo 맨 위 폴더에 goods-hat-1.png 처럼 올리면 자동 적용, 없으면 이모지로 표시
+  var IMG_BASE = 'https://raw.githubusercontent.com/chaei7775/Poca-house/main/';
+  function fileOf(g) {
+    var its = SLOTS[g.slot] ? SLOTS[g.slot].items : [];
+    for (var i = 0; i < its.length; i++) if (its[i][1] === g.base) return its[i][2];
+    return null;
+  }
+  function icon(g, px) {
+    var f = fileOf(g);
+    var emo = '<span style="font-size:' + Math.round(px * 0.8) + 'px;line-height:1;">' + g.emoji + '</span>';
+    if (!f) return emo;
+    return '<img src="' + IMG_BASE + f + '" draggable="false" alt="" style="width:' + px + 'px;height:' + px + 'px;object-fit:contain;pointer-events:none;" onerror="this.outerHTML=this.getAttribute(\'data-fb\')" data-fb="' + emo.replace(/"/g, '&quot;') + '">';
+  }
 
   // ── 공통 ──
   function $(id) { return document.getElementById(id); }
@@ -272,7 +287,7 @@
   function gearCard(g, extra) {
     var G = GRADES[g.grade];
     return '<div style="display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.07);border:1.5px solid ' + G.color + ';border-radius:14px;padding:10px;margin-bottom:8px;">' +
-      '<div style="font-size:30px;width:40px;text-align:center;">' + g.emoji + '</div>' +
+      '<div style="width:44px;height:44px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">' + icon(g, 40) + '</div>' +
       '<div style="flex:1;min-width:0;"><div style="font-size:13px;font-weight:900;color:' + G.color + ';">[' + G.label + '] ' + g.base + '</div>' +
       '<div style="font-size:11px;color:#cfd;">' + statText(g.stats) + '</div></div>' + (extra || '') + '</div>';
   }
@@ -316,13 +331,23 @@
       return '<button data-char="' + cid + '" style="' + BTN + 'padding:8px 12px;font-size:12px;white-space:nowrap;background:' + (on ? 'linear-gradient(135deg,#FF6B9D,#C084FC)' : 'rgba(255,255,255,.08)') + ';color:#fff;">' + (ch.emoji || '') + ' ' + (ch.name || cid) + '</button>';
     }).join('');
     var d = load()[selChar] || {};
-    var slots = SLOT_KEYS.map(function (s) {
-      var g = d[s];
-      if (g) return '<div style="margin-bottom:8px;"><div style="font-size:11px;color:#9ab;margin-bottom:3px;">' + SLOTS[s].label + '</div>' +
-        gearCard(g, '<button data-un="' + s + '" style="' + BTN + 'padding:7px 10px;font-size:11px;background:rgba(239,68,68,.2);color:#ff8a8a;">해제</button>') + '</div>';
-      return '<div style="margin-bottom:8px;"><div style="font-size:11px;color:#9ab;margin-bottom:3px;">' + SLOTS[s].label + '</div>' +
-        '<button data-eq="' + s + '" style="' + BTN + 'width:100%;padding:16px;font-size:13px;background:rgba(255,255,255,.05);border:1.5px dashed rgba(255,255,255,.3);color:#aaa;">＋ 비어 있음 · 눌러서 장착</button></div>';
+    var ch0 = CHARS[selChar] || {};
+    // 카드(가운데) + 오른쪽에 네모 칸 3개. 왼쪽에는 같은 폭의 빈 공간을 둬서 카드가 정확히 가운데 오게 함
+    var SQ = 62;
+    var boxes = SLOT_KEYS.map(function (sl) {
+      var g = d[sl], on = equipSlot === sl;
+      var bd = g ? GRADES[g.grade].color : (on ? '#FFD700' : 'rgba(255,255,255,.35)');
+      var inner = g
+        ? '<div style="line-height:1;">' + icon(g, 40) + '</div><div style="font-size:9px;color:' + GRADES[g.grade].color + ';margin-top:2px;">' + GRADES[g.grade].label + '</div>'
+        : '<div style="font-size:20px;color:#889;line-height:1;">＋</div><div style="font-size:10px;color:#9ab;margin-top:2px;">' + SLOTS[sl].label + '</div>';
+      return '<button data-slot="' + sl + '" style="' + BTN + 'width:' + SQ + 'px;height:' + SQ + 'px;border-radius:12px;background:' + (on ? 'rgba(255,215,0,.18)' : 'rgba(255,255,255,.07)') + ';border:2px ' + (g ? 'solid' : 'dashed') + ' ' + bd + ';' + (g ? 'box-shadow:0 0 10px ' + bd + ';' : '') + 'color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0;">' + inner + '</button>';
     }).join('');
+    var preview = '<div style="display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:12px;">' +
+      '<div style="width:' + SQ + 'px;flex-shrink:0;"></div>' +
+      '<div style="position:relative;width:180px;height:240px;border-radius:18px;overflow:hidden;border:2px solid ' + (ch0.gradeColor || '#C084FC') + ';background:#111;flex-shrink:0;">' +
+      (ch0.img ? '<img src="' + ch0.img + '" draggable="false" style="width:100%;height:100%;object-fit:cover;object-position:50% 15%;pointer-events:none;">' : '<div style="font-size:80px;text-align:center;padding-top:70px;">' + (ch0.emoji || '') + '</div>') +
+      '</div>' +
+      '<div style="display:flex;flex-direction:column;gap:10px;flex-shrink:0;">' + boxes + '</div></div>';
     var t = totals(selChar), gt = globalTotals();
     var sum = '<div style="background:rgba(255,215,0,.1);border:1px solid #FFD700;border-radius:12px;padding:10px;font-size:12px;margin-bottom:12px;line-height:1.7;">' +
       '<b style="color:#FFD700;">이 캐릭터의 팬덤 원정 보너스</b><br>' +
@@ -332,15 +357,22 @@
 
     var list = '';
     if (equipSlot) {
+      var cur = d[equipSlot];
       var mine = bagItems.filter(function (i) { return i.type === 'goods_gear' && i.gear && i.gear.slot === equipSlot; });
-      list = '<div style="margin-top:6px;border-top:1px solid rgba(255,255,255,.15);padding-top:10px;"><div style="font-size:12px;font-weight:900;margin-bottom:6px;">' + SLOTS[equipSlot].label + ' 굿즈 고르기</div>' +
+      list = '<div style="margin-top:6px;border-top:1px solid rgba(255,255,255,.15);padding-top:10px;">' +
+        '<div style="font-size:12px;font-weight:900;margin-bottom:6px;">' + SLOTS[equipSlot].label + ' 칸</div>' +
+        (cur ? '<div style="font-size:11px;color:#9ab;margin-bottom:3px;">장착 중</div>' +
+          gearCard(cur, '<button data-un="' + equipSlot + '" style="' + BTN + 'padding:7px 10px;font-size:11px;background:rgba(239,68,68,.2);color:#ff8a8a;">해제</button>') : '') +
+        '<div style="font-size:11px;color:#9ab;margin:6px 0 3px;">가방 속 굿즈' + (cur ? ' (고르면 교체)' : '') + '</div>' +
         (mine.length ? mine.map(function (it, i) {
-          return gearCard(it.gear, '<button data-pick="' + i + '" style="' + BTN + 'padding:8px 12px;font-size:12px;background:linear-gradient(135deg,#60a5fa,#C084FC);color:#fff;">장착</button>');
+          return gearCard(it.gear, '<button data-pick="' + i + '" style="' + BTN + 'padding:8px 12px;font-size:12px;background:linear-gradient(135deg,#60a5fa,#C084FC);color:#fff;">' + (cur ? '교체' : '장착') + '</button>');
         }).join('') : '<div style="color:#aaa;font-size:12px;text-align:center;padding:14px 0;">가방에 맞는 굿즈가 없어요. 🔨 제작 탭에서 만들어봐요</div>') + '</div>';
+    } else {
+      list = '<div style="text-align:center;color:#9ab;font-size:12px;padding:6px 0;">네모 칸을 눌러서 굿즈를 장착해요</div>';
     }
-    body.innerHTML = '<div style="display:flex;gap:6px;overflow-x:auto;margin-bottom:12px;padding-bottom:4px;">' + chips + '</div>' + sum + slots + list;
+    body.innerHTML = '<div style="display:flex;gap:6px;overflow-x:auto;margin-bottom:12px;padding-bottom:4px;">' + chips + '</div>' + preview + sum + list;
     body.querySelectorAll('[data-char]').forEach(function (b) { b.onclick = function () { selChar = b.getAttribute('data-char'); equipSlot = null; draw(); }; });
-    body.querySelectorAll('[data-eq]').forEach(function (b) { b.onclick = function () { equipSlot = b.getAttribute('data-eq'); draw(); }; });
+    body.querySelectorAll('[data-slot]').forEach(function (b) { b.onclick = function () { var sl = b.getAttribute('data-slot'); equipSlot = (equipSlot === sl) ? null : sl; draw(); }; });
     body.querySelectorAll('[data-un]').forEach(function (b) { b.onclick = function () { var e = unequip(selChar, b.getAttribute('data-un')); if (e) toast('❌ ' + e); draw(); }; });
     body.querySelectorAll('[data-pick]').forEach(function (b) {
       b.onclick = function () {
