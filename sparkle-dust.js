@@ -12,7 +12,7 @@
 
   var DUST_NAME = '반짝이 가루';
   var DUST_EMOJI = '✨';
-  var DUST_BONUS = 3;          // 가루 1개 사용 시 레어히든 확률 증가(%p)
+  var DUST_BONUS = 5;          // 가루 1개 사용 시 레어히든 확률 증가(%p)
   var POINTS_PER_DUST = 6;     // 가루 1개에 필요한 물고기 점수
   // 물고기 점수 (비싼 물고기일수록 높음). 판매가(price)는 fishing.js와 같은 값
   var FISH = [
