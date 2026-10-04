@@ -1,6 +1,6 @@
 // ════════════════════════════════
 // 🐾 분양소 (kennel.js)
-// 광장 메뉴에 "🐾 분양소" 버튼을 붙인다. (game.js / index.html은 건드리지 않음)
+// 주택가 메뉴에 "🐾 분양소" 버튼을 붙인다. (game.js / index.html은 건드리지 않음)
 //
 // - 마당(탑뷰)을 탭해서 먹이를 놓으면 동물이 다가와 냄새를 맡아요.
 // - 맞는 먹이면 클로즈업 화면에서 타이밍을 맞춰 분양! 틀린 먹이면 킁킁하다 가버려요.
@@ -297,19 +297,20 @@ $('#kn-x').onclick = closeKennel;
 window.openKennel = openKennel;
 window.__kennel = { owned: () => Object.keys(S.got).filter(k => S.got[k] > 0), got: () => S.got, ANIMALS, FOODS, CFG, _state: () => ({ food, ani, busy }) };
 
-// ───────── 광장 메뉴 버튼 (드라마 촬영 버튼 아래) ─────────
+// ───────── 주택가 메뉴 버튼 (탐험 버튼 아래) ─────────
 let tries = 0;
 (function hook() {
   tries++;
-  const anchor = document.getElementById('btn-drama-square') || (tries > 200 ? document.getElementById('btn-cf-square') : null);
+  const anchor = document.getElementById('btn-fancafe-housing') || (tries > 200 ? document.getElementById('btn-explore-housing') : null);
   if (!anchor || typeof PLACE_BUTTONS === 'undefined' || typeof ALL_PLACE_BTNS === 'undefined') { if (tries < 500) setTimeout(hook, 50); return; }
-  if (document.getElementById('btn-kennel-square')) return;
+  if (document.getElementById('btn-kennel-housing')) return;
   const b = document.createElement('button');
-  b.id = 'btn-kennel-square'; b.textContent = '🐾 분양소';
+  b.id = 'btn-kennel-housing'; b.textContent = '🐾 분양소';
   b.style.cssText = 'display:none;width:100%;padding:14px;margin-top:10px;background:rgba(120,220,140,0.15);border:1.5px solid #78dc8c;border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;';
   b.onclick = openKennel;
   anchor.insertAdjacentElement('afterend', b);
-  if (PLACE_BUTTONS.square.indexOf('btn-kennel-square') === -1) PLACE_BUTTONS.square.push('btn-kennel-square');
-  if (ALL_PLACE_BTNS.indexOf('btn-kennel-square') === -1) ALL_PLACE_BTNS.push('btn-kennel-square');
+  if (!PLACE_BUTTONS.housing) PLACE_BUTTONS.housing = [];
+  if (PLACE_BUTTONS.housing.indexOf('btn-kennel-housing') === -1) PLACE_BUTTONS.housing.push('btn-kennel-housing');
+  if (ALL_PLACE_BTNS.indexOf('btn-kennel-housing') === -1) ALL_PLACE_BTNS.push('btn-kennel-housing');
 })();
 })();
