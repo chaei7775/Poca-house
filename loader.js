@@ -39,6 +39,7 @@ const NEW_CONTENT_FILES = [
   'photolab.js',
   'room-themes.js',
   'mystery-unlock.js',
+  'quest-concert.js',
 ];
 NEW_CONTENT_FILES.forEach(function(filename) {
   const s = document.createElement('script');
