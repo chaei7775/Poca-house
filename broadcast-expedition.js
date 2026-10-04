@@ -52,6 +52,7 @@
   var NPC_CATCH = 0.50;         // 게이지를 다 깎은 뒤 촬영 성공 기본 확률 (소품 '촬영확률 증가' 적용)
   var PIECE_NAME = '화보 조각', PIECE_EMOJI = '🖼️', PIECE_GOAL = 100;
   var IMG_BASE = 'https://raw.githubusercontent.com/chaei7775/Poca-house/main/';
+  var BUST = '?v=' + Date.now();   // 이미지를 올리기 전에 한 번 404가 났어도 옛 결과가 캐시에서 안 나오게
   var FACE_FILES = {      // 걸어다니는 얼굴 이미지 (repo 맨 위 폴더에 올리면 자동 적용)
     minjun: 'face-minjun.png', sion: 'face-sion.png', doyun: 'face-doyun.png',
     harin: 'face-harin.png', yuna: 'face-yuna.png', ara: 'face-ara.png'
@@ -216,12 +217,12 @@
       // 얼굴 전용 이미지가 있으면 그걸 쓰고, 파일이 없으면 카드 이미지 크롭 그대로 보여줌
       var fi = new Image();
       fi.onload = function () {
-        face.style.backgroundImage = 'url("' + encodeURI(IMG_BASE + faceFile) + '")';
+        face.style.backgroundImage = 'url("' + encodeURI(IMG_BASE + faceFile + BUST) + '")';
         face.style.backgroundSize = '112% auto';
         face.style.backgroundPosition = 'center';
         face.style.backgroundColor = '#fff';
       };
-      fi.src = IMG_BASE + faceFile;
+      fi.src = IMG_BASE + faceFile + BUST;
     }
     var card = document.createElement('div');
     card.style.cssText = 'position:absolute;right:-22px;top:-32px;width:28px;height:40px;border-radius:5px;border:2px solid #fff;' +
@@ -555,9 +556,9 @@
       var im = new Image();
       im.onload = function () {
         var el = $(id);
-        if (el) el.innerHTML = '<img src="' + IMG_BASE + npc.img + '" style="height:' + size + 'px;max-width:100%;object-fit:contain;filter:drop-shadow(0 4px 10px rgba(0,0,0,.6));">';
+        if (el) el.innerHTML = '<img src="' + IMG_BASE + npc.img + BUST + '" style="height:' + size + 'px;max-width:100%;object-fit:contain;filter:drop-shadow(0 4px 10px rgba(0,0,0,.6));">';
       };
-      im.src = IMG_BASE + npc.img;
+      im.src = IMG_BASE + npc.img + BUST;
     }, 0);
     return h;
   }
@@ -837,11 +838,12 @@
     var im = new Image();
     im.onload = function () {
       var box = $('bc-banner-box');
-      if (box) { box.style.backgroundImage = 'url("' + IMG_BASE + 'fandom-banner.png")'; box.style.backgroundSize = 'cover'; box.style.backgroundPosition = 'center'; }
+      if (box) { box.style.backgroundImage = 'url("' + IMG_BASE + 'fandom-banner.png' + BUST + '")'; box.style.backgroundSize = 'cover'; box.style.backgroundPosition = 'center'; }
     };
-    im.src = IMG_BASE + 'fandom-banner.png';
+    im.src = IMG_BASE + 'fandom-banner.png' + BUST;
   }
 
-  window.__bcTest = { rewardFor: rewardFor, pickNormal: pickNormal, simulate: simulate };
+  window.__bcTest = { rewardFor: rewardFor, pickNormal: pickNormal, simulate: simulate,
+    spawnNpc: function () { if (S) spawnSpecial('legend'); } };   // 테스트용: 원정 화면에서 콘솔에 __bcTest.spawnNpc() 입력하면 특별 NPC가 바로 나옴
   install();
 })();
