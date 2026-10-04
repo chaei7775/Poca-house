@@ -88,6 +88,16 @@
   };
 
   var S = null;   // 지금 진행 중인 원정 상태
+  var NPC_READY = {};   // 미리 불러온 NPC 이미지 (불러오기 끝난 것만 true)
+  function preloadNpcs() {
+    NPCS.forEach(function (n) {
+      if (NPC_READY[n.id] !== undefined) return;
+      NPC_READY[n.id] = false;
+      var im = new Image();
+      im.onload = function () { NPC_READY[n.id] = true; };
+      im.src = IMG_BASE + n.img + BUST;
+    });
+  }
 
   function $(id) { return document.getElementById(id); }
   function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
@@ -289,14 +299,14 @@
     } else {
       var legend = ev.type === 'legend';
       el.innerHTML = '<div style="width:48px;height:48px;border-radius:50%;background:' + (legend ? 'linear-gradient(135deg,#ff5a36,#ffb703)' : 'linear-gradient(135deg,#FFD700,#FF9F43)') +
-        ';border:3px solid #fff;display:flex;align-items:center;justify-content:center;font-size:24px;box-shadow:0 0 20px #FFD700;">' + (legend ? ((ev.npc && ev.npc.emoji) || '🔥') : '🌟') + '</div>' +
+        ';border:3px solid #fff;display:flex;align-items:center;justify-content:center;font-size:24px;box-shadow:0 0 20px #FFD700;">' + (legend ? ((ev.npc && !NPC_READY[ev.npc.id] && ev.npc.emoji) || (ev.npc ? '' : '🔥')) : '🌟') + '</div>' +
         '<div class="bc-ttl" style="margin-top:2px;font-size:11px;font-weight:900;color:#fff;text-shadow:0 1px 4px #000;"></div>';
     }
     $('bc-layer').appendChild(el);
     ev.el = el;
     if (ev.type === 'legend' && ev.npc) {
       var mk = el.firstChild, pi = new Image();
-      pi.onload = function () {
+      var showPhoto = function () {
         if (!mk) return;
         mk.textContent = '';
         mk.style.backgroundImage = 'url("' + IMG_BASE + ev.npc.img + BUST + '")';
@@ -304,7 +314,7 @@
         mk.style.backgroundPosition = '50% 20%';
         mk.style.borderColor = '#ff3b30';
       };
-      pi.src = IMG_BASE + ev.npc.img + BUST;
+      if (NPC_READY[ev.npc.id]) showPhoto(); else { pi.onload = showPhoto; pi.src = IMG_BASE + ev.npc.img + BUST; }
     }
   }
 
@@ -563,6 +573,9 @@
 
   function npcImgHtml(npc, size) {
     var id = 'bc-npcimg-' + npc.id;
+    if (NPC_READY[npc.id]) {
+      return '<div id="' + id + '"><img src="' + IMG_BASE + npc.img + BUST + '" style="height:' + size + 'px;max-width:100%;object-fit:contain;filter:drop-shadow(0 4px 10px rgba(0,0,0,.6));"></div>';
+    }
     var h = '<div id="' + id + '" style="font-size:' + Math.round(size * 0.8) + 'px;line-height:1;">' + npc.emoji + '</div>';
     setTimeout(function () {
       var im = new Image();
@@ -743,6 +756,7 @@
     try { specialExploreState = { locationId: LOC_ID, charId: charId, creature: null, foodChosen: null }; } catch (e) {}
     if (S && S.raf) cancelAnimationFrame(S.raf);
     injectStyle();
+    preloadNpcs();
 
     overlay.innerHTML =
       '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 14px;background:rgba(0,0,0,.6);position:relative;z-index:50;">' +
