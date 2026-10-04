@@ -85,12 +85,15 @@ const R = document.createElement('div');
 R.id = 'kn-root'; R.hidden = true;
 R.innerHTML = '<style>' + CSS + '</style>' +
   '<div id="kn-top"><b>🐾 분양소</b><span id="kn-coin"></span><button class="x" id="kn-x">✕</button></div>' +
-  '<div id="kn-wrap"><canvas id="kn-cv" width="360" height="480"></canvas><div id="kn-msg"></div>' +
+  '<div id="kn-wrap"><canvas id="kn-cv" width="720" height="960"></canvas><div id="kn-msg"></div>' +
   '<div id="kn-close" hidden></div><div id="kn-shop" hidden></div><div id="kn-dex" hidden></div></div>' +
   '<div id="kn-bar"><div id="kn-foods"></div><div id="kn-acts"><button id="kn-b-shop">🛒 먹이 가게</button><button id="kn-b-dex">📖 분양 도감</button></div></div>';
 document.body.appendChild(R);
 const $ = s => R.querySelector(s);
 const cv = $('#kn-cv'), cx = cv.getContext('2d');
+const VW = 360, VH = 480;   // 게임 좌표 (캔버스는 2배 해상도로 그림)
+function fit() { const w = $('#kn-wrap'), k = Math.min(w.clientWidth / VW, w.clientHeight / VH); cv.style.width = VW * k + 'px'; cv.style.height = VH * k + 'px'; }
+window.addEventListener('resize', () => { if (!R.hidden) fit(); });
 
 // 이미지 로더 (없으면 null → 이모지로 대체)
 const IMGS = {};
@@ -109,6 +112,8 @@ function faceHtml(a) {
 }
 
 // ───────── 마당 ─────────
+const BG = new Image(); let bgOk = false; BG.onload = () => { bgOk = true; }; BG.src = IMG + 'yard.jpg';
+const GATE = { x: 0.47, y: 1.04 };   // 마당 아래쪽 문 (동물이 들어오고 나가는 곳)
 let food = null;       // {x,y,name}
 let ani = null;        // {id,x,y,tx,ty,t,dir,state:'wait'|'come'|'sniff'|'leave'}
 let spawnAt = 0, last = 0, raf = 0, busy = false;
@@ -132,15 +137,14 @@ $('#kn-foods').addEventListener('click', e => {
 function draw(ts) {
   raf = requestAnimationFrame(draw);
   const dt = Math.min(0.05, (ts - (last || ts)) / 1000); last = ts;
-  const W = cv.width, H = cv.height;
-  // 잔디
-  const g = cx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, '#3f7a45'); g.addColorStop(1, '#2f5a35');
-  cx.fillStyle = g; cx.fillRect(0, 0, W, H);
-  cx.fillStyle = 'rgba(255,255,255,.05)';
-  for (let i = 0; i < 40; i++) { const x = (i * 97) % W, y = (i * 53) % H; cx.fillRect(x, y, 3, 8); }
-  // 울타리
-  cx.fillStyle = '#7a5a36';
-  cx.fillRect(0, 0, W, 10); cx.fillRect(0, H - 10, W, 10); cx.fillRect(0, 0, 10, H); cx.fillRect(W - 10, 0, 10, H);
+  cx.setTransform(2, 0, 0, 2, 0, 0);
+  const W = VW, H = VH;
+  if (bgOk) cx.drawImage(BG, 0, 0, W, H);
+  else {
+    const g = cx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, '#3f7a45'); g.addColorStop(1, '#2f5a35');
+    cx.fillStyle = g; cx.fillRect(0, 0, W, H);
+    cx.fillStyle = '#7a5a36'; cx.fillRect(0, 0, W, 10); cx.fillRect(0, H - 10, W, 10); cx.fillRect(0, 0, 10, H); cx.fillRect(W - 10, 0, 10, H);
+  }
 
   // 동물 등장 대기
   if (food && !ani && !busy && performance.now() / 1000 >= spawnAt) spawnAnimal();
@@ -161,8 +165,9 @@ function draw(ts) {
       else { ani.x += dx / d * CFG.SPEED * dt; ani.y += dy / d * CFG.SPEED * dt; if (Math.abs(dx) > 2) ani.dir = dx < 0 ? -1 : 1; }
     }
     if (ani.state === 'leave') {
-      ani.x += ani.dir * 200 * dt;
-      if (ani.x < -60 || ani.x > W + 60) { ani = null; }
+      const gx = W * GATE.x, gy = H * GATE.y, dx = gx - ani.x, dy = gy - ani.y, d = Math.hypot(dx, dy);
+      if (Math.abs(dx) > 2) ani.dir = dx < 0 ? -1 : 1;
+      if (d < 14) { ani = null; } else { ani.x += dx / d * 170 * dt; ani.y += dy / d * 170 * dt; }
     }
     if (ani) {
       const moving = ani.state === 'come' || ani.state === 'leave';
@@ -185,8 +190,7 @@ function spawnAnimal() {
     const others = ANIMALS.filter(a => !fav || a.id !== fav.id);
     pick = others[Math.floor(Math.random() * others.length)];
   }
-  const side = Math.random() < 0.5 ? -1 : 1;
-  ani = { id: pick.id, x: side < 0 ? -30 : cv.width + 30, y: 60 + Math.random() * (cv.height - 160), dir: -side, t: 0, state: 'come' };
+  ani = { id: pick.id, x: VW * GATE.x, y: VH * GATE.y, dir: 1, t: 0, state: 'come' };
   say('앗, 누가 먹이 냄새를 맡고 왔어요!', 2200);
 }
 
@@ -194,8 +198,8 @@ cv.addEventListener('pointerdown', e => {
   if (busy || food) { if (food) say('먹이는 한 번에 하나만 놓을 수 있어요', 1500); return; }
   if (bagQty(S.food) < 1) { say('가방에 ' + S.food + '이(가) 없어요. 🛒 먹이 가게에서 사요!', 2200); return; }
   const r = cv.getBoundingClientRect();
-  const x = (e.clientX - r.left) / r.width * cv.width, y = (e.clientY - r.top) / r.height * cv.height;
-  const px = Math.max(40, Math.min(cv.width - 40, x)), py = Math.max(60, Math.min(cv.height - 60, y));
+  const x = (e.clientX - r.left) / r.width * VW, y = (e.clientY - r.top) / r.height * VH;
+  const px = Math.max(80, Math.min(VW - 85, x)), py = Math.max(100, Math.min(VH - 110, y));
   try { useFromBag(S.food, 1); } catch (err) {}
   food = { x: px, y: py, name: S.food };
   spawnAt = performance.now() / 1000 + CFG.ARRIVE_DELAY + Math.random() * 1.2;
@@ -289,7 +293,7 @@ $('#kn-b-dex').onclick = () => {
 function openKennel() {
   load(); food = null; ani = null; busy = false; meter = null;
   $('#kn-close').hidden = true; $('#kn-shop').hidden = true; $('#kn-dex').hidden = true;
-  R.hidden = false; msg('마당을 탭해서 먹이를 놓아보세요'); renderFoods();
+  R.hidden = false; fit(); msg('마당을 탭해서 먹이를 놓아보세요'); renderFoods();
   last = 0; cancelAnimationFrame(raf); raf = requestAnimationFrame(draw);
 }
 function closeKennel() { if (busy) return; R.hidden = true; cancelAnimationFrame(raf); food = null; ani = null; }
