@@ -49,6 +49,14 @@
     return '<img src="' + IMG_BASE + f + '" draggable="false" alt="" style="width:' + px + 'px;height:' + px + 'px;object-fit:contain;pointer-events:none;" onerror="this.outerHTML=this.getAttribute(\'data-fb\')" data-fb="' + emo.replace(/"/g, '&quot;') + '">';
   }
 
+  // 퀘스트용 달성 기록 (quest-extra.js / quest-guide.js 가 읽음, 한 번 켜지면 계속 유지)
+  function setFlag(n) {
+    try {
+      var f = JSON.parse(localStorage.getItem('ph_goods_flags') || '{}') || {};
+      if (!f[n]) { f[n] = 1; localStorage.setItem('ph_goods_flags', JSON.stringify(f)); }
+    } catch (e) {}
+  }
+
   // ── 공통 ──
   function $(id) { return document.getElementById(id); }
   function rint(a, b) { return a + Math.floor(Math.random() * (b - a + 1)); }
@@ -103,6 +111,7 @@
         name: '[' + GRADES[g.grade].label + '] ' + g.base, emoji: g.emoji, type: 'goods_gear', qty: 1, affExp: 1,
         desc: '굿즈 · ' + S.label + ' · ' + statText(g.stats), gear: g
       });
+      setFlag('crafted'); if (g.grade === 'rare') setFlag('rare');
       res = { gear: g };
     }
     if (typeof saveBag === 'function') saveBag();
@@ -122,6 +131,8 @@
     if (old) giveBack(old);
     d[charId][slot] = bagItem.gear;
     save(d);
+    setFlag('equipped');
+    if (SLOT_KEYS.every(function (k) { return d[charId][k]; })) setFlag('full');
     if (typeof saveBag === 'function') saveBag();
     if (typeof saveAll === 'function') saveAll();
     return null;
