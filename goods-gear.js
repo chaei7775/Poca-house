@@ -10,11 +10,15 @@
   // ── 설정 ──
   var KEY = 'ph_goodsgear';                       // { minjun:{hat:{...}, hand:null, acc:null}, ... }  (ph_ 로 시작 → 자동 클라우드 저장)
   var CRAFT_COIN = 5000;
+  // 🔶 공방의 원석: 일반 탐험(숲·해변·공원·광장·신비의 섬)에서 재료를 주울 때 가끔 같이 나오는 굿즈 전용 재료
+  var STONE_NAME = '공방의 원석', STONE_EMOJI = '🔶';
+  var STONE_NEED = 3;                          // 굿즈 1개 제작에 필요한 원석 개수
+  var STONE_DROP = { normal: 0.03, rare: 0.08 };   // 재료 1개 주울 때 원석이 같이 나올 확률 (희귀 재료는 더 높음)
     var P_FAIL = 0.15, P_RARE = 0.04, P_GOOD = 0.18;   // 실패 15% / 레어 4% / 고급 18% / 나머지 일반
   var SLOTS = {
-    hat:  { label: '머리', mats: [['고급원목', 8], ['별빛나무', 6]], items: [['🎀', '응원 머리띠', 'goods-hat-1.png'], ['🧢', '팬클럽 야구모자', 'goods-hat-2.png'], ['👑', '반짝 왕관', 'goods-hat-3.png']] },
-    hand: { label: '손',   mats: [['빛나는돌', 8], ['해바라기', 6]], items: [['📣', '응원 메가폰', 'goods-hand-1.png'], ['🪄', '야광봉', 'goods-hand-2.png'], ['💐', '꽃다발', 'goods-hand-3.png']] },
-    acc:  { label: '액세서리', mats: [['별빛모래', 8], ['네잎클로버', 6]], items: [['📿', '팬클럽 목걸이', 'goods-acc-1.png'], ['🎧', '투어 헤드폰', 'goods-acc-2.png'], ['💍', '기념 반지', 'goods-acc-3.png']] }
+    hat:  { label: '머리', mats: [['고급원목', 8], ['별빛나무', 6], [STONE_NAME, STONE_NEED]], items: [['🎀', '응원 머리띠', 'goods-hat-1.png'], ['🧢', '팬클럽 야구모자', 'goods-hat-2.png'], ['👑', '반짝 왕관', 'goods-hat-3.png']] },
+    hand: { label: '손',   mats: [['빛나는돌', 8], ['해바라기', 6], [STONE_NAME, STONE_NEED]], items: [['📣', '응원 메가폰', 'goods-hand-1.png'], ['🪄', '야광봉', 'goods-hand-2.png'], ['💐', '꽃다발', 'goods-hand-3.png']] },
+    acc:  { label: '액세서리', mats: [['별빛모래', 8], ['네잎클로버', 6], [STONE_NAME, STONE_NEED]], items: [['📿', '팬클럽 목걸이', 'goods-acc-1.png'], ['🎧', '투어 헤드폰', 'goods-acc-2.png'], ['💍', '기념 반지', 'goods-acc-3.png']] }
   };
   var SLOT_KEYS = ['hat', 'hand', 'acc'];
   // 능력치 종류. scope 'char' = 그 캐릭터 원정에만 / 'all' = 모든 캐릭터 굿즈 합산(탐험·학교처럼 캐릭터와 상관없는 곳)
@@ -255,6 +259,48 @@
     if (n < 300) setTimeout(function () { t(n + 1); }, 200);
   })(0);
 
+
+  // ── 일반 탐험에서 🔶 공방의 원석 파밍: 재료를 주울 때 가끔 같이 나옴 ──
+  function matPools() {
+    var rare = {}, all = {};
+    try {
+      Object.keys(EXPLORE_MATERIALS).forEach(function (pid) {
+        (EXPLORE_MATERIALS[pid].normal || []).forEach(function (n) { all[n] = 1; });
+        (EXPLORE_MATERIALS[pid].rare || []).forEach(function (n) { all[n] = 1; rare[n] = 1; });
+      });
+    } catch (e) {}
+    return { all: all, rare: rare };
+  }
+  function hookStone() {
+    if (typeof window.addToBag !== 'function' || typeof EXPLORE_MATERIALS === 'undefined') return false;
+    if (window.addToBag.__ggStone) return true;
+    var orig = window.addToBag, pools = matPools(), busyStone = false;
+    var w = function (emoji, name, type) {
+      var r = orig.apply(this, arguments);
+      try {
+        if (r !== false && !busyStone && type === 'material' && pools.all[name] && document.getElementById('explore-overlay')) {
+          var p = pools.rare[name] ? STONE_DROP.rare : STONE_DROP.normal;
+          if (Math.random() < p) {
+            busyStone = true;
+            var ok = orig.call(this, STONE_EMOJI, STONE_NAME, 'material', 1, '굿즈 공방 제작 재료 · 일반 탐험에서 가끔 나와요');
+            busyStone = false;
+            if (ok !== false) {
+              if (typeof exploreCollected !== 'undefined' && exploreCollected.push) exploreCollected.push(STONE_EMOJI + ' ' + STONE_NAME);
+              var el2 = document.getElementById('explore-collected');
+              if (el2) el2.textContent = '✨ ' + STONE_EMOJI + ' ' + STONE_NAME + ' 발견!';
+              toast(STONE_EMOJI + ' ' + STONE_NAME + ' 획득!');
+            }
+          }
+        }
+      } catch (e) { busyStone = false; }
+      return r;
+    };
+    w.__ggStone = true;
+    window.addToBag = w;
+    return true;
+  }
+  (function t(n) { if (hookStone()) return; if (n < 300) setTimeout(function () { t(n + 1); }, 200); })(0);
+
   // ── 화면 ──
   var tab = 'craft', selChar = null, craftSlot = 'hat', busy = false, lastResult = null, equipSlot = null;
   var BTN = 'border:none;border-radius:12px;font-weight:900;cursor:pointer;font-family:\'Noto Sans KR\',sans-serif;';
@@ -323,7 +369,7 @@
         '필요: 🍔 ' + fmt(CRAFT_COIN) + ' (보유 ' + fmt(coins) + ')<br>' + S.mats.map(function (m) { var h = matQty(m[0]); return m[0] + ' x' + m[1] + ' (보유 <b style="color:' + (h >= m[1] ? '#4ade80' : '#ff8a8a') + ';">' + h + '</b>)'; }).join(' · ') + '<br>' +
         '<span style="color:#9ab;">능력치는 만들 때마다 랜덤! · 실패 ' + Math.round(P_FAIL * 100) + '% · 고급 ' + Math.round(P_GOOD * 100) + '% · 레어 ' + Math.round(P_RARE * 100) + '% (능력치 2개)</span></div>' +
       '<button id="gg-craft" style="' + BTN + 'width:100%;padding:15px;font-size:16px;background:linear-gradient(135deg,#FFD700,#F59E0B);color:#1a1a2e;">🔨 ' + S.label + ' 굿즈 제작</button>' +
-      '<div style="font-size:10.5px;color:#789;margin-top:10px;line-height:1.6;">재료는 일반 탐험(숲·공원·광장·해변)으로 모아요. 만든 굿즈는 가방에 들어가고, 🎒 장착 탭에서 캐릭터에게 달아줘요.</div>';
+      '<div style="font-size:10.5px;color:#789;margin-top:10px;line-height:1.6;">재료는 일반 탐험(숲·공원·광장·해변)으로 모아요. 🔶 공방의 원석은 탐험 중 재료를 주울 때 가끔 같이 나와요. 만든 굿즈는 가방에 들어가고, 🎒 장착 탭에서 캐릭터에게 달아줘요.</div>';
     body.querySelectorAll('[data-slot]').forEach(function (b) { b.onclick = function () { craftSlot = b.getAttribute('data-slot'); lastResult = null; draw(); }; });
     $('gg-craft').onclick = function () {
       if (busy) return; busy = true;
