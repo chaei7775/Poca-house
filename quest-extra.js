@@ -98,6 +98,14 @@
     main_trans: { title:'첫 초월', desc:'10강 히든카드를 초월! 같은 멤버 여분 카드 + 초월석이 필요해. 최종 단계는 3단계.',
       condition:'q2_trans', rewardCoins:8000, rewardExp:1000, type:'main', detect:function () { return anyTrans() || !!F.trans; } },
 
+    // ───── 드라마 촬영 ─────
+    tut_drama: { title:'드라마 촬영 첫 촬영', desc:'맵 → 광장 → 🎥 드라마 촬영. 데뷔한 아이돌 카드로 대본을 골라 촬영해봐. 연기 스킬이 드랍돼!',
+      condition:'q2_drama', rewardCoins:500, rewardExp:80, type:'tutorial', detect:function () { return (J('ph_drama', {}) || {}).shoots > 0; } },
+    main_drama_ok: { title:'퍼펙트 OK 컷', desc:'🎥 드라마 촬영에서 감독 OK(조기 퍼펙트)를 받아봐. 스킬을 장착하고 타이밍을 노려!',
+      condition:'q2_drama_ok', rewardCoins:3000, rewardExp:400, type:'main', detect:function () { return (J('ph_drama', {}) || {}).oks > 0; } },
+    main_drama_10: { title:'드라마 촬영 10회', desc:'🎥 드라마 촬영을 10번 해보자. 시청률이 쌓이면 탑스타가 될 수 있어.',
+      condition:'q2_drama_10', rewardCoins:3000, rewardExp:400, type:'main', detect:function () { return (J('ph_drama', {}) || {}).shoots >= 10; } },
+
     // ───── 메인: 프리미엄·수집 ─────
     main_premium: { title:'첫 프리미엄 카드', desc:'팬덤 원정에서 🖼️ 프리미엄 조각 100개 → 더보기 → 💎 프리미엄 카드에서 교환!',
       condition:'q2_premium', rewardCoins:3000, rewardExp:500, type:'main', detect:function () { return premiumList().length >= 1; } },

@@ -16,14 +16,19 @@
   function expMultiplier(lv) { return lv <= 10 ? 1.5 : (lv <= 20 ? 0.8 : 0.4); }
 
   // 퀘스트 목록: need=목표 횟수, w=경험치 비중(합 1.0), coins=코인(고정, 약간)
-  var QUESTS = [
+  var ALLQ = [
     { id: 'login',   icon: '👋', title: '오늘도 출석!',      desc: '접속하면 자동 완료',          need: 1, w: 0.10, coins: 1000 },
-    { id: 'alba',    icon: '🍔', title: '알바 2판 하기',      desc: '🍔 알바하기에서 2번 완료',     need: 2, w: 0.20, coins: 1500 },
-    { id: 'explore', icon: '🚐', title: '스케줄 2번 나가기',  desc: '🚐 스케줄 가기 / 낚시 2번',    need: 2, w: 0.20, coins: 1000 },
+    { id: 'alba',    icon: '🍔', title: '알바 2판 하기',      desc: '🍔 알바하기에서 2번 완료',     need: 2, w: 0.15, coins: 1500 },
+    { id: 'explore', icon: '🚐', title: '스케줄 2번 나가기',  desc: '🚐 스케줄 가기 / 낚시 2번',    need: 2, w: 0.15, coins: 1000 },
     { id: 'gift',    icon: '💝', title: '선물 1번 하기',      desc: '💞 인연에서 아이돌에게 선물',  need: 1, w: 0.15, coins: 1000 },
     { id: 'school',  icon: '🏫', title: '학교 1번 가기',      desc: '맵 → 연성고등학교 미니게임',   need: 1, w: 0.15, coins: 1000 },
+    { id: 'drama',   icon: '🎥', title: '드라마 촬영 1번',    desc: '맵 → 광장 → 🎥 드라마 촬영 (데뷔한 아이돌이 있어야 해요)', need: 1, w: 0.10, coins: 1500, needDebut: true },
   ];
-  var BONUS = { id: 'bonus', icon: '🎁', title: '올클리어 보너스', desc: '위 5개를 모두 받으면 추가 보상', w: 0.20, coins: 1500 };
+  // 데뷔한 아이돌이 있을 때만 드라마 퀘스트가 목록에 나옴 (없으면 올클리어가 막히니까)
+  function debutN() { try { var d = (JSON.parse(localStorage.getItem('ph_agency') || '{}') || {}).done || {}; return Object.keys(d).filter(function (k) { return d[k]; }).length; } catch (e) { return 0; } }
+  var QUESTS = ALLQ.slice();
+  function refreshQ() { var dn = debutN(); QUESTS = ALLQ.filter(function (q) { return !q.needDebut || dn >= 1 || (D && D.claimed && D.claimed[q.id]); }); }
+  var BONUS = { id: 'bonus', icon: '🎁', title: '올클리어 보너스', desc: '위 퀘스트를 모두 받으면 추가 보상', w: 0.20, coins: 1500 };
 
   // ───────── 날짜 / 저장 ─────────
   function todayKey() {
@@ -46,6 +51,7 @@
     save();
   }
   function ensureDay() {
+    refreshQ();
     if (!D || D.date !== todayKey()) { freshDay(); return true; }
     D.prog = D.prog || {}; D.claimed = D.claimed || {};
     if (typeof D.albaBase !== 'number') D.albaBase = getAlba();
@@ -174,6 +180,8 @@
       return r;
     };
   });
+  // 드라마 촬영: 촬영이 끝나 결과가 나올 때 drama.js 가 보내는 신호
+  try { window.addEventListener('ph-drama-shot', function () { bump('drama'); }); } catch (e) {}
   // 학교: 미니게임 결과 화면이 뜰 때 1회
   hookLater('showSchoolResult', function (orig) {
     return function () {

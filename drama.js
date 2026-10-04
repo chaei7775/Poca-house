@@ -793,8 +793,9 @@ function finish(ok){
   if(Math.random()<(ok||r>=10?CFG.SLOT_DROP_GOOD:CFG.SLOT_DROP)){try{slotGot=addToBag('🎟️',SLOTX,'material',1,'스킬 슬롯을 영구로 1칸 늘려줘요 (드라마 촬영 · 카드당 최대 +2, 총 5칸)')?1:-1}catch(e){slotGot=-1}}
   coins+=pay;awardShards(shards);giveSkill(drop);saveGame();try{if(typeof spawnCoinFloat==='function')spawnCoinFloat(pay)}catch(e){}
   if(learned)S.learned[G.dir.id]=true;
-  S.best=Math.max(S.best,r);
+  S.best=Math.max(S.best,r);S.shoots=(S.shoots||0)+1;if(ok)S.oks=(S.oks||0)+1;
   save();
+  try{window.dispatchEvent(new CustomEvent('ph-drama-shot',{detail:{r,ok}}))}catch(e){}
   const comment=ok?'감독이 직접 박수를 쳤어요. 조기 OK, 남은 시간은 전부 보너스예요.':r>=10?'방송 직후 화제작으로 떠올랐어요.':r>=5.8?'무난하게 방영됐고 입소문이 퍼지기 시작해요.':r>=3?'조용히 방영됐어요. 스킬 타이밍을 더 노려볼까요?':'방송은 나갔지만 반응이 싸늘해요.';
   const dk=SKILLS[drop];
   const left=stam();
