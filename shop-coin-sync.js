@@ -1,16 +1,25 @@
 // shop-coin-sync.js
-// 상점 위 '🍔 보유: N코인' 숫자가 재료를 팔거나 살 때 바로 안 바뀌는 문제 보정
-// - 재료 판매 직후 숫자를 강제로 갱신
-// - 상점이 열려 있는 동안 코인이 바뀌면 0.4초 안에 숫자를 맞춤 (어떤 경로로 코인이 바뀌어도 동일)
+// 코인 숫자가 바로 안 바뀌는 문제 보정
+// - 상점 위 '🍔 보유: N코인' 숫자 (재료를 팔거나 살 때)
+// - 포카마을(지도) 화면 맨 위 오른쪽 🍔 코인 숫자 (탐험 갔다 와서 잡화점에서 팔 때 안 바뀌던 것)
+// - 알바/퀘스트 화면 위쪽 코인 숫자
+// 코인이 바뀌면 0.4초 안에 모든 숫자를 맞춘다 (어떤 경로로 코인이 바뀌어도 동일)
 (function applyShopCoinSync() {
   if (typeof window.sellMaterial !== 'function') { setTimeout(applyShopCoinSync, 100); return; }
   if (window.__shopCoinSyncApplied) return;
   window.__shopCoinSyncApplied = true;
 
+  // game.js의 updateCoinsDisplay가 챙기지 않는 숫자 칸들
+  var EXTRA_IDS = ['shop-coin-display', 'coin-map', 'coin-quest', 'coin-alba-burger', 'coin-alba-cafe'];
+
   function syncShopCoin() {
     try {
-      var el = document.getElementById('shop-coin-display');
-      if (el && typeof coins !== 'undefined' && el.textContent !== String(coins)) el.textContent = coins;
+      if (typeof coins === 'undefined') return;
+      var want = String(coins);
+      for (var i = 0; i < EXTRA_IDS.length; i++) {
+        var el = document.getElementById(EXTRA_IDS[i]);
+        if (el && el.textContent !== want) el.textContent = want;
+      }
       if (typeof updateCoinsDisplay === 'function') updateCoinsDisplay();
     } catch (e) {}
   }
@@ -23,6 +32,6 @@
     return r;
   };
 
-  // 코인이 바뀌었는데 숫자가 그대로면 0.4초 안에 맞춤 (가벼운 비교만 함)
   setInterval(syncShopCoin, 400);
+  syncShopCoin();
 })();
