@@ -50,6 +50,8 @@ const NEW_CONTENT_FILES = [
   'school-fix.js',
   'agency-unlock.js',
   'poca-exp-popup.js',
+  'card-exp-boost.js',
+  'house-exp-share.js',
 ];
 NEW_CONTENT_FILES.forEach(function(filename) {
   const s = document.createElement('script');
