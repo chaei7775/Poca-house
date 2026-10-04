@@ -11,8 +11,8 @@
 //  - 이벤트가 끝날 때마다 가끔 특별 이벤트가 뜬다 (제한시간 있음, 놓치면 사라짐)
 //      🌟 황금 셔터(레어 목격정보) / 🔥 레전드 순간(5초 연타)
 //  - 이벤트 1번 = 스태미나 30 (맵에서 걷는 건 공짜)
-//  - 보상: 코인 / 카드 경험치 / 특별탐험 재료 / 촬영 소품 / 🖼️ 화보 조각
-//    화보 조각은 가방에 쌓인다 (100개 = 프리미엄 카드 1장, 교환은 다음 단계에서 만든다)
+//  - 보상: 코인 / 카드 경험치 / 특별탐험 재료 / 촬영 소품 / 🖼️ 프리미엄 조각
+//    프리미엄 조각은 가방에 쌓인다 (100개 = 프리미엄 카드 1장, 교환은 다음 단계에서 만든다)
 //
 // 값을 바꾸고 싶으면 아래 [설정]만 고치면 된다. game.js / special-explore.js는 건드리지 않는다.
 // ════════════════════════════════
@@ -50,7 +50,7 @@
   var NPC_HIT_WRONG = 20;       // 다른 도구를 썼을 때 깎이는 양
   var NPC_FLEE = 0.12;          // 도구 한 번 쓸 때 NPC가 떠날 기본 확률 (소품 '도망확률 감소' 적용)
   var NPC_CATCH = 0.50;         // 게이지를 다 깎은 뒤 촬영 성공 기본 확률 (소품 '촬영확률 증가' 적용)
-  var PIECE_NAME = '화보 조각', PIECE_EMOJI = '🖼️', PIECE_GOAL = 100;
+  var PIECE_NAME = '프리미엄 조각', OLD_PIECE_NAME = '화보 조각', PIECE_EMOJI = '🖼️', PIECE_GOAL = 100;
   var IMG_BASE = 'https://raw.githubusercontent.com/chaei7775/Poca-house/main/';
   var BUST = '?v=' + Date.now();   // 이미지를 올리기 전에 한 번 404가 났어도 옛 결과가 캐시에서 안 나오게
   var FACE_FILES = {      // 걸어다니는 얼굴 이미지 (repo 맨 위 폴더에 올리면 자동 적용)
@@ -156,7 +156,7 @@
     return last;
   }
 
-  // 이벤트 n번 했을 때 화보 조각 평균 (특별 이벤트가 뜨면 항상 잡는다고 가정)
+  // 이벤트 n번 했을 때 프리미엄 조각 평균 (특별 이벤트가 뜨면 항상 잡는다고 가정)
   function simulate(n, rnd) {
     rnd = rnd || Math.random;
     var total = 0, special = null;
@@ -451,7 +451,7 @@
       if (addToBag(PIECE_EMOJI, PIECE_NAME, 'piece', r.pieces, '프리미엄 카드 조각 · ' + PIECE_GOAL + '개를 모으면 프리미엄 카드 1장 (교환은 곧 열려요)')) {
         var have = pieceCount();
         lines.push({ icon: PIECE_EMOJI, text: PIECE_NAME + ' +' + r.pieces + ' (' + have + '/' + PIECE_GOAL + ')', color: '#7dd3fc' });
-        if (have >= PIECE_GOAL) toast('🖼️ 화보 조각 ' + PIECE_GOAL + '개 달성! 프리미엄 카드 교환은 곧 열려요');
+        if (have >= PIECE_GOAL) toast('🖼️ 프리미엄 조각 ' + PIECE_GOAL + '개 달성! 프리미엄 카드 교환은 곧 열려요');
       }
     }
     for (var i = 0; i < r.mats; i++) {
@@ -852,7 +852,7 @@
         '<div style="position:absolute;inset:0;background:linear-gradient(to bottom,rgba(20,10,40,.05) 20%,rgba(20,10,40,.88) 100%);"></div>' +
         '<div style="position:absolute;bottom:10px;left:14px;right:14px;display:flex;align-items:flex-end;justify-content:space-between;gap:8px;">' +
           '<div><div style="font-size:14px;font-weight:900;color:#fff;text-shadow:0 2px 6px rgba(0,0,0,.8);">🎬 팬덤 원정</div>' +
-          '<div style="font-size:10px;color:#e4d7ff;text-shadow:0 1px 4px rgba(0,0,0,.8);">현장을 돌아다니며 화보 조각을 모아요</div></div>' +
+          '<div style="font-size:10px;color:#e4d7ff;text-shadow:0 1px 4px rgba(0,0,0,.8);">현장을 돌아다니며 프리미엄 조각을 모아요</div></div>' +
           '<div style="font-size:11px;font-weight:900;color:#7dd3fc;background:rgba(0,0,0,.55);border-radius:10px;padding:4px 9px;white-space:nowrap;">' + PIECE_EMOJI + ' ' + have + '/' + PIECE_GOAL + '</div>' +
         '</div></div>' +
       '<button onclick="openSpecialCardSelect(\'' + LOC_ID + '\')" style="width:100%;display:flex;align-items:center;gap:12px;padding:13px 14px;background:#A78BFA1f;border:1.5px solid #A78BFA;border-radius:14px;color:#fff;font-size:14px;font-weight:900;cursor:pointer;font-family:\'Noto Sans KR\',sans-serif;text-align:left;">' +
@@ -868,6 +868,20 @@
     };
     im.src = IMG_BASE + 'fandom-banner.png' + BUST;
   }
+
+  // 이름이 바뀐 아이템: 이미 가방에 있는 '화보 조각'을 '프리미엄 조각'으로 합쳐 옮김 (가방은 이름으로 찾기 때문)
+  function migratePieceName() {
+    if (typeof bagItems === 'undefined' || !Array.isArray(bagItems)) { setTimeout(migratePieceName, 300); return; }
+    var oi = bagItems.findIndex(function (i) { return i.name === OLD_PIECE_NAME; });
+    if (oi === -1) return;
+    var old = bagItems[oi];
+    var ni = bagItems.find(function (i) { return i.name === PIECE_NAME; });
+    if (ni) { ni.qty += old.qty; bagItems.splice(oi, 1); }
+    else { old.name = PIECE_NAME; old.emoji = PIECE_EMOJI; old.desc = '프리미엄 카드 조각 · ' + PIECE_GOAL + '개를 모으면 프리미엄 카드 1장'; }
+    if (typeof saveBag === 'function') saveBag();
+    if (typeof saveAll === 'function') saveAll();
+  }
+  migratePieceName();
 
   window.__bcTest = { rewardFor: rewardFor, pickNormal: pickNormal, simulate: simulate,
     spawnNpc: function () { if (S) spawnSpecial('legend'); } };   // 테스트용: 원정 화면에서 콘솔에 __bcTest.spawnNpc() 입력하면 특별 NPC가 바로 나옴
