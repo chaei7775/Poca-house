@@ -66,7 +66,18 @@
   }
 
   // ───────── 게임 연동 도우미 ─────────
-  function toast(m) { try { if (typeof showBagToast === 'function') showBagToast(m); } catch (e) {} }
+  // 통발 화면(z-index 955) 위에 보이도록 자체 알림창을 씀 (게임 기본 토스트는 화면 뒤에 가려짐)
+  function toast(m) {
+    try {
+      var old = document.getElementById('trap-toast'); if (old) old.remove();
+      var el = document.createElement('div');
+      el.id = 'trap-toast';
+      el.style.cssText = 'position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:rgba(26,26,46,0.97);border:1.5px solid #38BDF8;color:#fff;padding:11px 20px;border-radius:20px;font-size:13px;font-weight:700;z-index:1300;max-width:88vw;text-align:center;line-height:1.5;font-family:"Noto Sans KR",sans-serif;';
+      el.textContent = m;
+      document.body.appendChild(el);
+      setTimeout(function () { if (el.parentNode) el.remove(); }, 3500);
+    } catch (e) { try { if (typeof showBagToast === 'function') showBagToast(m); } catch (e2) {} }
+  }
   function fmt(n) { return Number(n).toLocaleString(); }
   function matQty(name) {
     try { var b = bagItems.filter(function (i) { return i.name === name; })[0]; return b ? (b.qty || 0) : 0; } catch (e) { return 0; }
