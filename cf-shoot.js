@@ -115,16 +115,34 @@
     return it ? it.qty : 0;
   }
   function emojiOf(name) { return typeof getMaterialEmoji === 'function' ? getMaterialEmoji(name) : '🌿'; }
+  // 분양소(kennel.js)에서 분양받은 동물도 게스트로 쓸 수 있음 (id 앞에 k_ 를 붙여 기존 생물과 구분)
+  function kennelGuests() {
+    var K = window.__kennel; if (!K) return [];
+    return K.ANIMALS.filter(function (a) { return (K.got()[a.id] || 0) > 0; }).map(function (a) {
+      return { id: 'k_' + a.id, emoji: a.emoji, name: a.name, rare: false, kennel: a.id };
+    });
+  }
   function capturedCreatures() {
-    if (typeof getDexCaptured !== 'function' || typeof SPECIAL_CREATURES === 'undefined') return [];
-    var ids = getDexCaptured();
-    return SPECIAL_CREATURES.filter(function (c) { return ids.indexOf(c.id) !== -1; });
+    var list = [];
+    if (typeof getDexCaptured === 'function' && typeof SPECIAL_CREATURES !== 'undefined') {
+      var ids = getDexCaptured();
+      list = SPECIAL_CREATURES.filter(function (c) { return ids.indexOf(c.id) !== -1; });
+    }
+    return list.concat(kennelGuests());
   }
   function creatureById(id) {
+    if (typeof id === 'string' && id.indexOf('k_') === 0) {
+      return kennelGuests().concat((window.__kennel ? window.__kennel.ANIMALS : []).map(function (a) {
+        return { id: 'k_' + a.id, emoji: a.emoji, name: a.name, rare: false, kennel: a.id };
+      })).find(function (c) { return c.id === id; }) || null;
+    }
     if (typeof SPECIAL_CREATURES === 'undefined') return null;
     return SPECIAL_CREATURES.find(function (c) { return c.id === id; }) || null;
   }
   function creatureImg(c, size) {
+    if (c.kennel) {
+      return '<img src="https://raw.githubusercontent.com/chaei7775/Poca-house/main/kennel/' + c.kennel + '_top.png" style="width:' + size + 'px;height:' + size + 'px;object-fit:contain;" onerror="this.outerHTML=\'' + c.emoji + '\'">';
+    }
     return typeof creatureImgHtml === 'function' ? creatureImgHtml(c, size) : '<span style="font-size:' + Math.floor(size * 0.7) + 'px;">' + c.emoji + '</span>';
   }
   function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
@@ -268,7 +286,7 @@
             return '<button data-guest="' + c.id + '" style="' + BTN + 'width:58px;padding:5px 2px;background:' + (on ? 'rgba(74,222,128,0.25)' : 'rgba(255,255,255,0.07)') + ';border:1.5px solid ' + (on ? '#4ade80' : 'transparent') + ';color:#fff;font-size:10px;">' +
               '<div style="height:40px;display:flex;align-items:center;justify-content:center;">' + creatureImg(c, 38) + '</div>' + (c.rare ? '✨' : '') + esc(c.name) + '</button>';
           }).join('') + '</div>'
-        : '<div style="font-size:12px;color:#888;line-height:1.5;">화보집에 등록된 생물이 없어요.<br>특별탐험에서 생물을 촬영하면 게스트로 쓸 수 있어요!</div>';
+        : '<div style="font-size:12px;color:#888;line-height:1.5;">화보집에 등록된 생물이 없어요.<br>특별탐험에서 생물을 촬영하거나, 주택가 🐾 분양소에서 동물을 분양받으면 게스트로 쓸 수 있어요!</div>';
 
       ov.innerHTML = '<div style="width:100%;max-width:350px;max-height:92vh;overflow-y:auto;background:linear-gradient(135deg,#1a1a2e,#2d1b4e);border:2px solid #C084FC;border-radius:20px;padding:20px 18px;">' +
         '<div style="text-align:center;margin-bottom:12px;"><div style="font-size:30px;">' + req.emoji + '</div><div style="font-size:16px;font-weight:900;color:#fff;">' + esc(req.brand) + ' · ' + esc(req.item) + '</div>' +
