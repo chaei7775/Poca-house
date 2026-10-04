@@ -8,7 +8,7 @@
 // - 물고기는 낚시(fishing.js)와 같은 이름/가격의 재료라서 재료 상점 판매, 반짝이 가루 등 기존 쓰임이 그대로 적용됨
 // - 낚시보다 일부러 약하게: 흔한 물고기 위주, 은빛거미줄 확률 낮음. 강화석/방지권/재조합석/소원의 조각은 안 나옴
 // - 저장: localStorage 'ph_trap' ('ph_' 라서 cloud-extra.js 가 서버에도 같이 올림)
-// - 등록: loader.js NEW_CONTENT_FILES 맨 끝에 'trap.js' → 더보기 메뉴에 🪤 통발 타일이 생김
+// - 등록: loader.js NEW_CONTENT_FILES 맨 끝에 'trap.js' → 호수의 "🎣 낚시하기"를 누르면 [낚시하기 / 통발] 선택창이 뜸 (fishing.js 뒤에 로드돼도 상관없음)
 //
 // 값을 바꾸고 싶으면 아래 설정만 고치면 됨.
 // ════════════════════════════════
@@ -255,28 +255,56 @@
     })();
   }
 
-  // 더보기 메뉴에 🪤 통발 타일
-  whenReady(function () { return typeof window.openMoreMenu === 'function' && typeof window.moreMenuTileHtml === 'function'; }, function () {
-    var original = window.openMoreMenu;
-    if (original.__trapWrapped) return;
-    var wrapped = function () {
-      var r = original.apply(this, arguments);
-      var grid = document.getElementById('more-menu-grid');
-      if (grid && !document.getElementById('more-trap-tile')) {
-        grid.insertAdjacentHTML('beforeend', window.moreMenuTileHtml('🪤', '통발', ACC, 'openTrap()'));
-        if (grid.lastElementChild) grid.lastElementChild.id = 'more-trap-tile';
+  // 호수의 "🎣 낚시하기"를 누르면 [낚시하기 / 통발] 선택창을 띄움
+  // (fishing.js 가 explorePlace('lake')를 먼저 가로채 있어야 하므로, 그게 끝난 뒤에 그 바깥을 한 겹 더 감쌈)
+  function lakeChoice(goFishing) {
+    var old = document.getElementById('trap-choice'); if (old) old.remove();
+    var s = load(), now = Date.now(), ready = 0;
+    s.traps.forEach(function (t) { ready += pending(t, now); });
+    var ov = document.createElement('div');
+    ov.id = 'trap-choice';
+    ov.style.cssText = 'position:fixed;inset:0;z-index:960;background:rgba(0,0,0,0.78);display:flex;align-items:center;justify-content:center;padding:20px;' + FONT;
+    ov.innerHTML = '<div style="width:100%;max-width:300px;background:linear-gradient(135deg,#0b2a3b,#1a1a2e);border:2px solid ' + ACC + ';border-radius:20px;padding:22px 18px;text-align:center;">' +
+      '<div style="font-size:34px;margin-bottom:4px;">🌊</div>' +
+      '<div style="font-size:17px;font-weight:900;color:#fff;margin-bottom:14px;">동쪽 호수</div>' +
+      '<button id="tc-fish" style="' + BTN + 'width:100%;padding:14px;margin-bottom:8px;font-size:15px;background:linear-gradient(135deg,#38BDF8,#C084FC);color:#fff;">🎣 낚시하기 <span style="font-size:12px;font-weight:400;">(⚡10 · 직접 잡기)</span></button>' +
+      '<button id="tc-trap" style="' + BTN + 'width:100%;padding:14px;margin-bottom:8px;font-size:15px;background:linear-gradient(135deg,#34D399,#38BDF8);color:#fff;position:relative;">🪤 통발 ' +
+      '<span style="font-size:12px;font-weight:400;">(방치)</span>' +
+      (ready > 0 ? '<span style="position:absolute;top:-7px;right:-4px;background:#ef4444;color:#fff;border-radius:999px;padding:2px 8px;font-size:11px;font-weight:900;">' + ready + '</span>' : '') + '</button>' +
+      '<button id="tc-close" style="' + BTN + 'width:100%;padding:11px;background:rgba(255,255,255,0.08);color:#aaa;font-size:13px;">닫기</button></div>';
+    document.body.appendChild(ov);
+    ov.querySelector('#tc-fish').onclick = function () { ov.remove(); goFishing(); };
+    ov.querySelector('#tc-trap').onclick = function () { ov.remove(); openTrap(); };
+    ov.querySelector('#tc-close').onclick = function () { ov.remove(); };
+  }
+
+  (function hookLake() {
+    var tries = 0;
+    (function attempt() {
+      if (typeof window.explorePlace === 'function' && window.__fishingHooked) {
+        var original = window.explorePlace;
+        if (original.__trapWrapped) return;
+        var wrapped = function (id) {
+          if (id === 'lake') {
+            var self = this, args = arguments;
+            lakeChoice(function () { original.apply(self, args); });
+            return;
+          }
+          return original.apply(this, arguments);
+        };
+        wrapped.__trapWrapped = true;
+        window.explorePlace = wrapped;
+        return;
       }
-      return r;
-    };
-    wrapped.__trapWrapped = true;
-    window.openMoreMenu = wrapped;
-  });
+      if (++tries < 600) setTimeout(attempt, 100);
+    })();
+  })();
 
   // 접속했을 때 통발이 절반 넘게 찼으면 한 번 알려줌
   setTimeout(function () {
     try {
       var s = load(), full = s.traps.filter(function (t) { return pending(t) >= CAP / 2; }).length;
-      if (full > 0) toast('🪤 통발에 물고기가 모였어요! 더보기 → 통발');
+      if (full > 0) toast('🪤 통발에 물고기가 모였어요! 호수 → 통발');
     } catch (e) {}
   }, 6000);
 })();
