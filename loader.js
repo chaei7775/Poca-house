@@ -49,6 +49,7 @@ const NEW_CONTENT_FILES = [
   'trap.js',
   'school-fix.js',
   'agency-unlock.js',
+  'poca-exp-popup.js',
 ];
 NEW_CONTENT_FILES.forEach(function(filename) {
   const s = document.createElement('script');
