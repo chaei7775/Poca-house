@@ -50,6 +50,12 @@
   var NPC_HIT_WRONG = 20;       // 다른 도구를 썼을 때 깎이는 양
   var NPC_FLEE = 0.12;          // 도구 한 번 쓸 때 NPC가 떠날 기본 확률 (소품 '도망확률 감소' 적용)
   var NPC_CATCH = 0.50;         // 게이지를 다 깎은 뒤 촬영 성공 기본 확률 (소품 '촬영확률 증가' 적용)
+  // 히든 강화 재료(enhance.js): 기존엔 특별탐험 촬영 성공에서만 나왔으므로 팬덤 원정으로 옮김 (확률은 기존 표 그대로)
+  var ENH_KEY = 'ph_enhance';
+  var ENH_DROP = {
+    normal:  { stone: 0.035, protect: 0.015, trans: 0 },       // 셔터 / 팬레터 / 굿즈
+    variant: { stone: 0.20,  protect: 0.10,  trans: 0.07 }     // 🌟 황금 셔터 / 특별 NPC
+  };
   var PIECE_NAME = '프리미엄 조각', OLD_PIECE_NAME = '화보 조각', PIECE_EMOJI = '🖼️', PIECE_GOAL = 100;
   var IMG_BASE = 'https://raw.githubusercontent.com/chaei7775/Poca-house/main/';
   var BUST = '?v=' + Date.now();   // 이미지를 올리기 전에 한 번 404가 났어도 옛 결과가 캐시에서 안 나오게
@@ -79,6 +85,46 @@
   ];
   var LEGEND_SPOT = { x: 0.51, y: 0.235, label: '정문 앞' };
   var BOUNDS = { x0: 0.06, x1: 0.94, y0: 0.21, y1: 0.85 };
+
+  // ── 맵 목록: 맵을 늘리고 싶으면 여기에 한 칸 추가 ──
+  //  pieces: 프리미엄 조각이 나오는 맵인지 / enh: 히든 강화 재료(강화석·방지권·초월석) 드랍표
+  var MAPS = {
+    broadcast_front: {
+      id: 'broadcast_front', name: '방송국 앞', emoji: '🎬', color: '#A78BFA',
+      bg: 'https://raw.githubusercontent.com/chaei7775/Poca-house/main/special-broadcast_front.png',
+      desc: '프리미엄 조각을 모아요', pieces: true, coinMult: 40,
+      start: START, normal: NORMAL_SPOTS, rare: RARE_SPOTS, legend: LEGEND_SPOT, bounds: BOUNDS,
+      enh: { normal: { stone: 0.005, protect: 0.003, trans: 0 }, variant: { stone: 0.03, protect: 0.015, trans: 0.005 }, npcStone: 1 }
+    },
+    fanmeeting: {
+      id: 'fanmeeting', name: '팬미팅장', emoji: '💜', color: '#F472B6',
+      bg: 'https://raw.githubusercontent.com/chaei7775/Poca-house/main/special-fanmeeting.png',
+      desc: '강화석·방지권·초월석 파밍', pieces: false, coinMult: 80,
+      start: { x: 0.51, y: 0.82 },
+      normal: [
+        { x: 0.16, y: 0.38 },  // 굿즈 부스 앞
+        { x: 0.85, y: 0.42 },  // 포토존 앞
+        { x: 0.32, y: 0.43 },  // 분수 왼쪽
+        { x: 0.72, y: 0.46 },  // 분수 오른쪽
+        { x: 0.21, y: 0.57 },  // 푸드트럭 테이블 (왼쪽)
+        { x: 0.83, y: 0.60 },  // 푸드트럭 테이블 (오른쪽)
+        { x: 0.26, y: 0.63 },  // 하트 정원
+        { x: 0.83, y: 0.71 },  // 날개 하트 조형물
+        { x: 0.51, y: 0.60 },  // 광장 별 타일
+        { x: 0.51, y: 0.20 }   // 객석 가운데 통로
+      ],
+      rare: [
+        { x: 0.51, y: 0.26, label: '무대 앞' },
+        { x: 0.16, y: 0.37, label: '굿즈 부스' },
+        { x: 0.85, y: 0.42, label: '포토존' }
+      ],
+      legend: { x: 0.51, y: 0.29, label: '무대 계단 앞' },
+      bounds: { x0: 0.06, x1: 0.94, y0: 0.19, y1: 0.86 },
+      enh: { normal: { stone: 0.018, protect: 0.022, trans: 0.003 }, variant: { stone: 0.07, protect: 0.08, trans: 0.03 }, npcStone: 2 }
+    }
+  };
+  var MAP_ORDER = ['broadcast_front', 'fanmeeting'];
+  var MAP = MAPS.broadcast_front;     // 지금 들어가 있는 맵 (원정 시작할 때 바뀜)
 
   // 평균 조각 계산용 (실제 플레이어가 이 정도 비율로 성공한다고 가정)
   var GRADE_DIST = {
@@ -252,6 +298,14 @@
 
   function hud() {
     var el = $('bc-stam');
+    var ef = $('bc-eff');
+    if (ef && S) {
+      var pb = (typeof window.getPremiumBonus === 'function') ? window.getPremiumBonus(S.charId) : null;
+      if (pb && MAP.pieces) {
+        ef.style.display = 'block';
+        ef.textContent = '💎 Lv.' + pb.lv + ' · 📸 +' + (pb.skill * 100).toFixed(1).replace('.0', '') + '%p · 🎬 ' + Math.round(pb.extra * 100) + '%';
+      } else ef.style.display = 'none';
+    }
     if (el && typeof stamina !== 'undefined') el.textContent = '⚡ ' + stamina + '/' + (typeof STAMINA_MAX !== 'undefined' ? STAMINA_MAX : '') + ' · 이벤트 ⚡' + STAMINA_COST;
   }
 
@@ -326,7 +380,7 @@
 
   function spawnNormal() {
     var used = S.events.map(function (e) { return e.spot; });
-    var cand = NORMAL_SPOTS.filter(function (s) { return used.indexOf(s) === -1; });
+    var cand = MAP.normal.filter(function (s) { return used.indexOf(s) === -1; });
     var far = cand.filter(function (s) { return pxDist(s.x, s.y, S.px, S.py) > 90; });
     if (far.length) cand = far;
     cand.sort(function (a, b) { return pxDist(a.x, a.y, S.px, S.py) - pxDist(b.x, b.y, S.px, S.py); });
@@ -347,7 +401,7 @@
 
   function spawnSpecial(type) {
     var legend = type === 'legend';
-    var spot = legend ? LEGEND_SPOT : RARE_SPOTS[Math.floor(Math.random() * RARE_SPOTS.length)];
+    var spot = legend ? MAP.legend : MAP.rare[Math.floor(Math.random() * MAP.rare.length)];
     var ttl = legend ? LEGEND_TTL : RARE_TTL;
     var ev = { kind: 'special', type: legend ? 'legend' : 'golden', x: spot.x, y: spot.y, spot: spot, ttl: ttl, skip: false };
     if (legend) ev.npc = NPCS[Math.floor(Math.random() * NPCS.length)];
@@ -410,6 +464,28 @@
     return it ? it.qty : 0;
   }
 
+  function enhDrop(type, success) {
+    if (!success) return [];
+    var rare = (type === 'golden' || type === 'legend');
+    var t = rare ? MAP.enh.variant : MAP.enh.normal;
+    var d = { stone: Math.random() < t.stone ? 1 : 0, protect: Math.random() < t.protect ? 1 : 0, trans: Math.random() < t.trans ? 1 : 0 };
+    if (type === 'legend') d.stone = Math.max(d.stone, MAP.enh.npcStone || 1);          // 특별 NPC 성공: 강화석 확정
+    if (!d.stone && !d.protect && !d.trans) return [];
+    var st = null;
+    try { st = JSON.parse(localStorage.getItem(ENH_KEY) || 'null'); } catch (e) {}
+    if (!st || typeof st !== 'object') st = {};
+    ['stone', 'protect', 'trans'].forEach(function (k) { st[k] = Math.max(0, Math.floor(Number(st[k]) || 0)) + d[k]; });
+    if (!st.level || typeof st.level !== 'object') st.level = {};
+    if (!st.stage || typeof st.stage !== 'object') st.stage = {};
+    try { localStorage.setItem(ENH_KEY, JSON.stringify(st)); } catch (e) {}
+    if (typeof saveAll === 'function') { try { saveAll(); } catch (e) {} }
+    var out = [];
+    if (d.stone) out.push({ icon: '🔨', text: '강화석 +' + d.stone, color: '#FFD700' });
+    if (d.protect) out.push({ icon: '🛡️', text: '방지권 +1', color: '#4ade80' });
+    if (d.trans) out.push({ icon: '💎', text: '초월석 +1', color: '#60A5FA' });
+    return out;
+  }
+
   function addTicket() {
     if (typeof schoolDaily === 'undefined') return;
     schoolDaily.tickets = (schoolDaily.tickets || 0) + 1;
@@ -439,6 +515,7 @@
   function grant(r) {
     var lines = [];
     if (r.coins > 0) {
+      r.coins = Math.round(r.coins * (MAP.coinMult || 1));   // 강화 코인 비용용: 맵별 코인 배율
       coins += r.coins;
       lines.push({ icon: '🍔', text: '+' + r.coins + ' 코인', color: '#FFD700' });
     }
@@ -476,13 +553,14 @@
     var success = grade !== 'MISS' && grade !== 'FAIL';
     if (success) r.ticketOf = type;
     // 프리미엄 카드 효과 (premium-cards.js): 이 캐릭터의 카드를 갖고 있을 때만 적용
-    var pb = (typeof window.getPremiumBonus === 'function') ? window.getPremiumBonus(S.charId) : null;
+    if (!MAP.pieces) r.pieces = 0;     // 팬미팅장 등: 프리미엄 조각 없음
+    var pb = (MAP.pieces && typeof window.getPremiumBonus === 'function') ? window.getPremiumBonus(S.charId) : null;
     var notes = [];
     if (pb && success) {
       if (r.pieces === 0 && Math.random() < pb.skill) { r.pieces = 1; notes.push({ icon: '📸', text: pb.skillName + ' 발동!', color: '#FFD700' }); }
       if (r.pieces > 0 && Math.random() < pb.extra) { r.pieces += 1; notes.push({ icon: '🎬', text: pb.effectName + ' 발동! 조각 +1', color: '#7dd3fc' }); }
     }
-    var lines = grant(r).concat(notes);
+    var lines = grant(r).concat(notes).concat(enhDrop(type, success));
     var heads = {
       PERFECT: '✨ PERFECT!', GREAT: '👍 GREAT!', GOOD: '😊 GOOD', MISS: '💦 MISS…',
       OPEN: type === 'letter' ? '💌 팬레터 도착!' : '🎁 굿즈 획득!',
@@ -749,33 +827,35 @@
     if (!w) return;
     var rc = w.getBoundingClientRect();
     var nx = (e.clientX - rc.left) / rc.width, ny = (e.clientY - rc.top) / rc.height;
-    S.tx = clamp(nx, BOUNDS.x0, BOUNDS.x1);
-    S.ty = clamp(ny, BOUNDS.y0, BOUNDS.y1);
+    S.tx = clamp(nx, MAP.bounds.x0, MAP.bounds.x1);
+    S.ty = clamp(ny, MAP.bounds.y0, MAP.bounds.y1);
     var rip = document.createElement('div');
     rip.style.cssText = 'position:absolute;left:' + (S.tx * 100) + '%;top:' + (S.ty * 100) + '%;width:34px;height:34px;border-radius:50%;border:3px solid #fff;z-index:5;pointer-events:none;animation:bcRipple .5s ease-out forwards;';
     $('bc-layer').appendChild(rip);
     setTimeout(function () { rip.remove(); }, 520);
   }
 
-  function startBroadcast(charId) {
+  function startBroadcast(charId, locId) {
+    MAP = MAPS[locId] || MAPS.broadcast_front;
     var overlay = $('special-overlay');
     if (!overlay) return;
     var ch = (typeof CHARS !== 'undefined' && CHARS[charId]) ? CHARS[charId] : { name: '', img: '', gradeColor: '#fff', emoji: '🎬' };
-    try { specialExploreState = { locationId: LOC_ID, charId: charId, creature: null, foodChosen: null }; } catch (e) {}
+    try { specialExploreState = { locationId: MAP.id, charId: charId, creature: null, foodChosen: null }; } catch (e) {}
     if (S && S.raf) cancelAnimationFrame(S.raf);
     injectStyle();
     preloadNpcs();
 
     overlay.innerHTML =
       '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 14px;background:rgba(0,0,0,.6);position:relative;z-index:50;">' +
-      '<div style="color:#fff;font-size:15px;font-weight:900;white-space:nowrap;">🎬 방송국 앞</div>' +
+      '<div style="color:#fff;font-size:15px;font-weight:900;white-space:nowrap;">' + MAP.emoji + ' ' + MAP.name + '</div>' +
       '<div id="bc-stam" style="color:#FFE27A;font-size:11px;font-weight:900;text-align:center;flex:1;"></div>' +
       '<button onclick="document.getElementById(\'special-overlay\').remove()" style="background:rgba(255,255,255,.15);border:none;border-radius:10px;color:#fff;padding:7px 12px;cursor:pointer;white-space:nowrap;">나가기</button></div>' +
       '<div id="bc-view" style="position:relative;flex:1;min-height:0;overflow:hidden;background:#0d0820;touch-action:manipulation;user-select:none;-webkit-user-select:none;">' +
       '<div id="bc-world" style="position:absolute;">' +
-      '<img id="bc-img" src="' + BG_URL + '" draggable="false" style="width:100%;height:100%;display:block;pointer-events:none;">' +
+      '<img id="bc-img" src="' + MAP.bg + '" draggable="false" style="width:100%;height:100%;display:block;pointer-events:none;">' +
       '<div id="bc-layer" style="position:absolute;inset:0;"></div></div>' +
-      '<div id="bc-banner" style="display:none;position:absolute;top:8px;left:10px;right:10px;z-index:30;background:rgba(26,26,46,.92);border:1.5px solid #FFD700;border-radius:14px;padding:9px 12px;color:#fff;font-size:12px;font-weight:900;text-align:center;pointer-events:none;"></div>' +
+      '<div id="bc-eff" style="display:none;position:absolute;top:6px;left:8px;z-index:31;background:rgba(0,0,0,.6);border:1px solid #FFD700;border-radius:10px;padding:3px 8px;font-size:10px;font-weight:900;color:#FFE27A;pointer-events:none;"></div>' +
+      '<div id="bc-banner" style="display:none;position:absolute;top:34px;left:10px;right:10px;z-index:30;background:rgba(26,26,46,.92);border:1.5px solid #FFD700;border-radius:14px;padding:9px 12px;color:#fff;font-size:12px;font-weight:900;text-align:center;pointer-events:none;"></div>' +
       '</div>';
 
     var view = $('bc-view');
@@ -790,7 +870,7 @@
     window.addEventListener('resize', layout);
     view.addEventListener('pointerdown', onMapTap);
 
-    S = { charId: charId, px: START.x, py: START.y, tx: START.x, ty: START.y, moving: false, events: [], paused: false, current: null, last: 0, raf: 0, hudT: 0 };
+    S = { charId: charId, px: MAP.start.x, py: MAP.start.y, tx: MAP.start.x, ty: MAP.start.y, moving: false, events: [], paused: false, current: null, last: 0, raf: 0, hudT: 0 };
     $('bc-layer').appendChild(buildPlayer(ch));
     placePlayer();
     hud();
@@ -807,12 +887,15 @@
     }
     if (window.__bcInstalled) return;
     window.__bcInstalled = true;
-    if (!SPECIAL_LOCATIONS.some(function (l) { return l.id === LOC_ID; })) {
-      SPECIAL_LOCATIONS.push({ id: LOC_ID, name: '방송국 앞', emoji: '🎬', color: '#A78BFA', bg: BG_URL });
-    }
+    MAP_ORDER.forEach(function (mid) {
+      var m = MAPS[mid];
+      if (!SPECIAL_LOCATIONS.some(function (l) { return l.id === mid; })) {
+        SPECIAL_LOCATIONS.push({ id: mid, name: m.name, emoji: m.emoji, color: m.color, bg: m.bg });
+      }
+    });
     var orig = window.startSpecialExplore;
     window.startSpecialExplore = function (locationId, charId) {
-      if (locationId === LOC_ID) { startBroadcast(charId); return; }
+      if (MAPS[locationId]) { startBroadcast(charId, locationId); return; }
       return orig.apply(this, arguments);
     };
 
@@ -843,7 +926,7 @@
     // 기존 목록 안의 버튼 정리 (카드 선택 화면은 SPECIAL_LOCATIONS에 남겨둬서 그대로 동작)
     Array.prototype.forEach.call(el.querySelectorAll('button'), function (b) {
       var oc = b.getAttribute('onclick') || '';
-      if (oc.indexOf("'" + LOC_ID + "'") !== -1) { b.remove(); return; }
+      if (MAP_ORDER.some(function (mid) { return oc.indexOf("'" + mid + "'") !== -1; })) { b.remove(); return; }
       if (HIDE_OLD_SPECIAL) b.remove();   // 기존 3곳 + 도감 버튼 숨김 (데이터·코드는 그대로 남음)
     });
     if (HIDE_OLD_SPECIAL) {
@@ -856,15 +939,18 @@
     var have = pieceCount();
     sec.innerHTML =
       '<div id="bc-banner-box" style="position:relative;border-radius:18px;overflow:hidden;margin-bottom:12px;height:130px;' +
-        'background-color:#2a1d4e;background-image:url(\'' + BG_URL + '\');background-size:100% auto;background-position:50% 26%;">' +
+        'background-color:#2a1d4e;background-image:url(\'' + MAPS.broadcast_front.bg + '\');background-size:100% auto;background-position:50% 26%;">' +
         '<div style="position:absolute;inset:0;background:linear-gradient(to bottom,rgba(20,10,40,.05) 20%,rgba(20,10,40,.88) 100%);"></div>' +
         '<div style="position:absolute;bottom:10px;left:14px;right:14px;display:flex;align-items:flex-end;justify-content:space-between;gap:8px;">' +
           '<div><div style="font-size:14px;font-weight:900;color:#fff;text-shadow:0 2px 6px rgba(0,0,0,.8);">🎬 팬덤 원정</div>' +
           '<div style="font-size:10px;color:#e4d7ff;text-shadow:0 1px 4px rgba(0,0,0,.8);">현장을 돌아다니며 프리미엄 조각을 모아요</div></div>' +
           '<div style="font-size:11px;font-weight:900;color:#7dd3fc;background:rgba(0,0,0,.55);border-radius:10px;padding:4px 9px;white-space:nowrap;">' + PIECE_EMOJI + ' ' + have + '/' + PIECE_GOAL + '</div>' +
         '</div></div>' +
-      '<button onclick="openSpecialCardSelect(\'' + LOC_ID + '\')" style="width:100%;display:flex;align-items:center;gap:12px;padding:13px 14px;background:#A78BFA1f;border:1.5px solid #A78BFA;border-radius:14px;color:#fff;font-size:14px;font-weight:900;cursor:pointer;font-family:\'Noto Sans KR\',sans-serif;text-align:left;">' +
-        '<span style="font-size:24px;">🎬</span><span>방송국 앞</span><span style="margin-left:auto;color:#888;font-size:16px;">›</span></button>';
+      MAP_ORDER.map(function (mid) {
+        var m = MAPS[mid];
+        return '<button onclick="openSpecialCardSelect(\'' + mid + '\')" style="width:100%;display:flex;align-items:center;gap:12px;padding:13px 14px;margin-bottom:9px;background:' + m.color + '1f;border:1.5px solid ' + m.color + ';border-radius:14px;color:#fff;font-size:14px;font-weight:900;cursor:pointer;font-family:\'Noto Sans KR\',sans-serif;text-align:left;">' +
+          '<span style="font-size:24px;">' + m.emoji + '</span><span>' + m.name + '<br><span style="font-size:10px;font-weight:400;color:#cbbcf5;">' + m.desc + '</span></span><span style="margin-left:auto;color:#888;font-size:16px;">›</span></button>';
+      }).join('');
     // 도감 버튼(맨 마지막 칸) 앞에 끼워 넣기
     var last = el.lastElementChild;
     if (last) el.insertBefore(sec, last); else el.appendChild(sec);
