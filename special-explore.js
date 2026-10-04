@@ -123,10 +123,10 @@ function gearScaledValue(gear, grade) {
   return Math.round(gear.value * (SPECIAL_GEAR_GRADE_MULT[grade] || 1));
 }
 function gearEffectText(effect, value) {
-  return effect === 'flee' ? '도망확률 -' + value + '%' :
-    effect === 'chance' ? '촬영확률 +' + value + '%' :
-    effect === 'variant' ? '변종 출현 +' + value + '%' :
-    '촬영 실패시 재도전 ' + value + '회';
+  return effect === 'flee' ? 'NPC 도망확률 -' + value + '%' :
+    effect === 'chance' ? 'NPC 촬영확률 +' + value + '%' :
+    effect === 'variant' ? '특별 NPC 출현 +' + value + '%' :
+    'NPC 촬영 실패시 재도전 ' + value + '회';
 }
 // 가방 이름 '[고급] 월광 리본' → { name, baseName, emoji, effect, value, grade }
 function parseGearBagName(bagName) {
