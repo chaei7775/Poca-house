@@ -294,6 +294,18 @@
     }
     $('bc-layer').appendChild(el);
     ev.el = el;
+    if (ev.type === 'legend' && ev.npc) {
+      var mk = el.firstChild, pi = new Image();
+      pi.onload = function () {
+        if (!mk) return;
+        mk.textContent = '';
+        mk.style.backgroundImage = 'url("' + IMG_BASE + ev.npc.img + BUST + '")';
+        mk.style.backgroundSize = 'cover';
+        mk.style.backgroundPosition = '50% 20%';
+        mk.style.borderColor = '#ff3b30';
+      };
+      pi.src = IMG_BASE + ev.npc.img + BUST;
+    }
   }
 
   function removeEvent(ev) {
@@ -575,7 +587,7 @@
     var weakTool = tools.find(function (t) { return t.id === npc.weak; });
 
     function draw() {
-      if (!$('bc-panel') && !ended) return;
+      if (ended) return;
       var pct = Math.max(0, Math.round(gauge / NPC_GAUGE * 100));
       var body;
       if (gauge > 0) {
