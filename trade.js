@@ -21,8 +21,8 @@
     recomb:  { name: '재조합석',      emoji: '🔹', kind: 'bag', desc: '카드 재조합에 필요한 재료',         min: 100,   max: 150000 },
     ws:      { name: '공방의 원석',  emoji: '🔶', kind: 'bag', desc: '굿즈 공방 제작에 필요한 재료',       min: 500,   max: 100000 },
     epic:    { name: '에픽 재조합석', emoji: '💠', kind: 'bag', desc: 'SSR/UR 카드 재조합에 필요한 재료', min: 2000,  max: 1000000 },
-    stone:   { name: '강화석',        emoji: '🔨', kind: 'enh', field: 'stone',   min: 1000,  max: 200000 },
-    protect: { name: '방지권',        emoji: '🛡️', kind: 'enh', field: 'protect', min: 2000,  max: 300000 },
+    stone:   { name: '강화석',        emoji: '🔨', kind: 'enh', field: 'stone',   min: 1000,  max: 1000000 },
+    protect: { name: '방지권',        emoji: '🛡️', kind: 'enh', field: 'protect', min: 2000,  max: 3000000 },
     trans:   { name: '초월석',        emoji: '💎', kind: 'enh', field: 'trans',   min: 10000, max: 20000000 },
     slotx:   { name: '슬롯 확장권',  emoji: '🎟️', kind: 'bag', desc: '드라마 촬영 카드의 스킬 슬롯을 영구로 +1', min: 30000, max: 5000000 }
   };
