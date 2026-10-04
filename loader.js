@@ -35,6 +35,7 @@ const NEW_CONTENT_FILES = [
   'bond-gift.js',
   'starter-boost.js',
   'economy-boost.js',
+  'ticket-fragment-fix.js'
 ];
 NEW_CONTENT_FILES.forEach(function(filename) {
   const s = document.createElement('script');
