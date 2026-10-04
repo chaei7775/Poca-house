@@ -271,35 +271,45 @@
     } catch (e) {}
     return { all: all, rare: rare };
   }
-  function hookStone() {
-    if (typeof window.addToBag !== 'function' || typeof EXPLORE_MATERIALS === 'undefined') return false;
-    if (window.addToBag.__ggStone) return true;
-    var orig = window.addToBag, pools = matPools(), busyStone = false;
-    var w = function (emoji, name, type) {
-      var r = orig.apply(this, arguments);
+  // 지도마다 파일이 달라서 addToBag 를 잡는 방식은 일부 지도에서 안 먹혔음 →
+  // 가방(bagItems) 수량을 지켜보다가 "스태미나를 쓴 직후 45초 안에 탐험 재료가 늘어나면" 탐험 중 주운 것으로 보고 원석 판정
+  var EXPLORE_WINDOW_MS = 45000;
+  function startStoneWatch() {
+    if (window.__ggStoneWatch) return;
+    if (typeof bagItems === 'undefined' || typeof EXPLORE_MATERIALS === 'undefined' || typeof stamina === 'undefined') { setTimeout(startStoneWatch, 500); return; }
+    window.__ggStoneWatch = true;
+    var pools = matPools(), prev = {}, lastStam = stamina, lastDrop = 0;
+    function snap() {
+      var m = {};
+      bagItems.forEach(function (i) { if (i && pools.all[i.name] && i.name !== '은빛거미줄') m[i.name] = (m[i.name] || 0) + (Number(i.qty) || 0); });
+      return m;
+    }
+    prev = snap();
+    setInterval(function () {
       try {
-        if (r !== false && !busyStone && type === 'material' && pools.all[name] && document.getElementById('explore-overlay')) {
-          var p = pools.rare[name] ? STONE_DROP.rare : STONE_DROP.normal;
-          if (Math.random() < p) {
-            busyStone = true;
-            var ok = orig.call(this, STONE_EMOJI, STONE_NAME, 'material', 1, '굿즈 공방 제작 재료 · 일반 탐험에서 가끔 나와요');
-            busyStone = false;
-            if (ok !== false) {
-              if (typeof exploreCollected !== 'undefined' && exploreCollected.push) exploreCollected.push(STONE_EMOJI + ' ' + STONE_NAME);
-              var el2 = document.getElementById('explore-collected');
-              if (el2) el2.textContent = '✨ ' + STONE_EMOJI + ' ' + STONE_NAME + ' 발견!';
-              toast(STONE_EMOJI + ' ' + STONE_NAME + ' 획득!');
-            }
+        var now = Date.now();
+        if (stamina < lastStam) lastDrop = now;
+        lastStam = stamina;
+        var cur = snap(), gain = 0, rareGain = 0;
+        Object.keys(cur).forEach(function (n) {
+          var d = cur[n] - (prev[n] || 0);
+          if (d > 0) { if (pools.rare[n]) rareGain += d; else gain += d; }
+        });
+        prev = cur;
+        if (now - lastDrop > EXPLORE_WINDOW_MS) return;
+        var got = 0, i;
+        for (i = 0; i < gain; i++) if (Math.random() < STONE_DROP.normal) got++;
+        for (i = 0; i < rareGain; i++) if (Math.random() < STONE_DROP.rare) got++;
+        if (got > 0 && typeof addToBag === 'function') {
+          if (addToBag(STONE_EMOJI, STONE_NAME, 'material', got, '굿즈 공방 제작 재료 · 일반 탐험에서 가끔 나와요') !== false) {
+            if (typeof exploreCollected !== 'undefined' && exploreCollected.push) exploreCollected.push(STONE_EMOJI + ' ' + STONE_NAME);
+            toast(STONE_EMOJI + ' ' + STONE_NAME + (got > 1 ? ' x' + got : '') + ' 획득!');
           }
         }
-      } catch (e) { busyStone = false; }
-      return r;
-    };
-    w.__ggStone = true;
-    window.addToBag = w;
-    return true;
+      } catch (e) {}
+    }, 250);
   }
-  (function t(n) { if (hookStone()) return; if (n < 300) setTimeout(function () { t(n + 1); }, 200); })(0);
+  startStoneWatch();
 
   // ── 화면 ──
   var tab = 'craft', selChar = null, craftSlot = 'hat', busy = false, lastResult = null, equipSlot = null;
