@@ -55,6 +55,7 @@ const NEW_CONTENT_FILES = [
   'house-exp-share.js',
   'fan-marker.js',
   'drama.js',
+  'kennel.js',
 ];
 NEW_CONTENT_FILES.forEach(function(filename) {
   const s = document.createElement('script');
