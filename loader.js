@@ -41,8 +41,8 @@ const NEW_CONTENT_FILES = [
   'mystery-unlock.js',
   'quest-concert.js',
   'square-explore.js',
-  'daily-quest.js'
-  'trade.js'
+  'daily-quest.js',
+  'trade.js',
 ];
 NEW_CONTENT_FILES.forEach(function(filename) {
   const s = document.createElement('script');
