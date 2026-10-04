@@ -27,6 +27,7 @@ const NEW_CONTENT_FILES = [
   'enhance.js',
   'cloud-extra.js',
   'stamina-balance.js',
+  'drink-bulk.js',
   'broadcast-expedition.js',
   'premium-cards.js',
   'guide-finger.js',
