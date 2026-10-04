@@ -40,6 +40,7 @@ const NEW_CONTENT_FILES = [
   'economy-boost.js',
   'ticket-fragment-fix.js',
   'photolab.js',
+  'premium-equip.js',
   'room-themes.js',
   'mystery-unlock.js',
   'quest-concert.js',
