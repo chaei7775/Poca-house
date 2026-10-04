@@ -37,6 +37,7 @@ const NEW_CONTENT_FILES = [
   'economy-boost.js',
   'ticket-fragment-fix.js',
   'photolab.js',
+  'room-themes.js',
 ];
 NEW_CONTENT_FILES.forEach(function(filename) {
   const s = document.createElement('script');
