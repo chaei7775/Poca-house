@@ -53,6 +53,7 @@ const NEW_CONTENT_FILES = [
   'poca-exp-popup.js',
   'card-exp-boost.js',
   'house-exp-share.js',
+  'fan-marker.js',
 ];
 NEW_CONTENT_FILES.forEach(function(filename) {
   const s = document.createElement('script');
