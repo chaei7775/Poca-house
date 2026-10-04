@@ -64,7 +64,7 @@
   function shootChance(req, bestGrade, propCount, guest) {
     var over = Math.max(0, gradeIdx(bestGrade) - gradeIdx(req.minGrade));
     var c = req.base + over * GRADE_BONUS + propCount * PROP_BONUS;
-    if (guest) c += guest.rare ? GUEST_BONUS.rare : GUEST_BONUS.normal;
+    if (guest) c += (typeof guest.bonus === 'number') ? guest.bonus : (guest.rare ? GUEST_BONUS.rare : GUEST_BONUS.normal);
     return Math.max(MIN_CHANCE, Math.min(MAX_CHANCE, c));
   }
   function rollStars(chance, rng) {      // 0 = NG, 1~3 = 별
@@ -116,10 +116,20 @@
   }
   function emojiOf(name) { return typeof getMaterialEmoji === 'function' ? getMaterialEmoji(name) : '🌿'; }
   // 분양소(kennel.js)에서 분양받은 동물도 게스트로 쓸 수 있음 (id 앞에 k_ 를 붙여 기존 생물과 구분)
+  function kennelGuestObj(a) {
+    var g = { id: 'k_' + a.id, emoji: a.emoji, name: a.name, rare: false, kennel: a.id };
+    var B = window.__kennelBond;            // 친밀도(kennel-bond.js)가 있으면 레벨/보너스를 붙임
+    if (B) { var b = B.bonus(a.id); if (typeof b === 'number') g.bonus = b; g.lv = B.level(a.id); }
+    return g;
+  }
+  function guestBonusText() {
+    var B = window.__kennelBond;
+    return B ? '+' + B.BONUS[0] + '~' + B.BONUS[B.BONUS.length - 1] + '%p · 친밀도 높을수록 ↑' : '+' + GUEST_BONUS.normal + '%p';
+  }
   function kennelGuests() {
     var K = window.__kennel; if (!K) return [];
     return K.ANIMALS.filter(function (a) { return (K.got()[a.id] || 0) > 0; }).map(function (a) {
-      return { id: 'k_' + a.id, emoji: a.emoji, name: a.name, rare: false, kennel: a.id };
+      return kennelGuestObj(a);
     });
   }
   function capturedCreatures() {
@@ -133,7 +143,7 @@
   function creatureById(id) {
     if (typeof id === 'string' && id.indexOf('k_') === 0) {
       return kennelGuests().concat((window.__kennel ? window.__kennel.ANIMALS : []).map(function (a) {
-        return { id: 'k_' + a.id, emoji: a.emoji, name: a.name, rare: false, kennel: a.id };
+        return kennelGuestObj(a);
       })).find(function (c) { return c.id === id; }) || null;
     }
     if (typeof SPECIAL_CREATURES === 'undefined') return null;
@@ -284,7 +294,7 @@
         ? '<div style="display:flex;flex-wrap:wrap;gap:6px;">' + creatures.map(function (c) {
             var on = sel.guest === c.id;
             return '<button data-guest="' + c.id + '" style="' + BTN + 'width:58px;padding:5px 2px;background:' + (on ? 'rgba(74,222,128,0.25)' : 'rgba(255,255,255,0.07)') + ';border:1.5px solid ' + (on ? '#4ade80' : 'transparent') + ';color:#fff;font-size:10px;">' +
-              '<div style="height:40px;display:flex;align-items:center;justify-content:center;">' + creatureImg(c, 38) + '</div>' + (c.rare ? '✨' : '') + esc(c.name) + '</button>';
+              '<div style="height:40px;display:flex;align-items:center;justify-content:center;">' + creatureImg(c, 38) + '</div>' + (c.rare ? '✨' : '') + esc(c.name) + (c.lv ? '<div style="font-size:9px;color:#4ade80;font-weight:700;">Lv.' + c.lv + '</div>' : '') + '</button>';
           }).join('') + '</div>'
         : '<div style="font-size:12px;color:#888;line-height:1.5;">화보집에 등록된 생물이 없어요.<br>특별탐험에서 생물을 촬영하거나, 주택가 🐾 분양소에서 동물을 분양받으면 게스트로 쓸 수 있어요!</div>';
 
@@ -293,7 +303,7 @@
         '<div style="font-size:11px;color:#aaa;margin-top:2px;">' + req.minGrade + ' 등급 이상 출연자 필요</div></div>' +
         '<div style="background:rgba(255,255,255,0.05);border-radius:12px;padding:10px 12px;margin-bottom:10px;"><div style="font-size:12px;font-weight:900;color:#C084FC;margin-bottom:6px;">① 출연자</div>' + chars + '</div>' +
         '<div style="background:rgba(255,255,255,0.05);border-radius:12px;padding:10px 12px;margin-bottom:10px;"><div style="font-size:12px;font-weight:900;color:#C084FC;margin-bottom:6px;">② 촬영 소품 <span style="color:#888;font-weight:400;">(1종 +' + PROP_BONUS + '%p · 소모)</span></div>' + propsHtml + '</div>' +
-        '<div style="background:rgba(255,255,255,0.05);border-radius:12px;padding:10px 12px;margin-bottom:12px;"><div style="font-size:12px;font-weight:900;color:#C084FC;margin-bottom:6px;">③ 생물 게스트 <span style="color:#888;font-weight:400;">(+' + GUEST_BONUS.normal + '%p · 희귀 +' + GUEST_BONUS.rare + '%p · 출연료 +' + Math.round(GUEST_REWARD_RATE * 100) + '% · 소모 없음)</span></div>' + guestHtml + '</div>' +
+        '<div style="background:rgba(255,255,255,0.05);border-radius:12px;padding:10px 12px;margin-bottom:12px;"><div style="font-size:12px;font-weight:900;color:#C084FC;margin-bottom:6px;">③ 생물 게스트 <span style="color:#888;font-weight:400;">(' + guestBonusText() + ' · 출연료 +' + Math.round(GUEST_REWARD_RATE * 100) + '% · 소모 없음)</span></div>' + guestHtml + '</div>' +
         '<div style="text-align:center;margin-bottom:12px;"><div style="font-size:12px;color:#aaa;">성공 확률</div><div style="font-size:26px;font-weight:900;color:#FFD700;">' + (chance === null ? '–' : chance + '%') + '</div></div>' +
         '<button id="cf-go" style="' + BTN + 'width:100%;padding:14px;margin-bottom:8px;background:' + (ready ? 'linear-gradient(135deg,#FF6B9D,#C084FC)' : 'rgba(255,255,255,0.1)') + ';color:' + (ready ? '#fff' : '#777') + ';font-size:15px;">' + (ready ? '🎬 촬영 시작!' : '출연자를 골라주세요') + '</button>' +
         '<button id="cf-cancel" style="' + BTN + 'width:100%;padding:11px;background:rgba(255,255,255,0.08);color:#aaa;font-size:13px;">닫기</button></div>';
