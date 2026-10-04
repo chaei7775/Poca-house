@@ -1064,7 +1064,7 @@
         '<div style="position:absolute;bottom:10px;left:14px;right:14px;display:flex;align-items:flex-end;justify-content:space-between;gap:8px;">' +
           '<div><div style="font-size:14px;font-weight:900;color:#fff;text-shadow:0 2px 6px rgba(0,0,0,.8);">🎬 팬덤 원정</div>' +
           '<div style="font-size:10px;color:#e4d7ff;text-shadow:0 1px 4px rgba(0,0,0,.8);">현장을 돌아다니며 프리미엄 조각을 모아요</div></div>' +
-          '<div style="font-size:11px;font-weight:900;color:#7dd3fc;background:rgba(0,0,0,.55);border-radius:10px;padding:4px 9px;white-space:nowrap;">' + PIECE_EMOJI + ' ' + have + '/' + PIECE_GOAL + '</div>' +
+          '<div id="bc-piece-badge" style="font-size:11px;font-weight:900;color:#7dd3fc; background:rgba(0,0,0,.55);border-radius:10px;padding:4px 9px;white-space:nowrap;">' + PIECE_EMOJI + ' ' + have + '/' + PIECE_GOAL + '</div>' +
         '</div></div>' +
       MAP_ORDER.map(function (mid) {
         var m = MAPS[mid];
@@ -1097,6 +1097,12 @@
   }
   migratePieceName();
 
+  // 팬덤 원정 칸의 프리미엄 조각 숫자를 계속 최신으로 맞춤
+  setInterval(function () {
+    var b = document.getElementById('bc-piece-badge');
+    if (b) b.textContent = PIECE_EMOJI + ' ' + pieceCount() + '/' + PIECE_GOAL;
+  }, 700);
+  
   window.__bcTest = { rewardFor: rewardFor, pickNormal: pickNormal, simulate: simulate,
     spawnNpc: function () { if (S) spawnSpecial('legend'); } };   // 테스트용: 원정 화면에서 콘솔에 __bcTest.spawnNpc() 입력하면 특별 NPC가 바로 나옴
   install();
