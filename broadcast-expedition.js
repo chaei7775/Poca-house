@@ -38,6 +38,18 @@
     shutter: [0.002, 0.05], letter: [0.002, 0.05], goods: [0.002, 0.05],
     golden: [0.03, 0.15], legend: [0.05, 0.25]
   };
+  // 특별 NPC (이미지 npc-xxx.png 를 repo 맨 위 폴더에 올리면 자동 적용, 없으면 이모지로 표시)
+  // weak = 좋아하는 촬영도구(net 카메라 / spray 무드조명 / scent 분위기 향수)
+  var NPCS = [
+    { id: 'paparazzi', name: '열혈 파파라치', emoji: '🕶️', img: 'npc-paparazzi.png', weak: 'scent' },
+    { id: 'pd',        name: '깐깐한 PD',     emoji: '🎙️', img: 'npc-pd.png',        weak: 'net' },
+    { id: 'star',      name: '월드스타 게스트', emoji: '🌟', img: 'npc-star.png',      weak: 'spray' }
+  ];
+  var NPC_GAUGE = 120;          // NPC 경계 게이지
+  var NPC_HIT_RIGHT = 40;       // 좋아하는 도구를 썼을 때 깎이는 양
+  var NPC_HIT_WRONG = 20;       // 다른 도구를 썼을 때 깎이는 양
+  var NPC_FLEE = 0.12;          // 도구 한 번 쓸 때 NPC가 떠날 기본 확률 (소품 '도망확률 감소' 적용)
+  var NPC_CATCH = 0.50;         // 게이지를 다 깎은 뒤 촬영 성공 기본 확률 (소품 '촬영확률 증가' 적용)
   var PIECE_NAME = '화보 조각', PIECE_EMOJI = '🖼️', PIECE_GOAL = 100;
   var IMG_BASE = 'https://raw.githubusercontent.com/chaei7775/Poca-house/main/';
   var FACE_FILES = {      // 걸어다니는 얼굴 이미지 (repo 맨 위 폴더에 올리면 자동 적용)
@@ -120,7 +132,7 @@
       r.gear = 0.03;
       if (rnd() < 0.06) r.pieces = 1;
     } else if (type === 'legend') {
-      if (grade === 'SUCCESS')      { r.coins = 300; r.exp = 300; r.pieces = 5; r.mats = 2; r.gear = 0.25; }
+      if (grade === 'SUCCESS')      { r.coins = 300; r.exp = 300; r.pieces = 5; r.mats = 2; r.gear = 1; r.gearMin = 'great'; }
       else if (grade === 'PARTIAL') { r.coins = 120; r.exp = 150; r.pieces = 2; r.mats = 1; r.gear = 0.08; }
       else                          { r.coins = 30;  r.exp = 30; }
     }
@@ -276,7 +288,7 @@
     } else {
       var legend = ev.type === 'legend';
       el.innerHTML = '<div style="width:48px;height:48px;border-radius:50%;background:' + (legend ? 'linear-gradient(135deg,#ff5a36,#ffb703)' : 'linear-gradient(135deg,#FFD700,#FF9F43)') +
-        ';border:3px solid #fff;display:flex;align-items:center;justify-content:center;font-size:24px;box-shadow:0 0 20px #FFD700;">' + (legend ? '🔥' : '🌟') + '</div>' +
+        ';border:3px solid #fff;display:flex;align-items:center;justify-content:center;font-size:24px;box-shadow:0 0 20px #FFD700;">' + (legend ? ((ev.npc && ev.npc.emoji) || '🔥') : '🌟') + '</div>' +
         '<div class="bc-ttl" style="margin-top:2px;font-size:11px;font-weight:900;color:#fff;text-shadow:0 1px 4px #000;"></div>';
     }
     $('bc-layer').appendChild(el);
@@ -315,10 +327,11 @@
     var spot = legend ? LEGEND_SPOT : RARE_SPOTS[Math.floor(Math.random() * RARE_SPOTS.length)];
     var ttl = legend ? LEGEND_TTL : RARE_TTL;
     var ev = { kind: 'special', type: legend ? 'legend' : 'golden', x: spot.x, y: spot.y, spot: spot, ttl: ttl, skip: false };
+    if (legend) ev.npc = NPCS[Math.floor(Math.random() * NPCS.length)];
     S.events.push(ev);
     markerFor(ev);
     var name = (typeof CHARS !== 'undefined' && CHARS[S.charId]) ? CHARS[S.charId].name : '아이돌';
-    banner(legend ? ('🔥 레전드 순간! ' + name + '이(가) ' + spot.label + '에 나타났어요! (' + ttl + '초)')
+    banner(legend ? ('🚨 특별 NPC 출현! ' + ev.npc.emoji + ' ' + ev.npc.name + '이(가) ' + spot.label + '에 나타났어요! (' + ttl + '초)')
                   : ('🚨 레어 목격정보! ' + spot.label + '에서 ' + name + ' 포착! (' + ttl + '초)'));
   }
 
@@ -326,8 +339,9 @@
     fillNormals();
     if (!hasSpecial()) {
       var r = Math.random();
-      if (r < LEGEND_CHANCE) spawnSpecial('legend');
-      else if (r < LEGEND_CHANCE + RARE_CHANCE) spawnSpecial('golden');
+      var npcChance = LEGEND_CHANCE * (1 + gearVal(S.charId, 'variant') / 100);   // 소품 '변종 출현' = NPC 출현 확률 증가
+      if (r < npcChance) spawnSpecial('legend');
+      else if (r < npcChance + RARE_CHANCE) spawnSpecial('golden');
     }
   }
 
@@ -348,15 +362,29 @@
     return it ? it.qty : 0;
   }
 
-  function dropGear() {
+  function dropGear(minGrade) {
     if (typeof SPECIAL_GEAR === 'undefined' || typeof SPECIAL_GEAR_GRADES === 'undefined') return null;
     var roll = Math.random();
     var grade = roll < 0.001 ? 'legend' : roll < 0.01 ? 'rare' : roll < 0.05 ? 'great' : 'common';
+    if (minGrade === 'great' && grade === 'common') grade = 'great';   // 특별 NPC 성공: 고급 이상 확정
     var g = SPECIAL_GEAR[Math.floor(Math.random() * SPECIAL_GEAR.length)];
     var label = SPECIAL_GEAR_GRADES[grade];
     var eff = gearEffectText(g.effect, gearScaledValue(g, grade));
     if (!addToBag(g.emoji, '[' + label + '] ' + g.name, 'gear', 1, '특별탐험 촬영 소품 · ' + eff)) return null;
     return { icon: g.emoji, text: '[' + label + '] ' + g.name + ' (' + eff + ')', color: '#C084FC' };
+  }
+
+  function gearOf(charId) {
+    try { return (typeof getEquippedGearFor === 'function') ? getEquippedGearFor(charId) : null; } catch (e) { return null; }
+  }
+  function gearVal(charId, effect) {
+    var g = gearOf(charId);
+    return (g && g.effect === effect) ? g.value : 0;
+  }
+  function toolQty(tool) {
+    if (typeof bagItems === 'undefined') return 0;
+    var it = bagItems.find(function (i) { return i.name === tool.name && i.type === 'tool'; });
+    return it ? it.qty : 0;
   }
 
   function addTicket() {
@@ -409,7 +437,7 @@
       if (addToBag(m.emoji, m.name, 'material', 1, '특별탐험 재료')) lines.push({ icon: m.emoji, text: m.name + ' x1', color: '#fff' });
     }
     if (r.gear > 0 && Math.random() < r.gear) {
-      var g = dropGear();
+      var g = dropGear(r.gearMin);
       if (g) lines.push(g);
     }
     var tix = r.ticketOf ? ticketDrop(r.ticketOf) : null;
@@ -427,7 +455,7 @@
     var heads = {
       PERFECT: '✨ PERFECT!', GREAT: '👍 GREAT!', GOOD: '😊 GOOD', MISS: '💦 MISS…',
       OPEN: type === 'letter' ? '💌 팬레터 도착!' : '🎁 굿즈 획득!',
-      SUCCESS: '🔥 레전드 순간 포착!', PARTIAL: '😮 아깝다! 절반 성공', FAIL: '💨 놓쳤어요…'
+      SUCCESS: '🎉 특별 NPC 촬영 성공!', PARTIAL: '😮 아깝다!', FAIL: '💨 놓쳤어요…'
     };
     var head = (type === 'golden' ? '🌟 ' : type === 'shutter' ? '📸 ' : '') + (heads[grade] || '');
     var chips = lines.map(function (l, i) {
@@ -520,40 +548,94 @@
     });
   }
 
-  function legendGame(ev) {
-    var taps = 0, left = LEGEND_SEC, started = 0, raf = 0, ended = false;
-    panel('<div style="font-size:17px;font-weight:900;margin-bottom:3px;">🔥 레전드 순간!</div>' +
-      '<div id="bc-lg-t" style="font-size:12px;color:#ddd;margin-bottom:8px;">' + LEGEND_SEC + '초 안에 연타! (' + LEGEND_NEED + '번)</div>' +
-      '<div style="height:22px;border-radius:11px;background:rgba(255,255,255,.12);border:1.5px solid rgba(255,255,255,.25);overflow:hidden;margin-bottom:12px;">' +
-      '<div id="bc-lg-bar" style="height:100%;width:0%;background:linear-gradient(90deg,#FFD700,#ff5a36);"></div></div>' +
-      '<button id="bc-lg-btn" style="' + BTN + 'background:linear-gradient(135deg,#ff5a36,#ffb703);">📸 연타!</button>');
-    function end() {
-      if (ended) return;
-      ended = true;
-      cancelAnimationFrame(raf);
-      var grade = taps >= LEGEND_NEED ? 'SUCCESS' : taps >= Math.ceil(LEGEND_NEED * 0.6) ? 'PARTIAL' : 'FAIL';
-      flash();
-      setTimeout(function () { if ($('bc-panel')) finish(ev, 'legend', grade); }, 380);
-    }
-    function loop(ts) {
-      if (ended || !$('bc-lg-bar')) return;
-      if (started) {
-        left = LEGEND_SEC - (ts - started) / 1000;
-        var t = $('bc-lg-t');
-        if (t) t.textContent = Math.max(0, left).toFixed(1) + '초 · ' + taps + '/' + LEGEND_NEED;
-        if (left <= 0) { end(); return; }
+  function npcImgHtml(npc, size) {
+    var id = 'bc-npcimg-' + npc.id;
+    var h = '<div id="' + id + '" style="font-size:' + Math.round(size * 0.8) + 'px;line-height:1;">' + npc.emoji + '</div>';
+    setTimeout(function () {
+      var im = new Image();
+      im.onload = function () {
+        var el = $(id);
+        if (el) el.innerHTML = '<img src="' + IMG_BASE + npc.img + '" style="height:' + size + 'px;max-width:100%;object-fit:contain;filter:drop-shadow(0 4px 10px rgba(0,0,0,.6));">';
+      };
+      im.src = IMG_BASE + npc.img;
+    }, 0);
+    return h;
+  }
+
+  function npcGame(ev) {
+    var npc = ev.npc || NPCS[0];
+    var cid = S.charId;
+    var gauge = NPC_GAUGE;
+    var fleeP = Math.max(0.01, NPC_FLEE * (1 - gearVal(cid, 'flee') / 100));
+    var catchP = Math.min(0.95, NPC_CATCH + gearVal(cid, 'chance') / 100);
+    var retries = gearVal(cid, 'retry');
+    var ended = false, msg = '좋아하는 도구를 쓰면 경계심이 더 많이 풀려요!';
+    var tools = (typeof CAPTURE_TOOLS !== 'undefined') ? CAPTURE_TOOLS : [];
+    var weakTool = tools.find(function (t) { return t.id === npc.weak; });
+
+    function draw() {
+      if (!$('bc-panel') && !ended) return;
+      var pct = Math.max(0, Math.round(gauge / NPC_GAUGE * 100));
+      var body;
+      if (gauge > 0) {
+        body = tools.map(function (t) {
+          var q = toolQty(t);
+          var right = t.id === npc.weak;
+          var label = q > 0 ? (t.emoji + ' ' + t.name + ' <span style="font-size:10px;opacity:.8;">x' + q + '</span>')
+                            : (t.emoji + ' ' + t.name + ' <span style="font-size:10px;opacity:.8;">구매 ' + t.price + '🍔</span>');
+          return '<button class="bc-tool" data-id="' + t.id + '" style="flex:1;padding:10px 4px;border-radius:12px;font-size:12px;font-weight:900;cursor:pointer;color:#fff;font-family:\'Noto Sans KR\',sans-serif;' +
+            'background:' + (right ? 'rgba(255,215,0,.18)' : 'rgba(255,255,255,.08)') + ';border:1.5px solid ' + (right ? '#FFD700' : 'rgba(255,255,255,.3)') + ';">' + label + '</button>';
+        }).join('');
+        body = '<div style="display:flex;gap:6px;">' + body + '</div>';
+      } else {
+        body = '<div style="font-size:12px;color:#FFE27A;margin-bottom:8px;">경계심이 다 풀렸어요! 지금이 기회!' + (retries > 0 ? ' (재도전 ' + retries + '회)' : '') + '</div>' +
+          '<button id="bc-catch" style="' + BTN + 'background:linear-gradient(135deg,#ff5a36,#ffb703);">📸 촬영하기! (성공 ' + Math.round(catchP * 100) + '%)</button>';
       }
-      raf = requestAnimationFrame(loop);
+      panel('<div style="font-size:15px;font-weight:900;margin-bottom:2px;">🚨 ' + npc.name + '</div>' +
+        '<div style="height:96px;display:flex;align-items:center;justify-content:center;margin:2px 0 6px;">' + npcImgHtml(npc, 90) + '</div>' +
+        '<div style="height:16px;border-radius:8px;background:rgba(255,255,255,.12);border:1.5px solid rgba(255,255,255,.25);overflow:hidden;margin-bottom:4px;">' +
+        '<div style="height:100%;width:' + pct + '%;background:linear-gradient(90deg,#ff5a36,#ffb703);transition:width .3s;"></div></div>' +
+        '<div style="font-size:10px;color:#ddd;margin-bottom:8px;">경계심 ' + pct + '% · 도구 쓸 때마다 ' + Math.round(fleeP * 100) + '% 확률로 떠나요' +
+        (weakTool ? ' · 💡 ' + weakTool.name + ' 좋아함' : '') + '</div>' +
+        '<div style="font-size:12px;color:#fff;margin-bottom:8px;min-height:16px;">' + msg + '</div>' + body);
+      Array.prototype.forEach.call(document.querySelectorAll('.bc-tool'), function (b) { b.onpointerdown = function () { useTool(b.getAttribute('data-id')); }; });
+      var cb = $('bc-catch');
+      if (cb) cb.onpointerdown = tryCatch;
     }
-    $('bc-lg-btn').onpointerdown = function () {
+
+    function leave(text) {
+      ended = true;
+      msg = text;
+      finish(ev, 'legend', 'FAIL');
+    }
+
+    function useTool(id) {
       if (ended) return;
-      if (!started) started = performance.now();
-      taps++;
-      var bar = $('bc-lg-bar');
-      if (bar) bar.style.width = Math.min(100, taps / LEGEND_NEED * 100) + '%';
-      if (taps >= LEGEND_NEED + 6) end();   // 한참 넘치면 바로 끝
-    };
-    raf = requestAnimationFrame(loop);
+      var t = tools.find(function (x) { return x.id === id; });
+      if (!t) return;
+      if (toolQty(t) <= 0) {
+        if (typeof coins === 'undefined' || coins < t.price) { msg = '코인이 부족해요! 🍔 ' + t.price + ' 필요'; draw(); return; }
+        coins -= t.price;
+        if (typeof addToBag === 'function') addToBag(t.emoji, t.name, 'tool', 1, '특별 NPC · 레어 변종 촬영 마무리용');
+        if (typeof updateCoinsDisplay === 'function') updateCoinsDisplay();
+      }
+      if (typeof useFromBag === 'function') useFromBag(t.name, 1);
+      if (typeof saveAll === 'function') saveAll();
+      var right = id === npc.weak;
+      gauge -= right ? NPC_HIT_RIGHT : NPC_HIT_WRONG;
+      if (Math.random() < fleeP) { leave('💨 ' + npc.name + '이(가) 떠나버렸어요…'); return; }
+      msg = right ? ('👍 ' + t.name + '을(를) 아주 좋아해요!') : ('🙂 ' + t.name + ' 효과가 조금 있었어요');
+      draw();
+    }
+
+    function tryCatch() {
+      if (ended) return;
+      if (Math.random() < catchP) { ended = true; flash(); setTimeout(function () { finish(ev, 'legend', 'SUCCESS'); }, 380); return; }
+      if (retries > 0) { retries--; msg = '💦 아깝다! 소품 효과로 한 번 더!'; draw(); return; }
+      leave('💨 놓쳤어요… ' + npc.name + '이(가) 떠났어요');
+    }
+
+    draw();
   }
 
   function openEvent(ev) {
@@ -566,7 +648,7 @@
     else if (ev.type === 'golden') gaugeGame(ev, true);
     else if (ev.type === 'letter') letterGame(ev);
     else if (ev.type === 'goods') goodsGame(ev);
-    else legendGame(ev);
+    else npcGame(ev);
   }
 
   function tryStart(ev) {
