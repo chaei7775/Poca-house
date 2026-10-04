@@ -29,6 +29,7 @@ const NEW_CONTENT_FILES = [
   'stamina-balance.js',
   'drink-bulk.js',
   'broadcast-expedition.js',
+  'broadcast-fix.js',
   'premium-cards.js',
   'guide-finger.js',
   'quest-extra.js',
