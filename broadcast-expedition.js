@@ -789,6 +789,17 @@
       return r;
     };
     window.renderSpecialExploreList();
+
+    // special-explore.js가 로드 직후 원래 함수로 목록을 다시 그려서 꾸민 게 지워지므로,
+    // 목록이 바뀔 때마다(다시 그려질 때마다) 팬덤 원정 칸을 다시 붙인다
+    (function watchList() {
+      var host = $('special-explore-list');
+      if (!host) { setTimeout(watchList, 200); return; }
+      try {
+        new MutationObserver(function () { try { decorateList(); } catch (e) {} }).observe(host, { childList: true });
+      } catch (e) {}
+      try { decorateList(); } catch (e) {}
+    })();
   }
 
   function decorateList() {
