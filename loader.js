@@ -40,6 +40,7 @@ const NEW_CONTENT_FILES = [
   'room-themes.js',
   'mystery-unlock.js',
   'quest-concert.js',
+  'square-explore.js',
 ];
 NEW_CONTENT_FILES.forEach(function(filename) {
   const s = document.createElement('script');
