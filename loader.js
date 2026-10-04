@@ -60,6 +60,7 @@ const NEW_CONTENT_FILES = [
   'kennel.js',
   'kennel-tap.js',
   'kennel-qty.js',
+  'kennel-bond.js',
 ];
 NEW_CONTENT_FILES.forEach(function(filename) {
   const s = document.createElement('script');
