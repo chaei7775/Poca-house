@@ -26,8 +26,8 @@ const NEW_CONTENT_FILES = [
   'fancafe.js',
   'enhance.js',
   'cloud-extra.js',
-  'stamina-balance.js,
-  'broadcast-expedition.js,
+  'stamina-balance.js',
+  'broadcast-expedition.js',
 ];
 NEW_CONTENT_FILES.forEach(function(filename) {
   const s = document.createElement('script');
