@@ -27,6 +27,19 @@
     slotx:   { name: '슬롯 확장권',  emoji: '🎟️', kind: 'bag', desc: '드라마 촬영 카드의 스킬 슬롯을 영구로 +1', min: 30000, max: 5000000 }
   };
   var ORDER = ['recomb', 'ws', 'epic', 'stone', 'protect', 'trans', 'slotx'];
+  // 🌿 탐험 재료도 거래 가능 (품목 키는 'mat_' + 재료이름 → Firebase 규칙에서 한 줄로 묶음)
+  var MAT_MIN = 100, MAT_MAX = 50000;   // 재료 공통 가격 범위 (규칙 파일과 같아야 함)
+  var MAT_ORDER = [];
+  (function () {
+    try {
+      if (typeof MATERIAL_EMOJI_MAP === 'undefined') return;
+      Object.keys(MATERIAL_EMOJI_MAP).forEach(function (n) {
+        var k = 'mat_' + n;
+        ITEMS[k] = { name: n, emoji: MATERIAL_EMOJI_MAP[n], kind: 'bag', desc: '탐험 재료', min: MAT_MIN, max: MAT_MAX };
+        MAT_ORDER.push(k);
+      });
+    } catch (e) {}
+  })();
   var STATE_KEY = 'ph_trade';
   var ENH_KEY = 'ph_enhance';
 
@@ -313,7 +326,21 @@
   var FONT = "font-family:'Noto Sans KR',sans-serif;";
   var BTN = 'border:none;border-radius:12px;font-weight:900;cursor:pointer;' + FONT;
   var ACC = '#34D399';
-  var tab = 'buy', pick = 'recomb', sellKey = 'recomb', busy = false;
+  var tab = 'buy', pick = 'recomb', sellKey = 'recomb', busy = false, cat = 'item';
+  function keysOf() { return cat === 'mat' && MAT_ORDER.length ? MAT_ORDER : ORDER; }
+  function catBar(ov, redraw) {
+    if (!MAT_ORDER.length) return '';
+    function b(id, label) {
+      var on = cat === id;
+      return '<button data-cat="' + id + '" style="flex:1;' + BTN + 'padding:8px;font-size:13px;color:#fff;background:' + (on ? 'linear-gradient(135deg,#FFD700,#F59E0B)' : 'rgba(255,255,255,0.08)') + ';' + (on ? 'color:#1a1405;' : '') + '">' + label + '</button>';
+    }
+    return '<div style="display:flex;gap:8px;margin-bottom:10px;">' + b('item', '🔹 재료·아이템') + b('mat', '🌿 탐험 재료') + '</div>';
+  }
+  function bindCat(box, redraw) {
+    box.querySelectorAll('[data-cat]').forEach(function (b) {
+      b.onclick = function () { cat = b.getAttribute('data-cat'); pick = sellKey = keysOf()[0]; redraw(); };
+    });
+  }
 
   function openTrade() {
     var old = document.getElementById('trade-overlay'); if (old) old.remove();
@@ -360,8 +387,10 @@
 
   async function drawBuy(ov) {
     var box = ov.querySelector('#tr-body'); if (!box) return;
-    var chips = '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;">' + ORDER.map(function (k) { return chip(k, pick === k, 'data-pick'); }).join('') + '</div>';
+    if (keysOf().indexOf(pick) === -1) pick = keysOf()[0];
+    var chips = catBar() + '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;">' + keysOf().map(function (k) { return chip(k, pick === k, 'data-pick'); }).join('') + '</div>';
     box.innerHTML = chips + '<div id="tr-list" style="color:#aaa;text-align:center;padding:24px 0;">불러오는 중...</div>';
+    bindCat(box, function () { drawBuy(ov); });
     box.querySelectorAll('[data-pick]').forEach(function (b) { b.onclick = function () { pick = b.getAttribute('data-pick'); drawBuy(ov); }; });
     var rows;
     try { rows = await listOpen(pick); } catch (e) { var l0 = box.querySelector('#tr-list'); if (l0) l0.innerHTML = '<span style="color:#ff8a8a;">' + esc(errText(e)) + '</span>'; return; }
@@ -392,8 +421,9 @@
 
   function drawSell(ov) {
     var box = ov.querySelector('#tr-body'); if (!box) return;
+    if (keysOf().indexOf(sellKey) === -1) sellKey = keysOf()[0];
     var it = ITEMS[sellKey];
-    box.innerHTML = '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;">' + ORDER.map(function (k) { return chip(k, sellKey === k, 'data-sk'); }).join('') + '</div>' +
+    box.innerHTML = catBar() + '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;">' + keysOf().map(function (k) { return chip(k, sellKey === k, 'data-sk'); }).join('') + '</div>' +
       '<div style="background:rgba(255,255,255,0.06);border-radius:12px;padding:12px;">' +
       '<div style="font-size:13px;color:#fff;font-weight:900;margin-bottom:8px;">' + it.emoji + ' ' + it.name + ' <span style="color:#9ab;font-weight:400;">보유 ' + fmt(have(sellKey)) + '개</span></div>' +
       '<label style="font-size:11px;color:#9ab;">수량 (1~' + MAX_QTY + ')</label>' +
@@ -404,6 +434,7 @@
       '<div id="tr-err" style="font-size:12px;color:#ff8a8a;min-height:16px;margin-bottom:6px;"></div>' +
       '<button id="tr-list-go" style="' + BTN + 'width:100%;padding:13px;background:linear-gradient(135deg,#34D399,#60A5FA);color:#fff;font-size:15px;">거래소에 등록</button>' +
       '<div style="font-size:11px;color:#8aa;line-height:1.6;margin-top:8px;">등록하면 재료가 먼저 빠져요. 안 팔리면 [내 등록]에서 취소하고 돌려받을 수 있어요.</div></div>';
+    bindCat(box, function () { drawSell(ov); });
     box.querySelectorAll('[data-sk]').forEach(function (b) { b.onclick = function () { sellKey = b.getAttribute('data-sk'); drawSell(ov); }; });
     var qEl = box.querySelector('#tr-qty'), pEl = box.querySelector('#tr-price'), sEl = box.querySelector('#tr-sum');
     function sum() {
