@@ -1,6 +1,6 @@
 // ════════════════════════════════
 // ⚒️ 히든카드 강화 · 초월 (enhance.js)
-// 더보기 메뉴에 "⚒️ 히든 강화" 타일을 붙인다. (game.js / recombine.js / special-explore.js는 건드리지 않음)
+// 더보기 메뉴에 "🎤 트레이닝룸" 타일을 붙인다. (game.js / recombine.js / special-explore.js는 건드리지 않음)
 //
 // - 강화 대상은 히든카드(재조합기에서 나오는 12장)만.
 //   +1 ~ +10강. 비용: 강화석 + 코인. 천장 없음(순수 확률).
@@ -209,9 +209,11 @@
     renderList(ov);
   }
 
+  var trTab = 'hidden';
   function renderList(ov) {
     ov = ov || document.getElementById('enhance-overlay'); if (!ov) return;
     var st = load();
+    window.__pcAfterClose = function () { if (document.getElementById('enhance-overlay')) renderList(); };
     var cards = hiddenList().map(function (h) {
       var own = isOwned(h.id), L = st.level[h.id] || 0, S = st.stage[h.id] || 0;
       var glow = h.grade === '에픽히든' ? '#FFD700' : '#C084FC';
@@ -224,12 +226,20 @@
         (own ? '<div style="font-size:10px;color:#FFD700;">' + stars(S) + '</div>' : '<div style="font-size:10px;color:#FF6B9D;font-weight:900;">미획득</div>') +
         '</div></div>';
     }).join('');
+    var tabBtn = function (id, label) {
+      var on = trTab === id;
+      return '<button data-tr="' + id + '" style="flex:1;padding:10px;border:none;border-radius:12px;font-size:14px;font-weight:900;cursor:pointer;' + FONT + 'color:#fff;background:' + (on ? 'linear-gradient(135deg,#FF6B9D,#C084FC)' : 'rgba(255,255,255,0.1)') + ';">' + label + '</button>';
+    };
+    var body = trTab === 'hidden'
+      ? '<div style="font-size:11px;color:#aaa;line-height:1.6;margin-bottom:12px;">강화석·방지권·초월석은 🎬 팬덤 원정 · 팬미팅장에서 많이 나와요. 강화하면 그 멤버의 기획사 수익이 올라요.</div>' +
+        '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;">' + cards + '</div>'
+      : (typeof window.premiumTrainingHtml === 'function' ? window.premiumTrainingHtml() : '<div style="color:#aaa;">프리미엄 카드를 불러오지 못했어요</div>');
     ov.innerHTML = '<div style="position:sticky;top:0;z-index:2;background:rgba(10,5,20,0.94);padding:14px 16px;display:flex;align-items:center;justify-content:space-between;">' +
-      '<div style="color:#fff;font-size:17px;font-weight:900;">⚒️ 히든 강화</div>' +
+      '<div style="color:#fff;font-size:17px;font-weight:900;">🎤 트레이닝룸</div>' +
       '<button id="enh-close" style="' + BTN + 'background:rgba(255,255,255,0.12);color:#fff;padding:7px 12px;">닫기</button></div>' +
-      '<div style="padding:14px 16px 40px;">' + matBar(st) +
-      '<div style="font-size:11px;color:#aaa;line-height:1.6;margin-bottom:12px;">강화석·방지권·초월석은 특별탐험 촬영에 성공하면 나와요. 강화하면 그 멤버의 기획사 수익이 올라요.</div>' +
-      '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;">' + cards + '</div></div>';
+      '<div style="padding:0 16px 40px;"><div style="display:flex;gap:8px;margin-bottom:12px;">' + tabBtn('hidden', '🌙 히든 카드') + tabBtn('premium', '💎 프리미엄 카드') + '</div>' + matBar(st) + body + '</div>';
+    ov.querySelectorAll('[data-tr]').forEach(function (b) { b.onclick = function () { trTab = b.getAttribute('data-tr'); renderList(ov); }; });
+    if (trTab === 'premium' && typeof window.premiumTrainingBind === 'function') window.premiumTrainingBind(ov);
     ov.querySelector('#enh-close').onclick = function () { ov.remove(); };
     ov.querySelectorAll('[data-open]').forEach(function (el) { el.onclick = function () { openDetail(el.getAttribute('data-open')); }; });
     ov.querySelectorAll('[data-lock]').forEach(function (el) { el.onclick = function () { toast('재조합기에서 먼저 획득해야 해요'); }; });
@@ -389,7 +399,7 @@
       var r = original.apply(this, arguments);
       var grid = document.getElementById('more-menu-grid');
       if (grid && !document.getElementById('more-enhance-tile')) {
-        grid.insertAdjacentHTML('beforeend', window.moreMenuTileHtml('⚒️', '히든 강화', ACC, 'openEnhance()'));
+        grid.insertAdjacentHTML('beforeend', window.moreMenuTileHtml('🎤', '트레이닝룸', ACC, 'openEnhance()'));
         if (grid.lastElementChild) grid.lastElementChild.id = 'more-enhance-tile';
       }
       return r;
