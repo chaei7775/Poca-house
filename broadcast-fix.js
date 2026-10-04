@@ -28,4 +28,28 @@
     if (now - lastEnd < 350) e.preventDefault();   // 빠른 연타 때 더블탭 확대/검색 방지
     lastEnd = now;
   }, { capture: true, passive: false });
+
+  // 결과 창이 뜬 직후(0.7초)에는 '계속 탐험하기'가 눌리지 않게 함
+  // (팬레터/굿즈는 탭하는 순간 결과 창이 떠서, 손가락 떼는 탭이 바로 닫기 버튼을 눌러버렸음)
+  var GUARD_MS = 700;
+  var born = new WeakMap();
+  function mark(node) {
+    if (!node || node.nodeType !== 1) return;
+    var b = node.id === 'bc-next' ? node : (node.querySelector && node.querySelector('#bc-next'));
+    if (b && !born.has(b)) born.set(b, Date.now());
+  }
+  try {
+    new MutationObserver(function (muts) {
+      muts.forEach(function (m) { Array.prototype.forEach.call(m.addedNodes, mark); });
+    }).observe(document.documentElement, { childList: true, subtree: true });
+  } catch (e) {}
+  function guard(e) {
+    var t = e.target && e.target.closest && e.target.closest('#bc-next');
+    if (!t) return;
+    var b = born.get(t);
+    if (b && Date.now() - b < GUARD_MS) { e.stopImmediatePropagation(); e.preventDefault(); }
+  }
+  ['click', 'pointerup', 'touchend', 'mouseup'].forEach(function (n) {
+    document.addEventListener(n, guard, true);
+  });
 })();
