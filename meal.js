@@ -452,6 +452,18 @@
     });
   }
 
+  // 캐릭터 무대 (메인 화면과 먹기 팝업이 같이 씀). data-r 로 안쪽 요소를 찾는다.
+  function stageHtml(cid, ph, h, imgH, stageId) {
+    return '<div ' + (stageId ? 'id="' + stageId + '" ' : '') + 'data-r="stage" style="position:relative;height:' + h + 'px;border-radius:20px;overflow:hidden;background:linear-gradient(180deg,' + ph.color + '33,rgba(20,15,40,0.9));border:1.5px solid ' + ph.color + '88;">' +
+      '<div style="position:absolute;top:10px;left:12px;z-index:3;background:' + ph.color + ';color:#2a1c00;border-radius:10px;padding:4px 10px;font-size:12px;font-weight:900;">' + ph.label + '</div>' +
+      '<div style="position:absolute;top:36px;left:12px;z-index:3;font-size:11px;color:#fff;opacity:.85;">' + ph.desc + '</div>' +
+      '<div style="position:absolute;left:50%;bottom:6px;transform:translateX(-50%);z-index:2;">' +
+      '<img data-r="sd" src="' + ASSET + 'chars/' + cid + '.png" alt="' + esc(CH[cid].name) + '" style="height:' + imgH + 'px;display:block;" onerror="this.outerHTML=\'<div style=&quot;font-size:80px;&quot;>🙂</div>\'"></div>' +
+      '<div data-r="dark" style="position:absolute;inset:0;background:rgba(0,0,0,.6);opacity:0;pointer-events:none;z-index:4;"></div>' +
+      '<div data-r="fx" style="position:absolute;inset:0;pointer-events:none;z-index:5;"></div>' +
+      '<div data-r="bubble" style="position:absolute;left:50%;top:70px;transform:translateX(-50%);z-index:6;max-width:86%;background:#fff;color:#2a2438;border-radius:14px;padding:8px 12px;font-size:12px;font-weight:700;line-height:1.45;opacity:0;pointer-events:none;text-align:center;box-shadow:0 4px 14px rgba(0,0,0,.35);"></div></div>';
+  }
+
   function render() {
     var ov = document.getElementById('meal-overlay');
     if (!ov) return;
@@ -480,14 +492,7 @@
           ? TYPE_LABEL.rest + ' · DAY ' + sc.day + '~' + (sc.day + REST_DAYS - 1)
           : TYPE_LABEL[sc.type] + ' · DAY ' + sc.day + ' (' + weekday(sc.day) + ') · D-' + (sc.day - st.day))
         : '잡힌 일정이 없어요';
-      var stage = '<div id="meal-stage" style="position:relative;height:262px;border-radius:20px;overflow:hidden;margin-top:12px;background:linear-gradient(180deg,' + ph.color + '33,rgba(20,15,40,0.9));border:1.5px solid ' + ph.color + '88;">' +
-        '<div style="position:absolute;top:10px;left:12px;z-index:3;background:' + ph.color + ';color:#2a1c00;border-radius:10px;padding:4px 10px;font-size:12px;font-weight:900;">' + ph.label + '</div>' +
-        '<div style="position:absolute;top:36px;left:12px;z-index:3;font-size:11px;color:#fff;opacity:.85;">' + ph.desc + '</div>' +
-        '<div id="meal-sdwrap" style="position:absolute;left:50%;bottom:6px;transform:translateX(-50%);z-index:2;">' +
-        '<img id="meal-sd" src="' + ASSET + 'chars/' + selected + '.png" alt="' + esc(CH[selected].name) + '" style="height:236px;display:block;" onerror="this.outerHTML=\'<div style=&quot;font-size:80px;&quot;>🙂</div>\'"></div>' +
-        '<div id="meal-dark" style="position:absolute;inset:0;background:rgba(0,0,0,.6);opacity:0;pointer-events:none;z-index:4;"></div>' +
-        '<div id="meal-fx" style="position:absolute;inset:0;pointer-events:none;z-index:5;"></div>' +
-        '<div id="meal-bubble" style="position:absolute;left:50%;top:70px;transform:translateX(-50%);z-index:6;max-width:86%;background:#fff;color:#2a2438;border-radius:14px;padding:8px 12px;font-size:12px;font-weight:700;line-height:1.45;opacity:0;pointer-events:none;text-align:center;box-shadow:0 4px 14px rgba(0,0,0,.35);"></div></div>';
+      var stage = '<div style="margin-top:12px;">' + stageHtml(selected, ph, 262, 236, 'meal-stage') + '</div>';
       var schedBox = '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:10px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:14px;padding:10px 12px;">' +
         '<div style="font-size:12px;color:#fff;line-height:1.5;"><b>' + esc(CH[selected].name) + '의 일정</b><br><span style="color:#cfd3ee;">' + schedText + '</span></div>' +
         (sc ? '<button id="meal-cancel" style="' + BTN + 'padding:9px 12px;background:rgba(255,255,255,0.12);color:#fff;font-size:12px;">일정 취소</button>'
@@ -519,7 +524,7 @@
     var foods = q('#meal-foods');
     if (foods) foods.onclick = function (e) {
       var b = e.target.closest ? e.target.closest('[data-food]') : null;
-      if (b) onEat(b.getAttribute('data-food'));
+      if (b) openEatConfirm(b.getAttribute('data-food'));
     };
     var bk = q('#meal-book'); if (bk) bk.onclick = openBooking;
     var cn = q('#meal-cancel'); if (cn) cn.onclick = function () {
@@ -527,9 +532,11 @@
     };
   }
 
-  // ── 먹이기 + 연출 ──
+  // ── 먹기: 확인 팝업 → 팝업 안에서 먹는 장면 (스크롤 위치와 상관없이 캐릭터가 보임) ──
+  var sceneEl = null;                       // 지금 연출이 돌고 있는 무대
+  function sc$(role) { return sceneEl ? sceneEl.querySelector('[data-r="' + role + '"]') : null; }
   function fx(name, dx) {
-    var layer = document.getElementById('meal-fx'); if (!layer) return;
+    var layer = sc$('fx'); if (!layer) return;
     var im = document.createElement('img');
     im.src = ASSET + 'fx/' + name + '.png'; im.alt = '';
     im.style.cssText = 'position:absolute;left:' + (50 + (Math.random() * 26 - 13)) + '%;top:' + (70 + Math.random() * 40) + 'px;width:' + (34 + Math.random() * 16) + 'px;--dx:' + (dx || (Math.random() * 40 - 20)) + 'px;animation:mlFloat 1.3s ease-out forwards;';
@@ -537,53 +544,107 @@
     setTimeout(function () { if (im.parentNode) im.parentNode.removeChild(im); }, 1400);
   }
   function say(text) {
-    var b = document.getElementById('meal-bubble'); if (!b) return;
+    var b = sc$('bubble'); if (!b) return;
     b.textContent = text; b.style.animation = 'none'; void b.offsetWidth;
     b.style.animation = 'mlPop 3s ease forwards';
   }
   function playSd(anim, ms) {
-    var sd = document.getElementById('meal-sd'); if (!sd) return;
+    var sd = sc$('sd'); if (!sd) return;
     sd.style.animation = 'none'; void sd.offsetWidth;
     sd.style.animation = anim;
     if (ms) setTimeout(function () { if (sd) sd.style.animation = ''; }, ms);
   }
+  function darken() {
+    var dk = sc$('dark'); if (!dk) return;
+    dk.style.animation = 'none'; void dk.offsetWidth;
+    dk.style.animation = 'mlDark 1.6s ease forwards';
+  }
   function flyFood(foodId) {
-    var stage = document.getElementById('meal-stage'); if (!stage) return;
+    if (!sceneEl) return;
     var im = document.createElement('img');
     im.src = ASSET + 'foods/' + foodId + '.png'; im.alt = '';
     im.style.cssText = 'position:absolute;left:50%;bottom:10px;width:80px;height:80px;object-fit:contain;z-index:7;animation:mlFly .8s ease-in forwards;';
-    stage.appendChild(im);
+    sceneEl.appendChild(im);
     setTimeout(function () { if (im.parentNode) im.parentNode.removeChild(im); }, 900);
   }
+  function closeEat() {
+    var o = document.getElementById('meal-eat-overlay'); if (o) o.remove();
+    sceneEl = null;
+  }
+  function deltaChip(label, val) {
+    var c = val > 0 ? '#7ee8a5' : val < 0 ? '#ff8a8a' : '#aaa';
+    return '<span style="font-size:12px;font-weight:900;color:' + c + ';">' + label + ' ' + (val > 0 ? '+' : '') + val + '</span>';
+  }
 
-  function onEat(foodId) {
+  function openEatConfirm(foodId) {
     if (busy || !selected) return;
     var f = FOOD_BY_ID[foodId]; if (!f) return;
-    var st = load();
-    if (mealsLeft(st, selected) <= 0) { toast('오늘 식사는 다 했어요. 하루를 보내 주세요'); return; }
+    var st = load(), cid = selected, c = CH[cid];
+    if (mealsLeft(st, cid) <= 0) { toast('오늘 식사는 다 했어요. 하루를 보내 주세요'); return; }
     var price = PRICE_COIN[f.price] || 0;
     if (money() < price) { toast('코인이 부족해요'); return; }
-    var res = eat(st, selected, foodId);
-    if (!res.ok) return;
-    spend(price); save(st);
-    busy = true;
-    var kind = reactionOf(res), trait = CH[selected].trait;
-    flyFood(foodId);
-    playSd('mlMunch .9s ease-in-out 1', 900);
-    refresh(res.before);
-    setTimeout(function () {
-      say(pickLine(trait, kind === 'neutral' ? 'neutral' : kind));
-      if (kind === 'like') { playSd('mlJump .8s ease-out 1', 800); fx('heart'); fx('heart'); fx('sparkle'); }
-      else if (kind === 'dislike') { playSd('mlSag .6s ease-out forwards', 1600); fx('sweat'); fx('cloud'); }
-      else if (kind === 'caught') {
-        var dk = document.getElementById('meal-dark'); if (dk) { dk.style.animation = 'none'; void dk.offsetWidth; dk.style.animation = 'mlDark 1.6s ease forwards'; }
-        playSd('mlShake .6s linear 1', 600); fx('exclaim'); fx('sweat'); fx('sweat');
-      }
-      else if (kind === 'diet' || kind === 'power') { fx('sparkle'); fx('sparkle'); }
-      else if (kind === 'rest') { fx('heart'); fx('sparkle'); }
-      else if (res.d.m >= 8) { fx('heart'); }
-    }, 850);
-    setTimeout(function () { busy = false; }, 1900);
+    var phase = phaseOf(st, cid, st.day), ph = PHASES[phase], d = mealDelta(cid, f, phase);
+
+    var old = document.getElementById('meal-eat-overlay'); if (old) old.remove();
+    var ov = document.createElement('div');
+    ov.id = 'meal-eat-overlay';
+    ov.style.cssText = 'position:fixed;inset:0;z-index:795;background:rgba(0,0,0,0.85);display:flex;align-items:center;justify-content:center;padding:14px;overflow-y:auto;' + FONT;
+
+    var note = d.like ? '<div style="font-size:12px;color:#ff9ec7;margin-top:6px;">❤️ ' + esc(c.name) + '이(가) 좋아하는 음식이에요 (기분 +5)</div>'
+             : d.dislike ? '<div style="font-size:12px;color:#8fc8ff;margin-top:6px;">💧 ' + esc(c.name) + '이(가) 싫어하는 음식이에요 (기분 −3)</div>' : '';
+    var warn = (phase === 'shoot' && f.sneak) ? '<div style="font-size:12px;color:#ffb36b;margin-top:6px;">🚨 식단 중이라 들킬 수 있어요 (약 ' + Math.round(SNEAK_CHANCE * 100) + '%)</div>' : '';
+    var confirm = '<div style="display:flex;align-items:center;gap:12px;margin-top:12px;">' +
+      '<img src="' + ASSET + 'foods/' + f.id + '.png" alt="" style="width:68px;height:68px;object-fit:contain;flex-shrink:0;" onerror="this.style.display=\'none\'">' +
+      '<div style="flex:1;min-width:0;text-align:left;">' +
+      '<div style="font-size:15px;font-weight:900;color:#fff;">' + esc(f.name) + ' 먹을까요?</div>' +
+      '<div style="display:flex;gap:10px;margin-top:5px;">' + deltaChip('✨', d.v) + deltaChip('💪', d.s) + deltaChip('😊', d.m) + '</div>' +
+      '<div style="font-size:11px;color:#9aa0c8;margin-top:4px;">' + WHERE[f.where] + ' · ' + (price === 0 ? '무료' : price.toLocaleString() + '코인') + '</div></div></div>' + note + warn +
+      '<div style="display:flex;gap:8px;margin-top:14px;">' +
+      '<button id="meal-eat-cancel" style="' + BTN + 'flex:1;padding:12px;background:rgba(255,255,255,0.12);color:#fff;font-size:14px;">취소</button>' +
+      '<button id="meal-eat-go" style="' + BTN + 'flex:2;padding:12px;background:linear-gradient(135deg,#FF6B9D,#C084FC);color:#fff;font-size:14px;">🍴 먹기</button></div>';
+
+    ov.innerHTML = '<div style="width:100%;max-width:380px;background:linear-gradient(160deg,#1b1330,#2a1745);border:1.5px solid ' + ph.color + ';border-radius:20px;padding:14px;">' +
+      stageHtml(cid, ph, 250, 224) + '<div id="meal-eat-body">' + confirm + '</div></div>';
+    document.body.appendChild(ov);
+    sceneEl = ov.querySelector('[data-r="stage"]');
+
+    ov.querySelector('#meal-eat-cancel').onclick = closeEat;
+    ov.querySelector('#meal-eat-go').onclick = function () {
+      if (busy) return;
+      var st2 = load();
+      if (mealsLeft(st2, cid) <= 0 || money() < price) { toast('지금은 먹을 수 없어요'); closeEat(); return; }
+      var res = eat(st2, cid, foodId);
+      if (!res.ok) { closeEat(); return; }
+      spend(price); save(st2);
+      busy = true;
+      var body = ov.querySelector('#meal-eat-body');
+      body.innerHTML = '<div style="text-align:center;font-size:14px;font-weight:900;color:#ffe08a;padding:22px 0;">🍴 냠냠…</div>';
+      var kind = reactionOf(res);
+      flyFood(foodId);
+      playSd('mlMunch .9s ease-in-out 1', 900);
+      setTimeout(function () {
+        say(pickLine(c.trait, kind));
+        if (kind === 'like') { playSd('mlJump .8s ease-out 1', 800); fx('heart'); fx('heart'); fx('sparkle'); }
+        else if (kind === 'dislike') { playSd('mlSag .6s ease-out forwards', 1600); fx('sweat'); fx('cloud'); }
+        else if (kind === 'caught') { darken(); playSd('mlShake .6s linear 1', 600); fx('exclaim'); fx('sweat'); fx('sweat'); }
+        else if (kind === 'diet' || kind === 'power') { fx('sparkle'); fx('sparkle'); }
+        else if (kind === 'rest') { fx('heart'); fx('sparkle'); }
+        else if (res.d.m >= 8) { fx('heart'); }
+      }, 850);
+      setTimeout(function () {                       // 반응을 충분히 본 다음에 결과 + 확인 버튼
+        var after = statOf(load(), cid);
+        var rows = STAT_META.map(function (m) {
+          var dv = res.d[m.k], c2 = dv > 0 ? '#7ee8a5' : dv < 0 ? '#ff8a8a' : '#aaa';
+          return '<div style="display:flex;justify-content:space-between;font-size:13px;padding:5px 0;color:#fff;"><span>' + m.icon + ' ' + m.name + '</span>' +
+            '<span><span style="color:#9aa0c8;">' + res.before[m.k] + '</span> → <b>' + after[m.k] + '</b> <span style="color:' + c2 + ';font-weight:900;">(' + (dv > 0 ? '+' : '') + dv + ')</span></span></div>';
+        }).join('');
+        var caughtNote = res.caught ? '<div style="font-size:12px;color:#ffb36b;margin-top:6px;text-align:center;">🚨 야식을 먹다 들켰어요! 비주얼 −' + SNEAK_V + ', 기분 −' + SNEAK_M + ' 추가</div>' : '';
+        body.innerHTML = '<div id="meal-eat-result" style="margin-top:12px;background:rgba(255,255,255,0.06);border-radius:14px;padding:8px 12px;">' + rows + '</div>' + caughtNote +
+          '<button id="meal-eat-ok" style="' + BTN + 'width:100%;margin-top:12px;padding:12px;background:linear-gradient(135deg,#FFD700,#F59E0B);color:#3a2600;font-size:14px;">확인</button>';
+        busy = false;
+        body.querySelector('#meal-eat-ok').onclick = function () { closeEat(); refresh(res.before); };
+      }, 2300);
+    };
   }
 
   // ── 하루 보내기 ──
