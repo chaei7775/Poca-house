@@ -123,7 +123,12 @@
       window[name] = wrapped;
     })();
   }
-  function bump(id, n) {
+  // 후킹(hook)과 상태 감시(watch) 두 방식으로 세는데, 같은 행동이 두 번 세지지 않게 4초 안엔 한 번만 인정
+  var lastBump = {};
+  function bump(id, n, src) {
+    var now = Date.now();
+    if (src === 'watch' && lastBump[id] && now - lastBump[id] < 4000) return;
+    lastBump[id] = now;
     ensureDay();
     D.prog[id] = (D.prog[id] || 0) + (n || 1);
     save();
@@ -177,6 +182,32 @@
       return r;
     };
   });
+
+  // ───────── 상태 감시 (함수 이름이 바뀌거나 후킹이 덮어씌워져도 세어지게 하는 보조 장치) ─────────
+  // 스태미나가 줄면 = 스케줄(탐험/낚시/팬덤 원정) 1번, 선물 개수가 줄면 = 선물 1번, 학교 재화/기록이 바뀌면 = 학교 1번
+  function giftOnlyQty() {
+    var n = 0;
+    try { bagItems.forEach(function (i) { if (i.type === 'gift') n += i.qty || 0; }); } catch (e) {}
+    try { Object.keys(inventory).forEach(function (k) { n += inventory[k] || 0; }); } catch (e) {}
+    return n;
+  }
+  function schoolSig() {
+    var s = '';
+    try { s += String(honorFragments) + '|' + String(honorStars) + '|'; } catch (e) {}
+    try { s += localStorage.getItem('ph_schoolDaily') || ''; } catch (e) {}
+    return s;
+  }
+  var W = null;
+  function watchTick() {
+    var cur = { st: staminaNow(), gf: giftOnlyQty(), sc: schoolSig() };
+    if (W) {
+      if (cur.st < W.st) bump('explore', 1, 'watch');
+      if (cur.gf < W.gf) bump('gift', 1, 'watch');
+      if (cur.sc !== W.sc) bump('school', 1, 'watch');
+    }
+    W = cur;
+  }
+  setTimeout(function () { watchTick(); setInterval(watchTick, 1000); }, 3000);
 
   // ───────── 화면 ─────────
   function ensureStyle() {
@@ -308,7 +339,7 @@
     } catch (e) {}
   }, 1500);
 
-  window.__dailyQuest = { claim: claim, claimAll: claimAll, bump: bump };
+  window.__dailyQuest = { claim: claim, claimAll: claimAll, bump: bump, watch: watchTick };
   ensureDay();
   setTimeout(render, 1000);
   setTimeout(render, 2200);
