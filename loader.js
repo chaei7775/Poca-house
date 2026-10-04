@@ -29,6 +29,7 @@ const NEW_CONTENT_FILES = [
   'stamina-balance.js',
   'broadcast-expedition.js',
   'premium-cards.js',
+  'guide-finger.js',
 ];
 NEW_CONTENT_FILES.forEach(function(filename) {
   const s = document.createElement('script');
