@@ -31,7 +31,18 @@
   // ───────── 공통 도우미 ─────────
   function fmt(n) { return Number(n).toLocaleString(); }
   function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
-  function toast(m) { try { if (typeof showBagToast === 'function') showBagToast(m); } catch (e) {} }
+  // 거래소 화면(z-index 955) 위에 보이도록 자체 알림창을 씀 (게임 기본 토스트는 화면 뒤에 가려짐)
+  function toast(m) {
+    try {
+      var old = document.getElementById('trade-toast'); if (old) old.remove();
+      var el = document.createElement('div');
+      el.id = 'trade-toast';
+      el.style.cssText = 'position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:rgba(26,26,46,0.97);border:1.5px solid #34D399;color:#fff;padding:11px 20px;border-radius:20px;font-size:13px;font-weight:700;z-index:1300;max-width:88vw;text-align:center;line-height:1.5;font-family:"Noto Sans KR",sans-serif;';
+      el.textContent = m;
+      document.body.appendChild(el);
+      setTimeout(function () { if (el.parentNode) el.remove(); }, 3500);
+    } catch (e) { try { if (typeof showBagToast === 'function') showBagToast(m); } catch (e2) {} }
+  }
   function today() { var d = new Date(); return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2); }
   function F() { return window.pocaFirebase || null; }
   function uid() { return window.pocaLoggedInUid || null; }
@@ -378,7 +389,8 @@
       '<input id="tr-qty" type="number" inputmode="numeric" value="1" min="1" max="' + MAX_QTY + '" style="width:100%;padding:10px;border-radius:10px;border:none;margin:4px 0 10px;font-size:15px;">' +
       '<label style="font-size:11px;color:#9ab;">개당 가격 (' + fmt(it.min) + '~' + fmt(it.max) + ' 코인)</label>' +
       '<input id="tr-price" type="number" inputmode="numeric" value="' + it.min + '" style="width:100%;padding:10px;border-radius:10px;border:none;margin:4px 0 8px;font-size:15px;">' +
-      '<div id="tr-sum" style="font-size:12px;color:#FFD700;margin-bottom:10px;"></div>' +
+      '<div id="tr-sum" style="font-size:12px;color:#FFD700;margin-bottom:6px;"></div>' +
+      '<div id="tr-err" style="font-size:12px;color:#ff8a8a;min-height:16px;margin-bottom:6px;"></div>' +
       '<button id="tr-list-go" style="' + BTN + 'width:100%;padding:13px;background:linear-gradient(135deg,#34D399,#60A5FA);color:#fff;font-size:15px;">거래소에 등록</button>' +
       '<div style="font-size:11px;color:#8aa;line-height:1.6;margin-top:8px;">등록하면 재료가 먼저 빠져요. 안 팔리면 [내 등록]에서 취소하고 돌려받을 수 있어요.</div></div>';
     box.querySelectorAll('[data-sk]').forEach(function (b) { b.onclick = function () { sellKey = b.getAttribute('data-sk'); drawSell(ov); }; });
@@ -393,7 +405,13 @@
       var q = parseInt(qEl.value, 10), p = parseInt(pEl.value, 10);
       busy = true;
       try { await listItem(sellKey, q, p); toast('🏪 ' + it.name + ' x' + q + ' 등록 완료!'); tab = 'mine'; }
-      catch (e) { toast('❌ ' + errText(e)); }
+      catch (e) {
+        // 실패하면 입력한 수량/가격을 그대로 두고 이유만 알려줌 (화면을 다시 그리면 가격이 최저가로 돌아가 버림)
+        toast('❌ ' + errText(e));
+        var msg = box.querySelector('#tr-err'); if (msg) msg.textContent = errText(e);
+        busy = false;
+        return;
+      }
       busy = false;
       draw();
     };
