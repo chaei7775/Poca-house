@@ -18,9 +18,9 @@
   var DAILY_BUY = 100;        // 하루 구매 횟수 제한
   var MAX_QTY = 99;          // 한 번에 등록 가능한 수량
   var ITEMS = {              // min/max = 개당 가격 범위 (코인)
-    recomb:  { name: '재조합석',      emoji: '🔹', kind: 'bag', desc: '카드 재조합에 필요한 재료',         min: 100,   max: 20000 },
+    recomb:  { name: '재조합석',      emoji: '🔹', kind: 'bag', desc: '카드 재조합에 필요한 재료',         min: 100,   max: 150000 },
     ws:      { name: '공방의 원석',  emoji: '🔶', kind: 'bag', desc: '굿즈 공방 제작에 필요한 재료',       min: 500,   max: 100000 },
-    epic:    { name: '에픽 재조합석', emoji: '💠', kind: 'bag', desc: 'SSR/UR 카드 재조합에 필요한 재료', min: 2000,  max: 300000 },
+    epic:    { name: '에픽 재조합석', emoji: '💠', kind: 'bag', desc: 'SSR/UR 카드 재조합에 필요한 재료', min: 2000,  max: 1000000 },
     stone:   { name: '강화석',        emoji: '🔨', kind: 'enh', field: 'stone',   min: 1000,  max: 200000 },
     protect: { name: '방지권',        emoji: '🛡️', kind: 'enh', field: 'protect', min: 2000,  max: 300000 },
     trans:   { name: '초월석',        emoji: '💎', kind: 'enh', field: 'trans',   min: 10000, max: 20000000 },
