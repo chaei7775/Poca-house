@@ -17,20 +17,19 @@
 
   // ───────── ⚙️ 설정 ─────────
   var MAX_TRAPS = 3;            // 가질 수 있는 통발 수
-  var INTERVAL_MIN = 30;        // 통발 하나가 물고기 1마리를 모으는 시간(분)
+  var INTERVAL_MIN = 15;        // 통발 하나가 물고기 1마리를 모으는 시간(분)
   var CAP_HOURS = 12;           // 이 시간치까지만 쌓임 (넘으면 멈춤 → 하루 2번쯤 들르게)
-  var EXP_PER_FISH = 2;         // 수거한 물고기 1마리당 포카하우스 경험치
+  var EXP_PER_FISH = 3;         // 수거한 물고기 1마리당 포카하우스 경험치
   var WEB_DROP = 0.08;          // 물고기 1마리당 은빛거미줄이 같이 올라올 확률 (낚시는 15%)
   var CRAFT_COIN = 3000;        // 제작할 때 내는 코인
   var CRAFT_MATS = { '고급원목': 5, '빛나는돌': 3, '은빛거미줄': 2 };   // 제작 재료 (재료 상점에 있는 이름 그대로)
   var BUY_PRICE = 30000;        // 재료 없이 바로 살 때 코인 (일부러 비싸게 = 코인 싱크)
-  // 통발에서 나오는 물고기 (이름/이모지/판매가는 fishing.js 와 같음, weight 는 낚시보다 흔한 쪽으로)
+  // 통발에서 나오는 어획물 (통발 전용 이름. 평균 약 134코인 → 통발 3개가 12시간 가득 차면 약 19,000코인)
   var FISH = [
-    { name: '별빛 송사리', emoji: '🐟', price: 20,  weight: 55 },
-    { name: '은빛 붕어',   emoji: '🐟', price: 30,  weight: 30 },
-    { name: '달빛 잉어',   emoji: '🐠', price: 50,  weight: 10 },
-    { name: '꽃잎 금붕어', emoji: '🐠', price: 90,  weight: 4 },
-    { name: '황금 잉어',   emoji: '🐡', price: 180, weight: 1 }
+    { name: '통발 새우',     emoji: '🦐', price: 55,  weight: 45 },
+    { name: '통발 가재',     emoji: '🦞', price: 110, weight: 32 },
+    { name: '진주조개',      emoji: '🐚', price: 240, weight: 17 },
+    { name: '황금 진주조개', emoji: '🦪', price: 550, weight: 6 }
   ];
   var KEY = 'ph_trap';
 
@@ -102,6 +101,18 @@
     Object.keys(CRAFT_MATS).forEach(function (n) { if (matQty(n) < CRAFT_MATS[n]) ok = false; });
     return ok;
   }
+  // 🎁 첫 통발 무료: 통발이 하나도 없고 아직 무료를 안 받았을 때 1회만
+  function canFree(s) { s = s || load(); return !s.freeUsed && s.traps.length === 0; }
+  function claimFree() {
+    var s = load();
+    if (!canFree(s)) { toast('이미 첫 통발을 받았어요'); return false; }
+    s.traps.push({ setAt: Date.now() });
+    s.freeUsed = 1;
+    save(s); persist();
+    toast('🎁 첫 통발을 선물로 받았어요! 이제 알아서 물고기가 모여요');
+    return true;
+  }
+
   function addTrap(how) {                                          // how: 'craft' | 'buy'
     var s = load();
     if (s.traps.length >= MAX_TRAPS) { toast('통발은 최대 ' + MAX_TRAPS + '개까지 가질 수 있어요'); return false; }
@@ -218,6 +229,8 @@
       var have = matQty(n), need = CRAFT_MATS[n];
       return '<span style="display:inline-block;margin:2px 8px 2px 0;color:' + (have >= need ? '#4ade80' : '#ff8a8a') + ';">' + n + ' ' + have + '/' + need + '</span>';
     }).join('');
+    var free = canFree(s) ?
+      '<button id="trap-free" style="' + BTN + 'width:100%;padding:15px;margin:2px 0 12px;font-size:15px;background:linear-gradient(135deg,#FF6B9D,#FFD700);color:#1a1a2e;box-shadow:0 0 16px rgba(255,215,0,.5);">🎁 첫 통발 무료로 받기!</button>' : '';
     var make = canAdd ?
       '<div style="background:rgba(255,255,255,0.05);border-radius:14px;padding:12px;margin-top:6px;">' +
       '<div style="font-size:13px;font-weight:900;color:#fff;margin-bottom:6px;">🔧 통발 얻기</div>' +
@@ -231,7 +244,7 @@
       '<button id="trap-close" style="' + BTN + 'background:rgba(255,255,255,0.12);color:#fff;padding:7px 12px;">닫기</button></div></div>' +
       '<div style="padding:0 16px 40px;">' +
       '<div style="font-size:11px;color:#8aa;line-height:1.6;margin-bottom:12px;">설치해 두면 접속 안 해도 ' + INTERVAL_MIN + '분마다 물고기가 1마리씩 쌓여요 (최대 ' + CAP_HOURS + '시간치). 수거해도 통발은 계속 돌아가요.</div>' +
-      cards +
+      free + cards +
       (s.traps.length ? '<button id="trap-all" style="' + BTN + 'width:100%;padding:13px;margin:2px 0 10px;font-size:14px;background:linear-gradient(135deg,#FFD700,#F59E0B);color:#1a1a2e;">🎣 모두 수거</button>' : '') +
       make + '</div>';
 
@@ -245,6 +258,7 @@
       };
     });
     var all = ov.querySelector('#trap-all'); if (all) all.onclick = function () { collectAll(); draw(); };
+    var fr = ov.querySelector('#trap-free'); if (fr) fr.onclick = function () { claimFree(); draw(); };
     var cr = ov.querySelector('#trap-craft'); if (cr) cr.onclick = function () { addTrap('craft'); draw(); };
     var by = ov.querySelector('#trap-buy'); if (by) by.onclick = function () {
       if (confirm('통발을 🍔 ' + fmt(BUY_PRICE) + ' 코인에 살까요?')) { addTrap('buy'); draw(); }
@@ -253,7 +267,7 @@
   }
 
   window.openTrap = openTrap;
-  window.__trapTest = { load: load, pending: pending, collectOne: collectOne, collectAll: collectAll, addTrap: addTrap, rollFish: rollFish, CAP: CAP, INTERVAL_MS: INTERVAL_MS };
+  window.__trapTest = { claimFree: claimFree, canFree: canFree, load: load, pending: pending, collectOne: collectOne, collectAll: collectAll, addTrap: addTrap, rollFish: rollFish, CAP: CAP, INTERVAL_MS: INTERVAL_MS };
 
   // ───────── 기존 화면에 연결 ─────────
   function whenReady(test, fn) {
