@@ -407,6 +407,7 @@ function renderPrep(){
     return `<div class="grp"><h3>${cat}</h3><div class="chips">${list.map(i=>{
       const k=SKILLS[i.s],oc=onCard(i.u),mineOn=oc===c_.id;
       return `<button class="chip ${mineOn?'on':''} ${oc&&!mineOn?'other':''}" data-a="eq" data-u="${i.u}"><span class="dot c-${k.cat} ic ic-${i.s}">${k.i}</span><div><b>${k.n} <span class="tag g-${k.gr}" style="display:inline">${k.gr}</span></b><span>${k.d()}${k.cd?` · 쿨 ${k.cd}초`:''}${oc&&!mineOn?` · ${card(oc).name} ${card(oc).grade} 장착중`:''}</span></div></button>`}).join('')}</div></div>`}).join('');
+  const _sc=$('#dr-prep .scroll'),_top=_sc?_sc.scrollTop:0;
   $('#dr-prep').innerHTML=`
   <div class="scroll">
     <div class="brand"><h1>드라마 촬영</h1><button class="btn" data-a="close" style="padding:6px 14px">닫기</button></div>
@@ -446,6 +447,7 @@ function renderPrep(){
     <div class="sum">${sc_.title} · ${d_.name} · ${c_.name}(${c_.grade}) · 스킬 ${mine.length}/${c_.slots}</div>
     <button class="go" data-a="go" ${locked||stam()<1?'disabled':''}><span>${locked?(hasCard?'데뷔 전 캐릭터예요':'카드가 없어요'):stam()<1?'체력 음료가 필요해요':'촬영 시작'}</span><small>${locked||stam()<1?'':'체력 -1'}</small></button>
   </div>`;
+  const _n=$('#dr-prep .scroll');if(_n)_n.scrollTop=_top;
 }
 $('#dr-prep').addEventListener('click',e=>{
   const b=e.target.closest('[data-a]');if(!b||b.disabled)return;const a=b.dataset.a;
@@ -746,7 +748,7 @@ $('#dr-result').addEventListener('click',e=>{const b=e.target.closest('[data-r]'
   if(b.dataset.r==='again')startShoot();
 });
 
-function openDrama(){load();renderPrep();R.hidden=false;$('#dr-prep').hidden=false;$('#dr-shoot').hidden=true;$('#dr-result').hidden=true}
+function openDrama(){load();renderPrep();{const s_=$('#dr-prep .scroll');if(s_)s_.scrollTop=0}R.hidden=false;$('#dr-prep').hidden=false;$('#dr-shoot').hidden=true;$('#dr-result').hidden=true}
 function closeDrama(){if(G)return;R.hidden=true}
 window.openDrama=openDrama;
 window.__dramaTest={rating,SKILLS,SCRIPTS,CFG};
