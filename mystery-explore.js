@@ -19,7 +19,7 @@
 
   // ── 설정 ──
   var STAMINA_COST = 15;        // 기존 신비의 섬과 동일
-  var SESSION_MS = 3000;        // 탐험 시간 (기존과 동일 3초)
+  var SESSION_MS = 5000;        // 탐험 시간 (기존과 동일 3초)
   var FIREFLY_MIN = 2;          // 판당 반딧불 (2~4개, 가운데 값이 제일 잘 나옴)
   var FIREFLY_MAX = 4;
   var EPIC_STONE = 0.03;        // 에픽 재조합석 (기존 신비의 섬과 동일)
