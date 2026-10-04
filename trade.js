@@ -69,9 +69,12 @@
     if (!Array.isArray(s.received)) s.received = [];   // 구매 재료를 이미 받은 거래 id
     if (!s.daily || s.daily.date !== today()) s.daily = { date: today(), list: 0, buy: 0 };
     if (!('pendingList' in s)) s.pendingList = null;   // 등록 도중 앱이 꺼졌을 때 복구용
+    if (!Array.isArray(s.log)) s.log = [];              // 정산 내역 (화면에 최근 것만 보여줌)
     return s;
   }
+  function addLog(s, msg) { s.log.push({ t: Date.now(), m: msg }); }
   function saveState(s) {
+    if (s.log.length > 30) s.log = s.log.slice(-20);
     if (s.credited.length > 150) s.credited = s.credited.slice(-100);
     if (s.received.length > 150) s.received = s.received.slice(-100);
     try { localStorage.setItem(STATE_KEY, JSON.stringify(s)); } catch (e) {}
@@ -227,7 +230,9 @@
       if (!canReceive(x.item)) { toast('가방이 꽉 찼어요! 🎒 자리를 만들면 자동으로 받아져요'); return false; }
       addCoins(-x.total);
       give(x.item, x.qty);
-      S.received.push(id); saveState(S); persist();
+      S.received.push(id);
+      addLog(S, '🛒 ' + ITEMS[x.item].name + ' x' + x.qty + ' 구매  🍔-' + fmt(x.total));
+      saveState(S); persist();
       toast('🛒 ' + ITEMS[x.item].emoji + ' ' + ITEMS[x.item].name + ' x' + x.qty + ' 구매! 🍔-' + fmt(x.total));
     }
     try { await markFlag(id, 'delivered'); } catch (e) {}
@@ -260,12 +265,16 @@
         if (x.status === 'sold') {
           var gain = Math.floor(x.total * (1 - FEE));
           addCoins(gain);
-          S.credited.push(id); saveState(S); persist();
+          S.credited.push(id);
+          addLog(S, '💰 ' + (ITEMS[x.item] ? ITEMS[x.item].name : x.item) + ' x' + x.qty + ' 판매  🍔+' + fmt(gain) + ' (수수료 ' + fmt(x.total - gain) + ')');
+          saveState(S); persist();
           gotCoins += gain;
         } else if (x.status === 'cancelled') {
           if (!canReceive(x.item)) { toast('가방이 꽉 찼어요! 취소한 재료는 자리가 나면 돌려받아요'); continue; }
           give(x.item, x.qty);
-          S.credited.push(id); saveState(S); persist();
+          S.credited.push(id);
+          addLog(S, '↩️ ' + ITEMS[x.item].name + ' x' + x.qty + ' 등록 취소 · 돌려받음');
+          saveState(S); persist();
           toast('↩️ ' + ITEMS[x.item].emoji + ' ' + ITEMS[x.item].name + ' x' + x.qty + ' 돌려받았어요');
         } else continue;
       }
@@ -417,20 +426,34 @@
     };
   }
 
+  function timeText(t) {
+    var d = new Date(t);
+    return (d.getMonth() + 1) + '/' + d.getDate() + ' ' + ('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2);
+  }
+
   async function drawMine(ov) {
     var box = ov.querySelector('#tr-body'); if (!box) return;
     var rows;
     try { await settleAll(); rows = await myListings(); } catch (e) { box.innerHTML = '<div style="color:#ff8a8a;text-align:center;padding:24px 0;">' + esc(errText(e)) + '</div>'; return; }
     box = ov.querySelector('#tr-body'); if (!box) return;
-    if (!rows.length) { box.innerHTML = '<div style="color:#aaa;text-align:center;padding:30px 0;">등록한 물건이 없어요</div>'; return; }
-    box.innerHTML = rows.map(function (x) {
+
+    var head = '<button id="tr-settle" style="' + BTN + 'width:100%;padding:13px;margin-bottom:12px;font-size:14px;background:linear-gradient(135deg,#FFD700,#F59E0B);color:#1a1a2e;">💰 정산하기 <span style="font-size:11px;font-weight:400;">(판매 대금 · 구매 물품 받기)</span></button>';
+    var list = rows.length ? rows.map(function (x) {
       var it = ITEMS[x.item] || { name: x.item, emoji: '📦' };
-      var st = x.status === 'open' ? '<button data-cancel="' + x.id + '" style="' + BTN + 'padding:8px 12px;font-size:12px;background:rgba(239,68,68,0.2);color:#ff8a8a;">취소</button>' : '<span style="font-size:11px;color:#34D399;">정산 중...</span>';
+      var st = x.status === 'open' ? '<button data-cancel="' + x.id + '" style="' + BTN + 'padding:8px 12px;font-size:12px;background:rgba(239,68,68,0.2);color:#ff8a8a;">취소</button>' : '<span style="font-size:11px;color:#34D399;">정산 대기</span>';
       return '<div style="display:flex;align-items:center;gap:10px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:12px;padding:10px;margin-bottom:8px;">' +
         '<div style="font-size:26px;">' + it.emoji + '</div><div style="flex:1;min-width:0;">' +
         '<div style="font-size:13px;font-weight:900;color:#fff;">' + it.name + ' x' + x.qty + '</div>' +
-        '<div style="font-size:11px;color:#9ab;">개당 🍔' + fmt(x.unitPrice) + ' · 총 🍔' + fmt(x.total) + ' · ' + (x.status === 'open' ? '판매 중' : (x.status === 'sold' ? '팔렸어요!' : '취소됨')) + '</div></div>' + st + '</div>';
-    }).join('');
+        '<div style="font-size:11px;color:#9ab;">개당 🍔' + fmt(x.unitPrice) + ' · 총 🍔' + fmt(x.total) + ' · ' + (x.status === 'open' ? '판매 중' : (x.status === 'sold' ? '팔렸어요! 받을 코인 🍔' + fmt(Math.floor(x.total * (1 - FEE))) : '취소됨')) + '</div></div>' + st + '</div>';
+    }).join('') : '<div style="color:#aaa;text-align:center;padding:22px 0;">등록한 물건이 없어요</div>';
+
+    var log = loadState().log.slice(-8).reverse();
+    var logHtml = '<div style="font-size:12px;font-weight:900;color:#9ab;margin:16px 0 6px;">📜 최근 거래 내역</div>' +
+      (log.length ? log.map(function (l) {
+        return '<div style="font-size:12px;color:#ddd;padding:6px 0;border-top:1px solid rgba(255,255,255,0.08);">' + esc(l.m) + ' <span style="color:#778;font-size:10px;">' + timeText(l.t) + '</span></div>';
+      }).join('') : '<div style="font-size:12px;color:#667;">아직 거래 내역이 없어요</div>');
+
+    box.innerHTML = head + list + logHtml;
     box.querySelectorAll('[data-cancel]').forEach(function (b) {
       b.onclick = async function () {
         if (busy) return; busy = true;
@@ -438,6 +461,15 @@
         busy = false; draw();
       };
     });
+    var sb = box.querySelector('#tr-settle');
+    if (sb) sb.onclick = async function () {
+      if (busy) return; busy = true;
+      var before = loadState().log.length;
+      try { await settleAll(); } catch (e) { toast('❌ ' + errText(e)); busy = false; return; }
+      var n = loadState().log.length - before;
+      if (n <= 0) toast('정산할 내역이 없어요');
+      busy = false; draw();
+    };
   }
 
   window.openTrade = openTrade;
