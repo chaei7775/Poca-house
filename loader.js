@@ -31,6 +31,7 @@ const NEW_CONTENT_FILES = [
   'premium-cards.js',
   'guide-finger.js',
   'quest-extra.js',
+  'bond-gift.js',
 ];
 NEW_CONTENT_FILES.forEach(function(filename) {
   const s = document.createElement('script');
