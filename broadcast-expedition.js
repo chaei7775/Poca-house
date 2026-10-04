@@ -33,6 +33,11 @@
   var LEGEND_NEED = 22, LEGEND_SEC = 5; // 레전드: 5초 안에 22번 탭
   var WEIGHTS = { shutter: 45, letter: 25, goods: 30 };   // 일반 이벤트가 나올 비율
   var PIECE_NAME = '화보 조각', PIECE_EMOJI = '🖼️', PIECE_GOAL = 100;
+  var IMG_BASE = 'https://raw.githubusercontent.com/chaei7775/Poca-house/main/';
+  var FACE_FILES = {      // 걸어다니는 얼굴 이미지 (repo 맨 위 폴더에 올리면 자동 적용)
+    minjun: 'face-minjun.png', sion: 'face-sion.png', doyun: 'face-doyun.png',
+    harin: 'face-harin.png', yuna: 'face-yuna.png', ara: 'face-ara.png'
+  };
   var FACE_POS = '50% 14%', FACE_ZOOM = '250%';           // 얼굴 동그라미에 카드 이미지를 어떻게 잘라 보여줄지
 
   // 지도 위 위치 (이미지 가로/세로를 0~1로 본 값)
@@ -185,9 +190,20 @@
     wrap.style.cssText = 'position:absolute;transform:translate(-50%,-50%);z-index:20;pointer-events:none;';
     var face = document.createElement('div');
     face.className = 'bc-face';
-    face.style.cssText = 'width:46px;height:46px;border-radius:50%;border:3px solid ' + (ch.gradeColor || '#fff') +
-      ';background-color:#222;background-image:' + url + ';background-repeat:no-repeat;background-size:' + FACE_ZOOM + ' auto;background-position:' + FACE_POS +
-      ';box-shadow:0 3px 10px rgba(0,0,0,.55);';
+    var cropCss = 'background-color:#222;background-image:' + url + ';background-repeat:no-repeat;background-size:' + FACE_ZOOM + ' auto;background-position:' + FACE_POS + ';';
+    face.style.cssText = 'width:50px;height:50px;border-radius:50%;border:3px solid ' + (ch.gradeColor || '#fff') + ';overflow:hidden;box-shadow:0 3px 10px rgba(0,0,0,.55);' + cropCss;
+    var faceFile = FACE_FILES[ch.id || ''];
+    if (faceFile) {
+      // 얼굴 전용 이미지가 있으면 그걸 쓰고, 파일이 없으면 카드 이미지 크롭 그대로 보여줌
+      var fi = new Image();
+      fi.onload = function () {
+        face.style.backgroundImage = 'url("' + encodeURI(IMG_BASE + faceFile) + '")';
+        face.style.backgroundSize = '112% auto';
+        face.style.backgroundPosition = 'center';
+        face.style.backgroundColor = '#fff';
+      };
+      fi.src = IMG_BASE + faceFile;
+    }
     var card = document.createElement('div');
     card.style.cssText = 'position:absolute;right:-22px;top:-32px;width:28px;height:40px;border-radius:5px;border:2px solid #fff;' +
       'background-image:' + url + ';background-size:cover;background-position:center;transform:rotate(12deg);box-shadow:0 2px 8px rgba(0,0,0,.6);';
