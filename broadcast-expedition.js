@@ -1071,6 +1071,10 @@
         return '<button onclick="openSpecialCardSelect(\'' + mid + '\')" style="width:100%;display:flex;align-items:center;gap:12px;padding:13px 14px;margin-bottom:9px;background:' + m.color + '1f;border:1.5px solid ' + m.color + ';border-radius:14px;color:#fff;font-size:14px;font-weight:900;cursor:pointer;font-family:\'Noto Sans KR\',sans-serif;text-align:left;">' +
           '<span style="font-size:24px;">' + m.emoji + '</span><span>' + m.name + '<br><span style="font-size:10px;font-weight:400;color:#cbbcf5;">' + m.desc + '</span></span><span style="margin-left:auto;color:#888;font-size:16px;">›</span></button>';
       }).join('');
+    
+        var pad = document.createElement('div');
+    pad.style.cssText = 'height:150px;';
+    sec.appendChild(pad);
     // 도감 버튼(맨 마지막 칸) 앞에 끼워 넣기
     var last = el.lastElementChild;
     if (last) el.insertBefore(sec, last); else el.appendChild(sec);
