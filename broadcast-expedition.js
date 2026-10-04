@@ -32,6 +32,12 @@
   var RARE_TTL = 30, LEGEND_TTL = 25; // 특별 이벤트 제한시간 (초)
   var LEGEND_NEED = 22, LEGEND_SEC = 5; // 레전드: 5초 안에 22번 탭
   var WEIGHTS = { shutter: 45, letter: 25, goods: 30 };   // 일반 이벤트가 나올 비율
+  var HIDE_OLD_SPECIAL = true;        // true: 기존 특별 탐험(배너·3곳·도감 버튼)을 맵 화면에서 숨김. 되돌리려면 false
+  // 등교권/등교권 조각 드랍 확률 (기존 특별탐험: 일반 0.2%/5%, 변종 3%/15% 를 이벤트 등급에 맞춰 옮김)
+  var TICKET = {
+    shutter: [0.002, 0.05], letter: [0.002, 0.05], goods: [0.002, 0.05],
+    golden: [0.03, 0.15], legend: [0.05, 0.25]
+  };
   var PIECE_NAME = '화보 조각', PIECE_EMOJI = '🖼️', PIECE_GOAL = 100;
   var IMG_BASE = 'https://raw.githubusercontent.com/chaei7775/Poca-house/main/';
   var FACE_FILES = {      // 걸어다니는 얼굴 이미지 (repo 맨 위 폴더에 올리면 자동 적용)
@@ -353,6 +359,32 @@
     return { icon: g.emoji, text: '[' + label + '] ' + g.name + ' (' + eff + ')', color: '#C084FC' };
   }
 
+  function addTicket() {
+    if (typeof schoolDaily === 'undefined') return;
+    schoolDaily.tickets = (schoolDaily.tickets || 0) + 1;
+    if (typeof saveSchoolDaily === 'function') saveSchoolDaily();
+  }
+
+  // 기존 특별탐험과 같은 방식: 등교권 직접 드랍, 아니면 조각(10개 = 등교권 1장)
+  function ticketDrop(type) {
+    var t = TICKET[type];
+    if (!t) return null;
+    if (Math.random() < t[0]) { addTicket(); return { icon: '🎫', text: '등교권 +1', color: '#60A5FA' }; }
+    if (Math.random() < t[1]) {
+      if (typeof addToBag === 'function') addToBag('🎫', '등교권 조각', 'ticket_fragment', 1, '10개 모으면 등교권 1장으로 교환!');
+      var cnt = 0;
+      try { var st = JSON.parse(localStorage.getItem('ph_ticketFragments') || '0'); cnt = (typeof st === 'number' ? st : 0) + 1; } catch (e) { cnt = 1; }
+      if (cnt >= 10) {
+        cnt = 0; addTicket();
+        try { localStorage.setItem('ph_ticketFragments', JSON.stringify(0)); } catch (e) {}
+        return { icon: '🎫', text: '등교권 +1 (조각 10개 완성!)', color: '#60A5FA' };
+      }
+      try { localStorage.setItem('ph_ticketFragments', JSON.stringify(cnt)); } catch (e) {}
+      return { icon: '🎫', text: '등교권 조각 +1', color: '#60A5FA' };
+    }
+    return null;
+  }
+
   function grant(r) {
     var lines = [];
     if (r.coins > 0) {
@@ -380,6 +412,8 @@
       var g = dropGear();
       if (g) lines.push(g);
     }
+    var tix = r.ticketOf ? ticketDrop(r.ticketOf) : null;
+    if (tix) lines.push(tix);
     if (typeof saveAll === 'function') saveAll();
     if (typeof updateCoinsDisplay === 'function') updateCoinsDisplay();
     hud();
@@ -388,6 +422,7 @@
 
   function finish(ev, type, grade) {
     var r = rewardFor(type, grade);
+    if (grade !== 'MISS' && grade !== 'FAIL') r.ticketOf = type;
     var lines = grant(r);
     var heads = {
       PERFECT: '✨ PERFECT!', GREAT: '👍 GREAT!', GOOD: '😊 GOOD', MISS: '💦 MISS…',
@@ -663,7 +698,55 @@
       if (locationId === LOC_ID) { startBroadcast(charId); return; }
       return orig.apply(this, arguments);
     };
+
+    // 맵 화면: 특별 탐험 목록에서 방송국 앞을 빼고, 그 아래에 '팬덤 원정' 칸을 따로 만든다
+    var origRender = window.renderSpecialExploreList;
+    window.renderSpecialExploreList = function () {
+      var r = origRender.apply(this, arguments);
+      try { decorateList(); } catch (e) {}
+      return r;
+    };
     window.renderSpecialExploreList();
+  }
+
+  function decorateList() {
+    var el = $('special-explore-list');
+    if (!el || el.querySelector('#bc-fandom-section')) return;
+    // 기존 목록 안의 버튼 정리 (카드 선택 화면은 SPECIAL_LOCATIONS에 남겨둬서 그대로 동작)
+    Array.prototype.forEach.call(el.querySelectorAll('button'), function (b) {
+      var oc = b.getAttribute('onclick') || '';
+      if (oc.indexOf("'" + LOC_ID + "'") !== -1) { b.remove(); return; }
+      if (HIDE_OLD_SPECIAL) b.remove();   // 기존 3곳 + 도감 버튼 숨김 (데이터·코드는 그대로 남음)
+    });
+    if (HIDE_OLD_SPECIAL) {
+      var oldImg = document.querySelector('#screen-map img[src*="special-explore-main-bg"]');
+      if (oldImg && oldImg.parentElement) oldImg.parentElement.style.display = 'none';
+    }
+    var sec = document.createElement('div');
+    sec.id = 'bc-fandom-section';
+    sec.style.cssText = 'margin:18px 0 10px;';
+    var have = pieceCount();
+    sec.innerHTML =
+      '<div id="bc-banner-box" style="position:relative;border-radius:18px;overflow:hidden;margin-bottom:12px;height:130px;' +
+        'background-color:#2a1d4e;background-image:url(\'' + BG_URL + '\');background-size:100% auto;background-position:50% 26%;">' +
+        '<div style="position:absolute;inset:0;background:linear-gradient(to bottom,rgba(20,10,40,.05) 20%,rgba(20,10,40,.88) 100%);"></div>' +
+        '<div style="position:absolute;bottom:10px;left:14px;right:14px;display:flex;align-items:flex-end;justify-content:space-between;gap:8px;">' +
+          '<div><div style="font-size:14px;font-weight:900;color:#fff;text-shadow:0 2px 6px rgba(0,0,0,.8);">🎬 팬덤 원정</div>' +
+          '<div style="font-size:10px;color:#e4d7ff;text-shadow:0 1px 4px rgba(0,0,0,.8);">현장을 돌아다니며 화보 조각을 모아요</div></div>' +
+          '<div style="font-size:11px;font-weight:900;color:#7dd3fc;background:rgba(0,0,0,.55);border-radius:10px;padding:4px 9px;white-space:nowrap;">' + PIECE_EMOJI + ' ' + have + '/' + PIECE_GOAL + '</div>' +
+        '</div></div>' +
+      '<button onclick="openSpecialCardSelect(\'' + LOC_ID + '\')" style="width:100%;display:flex;align-items:center;gap:12px;padding:13px 14px;background:#A78BFA1f;border:1.5px solid #A78BFA;border-radius:14px;color:#fff;font-size:14px;font-weight:900;cursor:pointer;font-family:\'Noto Sans KR\',sans-serif;text-align:left;">' +
+        '<span style="font-size:24px;">🎬</span><span>방송국 앞</span><span style="margin-left:auto;color:#888;font-size:16px;">›</span></button>';
+    // 도감 버튼(맨 마지막 칸) 앞에 끼워 넣기
+    var last = el.lastElementChild;
+    if (last) el.insertBefore(sec, last); else el.appendChild(sec);
+    // 전용 배너 이미지(fandom-banner.png)를 repo에 올리면 자동으로 그걸 쓴다
+    var im = new Image();
+    im.onload = function () {
+      var box = $('bc-banner-box');
+      if (box) { box.style.backgroundImage = 'url("' + IMG_BASE + 'fandom-banner.png")'; box.style.backgroundSize = 'cover'; box.style.backgroundPosition = 'center'; }
+    };
+    im.src = IMG_BASE + 'fandom-banner.png';
   }
 
   window.__bcTest = { rewardFor: rewardFor, pickNormal: pickNormal, simulate: simulate };
