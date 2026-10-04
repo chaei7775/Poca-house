@@ -81,8 +81,8 @@
 
   // 평균 조각 계산용 (실제 플레이어가 이 정도 비율로 성공한다고 가정)
   var GRADE_DIST = {
-    shutter: { PERFECT: 0.30, GREAT: 0.40, GOOD: 0.20, MISS: 0.10 },
-    golden:  { PERFECT: 0.15, GREAT: 0.35, GOOD: 0.30, MISS: 0.20 },
+    shutter: { PERFECT: 0.28, GREAT: 0.37, GOOD: 0.10, MISS: 0.25 },
+    golden:  { PERFECT: 0.15, GREAT: 0.32, GOOD: 0.13, MISS: 0.40 },
     legend:  { SUCCESS: 0.60, PARTIAL: 0.25, FAIL: 0.15 }
   };
 
@@ -109,14 +109,14 @@
     var mult = { PERFECT: 2, GREAT: 1.5, GOOD: 1, MISS: 0 }[grade] || 0;
     if (type === 'shutter') {
       r.coins = Math.round(40 * mult * jitter);
-      r.exp = { PERFECT: 90, GREAT: 60, GOOD: 40, MISS: 10 }[grade] || 0;
-      var pc = { PERFECT: 0.40, GREAT: 0.25, GOOD: 0.10, MISS: 0 }[grade] || 0;
+      r.exp = { PERFECT: 90, GREAT: 60, GOOD: 40, MISS: 0 }[grade] || 0;
+      var pc = { PERFECT: 0.45, GREAT: 0.30, GOOD: 0.12, MISS: 0 }[grade] || 0;
       if (rnd() < pc) r.pieces = 1;
       r.mats = (mult > 0 && rnd() < 0.5) ? 1 : 0;
       r.gear = mult > 0 ? 0.02 : 0;
     } else if (type === 'golden') {
       r.coins = Math.round(120 * mult * jitter);
-      r.exp = { PERFECT: 180, GREAT: 120, GOOD: 80, MISS: 20 }[grade] || 0;
+      r.exp = { PERFECT: 180, GREAT: 120, GOOD: 80, MISS: 0 }[grade] || 0;
       r.pieces = grade === 'PERFECT' ? 2 : grade === 'GREAT' ? 1 : (grade === 'GOOD' && rnd() < 0.5) ? 1 : 0;
       r.mats = mult > 0 ? 1 : 0;
       r.gear = mult > 0 ? 0.10 : 0;
@@ -484,7 +484,7 @@
 
   function gaugeGame(ev, golden) {
     var c = 30 + Math.random() * 40;
-    var Z = golden ? { p: 3, g: 7, o: 14 } : { p: 5, g: 11, o: 20 };
+    var Z = golden ? { p: 3, g: 7, o: 10 } : { p: 5, g: 11, o: 14 };
     var spd = golden ? 150 : 105;
     var pos = 0, dir = 1, raf = 0, last = 0, locked = false;
     panel('<div style="font-size:17px;font-weight:900;margin-bottom:3px;">' + (golden ? '🌟 황금 셔터!' : '📸 셔터 찬스!') + '</div>' +
