@@ -14,8 +14,8 @@
   // ───────── ⚙️ 설정 (여기 숫자만 고치면 됨 — 규칙(rules) 파일의 가격 범위도 같이 맞춰야 함) ─────────
   var COL = 'trades';
   var FEE = 0.05;            // 판매 수수료 5% (판매자가 받는 코인에서 뺌 → 코인 소각)
-  var DAILY_LIST = 10;       // 하루 등록 횟수 제한
-  var DAILY_BUY = 20;        // 하루 구매 횟수 제한
+  var DAILY_LIST = 100;       // 하루 등록 횟수 제한
+  var DAILY_BUY = 100;        // 하루 구매 횟수 제한
   var MAX_QTY = 99;          // 한 번에 등록 가능한 수량
   var ITEMS = {              // min/max = 개당 가격 범위 (코인)
     recomb:  { name: '재조합석',      emoji: '🔹', kind: 'bag', desc: '카드 재조합에 필요한 재료',         min: 100,   max: 20000 },
