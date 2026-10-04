@@ -33,6 +33,7 @@ const NEW_CONTENT_FILES = [
   'quest-extra.js',
   'shop-coin-sync.js',
   'bond-gift.js',
+  'starter-boost.js',
 ];
 NEW_CONTENT_FILES.forEach(function(filename) {
   const s = document.createElement('script');
