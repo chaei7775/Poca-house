@@ -44,6 +44,7 @@ const NEW_CONTENT_FILES = [
   'daily-quest.js',
   'trade.js',
   'trap.js',
+  'school-fix.js',
 ];
 NEW_CONTENT_FILES.forEach(function(filename) {
   const s = document.createElement('script');
