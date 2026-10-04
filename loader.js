@@ -54,6 +54,7 @@ const NEW_CONTENT_FILES = [
   'card-exp-boost.js',
   'house-exp-share.js',
   'fan-marker.js',
+  'drama.js',
 ];
 NEW_CONTENT_FILES.forEach(function(filename) {
   const s = document.createElement('script');
