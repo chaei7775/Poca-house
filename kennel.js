@@ -61,7 +61,7 @@ const CSS = `#kn-root{position:fixed;inset:0;z-index:781;background:#1b2a1d;colo
 #kn-acts button{flex:1;padding:10px;border-radius:10px;background:rgba(255,255,255,.14);font-size:13px;font-weight:700}
 #kn-close{position:absolute;inset:0;background:radial-gradient(circle at 50% 40%,#4a3a28,#1c140d);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;z-index:3}
 #kn-close .face{font-size:120px;line-height:1;animation:knSniff .55s ease-in-out infinite}
-#kn-close .face img{width:200px;height:200px;object-fit:contain}
+#kn-close .face img{width:300px;height:230px;object-fit:contain;-webkit-mask-image:linear-gradient(#000 78%,transparent);mask-image:linear-gradient(#000 78%,transparent)}
 #kn-close .food{font-size:46px;animation:knBob 1s ease-in-out infinite}
 #kn-close .t{font-size:15px;min-height:22px}
 #kn-meter{width:78%;max-width:320px;height:22px;border-radius:12px;background:rgba(255,255,255,.15);position:relative;overflow:hidden}
@@ -168,10 +168,10 @@ function draw(ts) {
       const moving = ani.state === 'come' || ani.state === 'leave';
       const hop = moving ? Math.abs(Math.sin(ani.t * 11)) : 0;
       const sq = moving ? 1 + Math.sin(ani.t * 22) * 0.05 : 1;
-      const a = byId(ani.id), im = img(a.id, 'top'), S0 = 56;
+      const a = byId(ani.id), im = img(a.id, 'top'), S0 = 64;
       cx.fillStyle = 'rgba(0,0,0,.28)'; cx.beginPath(); cx.ellipse(ani.x, ani.y + 22, 22 - hop * 6, 7 - hop * 2, 0, 0, 7); cx.fill();
       cx.save(); cx.translate(ani.x, ani.y - hop * 12); cx.scale(ani.dir * (2 - sq), sq);
-      if (im) cx.drawImage(im, -S0 / 2, -S0 / 2, S0, S0);
+      if (im) { const k = S0 / Math.max(im.width, im.height); cx.drawImage(im, -im.width * k / 2, -im.height * k / 2, im.width * k, im.height * k); }
       else { cx.font = '48px serif'; cx.textAlign = 'center'; cx.textBaseline = 'middle'; cx.fillText(a.emoji, 0, 0); }
       cx.restore();
     }
