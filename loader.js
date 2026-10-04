@@ -30,6 +30,7 @@ const NEW_CONTENT_FILES = [
   'broadcast-expedition.js',
   'premium-cards.js',
   'guide-finger.js',
+  'quest-extra.js',
 ];
 NEW_CONTENT_FILES.forEach(function(filename) {
   const s = document.createElement('script');
