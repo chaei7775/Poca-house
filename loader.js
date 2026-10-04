@@ -19,6 +19,7 @@ const NEW_CONTENT_FILES = [
   'agency.js',
   'wish-hidden-patch.js',
   'cf-shoot.js',
+  'cf-photo.js',
   'sfx.js',
   'coupon-patch.js',
   'quest-guide.js',
