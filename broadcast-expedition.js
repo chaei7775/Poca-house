@@ -14,6 +14,9 @@
 //  - 보상: 코인 / 카드 경험치 / 특별탐험 재료 / 촬영 소품 / 🖼️ 프리미엄 조각
 //    프리미엄 조각은 가방에 쌓인다 (100개 = 프리미엄 카드 1장, 교환은 다음 단계에서 만든다)
 //
+// ▶ 공연장(3번째 맵): 우등생별 1개로 입장 → 이벤트 20번 → 앵콜 스테이지 → 시크릿 포토랩(photolab.js)
+//    필름(🎞️)은 여기서 파밍. 현상 효과(photolab.js의 getEngraveBonus)는 아래 engB() 로 전부 연결돼 있음.
+//
 // 값을 바꾸고 싶으면 아래 [설정]만 고치면 된다. game.js / special-explore.js는 건드리지 않는다.
 // ════════════════════════════════
 (function () {
@@ -24,6 +27,9 @@
   var BG_URL = 'https://raw.githubusercontent.com/chaei7775/Poca-house/main/special-broadcast_front.png';
   var IMG_W = 941, IMG_H = 1672;      // 배경 이미지 크기 (불러오면 실제 크기로 갱신)
   var STAMINA_COST = 30;              // 이벤트 1번당 스태미나
+  var ENCORE_N = 20;                  // 공연장: 이벤트 몇 번 하면 앵콜 스테이지(포토랩)가 열리는지
+  var RUN_KEY = 'ph_concertRun';      // 공연장 진행 저장 (중간에 나가도 별 안 날리고 이어서 함)
+  var FILM_NAME = '필름', FILM_EMOJI = '🎞️';
   var SPEED = 200;                    // 걷는 속도 (px/초)
   var HIT_R = 36;                     // 이 거리 안으로 들어가면 이벤트 시작 (px)
   var NORMAL_MAX = 2;                 // 지도에 동시에 떠 있는 ❗ 수
@@ -94,7 +100,8 @@
       bg: 'https://raw.githubusercontent.com/chaei7775/Poca-house/main/special-broadcast_front.png',
       desc: '프리미엄 조각을 모아요', pieces: true, coinMult: 40,
       start: START, normal: NORMAL_SPOTS, rare: RARE_SPOTS, legend: LEGEND_SPOT, bounds: BOUNDS,
-      enh: { normal: { stone: 0.005, protect: 0.003, trans: 0 }, variant: { stone: 0.03, protect: 0.015, trans: 0.005 }, npcStone: 1 }
+      enh: { normal: { stone: 0.005, protect: 0.003, trans: 0 }, variant: { stone: 0.03, protect: 0.015, trans: 0.005 }, npcStone: 1 },
+      film: { normal: 0.015, golden: 0.10, npc: 1 }       // 임시 낮은 확률
     },
     fanmeeting: {
       id: 'fanmeeting', name: '팬미팅장', emoji: '💜', color: '#F472B6',
@@ -120,10 +127,39 @@
       ],
       legend: { x: 0.51, y: 0.29, label: '무대 계단 앞' },
       bounds: { x0: 0.06, x1: 0.94, y0: 0.19, y1: 0.86 },
-      enh: { normal: { stone: 0.018, protect: 0.022, trans: 0.003 }, variant: { stone: 0.07, protect: 0.08, trans: 0.03 }, npcStone: 2 }
+      enh: { normal: { stone: 0.018, protect: 0.022, trans: 0.003 }, variant: { stone: 0.07, protect: 0.08, trans: 0.03 }, npcStone: 2 },
+      film: { normal: 0.015, golden: 0.10, npc: 1 }       // 임시 낮은 확률 (공연장 열리면 지워도 됨)
+    },
+    concert: {
+      id: 'concert', name: '공연장', emoji: '🎤', color: '#F43F5E',
+      bg: 'https://raw.githubusercontent.com/chaei7775/Poca-house/main/special-concert.png',
+      desc: '🌟우등생별 1개 · 필름 파밍 · 시크릿 포토랩', pieces: false, coinMult: 100,
+      starCost: 1, encore: true,
+      start: { x: 0.50, y: 0.85 },
+      normal: [
+        { x: 0.20, y: 0.31 },  // VIP 앞
+        { x: 0.80, y: 0.36 },  // 굿즈 매장
+        { x: 0.18, y: 0.46 },  // 백스테이지
+        { x: 0.50, y: 0.36 },  // 계단
+        { x: 0.30, y: 0.55 },  // 분수 왼쪽
+        { x: 0.70, y: 0.55 },  // 분수 오른쪽
+        { x: 0.84, y: 0.52 },  // 푸드
+        { x: 0.22, y: 0.70 },  // 미디어 월
+        { x: 0.50, y: 0.66 },  // 분수 남쪽
+        { x: 0.50, y: 0.77 }   // 카펫 아치
+      ],
+      rare: [
+        { x: 0.18, y: 0.45, label: '백스테이지' },
+        { x: 0.20, y: 0.30, label: 'VIP 앞' },
+        { x: 0.22, y: 0.69, label: '미디어 월' }
+      ],
+      legend: { x: 0.50, y: 0.24, label: '무대 앞' },
+      bounds: { x0: 0.06, x1: 0.94, y0: 0.20, y1: 0.88 },
+      enh: { normal: { stone: 0.01, protect: 0.005, trans: 0 }, variant: { stone: 0.05, protect: 0.03, trans: 0.01 }, npcStone: 1 },
+      film: { normal: 0.07, golden: 0.50, npc: 3 }
     }
   };
-  var MAP_ORDER = ['broadcast_front', 'fanmeeting'];
+  var MAP_ORDER = ['broadcast_front', 'fanmeeting', 'concert'];
   var MAP = MAPS.broadcast_front;     // 지금 들어가 있는 맵 (원정 시작할 때 바뀜)
 
   // 평균 조각 계산용 (실제 플레이어가 이 정도 비율로 성공한다고 가정)
@@ -148,6 +184,17 @@
   function $(id) { return document.getElementById(id); }
   function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
   function toast(msg) { if (typeof showBagToast === 'function') showBagToast(msg); }
+
+  // ── 현상 효과(photolab.js) 읽기: 없으면 전부 0 ──
+  function engAll() {
+    try { return (S && typeof window.getEngraveBonus === 'function') ? (window.getEngraveBonus(S.charId) || {}) : {}; } catch (e) { return {}; }
+  }
+  function engB(key) { var v = Number(engAll()[key]); return isFinite(v) ? v : 0; }
+  function staminaCost() { return Math.max(10, Math.round(STAMINA_COST * (1 + engB('stamina')))); }
+
+  // 공연장 진행 저장
+  function readRun() { try { var r = JSON.parse(localStorage.getItem(RUN_KEY) || 'null'); return (r && typeof r.done === 'number') ? r : null; } catch (e) { return null; } }
+  function writeRun(r) { try { if (r) localStorage.setItem(RUN_KEY, JSON.stringify(r)); else localStorage.removeItem(RUN_KEY); } catch (e) {} }
 
   // ════════ 순수 로직 (보상 표) ════════
   function pickNormal(rnd) {
@@ -301,12 +348,16 @@
     var ef = $('bc-eff');
     if (ef && S) {
       var pb = (typeof window.getPremiumBonus === 'function') ? window.getPremiumBonus(S.charId) : null;
-      if (pb && MAP.pieces) {
+      if (MAP.encore) {
+        var hasEng = Object.keys(engAll()).some(function (k) { return k !== 'cheer' && Number(engAll()[k]); });
+        ef.style.display = 'block';
+        ef.textContent = '🎤 ' + Math.min(S.done || 0, ENCORE_N) + '/' + ENCORE_N + (hasEng ? ' · ✨현상 효과' : '');
+      } else if (pb && MAP.pieces) {
         ef.style.display = 'block';
         ef.textContent = '💎 Lv.' + pb.lv + ' · 📸 +' + (pb.skill * 100).toFixed(1).replace('.0', '') + '%p · 🎬 ' + Math.round(pb.extra * 100) + '%';
       } else ef.style.display = 'none';
     }
-    if (el && typeof stamina !== 'undefined') el.textContent = '⚡ ' + stamina + '/' + (typeof STAMINA_MAX !== 'undefined' ? STAMINA_MAX : '') + ' · 이벤트 ⚡' + STAMINA_COST;
+    if (el && typeof stamina !== 'undefined') el.textContent = '⚡ ' + stamina + '/' + (typeof STAMINA_MAX !== 'undefined' ? STAMINA_MAX : '') + ' · 이벤트 ⚡' + staminaCost();
   }
 
   var bannerTimer = null;
@@ -468,7 +519,7 @@
     if (!success) return [];
     var rare = (type === 'golden' || type === 'legend');
     var t = rare ? MAP.enh.variant : MAP.enh.normal;
-    var d = { stone: Math.random() < t.stone ? 1 : 0, protect: Math.random() < t.protect ? 1 : 0, trans: Math.random() < t.trans ? 1 : 0 };
+    var d = { stone: Math.random() < t.stone * Math.max(0, 1 + engB('stone')) ? 1 : 0, protect: Math.random() < t.protect ? 1 : 0, trans: Math.random() < t.trans ? 1 : 0 };
     if (type === 'legend') d.stone = Math.max(d.stone, MAP.enh.npcStone || 1);          // 특별 NPC 성공: 강화석 확정
     if (!d.stone && !d.protect && !d.trans) return [];
     var st = null;
@@ -496,8 +547,9 @@
   function ticketDrop(type) {
     var t = TICKET[type];
     if (!t) return null;
-    if (Math.random() < t[0]) { addTicket(); return { icon: '🎫', text: '등교권 +1', color: '#60A5FA' }; }
-    if (Math.random() < t[1]) {
+    var tm = Math.max(0, 1 + engB('ticket'));
+    if (Math.random() < t[0] * tm) { addTicket(); return { icon: '🎫', text: '등교권 +1', color: '#60A5FA' }; }
+    if (Math.random() < t[1] * tm) {
       if (typeof addToBag === 'function') addToBag('🎫', '등교권 조각', 'ticket_fragment', 1, '10개 모으면 등교권 1장으로 교환!');
       var cnt = 0;
       try { var st = JSON.parse(localStorage.getItem('ph_ticketFragments') || '0'); cnt = (typeof st === 'number' ? st : 0) + 1; } catch (e) { cnt = 1; }
@@ -512,14 +564,29 @@
     return null;
   }
 
+  // 🎞️ 필름: 시크릿 포토랩 현상 재료 (맵의 film 표대로)
+  function filmDrop(type, success) {
+    if (!success || !MAP.film) return [];
+    var n = 0, m = Math.max(0, 1 + engB('film'));
+    if (type === 'legend') n = MAP.film.npc || 0;
+    else if (Math.random() < (type === 'golden' ? MAP.film.golden : MAP.film.normal) * m) n = 1;
+    if (n <= 0) return [];
+    if (typeof addToBag !== 'function' || !addToBag(FILM_EMOJI, FILM_NAME, 'film', n, '시크릿 포토랩 현상 재료 · 공연장 앵콜 스테이지에서 사용')) {
+      toast('가방이 가득 차서 필름을 못 받았어요! 가방을 비워주세요');
+      return [];
+    }
+    return [{ icon: FILM_EMOJI, text: FILM_NAME + ' +' + n, color: '#fb7185' }];
+  }
+
   function grant(r) {
     var lines = [];
     if (r.coins > 0) {
-      r.coins = Math.round(r.coins * (MAP.coinMult || 1));   // 강화 코인 비용용: 맵별 코인 배율
+      r.coins = Math.max(1, Math.round(r.coins * (MAP.coinMult || 1) * Math.max(0.1, 1 + engB('coin'))));   // 맵별 코인 배율 × 현상 효과
       coins += r.coins;
       lines.push({ icon: '🍔', text: '+' + r.coins + ' 코인', color: '#FFD700' });
     }
     if (r.exp > 0) {
+      r.exp = Math.max(1, Math.round(r.exp * Math.max(0.1, 1 + engB('exp'))));
       giveCardExp(S.charId, r.exp);
       var nm = (typeof CHARS !== 'undefined' && CHARS[S.charId]) ? CHARS[S.charId].name : '';
       lines.push({ icon: '⭐', text: nm + ' +' + r.exp + ' EXP', color: '#FFD700' });
@@ -560,7 +627,8 @@
       if (r.pieces === 0 && Math.random() < pb.skill) { r.pieces = 1; notes.push({ icon: '📸', text: pb.skillName + ' 발동!', color: '#FFD700' }); }
       if (r.pieces > 0 && Math.random() < pb.extra) { r.pieces += 1; notes.push({ icon: '🎬', text: pb.effectName + ' 발동! 조각 +1', color: '#7dd3fc' }); }
     }
-    var lines = grant(r).concat(notes).concat(enhDrop(type, success));
+    if (MAP.pieces && success && r.pieces > 0 && Math.random() < engB('pieceExtra')) { r.pieces += 1; notes.push({ icon: '✨', text: '현상 효과! 조각 +1', color: '#7dd3fc' }); }
+    var lines = grant(r).concat(notes).concat(enhDrop(type, success)).concat(filmDrop(type, success));
     var heads = {
       PERFECT: '✨ PERFECT!', GREAT: '👍 GREAT!', GOOD: '😊 GOOD', MISS: '💦 MISS…',
       OPEN: type === 'letter' ? '💌 팬레터 도착!' : '🎁 굿즈 획득!',
@@ -583,7 +651,36 @@
     removeEvent(ev);
     S.current = null;
     S.paused = false;
+    if (MAP.encore) {
+      S.done = (S.done || 0) + 1;
+      writeRun({ done: S.done });
+      hud();
+      if (S.done >= ENCORE_N) { openEncore(); return; }
+    }
     afterEvent();
+  }
+
+  // 🎤 앵콜 스테이지: 이벤트를 다 채우면 시크릿 포토랩으로
+  function openEncore() {
+    if (!S) return;
+    S.paused = true; S.moving = false; S.tx = S.px; S.ty = S.py;
+    S.events.slice().forEach(removeEvent);
+    var layer = $('bc-layer');
+    if (layer) Array.prototype.slice.call(layer.children).forEach(function (c) { if (c.id !== 'bc-player') c.remove(); });
+    var films = 0;
+    if (typeof bagItems !== 'undefined') { var fi = bagItems.find(function (i) { return i.name === FILM_NAME; }); films = fi ? fi.qty : 0; }
+    panel('<div style="font-size:21px;font-weight:900;margin-bottom:4px;">🎤 앵콜 스테이지 오픈!</div>' +
+      '<div style="font-size:12px;color:#ddd;margin-bottom:12px;">공연 끝! 무대 뒤 시크릿 포토랩이 열렸어요<br>보유 필름 ' + FILM_EMOJI + ' ' + films + '개</div>' +
+      '<button id="bc-lab" style="' + BTN + 'margin-bottom:8px;background:linear-gradient(135deg,#be123c,#f43f5e);">📷 시크릿 포토랩 입장</button>' +
+      '<button id="bc-leave" style="' + BTN + 'background:rgba(255,255,255,.14);">공연장 나가기</button>');
+    $('bc-lab').onclick = function () {
+      if (typeof window.openPhotoLab !== 'function') { toast('시크릿 포토랩이 아직 설치되지 않았어요'); return; }
+      window.openPhotoLab({ charId: S && S.charId, onClose: function () { if (S && $('bc-view')) openEncore(); } });
+    };
+    $('bc-leave').onclick = function () {
+      writeRun(null);
+      var o = $('special-overlay'); if (o) o.remove();
+    };
   }
 
   // ════════ 미니게임 ════════
@@ -594,6 +691,8 @@
   function gaugeGame(ev, golden) {
     var c = 30 + Math.random() * 40;
     var Z = golden ? { p: 3, g: 7, o: 10 } : { p: 5, g: 11, o: 14 };
+    var zm = Math.max(0.3, 1 + engB('zone'));        // 현상 효과: 노란 칸 넓이
+    Z.p *= zm; Z.g *= zm; Z.o *= zm;
     var spd = golden ? 150 : 105;
     var pos = 0, dir = 1, raf = 0, last = 0, locked = false;
     panel('<div style="font-size:17px;font-weight:900;margin-bottom:3px;">' + (golden ? '🌟 황금 셔터!' : '📸 셔터 찬스!') + '</div>' +
@@ -734,7 +833,7 @@
       if (typeof useFromBag === 'function') useFromBag(t.name, 1);
       if (typeof saveAll === 'function') saveAll();
       var right = id === npc.weak;
-      gauge -= right ? NPC_HIT_RIGHT : NPC_HIT_WRONG;
+      gauge -= (right ? NPC_HIT_RIGHT : NPC_HIT_WRONG) * Math.max(0.3, 1 + engB('npc'));
       if (Math.random() < fleeP) { leave('💨 ' + npc.name + '이(가) 떠나버렸어요…'); return; }
       msg = right ? ('👍 ' + t.name + '을(를) 아주 좋아해요!') : ('🙂 ' + t.name + ' 효과가 조금 있었어요');
       draw();
@@ -764,12 +863,13 @@
   }
 
   function tryStart(ev) {
-    if (typeof stamina === 'undefined' || stamina < STAMINA_COST) {
+    var cost = staminaCost();
+    if (typeof stamina === 'undefined' || stamina < cost) {
       ev.skip = true;
-      toast('스태미나가 부족해요! ⚡ 음료를 마셔봐요 (이벤트 1번 ' + STAMINA_COST + ')');
+      toast('스태미나가 부족해요! ⚡ 음료를 마셔봐요 (이벤트 1번 ' + cost + ')');
       return;
     }
-    stamina -= STAMINA_COST;
+    stamina -= cost;
     if (typeof saveStamina === 'function') saveStamina();
     hud();
     openEvent(ev);
@@ -870,13 +970,16 @@
     window.addEventListener('resize', layout);
     view.addEventListener('pointerdown', onMapTap);
 
-    S = { charId: charId, px: MAP.start.x, py: MAP.start.y, tx: MAP.start.x, ty: MAP.start.y, moving: false, events: [], paused: false, current: null, last: 0, raf: 0, hudT: 0 };
+    S = { charId: charId, px: MAP.start.x, py: MAP.start.y, tx: MAP.start.x, ty: MAP.start.y, moving: false, events: [], paused: false, current: null, last: 0, raf: 0, hudT: 0, done: 0 };
+    if (MAP.encore) { var rr = readRun(); S.done = rr ? rr.done : 0; }
     $('bc-layer').appendChild(buildPlayer(ch));
     placePlayer();
     hud();
     fillNormals();
-    banner('❗를 찾아 걸어가 보세요! 이벤트 1번에 ⚡' + STAMINA_COST);
+    var bn = engAll().cheer;
+    banner(bn ? String(bn) : (MAP.encore ? ('🎤 이벤트 ' + ENCORE_N + '번을 채우면 앵콜 스테이지가 열려요! (1번에 ⚡' + staminaCost() + ')') : ('❗를 찾아 걸어가 보세요! 이벤트 1번에 ⚡' + staminaCost())));
     S.raf = requestAnimationFrame(tick);
+    if (MAP.encore && S.done >= ENCORE_N) openEncore();
   }
 
   // ════════ 설치 ════════
@@ -895,7 +998,24 @@
     });
     var orig = window.startSpecialExplore;
     window.startSpecialExplore = function (locationId, charId) {
-      if (MAPS[locationId]) { startBroadcast(charId, locationId); return; }
+      if (MAPS[locationId]) {
+        var m = MAPS[locationId];
+        if (m.starCost) {
+          var run = readRun();
+          if (run) toast('🎤 진행 중이던 공연을 이어서 해요 (' + Math.min(run.done, ENCORE_N) + '/' + ENCORE_N + ')');
+          else {
+            var have = (typeof honorStars !== 'undefined') ? honorStars : 0;
+            if (have < m.starCost) { toast('🌟 우등생별이 부족해요! (' + have + '/' + m.starCost + ') · 등교시키기로 모아요'); return; }
+            honorStars -= m.starCost;
+            if (typeof saveSchool === 'function') saveSchool();
+            if (typeof saveAll === 'function') saveAll();
+            writeRun({ done: 0 });
+            toast('🌟 우등생별 ' + m.starCost + '개로 공연장 입장!');
+          }
+        }
+        startBroadcast(charId, locationId);
+        return;
+      }
       return orig.apply(this, arguments);
     };
 
