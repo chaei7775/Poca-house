@@ -44,6 +44,7 @@
     var d = J('ph_premiumCards', {}) || {};
     return keys(d).filter(function (k) { return d[k] && d[k].lv >= 1; }).length;
   }
+  function goodsCrafted() { return !!(J('ph_goods_flags', {}) || {}).crafted; }
   function mysterySeen() { try { return localStorage.getItem('ph_mystery_seen') === '1'; } catch (e) { return false; } }
 
   // ── 단계 정의 (순서대로 진행) ──
@@ -109,6 +110,10 @@
       hint: '🚐 스케줄 가기 → 🎬 팬덤 원정 → 방송국 앞. 현장을 돌아다니며 🖼️ 프리미엄 조각과 강화석을 모아요. 스태미나는 드링크로 채워요!',
       done: function () { return !!S.flags.first_expedition; }, reward: 500,
       go: function () { goTo('map'); }, target: '.btn-collection' },
+    { id: 'goods', icon: '🎁', title: '굿즈 만들어서 장착하기',
+      hint: '맵 → 🛍️ 상점거리 → 🎁 굿즈 공방. 재료 + 코인으로 굿즈를 만들면 능력치가 랜덤으로 붙어요(실패할 수도!). 만든 굿즈를 캐릭터 카드 옆 칸에 장착해 보세요.',
+      done: function () { return goodsCrafted(); }, reward: 500,
+      go: function () { goTo('map'); }, target: '#nav-map' },
     { id: 'enhance', icon: '⚒️', title: '히든카드 강화하기',
       hint: '더보기 → 🎤 트레이닝룸. 히든카드 + 강화석 + 코인으로 강화하면 데뷔 수익이 확 올라요. 높은 단계는 실패하면 카드가 사라질 수 있으니 방지권을 챙기세요!',
       done: function () { return anyEnhanced() || !!S.flags.first_enhance; }, reward: 800,
