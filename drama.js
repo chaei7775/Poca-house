@@ -207,6 +207,10 @@ const CSS=`#dr-root{position:fixed;inset:0;z-index:780;overflow:hidden;
 #dr-root .dr.dr-fun{background-image:url(drama/dir/fun.png)}
 #dr-root .bg-letter{background-image:url(drama/bg/thumb-letter.jpg)}
 #dr-root .bg-dawn{background-image:url(drama/bg/thumb-dawn.jpg)}
+#dr-root .bg-romance{background-image:url(drama/bg/thumb-letter.jpg)}
+#dr-root .bg-action{background-image:url(drama/bg/thumb-dawn.jpg)}
+#dr-root .bg-comedy{background-image:url(drama/bg/thumb-comedy.jpg)}
+#dr-root .bg-horror{background-image:url(drama/bg/thumb-horror.jpg)}
 #dr-root .face{background-image:var(--face);background-color:var(--panel-2)}
 `;
 const HTML=`<div id="dr-app">
@@ -300,6 +304,61 @@ const SCRIPTS=[
   {t:50,type:'chance',kind:'action',line:'(마지막 격투)'},
   {t:55,type:'choice',cue:'(마지막 대사)',o:{plain:'수고했어.',emotional:'고마웠어, 정말.',funny:'커피 한잔할래?'}}
  ]}
+ ,{id:'moving',title:'이사 첫날',genre:'코미디',cast:1,desc:'짐도 못 푼 새 집에서 벌어지는 소동극',
+  ev:[
+  {t:4,type:'tap',line:'여기가 우리 집이야?'},
+  {t:8,type:'choice',cue:'(박스 더미 앞에서) 이 집 어때?',o:{plain:'생각보다 괜찮네.',emotional:'우리 첫 집이야, 감동이다.',funny:'박스가 집주인 같은데?'}},
+  {t:14,type:'tap',line:'짐이 왜 이렇게 많아…'},
+  {t:18,type:'chance',kind:'adlib',line:'(소파가 문에 끼었다)'},
+  {t:24,type:'choice',cue:'(소파를 밀며) 이거 어떡하지?',o:{plain:'일단 다시 빼보자.',emotional:'이 소파, 우리 추억인데…',funny:'소파야, 다이어트 좀 하자.'}},
+  {t:30,type:'tap',line:'잠깐, 이거 누구 박스야?'},
+  {t:34,type:'chance',kind:'emotion',line:'(옛 사진첩이 떨어진다)'},
+  {t:40,type:'choice',cue:'(사진을 주워 들며)',o:{plain:'이건 나중에 보자.',emotional:'우리 이때 참 젊었다.',funny:'이 헤어스타일 뭐야?'}},
+  {t:46,type:'tap',line:'이삿짐센터 아저씨 가셨어!'},
+  {t:50,type:'chance',kind:'adlib',line:'(전등이 갑자기 나간다)'},
+  {t:55,type:'choice',cue:'(마지막 대사)',o:{plain:'오늘은 여기까지.',emotional:'그래도 우리 집이라 좋다.',funny:'내일은 이사 말고 휴가 가자.'}}
+ ]}
+ ,{id:'ramen',title:'야식 대소동',genre:'코미디',cast:1,desc:'새벽 두 시, 마지막 라면을 두고 벌어지는 선택 폭주극',
+  ev:[
+  {t:3,type:'choice',cue:'(냄비를 들며) 라면 끓일까?',o:{plain:'응, 하나만 끓이자.',emotional:'너랑 먹는 야식이 제일 좋아.',funny:'이 시간에 라면은 범죄지.'}},
+  {t:9,type:'tap',line:'물은 내가 맞출게.'},
+  {t:13,type:'choice',cue:'(스프를 뜯으며) 계란 넣을래?',o:{plain:'넣자.',emotional:'계란은 사랑이지.',funny:'계란 안 넣으면 신고할 거야.'}},
+  {t:19,type:'chance',kind:'adlib',line:'(국물이 넘친다)'},
+  {t:25,type:'choice',cue:'(젓가락을 들고) 누가 먼저 먹을래?',o:{plain:'네가 먼저 먹어.',emotional:'네가 먼저 먹는 거 보고 싶어.',funny:'가위바위보로 결정하자.'}},
+  {t:31,type:'tap',line:'앗, 뜨거!'},
+  {t:35,type:'chance',kind:'emotion',line:'(마지막 한 가닥이 남았다)'},
+  {t:41,type:'choice',cue:'(젓가락이 부딪힌다)',o:{plain:'네가 먹어.',emotional:'우리 반씩 나눠 먹자.',funny:'이건 결투야.'}},
+  {t:47,type:'tap',line:'배 터질 것 같아…'},
+  {t:55,type:'choice',cue:'(국물을 마시며)',o:{plain:'맛있었어.',emotional:'오늘 같이 먹어서 좋았어.',funny:'내일부터 다이어트다.'}}
+ ]}
+ ,{id:'hospital',title:'폐병원의 밤',genre:'공포',cast:1,desc:'불 꺼진 병원 복도에서 벌어지는 스릴러',
+  ev:[
+  {t:4,type:'tap',line:'여기… 아무도 없어?'},
+  {t:8,type:'choice',cue:'(어둠 속 발소리가 들린다)',o:{plain:'바람 소리겠지.',emotional:'무서워… 나 혼자 두지 마.',funny:'귀신 선배님, 사인 하나만요.'}},
+  {t:14,type:'tap',line:'불이 왜 꺼졌지?'},
+  {t:18,type:'chance',kind:'action',line:'(뒤에서 무언가 달려온다)'},
+  {t:24,type:'choice',cue:'(휠체어가 저절로 굴러온다)',o:{plain:'침착하자. 이건 현실이야.',emotional:'제발… 오지 마.',funny:'장애물 달리기 하는 거야?'}},
+  {t:30,type:'tap',line:'저 문 안쪽에서 소리가 나.'},
+  {t:34,type:'chance',kind:'emotion',line:'(벽에 낡은 사진이 걸려 있다)'},
+  {t:40,type:'choice',cue:'(속삭이듯) 저 사진 속 사람은…',o:{plain:'기록을 확인해 보자.',emotional:'이 사람, 아직 여기 있어.',funny:'포토존인가 봐.'}},
+  {t:46,type:'tap',line:'출구가 막혔어!'},
+  {t:50,type:'chance',kind:'action',line:'(마지막 도망)'},
+  {t:55,type:'choice',cue:'(마지막 대사)',o:{plain:'나가자. 지금.',emotional:'다시는 안 올 거야.',funny:'리뷰는 별 한 개다.'}}
+ ]}
+ ,{id:'patrol',title:'마지막 순찰',genre:'공포',cast:1,desc:'야간 순찰 중 마주친 이상한 소리 · 탭이 많은 대본',
+  ev:[
+  {t:3,type:'tap',line:'순찰 시작합니다.'},
+  {t:7,type:'tap',line:'이상 없음.'},
+  {t:11,type:'choice',cue:'(어디선가 물 떨어지는 소리)',o:{plain:'배관 소리일 거야.',emotional:'누가 날 부르는 것 같아.',funny:'수도꼭지 잠그고 갈게요.'}},
+  {t:17,type:'chance',kind:'action',line:'(그림자가 빠르게 스쳐 지나간다)'},
+  {t:22,type:'tap',line:'방금 뭐였지?'},
+  {t:26,type:'tap',line:'(손전등이 깜빡인다)'},
+  {t:30,type:'chance',kind:'emotion',line:'(어린아이 웃음소리)'},
+  {t:36,type:'tap',line:'다시 한번만 비춰 보자.'},
+  {t:40,type:'chance',kind:'adlib',line:'(무전기에서 잡음이 흐른다)'},
+  {t:46,type:'tap',line:'응답하세요!'},
+  {t:50,type:'choice',cue:'(마지막 대사)',o:{plain:'상황 종료.',emotional:'제발… 아무도 없길.',funny:'야근 수당 두 배는 받아야겠다.'}}
+ ]}
 ];
 
 /* skills: use(C) with C={chance,scene,mult} ; G helpers below */
@@ -326,12 +385,14 @@ const SKILLS={
  one:{n:'원테이크',cat:'보조',gr:'프리미엄',cd:40,i:'원',d:()=>'10초간 NG 무효, 게이지 상승 ×1.5',use:C=>{G.oneUntil=G.t+10;popup('원테이크!','','var(--slate)')}}
 };
 const DROP={low:{일반:65,레어:30,히든:5,프리미엄:0},high:{일반:40,레어:35,히든:20,프리미엄:5}};
-const BG_SRC={romance:'drama/bg/romance.jpg',action:'drama/bg/action.jpg'};
+const BG_SRC={romance:'drama/bg/romance.jpg',action:'drama/bg/action.jpg',comedy:'drama/bg/comedy.jpg',horror:'drama/bg/horror.jpg'};
+const GENRE_KEY={'로맨스':'romance','액션':'action','코미디':'comedy','공포':'horror'};
+const SCENE_OF={'로맨스':'romance','액션':'action','코미디':'romance','공포':'action'}; // 스킬 보너스 판정용: 코미디=웃음·애드리브 계열, 공포=액션 계열
 const ACTS={};
 function actImg(id,p){const k=id+p;if(!ACTS[k]){const i=new Image();i.src='drama/actors/'+id+'_'+p+'.png';ACTS[k]=i}return ACTS[k]}
 const POSE_OF={sob:'cry',tears:'cry',dead:'cry',smile:'smile',laugh:'smile',adlib:'smile',song:'smile',makeup:'smile',rage:'fist',chase:'fist',wire:'fist',act:'fist',stunt:'fist',one:'fist',close:'fist'};
 const BGS={};
-function bgFor(g){const k=g==='액션'?'action':'romance';if(!BGS[k]){const i=new Image();i.src=BG_SRC[k];BGS[k]=i}return BGS[k]}
+function bgFor(g){const k=GENRE_KEY[g]||'romance';if(!BGS[k]){const i=new Image();i.src=BG_SRC[k];BGS[k]=i}return BGS[k]}
 const RPTS=[[0,.4],[43,2.1],[67,5.8],[89,11.7],[100,15]];
 function rating(g){for(let i=1;i<RPTS.length;i++){const[a,b]=RPTS[i-1],[c,d]=RPTS[i];if(g<=c)return b+(d-b)*(g-a)/(c-a)}return 15}
 
@@ -424,7 +485,7 @@ function renderPrep(){
 
     <div class="sec"><h2><span class="n">1</span>대본 선택</h2><div class="opts">${SCRIPTS.map(s=>{
       const k={};s.ev.filter(e=>e.type==='chance').forEach(e=>k[e.kind]=(k[e.kind]||0)+1);
-      return `<button class="opt dopt sc ${s.id===S.sel.script?'on':''}" data-a="script" data-id="${s.id}"><span class="dav sth bg-${s.id}"></span><div><div class="t">${s.title}<span class="tag">${s.genre}</span><span class="tag">${s.cast}인</span></div><div class="s">${s.desc}</div><div class="s">찬스 ${Object.keys(k).map(x=>KIND_LABEL[x]+' '+k[x]).join(' · ')} · 선택 대사 ${s.ev.filter(e=>e.type==='choice').length}회 · 촬영 ${CFG.TIME}초</div></div></button>`}).join('')}</div></div>
+      return `<button class="opt dopt sc ${s.id===S.sel.script?'on':''}" data-a="script" data-id="${s.id}"><span class="dav sth bg-${GENRE_KEY[s.genre]||'romance'}"></span><div><div class="t">${s.title}<span class="tag">${s.genre}</span><span class="tag">${s.cast}인</span></div><div class="s">${s.desc}</div><div class="s">찬스 ${Object.keys(k).map(x=>KIND_LABEL[x]+' '+k[x]).join(' · ')} · 선택 대사 ${s.ev.filter(e=>e.type==='choice').length}회 · 촬영 ${CFG.TIME}초</div></div></button>`}).join('')}</div></div>
 
     <div class="sec"><h2><span class="n">2</span>감독 선택</h2><div class="opts">${DIRS.map(x=>`
       <button class="opt dopt ${x.id===S.sel.dir?'on':''}" data-a="dir" data-id="${x.id}"><span class="dav dr dr-${x.id}"></span><div><div class="t">${x.name}${S.learned[x.id]?`<span class="tag learned">${x.style} · 성향 파악 완료</span>`:'<span class="tag">성향 미확인</span>'}</div><div class="s">${x.hint}</div></div></button>`).join('')}</div></div>
@@ -553,7 +614,7 @@ function useSkill(i){
   if(k.cdl>0)return;
   const a=G.active;
   const inChance=!!(a&&a.type==='chance'&&!a.done&&G.t<=a.end&&k.chance===a.kind);
-  const C={chance:inChance,scene:G.script.genre==='액션'?'action':'romance',mult:G.nextMult};
+  const C={chance:inChance,scene:SCENE_OF[G.script.genre]||'romance',mult:G.nextMult};
   if(k.id!=='close')G.nextMult=1;
   k.cdl=k.cd;
   if(inChance)a.hit=true;
