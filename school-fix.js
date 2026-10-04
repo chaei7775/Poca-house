@@ -1,4 +1,5 @@
 // 🎫 등교권: 포카 1명당 1장 (세 과목 다 들어도 1장만 소모)
+// 원래 함수를 그대로 실행(스토리 퀘스트·일일퀘 등 다른 파일의 후킹도 그대로 동작)하고, 같은 포카가 이미 등교권을 냈다면 깎인 1장만 돌려줌
 (function () {
   'use strict';
   function paid(cd) {
@@ -17,16 +18,18 @@
       return true;
     };
 
+    var origComplete = window.completeSchoolSubject;
     window.completeSchoolSubject = function (subject, score) {
       normalizeSchoolDaily();
       var cd = getSchoolCardDaily();
-      if (cd.done[subject]) return false;
-      if (!paid(cd)) schoolDaily.tickets = Math.max(0, schoolDaily.tickets - 1);
-      cd.paid = true;
-      cd.done[subject] = true;
-      saveSchoolDaily();
-      setSchoolScore(subject, score);
-      return true;
+      var wasPaid = paid(cd), before = schoolDaily.tickets;
+      var r = origComplete.apply(this, arguments);
+      try {
+        if (wasPaid) { schoolDaily.tickets = before; }       // 이미 낸 포카면 원래 깎인 1장을 되돌림
+        var cd2 = getSchoolCardDaily(); cd2.paid = true;
+        if (typeof saveSchoolDaily === 'function') saveSchoolDaily();
+      } catch (e) {}
+      return r;
     };
 
     var orig = schoolSubjectCard;
