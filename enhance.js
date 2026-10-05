@@ -456,6 +456,7 @@
         if (d.stone) pills.push(['🔨', '강화석 +1', ACC]);
         if (d.protect) pills.push(['🛡️', '방지권 +1', '#4ade80']);
         if (d.trans) pills.push(['💎', '초월석 +1', '#60A5FA']);
+        if (d.trans) setTimeout(function () { try { if (window.showBigDrop) window.showBigDrop('trans'); } catch (e) {} }, 900);   // 큰 팝업 (big-drop-popup.js)
         var html = '<div style="display:flex;flex-direction:column;gap:7px;align-items:center;margin-top:8px;">' + pills.map(function (p, i) {
           return '<div style="opacity:0;animation:specialRewardPop 0.45s ease-out forwards;animation-delay:' + (1.1 + i * 0.22) + 's;display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,0.1);border:1.5px solid ' + p[2] + ';border-radius:999px;padding:8px 16px;font-size:13px;font-weight:900;color:#fff;box-shadow:0 4px 10px rgba(0,0,0,0.3);">' +
             '<span style="font-size:16px;">' + p[0] + '</span>' + p[1] + '</div>';
