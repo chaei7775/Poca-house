@@ -535,6 +535,7 @@
   // ── 먹기: 확인 팝업 → 팝업 안에서 먹는 장면 (스크롤 위치와 상관없이 캐릭터가 보임) ──
   var sceneEl = null;                       // 지금 연출이 돌고 있는 무대
   function sc$(role) { return sceneEl ? sceneEl.querySelector('[data-r="' + role + '"]') : null; }
+  function snd(n) { try { if (window.pocaSfx) window.pocaSfx.play(n); } catch (e) {} }   // 효과음 (sfx.js 가 있을 때만)
   function fx(name, dx) {
     var layer = sc$('fx'); if (!layer) return;
     var im = document.createElement('img');
@@ -621,9 +622,11 @@
       body.innerHTML = '<div style="text-align:center;font-size:14px;font-weight:900;color:#ffe08a;padding:22px 0;">🍴 냠냠…</div>';
       var kind = reactionOf(res);
       flyFood(foodId);
+      snd('munch');
       playSd('mlMunch .9s ease-in-out 1', 900);
       setTimeout(function () {
         say(pickLine(c.trait, kind));
+        snd(kind === 'like' ? 'like' : kind === 'dislike' ? 'dislike' : kind === 'caught' ? 'alarm' : (kind === 'diet' || kind === 'power' || kind === 'rest') ? 'reward' : 'tap');
         if (kind === 'like') { playSd('mlJump .8s ease-out 1', 800); fx('heart'); fx('heart'); fx('sparkle'); }
         else if (kind === 'dislike') { playSd('mlSag .6s ease-out forwards', 1600); fx('sweat'); fx('cloud'); }
         else if (kind === 'caught') { darken(); playSd('mlShake .6s linear 1', 600); fx('exclaim'); fx('sweat'); fx('sweat'); }
@@ -657,8 +660,9 @@
     save(st);
     if (total > 0) { gain(total); try { if (typeof spawnCoinFloat === 'function') spawnCoinFloat(total); } catch (e) {} }
     render();
+    snd('night');
     toast('🌙 ' + dayLabel(st.day));
-    if (events.length) showEvents(events, total);
+    if (events.length) { setTimeout(function () { snd(total > 0 ? 'cheer' : 'reward'); }, 500); showEvents(events, total); }
   }
   function showEvents(events, total) {
     var old = document.getElementById('meal-event'); if (old) old.remove();
@@ -715,7 +719,7 @@
       b.onclick = function () {
         var s2 = load();
         if (book(s2, cid, b.getAttribute('data-type'), +b.getAttribute('data-day'))) {
-          save(s2); ov.remove(); render(); toast('📅 일정을 잡았어요');
+          save(s2); ov.remove(); render(); snd('stamp'); toast('📅 일정을 잡았어요');
         } else { toast('이 일정은 잡을 수 없어요'); }
       };
     });
