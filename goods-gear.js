@@ -13,7 +13,7 @@
   // 🔶 공방의 원석: 일반 탐험(숲·해변·공원·광장·신비의 섬)에서 재료를 주울 때 가끔 같이 나오는 굿즈 전용 재료
   var STONE_NAME = '공방의 원석', STONE_EMOJI = '🔶';
   var STONE_NEED = 3;                          // 굿즈 1개 제작에 필요한 원석 개수
-  var STONE_DROP = { normal: 0.03, rare: 0.08 };   // 재료 1개 주울 때 원석이 같이 나올 확률 (희귀 재료는 더 높음)
+  var STONE_DROP = { normal: 0.015, rare: 0.05 };   // 재료 1개 주울 때 원석이 같이 나올 확률 (희귀 재료는 더 높음)
     var P_FAIL = 0.15, P_RARE = 0.04, P_GOOD = 0.18;   // 실패 15% / 레어 4% / 고급 18% / 나머지 일반
   var SLOTS = {
     hat:  { label: '머리', mats: [['고급원목', 8], ['별빛나무', 6], [STONE_NAME, STONE_NEED]], items: [['🎀', '응원 머리띠', 'goods-hat-1.png'], ['🧢', '팬클럽 야구모자', 'goods-hat-2.png'], ['👑', '반짝 왕관', 'goods-hat-3.png']] },

@@ -17,7 +17,7 @@
   // ── 설정 ──
   var SESSION_SEC = 30;       // 탐험 시간
   var STAMINA_COST = 10;      // 기존 탐험과 동일
-  var STONE_DROP = 0.15;      // 끝났을 때 재조합석 확률 (기존 탐험과 동일)
+  var STONE_DROP = 0.18;      // 끝났을 때 재조합석 확률 (기존 탐험과 동일)
   var SPEED = 115;            // 일반 나비 속도(화면 px/초)
   var SPEED_RARE = 165;       // 금빛 나비 속도
   var CATCH_R = 34;           // 날고 있는 나비를 잡을 수 있는 거리(화면 px)

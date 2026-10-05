@@ -16,7 +16,7 @@
   // ── 설정 ──
   var SESSION_SEC = 35;       // 탐험 시간
   var STAMINA_COST = 10;      // 기존 탐험과 동일
-  var STONE_DROP = 0.15;      // 끝났을 때 재조합석 확률 (기존 탐험과 동일)
+  var STONE_DROP = 0.18;      // 끝났을 때 재조합석 확률 (기존 탐험과 동일)
   var DIG_NEED = 1800;        // 한 자리를 파는 데 필요한 문지르기 길이 (클수록 오래 문질러야 함)
   var DIG_R = 65;             // 자리 중심에서 이 거리 안에서 문질러야 파짐 (이미지 px)
   var WAVE_FIRST = 8;         // 첫 파도가 오는 시간(초)
