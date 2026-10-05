@@ -365,6 +365,17 @@
     }).observe(document.body, { childList: true, subtree: true });
   })();
 
+  // ════════ 탐험 재료 줍기 ════════
+  // 숲·해변·공원·광장·신비의 섬·낚시 보물 전부 collectExploreItem 을 거치므로 여기 한 곳에서 소리를 냄
+  SYNTH.pick = function () { tone(784, 0, 0.07, 'sine', 0.2, 1175); tone(1568, 0.06, 0.12, 'triangle', 0.18); };
+  SYNTH.rarePick = function () { arp([988, 1319, 1760], 0.07, 0.15, 'triangle', 0.24); tone(2349, 0.22, 0.2, 'sine', 0.12); };
+  SYNTH.wishPick = function () { arp([1047, 1319, 1568, 2093, 2637], 0.07, 0.2, 'sine', 0.22); tone(3136, 0.4, 0.5, 'sine', 0.1); };
+  wrap('collectExploreItem', function (idx, item) {
+    if (item && item.isWish) play('wishPick');
+    else if (item && item.isRare) play('rarePick');
+    else play('pick');
+  });
+
   // ════════ 🔊 소리 설정창 (왼쪽 아래 🔊 버튼) ════════
   function bgmOn() { try { return localStorage.getItem('ph_bgm_enabled') !== 'off'; } catch (e) { return true; } }
   function bgmVol() { var v = parseFloat(localStorage.getItem('ph_bgm_volume')); return isNaN(v) ? 0.4 : Math.max(0, Math.min(1, v)); }
