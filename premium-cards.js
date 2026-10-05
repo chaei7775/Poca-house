@@ -108,7 +108,7 @@
     return '<div style="text-align:left;font-size:12px;line-height:1.55;color:#eee;">' +
       '<div><b style="color:#FFD700;">📸 ' + c.skill + '</b> · 방송국 앞 이벤트 성공 시 프리미엄 조각 확률 +' + skill.toFixed(1).replace('.0', '') + '%p</div>' +
       '<div style="margin-top:4px;"><b style="color:#7dd3fc;">🎬 ' + c.effect + '</b> · 조각이 나오면 ' + extra.toFixed(0) + '% 확률로 +1개 추가</div>' +
-      '<div style="margin-top:4px;color:#aaa;font-size:11px;">' + c.name + '으로 원정 나갈 때 적용돼요 (히든카드에 장착 필요)</div></div>';
+      '<div style="margin-top:4px;color:#aaa;font-size:11px;">' + c.name + ' · 히든카드에 장착하면 어떤 멤버로 나가도 적용돼요</div></div>';
   }
 
   function showReveal(c, kind, lv) {
@@ -210,7 +210,7 @@
         row('📸 ' + c.skill + ' (조각 확률)', cur.skill, nxt ? nxt.skill : cur.skill, 'pc-v-skill', '%p') +
         row('🎬 ' + c.effect + ' (조각 +1 확률)', cur.extra, nxt ? nxt.extra : cur.extra, 'pc-v-extra', '%') +
       '</div>' + cost +
-      '<div style="font-size:10px;color:#aaa;margin-top:6px;text-align:center;">' + c.name + '으로 원정 나갈 때 적용돼요 (히든카드에 장착 필요)</div>' +
+      '<div style="font-size:10px;color:#aaa;margin-top:6px;text-align:center;">' + c.name + ' · 히든카드에 장착하면 어떤 멤버로 나가도 적용돼요</div>' +
       '<div id="pc-result" style="min-height:22px;text-align:center;font-size:14px;font-weight:900;margin:8px 0;"></div>' +
       (lv < MAX_LV ? '<button id="pc-enh" style="width:100%;padding:13px;border:none;border-radius:13px;font-size:15px;font-weight:900;color:#fff;cursor:pointer;font-family:\'Noto Sans KR\',sans-serif;background:linear-gradient(135deg,#FF6B9D,#C084FC);">⚒️ 강화하기 (Lv.' + lv + ' → Lv.' + (lv + 1) + ')</button>' : '<div style="text-align:center;color:#FFD700;font-weight:900;font-size:14px;">✨ 최대 레벨이에요</div>') +
       '<button id="pc-reveal-ok" style="width:100%;margin-top:8px;padding:11px;border:none;border-radius:13px;background:rgba(255,255,255,.14);color:#fff;font-size:14px;font-weight:900;cursor:pointer;font-family:\'Noto Sans KR\',sans-serif;">닫기</button></div>';

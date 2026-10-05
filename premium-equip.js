@@ -368,5 +368,18 @@
   // 히든카드가 사라졌을 때 장착 정리 + 강화 확률 갱신
   setInterval(function () { try { sanitize(); applyEnhanceRate(); } catch (e) {} }, 1000);
 
+    // 장착된 프리미엄 카드들의 옛 효과(조각 확률 / 조각 +1)를 전부 합쳐서 돌려줌 (원정 멤버와 상관없음)
+  window.getEquippedPremiumBonus = function () {
+    if (typeof window.getPremiumBonus !== 'function') return null;
+    var act = activeSet(), skill = 0, extra = 0, lv = 0, any = false;
+    ORDER.forEach(function (pid) {
+      if (!act[pid]) return;
+      var b = window.getPremiumBonus(pid);
+      if (!b) return;
+      any = true; skill += b.skill; extra += b.extra; lv = Math.max(lv, b.lv);
+    });
+    if (!any) return null;
+    return { lv: lv, skill: skill, extra: Math.min(0.95, extra), skillName: '화보의 온도', effectName: '프리미엄 장착 효과' };
+  };
   window.__peTest = { equip: equip, unequip: unequip, bonusOf: bonusOf, valueAt: valueAt, loadEq: loadEq, activeSet: activeSet, sanitize: sanitize, applyEnhanceRate: applyEnhanceRate, sectionHtml: sectionHtml };
 })();
