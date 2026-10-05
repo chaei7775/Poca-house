@@ -265,7 +265,14 @@
     s.textContent =
       '@keyframes enhGlow{0%,100%{box-shadow:0 0 6px rgba(255,215,0,.55),0 0 14px rgba(255,215,0,.25)}50%{box-shadow:0 0 14px rgba(255,236,150,.95),0 0 28px rgba(255,215,0,.6)}}' +
       '@keyframes enhSheen{0%{background-position:200% 0}100%{background-position:-100% 0}}' +
-      '.enh-s3{animation:enhGlow 1.8s ease-in-out infinite;}' +
+      '@keyframes enhPulse1{0%,100%{box-shadow:0 0 6px rgba(96,165,250,.5),0 0 12px rgba(96,165,250,.25)}50%{box-shadow:0 0 12px rgba(147,197,253,.95),0 0 22px rgba(96,165,250,.55)}}' +
+      '@keyframes enhPulse2{0%,100%{box-shadow:0 0 8px rgba(192,132,252,.6),0 0 16px rgba(192,132,252,.3)}50%{box-shadow:0 0 16px rgba(233,213,255,.95),0 0 28px rgba(192,132,252,.65)}}' +
+      '@keyframes enhRing{0%,100%{opacity:.45;transform:scaleX(.92)}50%{opacity:1;transform:scaleX(1.04)}}' +
+      '.enh-s1,.enh-s2{border-color:var(--enh-c)!important;}' +
+      '.enh-s1{--enh-c:#60A5FA;animation:enhPulse1 2.2s ease-in-out infinite;}' +
+      '.enh-s2{--enh-c:#C084FC;animation:enhPulse2 2s ease-in-out infinite;}' +
+      '.enh-s1::before,.enh-s2::before,.enh-s3::before{content:"";position:absolute;left:8%;right:8%;bottom:3%;height:24%;border:2px dashed var(--enh-c,#FFD700);border-radius:50%;pointer-events:none;z-index:2;box-shadow:0 0 8px var(--enh-c,#FFD700),inset 0 0 8px var(--enh-c,#FFD700);animation:enhRing 2.4s ease-in-out infinite;}' +
+      '.enh-s3{--enh-c:#FFD700;animation:enhGlow 1.8s ease-in-out infinite;}' +
       '.enh-s3::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(115deg,transparent 35%,rgba(255,255,255,.4) 50%,transparent 65%);background-size:250% 100%;animation:enhSheen 2.6s linear infinite;}';
     document.head.appendChild(s);
   }
@@ -298,7 +305,7 @@
     var cards = hiddenList().map(function (h) {
       var own = isOwned(h.id), L = st.level[h.id] || 0, S = st.stage[h.id] || 0;
       var glow = h.grade === '에픽히든' ? '#FFD700' : '#C084FC';
-      return '<div ' + (own ? 'data-open="' + h.id + '"' : 'data-lock="1"') + ' class="' + (own && S >= TRANS_MAX ? 'enh-s3' : '') + '" style="position:relative;border:2px solid ' + glow + ';border-radius:14px;overflow:hidden;background:#111;aspect-ratio:3/4;cursor:pointer;">' +
+      return '<div ' + (own ? 'data-open="' + h.id + '"' : 'data-lock="1"') + ' class="' + (own && S > 0 ? 'enh-s' + Math.min(S, TRANS_MAX) : '') + '" style="position:relative;border:2px solid ' + glow + ';border-radius:14px;overflow:hidden;background:#111;aspect-ratio:3/4;cursor:pointer;">' +
         '<img src="' + h.img + '" style="width:100%;height:100%;object-fit:cover;opacity:' + (own ? '1' : '0.3') + ';">' +
         '<div style="position:absolute;top:6px;right:6px;background:' + glow + ';color:#1a1a2e;font-size:9px;font-weight:900;padding:2px 6px;border-radius:8px;">' + h.grade + '</div>' +
         (own ? '<div style="position:absolute;top:6px;left:6px;background:rgba(0,0,0,0.75);color:' + (S >= TRANS_MAX ? '#FFD700' : '#fff') + ';font-size:12px;font-weight:900;padding:2px 7px;border-radius:8px;">' + levelTag(L, S) + '</div>' : '') +
@@ -395,7 +402,7 @@
     var label = mode === 'enhance' ? (L + 1 > SAFE_UNTIL && !state.protectOn ? '방지권 없이 도전 (깨질 수 있음)' : '⚒️ 강화하기') : (mode === 'trans' ? '✨ 초월하기' : '');
     ov.innerHTML = '<div style="width:100%;max-width:340px;max-height:94vh;overflow-y:auto;background:linear-gradient(135deg,#1a1a2e,#2d1b4e);border:2px solid ' + glow + ';border-radius:20px;padding:18px 18px 16px;">' +
       '<div style="display:flex;gap:12px;align-items:center;margin-bottom:12px;">' +
-      '<div class="' + (S >= TRANS_MAX ? 'enh-s3' : '') + '" style="position:relative;width:84px;aspect-ratio:3/4;border-radius:12px;overflow:hidden;border:2px solid ' + glow + ';flex-shrink:0;"><img src="' + h.img + '" style="width:100%;height:100%;object-fit:cover;"></div>' +
+      '<div class="' + (S > 0 ? 'enh-s' + Math.min(S, TRANS_MAX) : '') + '" style="position:relative;width:84px;aspect-ratio:3/4;border-radius:12px;overflow:hidden;border:2px solid ' + glow + ';flex-shrink:0;"><img src="' + h.img + '" style="width:100%;height:100%;object-fit:cover;"></div>' +
       '<div style="min-width:0;"><div style="font-size:11px;color:' + glow + ';font-weight:900;">' + h.grade + '</div>' +
       '<div style="font-size:15px;font-weight:900;color:#fff;margin:2px 0;">' + esc(h.name) + '</div>' +
       '<div style="font-size:20px;font-weight:900;color:' + (S >= TRANS_MAX ? '#FFD700' : '#fff') + ';">' + levelTag(L, S) + ' <span style="font-size:14px;color:#FFD700;">' + stars(S) + '</span></div>' +
