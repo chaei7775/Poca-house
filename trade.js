@@ -24,9 +24,10 @@
     stone:   { name: '강화석',        emoji: '🔨', kind: 'enh', field: 'stone',   min: 1000,  max: 1000000 },
     protect: { name: '방지권',        emoji: '🛡️', kind: 'enh', field: 'protect', min: 2000,  max: 3000000 },
     trans:   { name: '초월석',        emoji: '💎', kind: 'enh', field: 'trans',   min: 10000, max: 20000000 },
-    slotx:   { name: '슬롯 확장권',  emoji: '🎟️', kind: 'bag', desc: '드라마 촬영 카드의 스킬 슬롯을 영구로 +1', min: 30000, max: 5000000 }
+    slotx:   { name: '슬롯 확장권',  emoji: '🎟️', kind: 'bag', desc: '드라마 촬영 카드의 스킬 슬롯을 영구로 +1', min: 30000, max: 5000000 },
+    dev:     { name: '현상액',        emoji: '🧪', kind: 'bag', type: 'film', desc: '포토랩 옵션 강화 재료 · 공연장에서 얻어요', min: 1000, max: 2000000 }
   };
-  var ORDER = ['recomb', 'ws', 'epic', 'stone', 'protect', 'trans', 'slotx'];
+  var ORDER = ['recomb', 'ws', 'epic', 'stone', 'protect', 'trans', 'slotx', 'dev'];
   // 🌿 탐험 재료도 거래 가능 (품목 키는 'mat_' + 재료이름 → Firebase 규칙에서 한 줄로 묶음)
   var MAT_MIN = 100, MAT_MAX = 50000;   // 재료 공통 가격 범위 (규칙 파일과 같아야 함)
   var MAT_ORDER = [];
@@ -127,7 +128,7 @@
   }
   function give(key, qty) {
     var it = ITEMS[key];
-    if (it.kind === 'bag') return !!addToBag(it.emoji, it.name, 'material', qty, it.desc);
+    if (it.kind === 'bag') return !!addToBag(it.emoji, it.name, it.type || 'material', qty, it.desc);
     var s = loadEnh();
     s[it.field] = have(key) + qty;
     try { localStorage.setItem(ENH_KEY, JSON.stringify(s)); } catch (e) { return false; }
