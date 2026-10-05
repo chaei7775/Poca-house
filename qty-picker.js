@@ -187,8 +187,8 @@ function qpAfterShopBuy() {
   window.useDrinkFromBag = function(idx) {
     const item = bagItems[idx];
     if (!item) return;
-    const staminaMap = { '사과주스': 10, '딸기스무디': 20, '에너지드링크': 30 };
-    const up = staminaMap[item.name] || 10;
+    const staminaMap = { '사과주스': 100, '딸기스무디': 130, '에너지드링크': 160 };   // stamina-balance.js 와 같은 값
+    const up = (window.__drinkUp ? window.__drinkUp(item.name) : (staminaMap[item.name] || 100));
     const need = Math.ceil((STAMINA_MAX - stamina) / up);
     if (need < 1) { showBagToast('스태미나가 이미 가득 찼어요!'); return; }
     const name = item.name;
