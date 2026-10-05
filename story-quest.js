@@ -67,6 +67,28 @@
     return ORDER.every(function (id) { var t = m.stat[id]; return t && t.v >= min && t.s >= min && t.m >= min; });
   }
   var cnt = function () { return S.cnt; };
+  // 낚시를 해봤는지: 낚시 화면이 열린 적이 있거나, 가방에 낚시로 잡은 물고기가 있음
+  function fishInBag() {
+    try { return typeof bagItems !== 'undefined' && bagItems.some(function (i) { return i && i.desc && String(i.desc).indexOf('낚시로 잡은 물고기') !== -1; }); } catch (e) { return false; }
+  }
+  // fishing.js 는 호수 입구에서 window.startFishing 을 거치지 않고 안쪽 함수를 바로 불러서,
+  // 기존 "호수에서 낚시" 튜토리얼이 완료 안 되는 문제가 있음 → 낚시 화면이 뜨면 우리가 직접 알려줌
+  (function watchFishing() {
+    if (!document.body) { setTimeout(watchFishing, 100); return; }
+    new MutationObserver(function (list) {
+      for (var i = 0; i < list.length; i++) {
+        var added = list[i].addedNodes;
+        for (var j = 0; j < added.length; j++) {
+          var n = added[j];
+          if (n && n.nodeType === 1 && n.id === 'fishing-overlay') {
+            flag('fished');
+            try { if (typeof checkQuestProgress === 'function') { checkQuestProgress('q2_fishing'); checkQuestProgress('first_explore'); } } catch (e) {}
+            return;
+          }
+        }
+      }
+    }).observe(document.body, { childList: true });
+  })();
   function eventsTotal() { var e = S.cnt.events; return (e.drama || 0) + (e.comeback || 0); }
   function bookedTotal() { var b = S.cnt.booked; return (b.drama || 0) + (b.comeback || 0) + (b.rest || 0); }
 
@@ -114,7 +136,7 @@
           ['n:숲속에서 반짝이는 가루를 발견했다. 별가루 같았다.',
            'n:가방에 담자 카드 속 아이돌들이 일제히 같은 쪽을 쳐다봤다. 마치 무언가를 알아본 것처럼.']),
         q('s1_7', '호수의 물고기', '🎣 동쪽 호수에서 낚시를 해보자.', 200, 30,
-          function () { return qdone('tut_fishing'); },
+          function () { return qdone('tut_fishing') || !!S.flags.fished || fishInBag(); },
           ['n:호수는 거울처럼 조용했다. 낚싯줄을 던지자 수면에 별 모양 파문이 번졌다.',
            'n:이 마을의 물과 하늘은 어딘가 서로 이어져 있는 것 같다.']),
         q('s1_8', '배고프면 못 움직여', '🥤 가방의 드링크로 스태미나를 채워보자.', 150, 20,
