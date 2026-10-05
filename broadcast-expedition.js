@@ -38,6 +38,14 @@
   var LEGEND_CHANCE = 0.02;           // 이벤트 끝날 때 레전드 순간이 뜰 확률
   var RARE_TTL = 30, LEGEND_TTL = 25; // 특별 이벤트 제한시간 (초)
   var LEGEND_NEED = 22, LEGEND_SEC = 5; // 레전드: 5초 안에 22번 탭
+  // ❤️ HP (원정에 들어갈 때마다 가득 참 · 이벤트를 할 때마다 치여서 깎임 · 0이 되면 이번 원정에서 얻은 보상을 다 잃고 쫓겨남)
+  var MAX_HP = 100;
+  var HP_DMG = { shutter: 10, letter: 8, goods: 8, golden: 14, legend: 22 };   // 이벤트 1번 할 때 깎이는 HP (미니게임으로 했을 때)
+  var HP_SKILL_MULT = { ok: 0.5, love: 0.3 };                                  // 💖 스킬로 처리하면 덜 깎임 (만족 / 대만족)
+  var POTIONS = [                                                              // 상점에서 코인으로 산다 (더보기 > 💖 팬 스킬 상점)
+    { id: 'hp_s', emoji: '🧪', name: '작은 회복약', heal: 40,  price: 2000, desc: '원정 중 HP +40 · 맵 오른쪽 위 버튼으로 써요' },
+    { id: 'hp_l', emoji: '💊', name: '큰 회복약',   heal: 100, price: 6000, desc: '원정 중 HP 전부 회복 · 맵 오른쪽 위 버튼으로 써요' }
+  ];
   var WEIGHTS = { shutter: 45, letter: 25, goods: 30 };   // 일반 이벤트가 나올 비율
   var HIDE_OLD_SPECIAL = true;        // true: 기존 특별 탐험(배너·3곳·도감 버튼)을 맵 화면에서 숨김. 되돌리려면 false
   // 등교권/등교권 조각 드랍 확률 (기존 특별탐험: 일반 0.2%/5%, 변종 3%/15% 를 이벤트 등급에 맞춰 옮김)
@@ -345,7 +353,106 @@
     p.classList.toggle('bc-moving', !!S.moving);
   }
 
+  // ════════ ❤️ HP / 회복약 ════════
+  function potionById(id) { return POTIONS.filter(function (p) { return p.id === id; })[0] || null; }
+  function potionQty(id) {
+    var po = potionById(id);
+    try { var it = bagItems.find(function (i) { return po && i.name === po.name; }); return it ? Math.max(0, Math.floor(Number(it.qty) || 0)) : 0; } catch (e) { return 0; }
+  }
+  function bagSnapshot() {
+    var m = { coins: (typeof coins !== 'undefined') ? coins : 0, items: {} };
+    try { bagItems.forEach(function (i) { m.items[i.name] = (m.items[i.name] || 0) + (Number(i.qty) || 0); }); } catch (e) {}
+    return m;
+  }
+  function buildHpUi(view) {
+    var box = document.createElement('div');
+    box.id = 'bc-hpbox';
+    box.style.cssText = 'position:absolute;top:6px;right:8px;z-index:36;display:flex;flex-direction:column;align-items:flex-end;gap:5px;font-family:\'Noto Sans KR\',sans-serif;';
+    var bar = '<div style="width:130px;height:18px;border-radius:9px;background:rgba(0,0,0,.65);border:1.5px solid #f87171;position:relative;overflow:hidden;">' +
+      '<div id="bc-hpfill" style="height:100%;width:100%;background:linear-gradient(90deg,#ef4444,#f97316);transition:width .3s;"></div>' +
+      '<div id="bc-hptxt" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;color:#fff;text-shadow:0 1px 3px #000;"></div></div>';
+    var btns = POTIONS.map(function (po) {
+      return '<div class="bc-potion" data-p="' + po.id + '" style="display:flex;align-items:center;gap:5px;background:rgba(26,26,46,.9);border:1.5px solid #4ade80;border-radius:999px;padding:3px 10px;font-size:12px;font-weight:900;color:#fff;cursor:pointer;user-select:none;-webkit-user-select:none;">' +
+        po.emoji + '<span class="bc-pq"></span></div>';
+    }).join('');
+    box.innerHTML = bar + btns;
+    box.addEventListener('pointerdown', function (e) { e.stopPropagation(); });
+    Array.prototype.forEach.call(box.querySelectorAll('.bc-potion'), function (b) {
+      b.onpointerdown = function (e) { e.stopPropagation(); e.preventDefault(); usePotion(b.getAttribute('data-p')); };
+    });
+    view.appendChild(box);
+  }
+  function hpRefresh() {
+    if (!S) return;
+    var f = $('bc-hpfill'), t = $('bc-hptxt');
+    var pct = Math.max(0, Math.min(100, Math.round(S.hp / S.maxhp * 100)));
+    if (f) { f.style.width = pct + '%'; f.style.background = pct <= 25 ? 'linear-gradient(90deg,#dc2626,#ef4444)' : 'linear-gradient(90deg,#ef4444,#f97316)'; }
+    if (t) t.textContent = '❤️ ' + Math.max(0, Math.ceil(S.hp)) + '/' + S.maxhp;
+    Array.prototype.forEach.call(document.querySelectorAll('.bc-potion'), function (b) {
+      var q = potionQty(b.getAttribute('data-p'));
+      var sp = b.querySelector('.bc-pq'); if (sp) sp.textContent = 'x' + q;
+      b.style.opacity = q > 0 ? '1' : '.5';
+    });
+  }
+  function usePotion(id) {
+    var po = potionById(id);
+    if (!S || !po) return;
+    if (S.fainted) return;
+    if (potionQty(id) <= 0) { toast(po.emoji + ' ' + po.name + '이(가) 없어요! 더보기 > 💖 팬 스킬 상점에서 살 수 있어요'); return; }
+    if (S.hp >= S.maxhp) { toast('HP가 이미 가득 차 있어요!'); return; }
+    try { if (typeof useFromBag === 'function') useFromBag(po.name, 1); } catch (e) {}
+    S.hp = Math.min(S.maxhp, S.hp + po.heal);
+    if (typeof saveAll === 'function') { try { saveAll(); } catch (e) {} }
+    hpRefresh();
+    banner('💚 ' + po.name + '! HP ' + Math.ceil(S.hp) + '/' + S.maxhp);
+    try { if (window.pocaSfx && pocaSfx.play) pocaSfx.play('pick'); } catch (e) {}
+  }
+  function hurt(type, viaSkill, love) {
+    var base = HP_DMG[type] || 8;
+    var m = viaSkill ? (love ? HP_SKILL_MULT.love : HP_SKILL_MULT.ok) : 1;
+    var dmg = Math.max(1, Math.round(base * m));
+    S.hp = Math.max(0, S.hp - dmg);
+    hpRefresh();
+    return dmg;
+  }
+  // 쓰러지면 이번 원정에서 얻은 코인 · 아이템 · 등교권을 전부 잃고 맵에서 쫓겨난다 (카드 EXP는 되돌릴 수 없어 그대로)
+  function faint() {
+    if (!S || S.fainted) return;
+    S.fainted = true; S.paused = true; S.moving = false;
+    var lost = [];
+    var lc = Math.min(S.lootCoins || 0, (typeof coins !== 'undefined') ? coins : 0);
+    if (lc > 0) { coins -= lc; lost.push('🍔 ' + lc.toLocaleString() + ' 코인'); }
+    try {
+      var snap = S.snap ? S.snap.items : {};
+      bagItems.slice().forEach(function (i) {
+        if (POTIONS.some(function (po) { return po.name === i.name; })) return;       // 회복약은 안 사라짐
+        var gained = (Number(i.qty) || 0) - (snap[i.name] || 0);
+        if (gained > 0) {
+          if (typeof useFromBag === 'function') useFromBag(i.name, gained);
+          lost.push((i.emoji || i.icon || '📦') + ' ' + i.name + ' x' + gained);
+        }
+      });
+    } catch (e) {}
+    if (S.lootTickets > 0 && typeof schoolDaily !== 'undefined') {
+      schoolDaily.tickets = Math.max(0, (schoolDaily.tickets || 0) - S.lootTickets);
+      if (typeof saveSchoolDaily === 'function') saveSchoolDaily();
+      lost.push('🎫 등교권 x' + S.lootTickets);
+    }
+    if (typeof saveAll === 'function') { try { saveAll(); } catch (e) {} }
+    if (typeof updateCoinsDisplay === 'function') { try { updateCoinsDisplay(); } catch (e) {} }
+    hud();
+    var chips = lost.map(function (t) {
+      return '<div style="display:inline-block;background:rgba(255,255,255,.1);border:1.5px solid #f87171;border-radius:999px;padding:6px 12px;font-size:12px;font-weight:900;margin:3px;">' + t + '</div>';
+    }).join('');
+    panel('<div style="font-size:21px;font-weight:900;margin-bottom:6px;">😵 팬들한테 치여서 쓰러졌어요!</div>' +
+      '<div style="font-size:12px;color:#ddd;margin-bottom:8px;">이번 원정에서 얻은 보상을 전부 놓쳤어요</div>' +
+      '<div style="margin-bottom:12px;">' + (chips || '<div style="font-size:12px;color:#aaa;">잃은 보상은 없어요</div>') + '</div>' +
+      '<button id="bc-faint-out" style="' + BTN + '">맵에서 나가기</button>');
+    $('bc-faint-out').onclick = function () { var o = $('special-overlay'); if (o) o.remove(); };
+  }
+
   function hud() {
+    hpRefresh();
     var el = $('bc-stam');
     var ef = $('bc-eff');
     if (ef && S) {
@@ -552,6 +659,7 @@
   function addTicket() {
     if (typeof schoolDaily === 'undefined') return;
     schoolDaily.tickets = (schoolDaily.tickets || 0) + 1;
+    if (S) S.lootTickets = (S.lootTickets || 0) + 1;
     if (typeof saveSchoolDaily === 'function') saveSchoolDaily();
   }
 
@@ -629,6 +737,7 @@
     if (r.coins > 0) {
       r.coins = Math.max(1, Math.round(r.coins * (MAP.coinMult || 1) * Math.max(0.1, 1 + engB('coin'))));   // 맵별 코인 배율 × 현상 효과
       coins += r.coins;
+      if (S) S.lootCoins = (S.lootCoins || 0) + r.coins;
       lines.push({ icon: '🍔', text: '+' + r.coins + ' 코인', color: '#FFD700' });
     }
     if (r.exp > 0) {
@@ -686,12 +795,15 @@
       SUCCESS: '🎉 특별 NPC 촬영 성공!', PARTIAL: '😮 아깝다!', FAIL: '💨 놓쳤어요…'
     };
     var head = (love ? '😍 대만족! ' : '') + (type === 'golden' ? '🌟 ' : type === 'shutter' ? '📸 ' : '') + (heads[grade] || '');
+    var dmg = S ? hurt(type, typeof love === 'boolean', !!love) : 0;
+    if (S && dmg > 0) lines.push({ icon: '💔', text: 'HP -' + dmg + ' (' + Math.ceil(S.hp) + '/' + S.maxhp + ')', color: '#f87171' });
     var chips = lines.map(function (l, i) {
       return '<div style="opacity:0;animation:bcPop .45s ease-out forwards;animation-delay:' + (i * 0.18) + 's;display:inline-flex;align-items:center;gap:7px;background:rgba(255,255,255,.1);border:1.5px solid ' + l.color +
         ';border-radius:999px;padding:7px 14px;font-size:13px;font-weight:900;margin:3px;"><span style="font-size:16px;">' + l.icon + '</span>' + l.text + '</div>';
     }).join('');
     // 🔊 아이템 얻을 때 효과음 — 칩이 뜨는 타이밍(0.18초 간격)에 맞춰 하나씩 (sfx.js 가 있을 때만)
     lines.slice(0, 7).forEach(function (l, i) {
+      if (l.icon === '💔') return;
       var nm = l.icon === '🍔' ? 'coin' : (l.icon === '⭐' || l.icon === '📸' || l.icon === '🎬' || l.icon === '✨') ? 'pick' : 'rarePick';
       setTimeout(function () { try { if (window.pocaSfx && pocaSfx.play) pocaSfx.play(nm); } catch (e) {} }, 80 + i * 180);
     });
@@ -699,6 +811,11 @@
       '<div style="margin-bottom:10px;">' + (chips || '<div style="font-size:12px;color:#aaa;">얻은 게 없어요</div>') + '</div>' +
       '<button id="bc-next" style="' + BTN + '">계속 탐험하기</button>');
     $('bc-next').onclick = function () { closeEvent(ev); };
+    if (S && S.hp <= 0) {                                       // HP 0: 보상을 확인하고 나면 쓰러진다
+      $('bc-next').textContent = '😵 …앗, 쓰러진다!';
+      $('bc-next').style.background = 'linear-gradient(135deg,#7f1d1d,#dc2626)';
+      $('bc-next').onclick = function () { removeEvent(ev); faint(); };
+    }
     // 🎫💎 등교권 / 초월석을 얻었으면 큰 팝업 (big-drop-popup.js) — 결과창 위에 뜸
     try {
       var gotTicket = lines.some(function (l) { return /^등교권 \+/.test(l.text) && !/조각 \+/.test(l.text); });
@@ -1035,7 +1152,9 @@
     window.addEventListener('resize', layout);
     view.addEventListener('pointerdown', onMapTap);
 
-    S = { charId: charId, px: MAP.start.x, py: MAP.start.y, tx: MAP.start.x, ty: MAP.start.y, moving: false, events: [], paused: false, current: null, last: 0, raf: 0, hudT: 0, done: 0 };
+    S = { charId: charId, px: MAP.start.x, py: MAP.start.y, tx: MAP.start.x, ty: MAP.start.y, moving: false, events: [], paused: false, current: null, last: 0, raf: 0, hudT: 0, done: 0,
+      hp: MAX_HP, maxhp: MAX_HP, lootCoins: 0, lootTickets: 0, snap: bagSnapshot() };
+    buildHpUi(view);
     if (MAP.encore) { var rr = readRun(); S.done = rr ? rr.done : 0; }
     $('bc-layer').appendChild(buildPlayer(ch));
     placePlayer();
@@ -1177,6 +1296,23 @@
   //  love=true(대만족): 셔터/황금 → PERFECT · 팬레터/굿즈 → 보상 업그레이드 · 특별 NPC → 촬영 성공
   //  love=false(만족) : 셔터/황금 → GREAT   · 팬레터/굿즈 → 기본 보상      · 특별 NPC → 아깝다(PARTIAL)
   window.__bcHook = {
+    potions: {
+      list: function () { return POTIONS; },
+      qty: potionQty,
+      buy: function (id) {                                     // 상점 구매 (맵 밖에서도 가능)
+        var po = potionById(id);
+        if (!po) return { ok: false, why: 'none' };
+        if (typeof coins === 'undefined' || coins < po.price) return { ok: false, why: 'coins' };
+        var added = false;
+        try { added = !!addToBag(po.emoji, po.name, 'potion', 1, po.desc); } catch (e) {}
+        if (!added) return { ok: false, why: 'bag' };
+        coins -= po.price;
+        if (typeof saveAll === 'function') { try { saveAll(); } catch (e) {} }
+        if (typeof updateCoinsDisplay === 'function') { try { updateCoinsDisplay(); } catch (e) {} }
+        hpRefresh();
+        return { ok: true };
+      }
+    },
     events: function () { return S ? S.events : []; },
     canResolve: function (ev) {
       if (!S || S.paused || S.events.indexOf(ev) === -1) return false;
