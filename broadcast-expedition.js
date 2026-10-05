@@ -30,6 +30,7 @@
   var ENCORE_N = 20;                  // 공연장: 이벤트 몇 번 하면 앵콜 스테이지(포토랩)가 열리는지
   var RUN_KEY = 'ph_concertRun';      // 공연장 진행 저장 (중간에 나가도 별 안 날리고 이어서 함)
   var FILM_NAME = '필름', FILM_EMOJI = '🎞️';
+  var DEV_NAME = '현상액', DEV_EMOJI = '🧪';   // 포토랩 옵션 강화 재료 (공연장에서만 나옴)
   var SPEED = 200;                    // 걷는 속도 (px/초)
   var HIT_R = 36;                     // 이 거리 안으로 들어가면 이벤트 시작 (px)
   var NORMAL_MAX = 2;                 // 지도에 동시에 떠 있는 ❗ 수
@@ -156,7 +157,8 @@
       legend: { x: 0.50, y: 0.24, label: '무대 앞' },
       bounds: { x0: 0.06, x1: 0.94, y0: 0.20, y1: 0.88 },
       enh: { normal: { stone: 0.01, protect: 0.005, trans: 0 }, variant: { stone: 0.05, protect: 0.03, trans: 0.01 }, npcStone: 1 },
-      film: { normal: 0.07, golden: 0.50, npc: 3 }
+      film: { normal: 0.07, golden: 0.50, npc: 3 },
+      dev: { normal: 0.05, golden: 0.30, npc: 1 }        // 🧪 현상액 드랍 (포토랩 옵션 강화용) — 숫자만 고치면 확률이 바뀜
     }
   };
   var MAP_ORDER = ['broadcast_front', 'fanmeeting', 'concert'];
@@ -578,6 +580,20 @@
     return [{ icon: FILM_EMOJI, text: FILM_NAME + ' +' + n, color: '#fb7185' }];
   }
 
+  // 🧪 현상액: 포토랩 옵션 강화 재료 (맵의 dev 표대로 · 공연장에서만)
+  function devDrop(type, success) {
+    if (!success || !MAP.dev) return [];
+    var n = 0, m = Math.max(0, 1 + engB('film'));
+    if (type === 'legend') n = MAP.dev.npc || 0;
+    else if (Math.random() < (type === 'golden' ? MAP.dev.golden : MAP.dev.normal) * m) n = 1;
+    if (n <= 0) return [];
+    if (typeof addToBag !== 'function' || !addToBag(DEV_EMOJI, DEV_NAME, 'film', n, '포토랩 옵션 강화 재료 · 공연장에서 얻어요')) {
+      toast('가방이 가득 차서 현상액을 못 받았어요! 가방을 비워주세요');
+      return [];
+    }
+    return [{ icon: DEV_EMOJI, text: DEV_NAME + ' +' + n, color: '#34d399' }];
+  }
+
   function grant(r) {
     var lines = [];
     if (r.coins > 0) {
@@ -628,7 +644,7 @@
       if (r.pieces > 0 && Math.random() < pb.extra) { r.pieces += 1; notes.push({ icon: '🎬', text: pb.effectName + ' 발동! 조각 +1', color: '#7dd3fc' }); }
     }
     if (MAP.pieces && success && r.pieces > 0 && Math.random() < engB('pieceExtra')) { r.pieces += 1; notes.push({ icon: '✨', text: '현상 효과! 조각 +1', color: '#7dd3fc' }); }
-    var lines = grant(r).concat(notes).concat(enhDrop(type, success)).concat(filmDrop(type, success));
+    var lines = grant(r).concat(notes).concat(enhDrop(type, success)).concat(filmDrop(type, success)).concat(devDrop(type, success));
     var heads = {
       PERFECT: '✨ PERFECT!', GREAT: '👍 GREAT!', GOOD: '😊 GOOD', MISS: '💦 MISS…',
       OPEN: type === 'letter' ? '💌 팬레터 도착!' : '🎁 굿즈 획득!',
