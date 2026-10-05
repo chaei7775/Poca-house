@@ -657,7 +657,7 @@
         if (ok) {
           completeQuest(a.id, QUESTS[a.id]);
           enqueue(a.id, true);
-          refreshList();
+          refreshList(); updateChip();
           return;          // 한 번에 하나씩
         }
       }
@@ -744,11 +744,42 @@
     refreshList();
   }
 
+
+  // ════════════════════════════════════════════════════════════
+  // 🏠 홈 배너(QUEST 문구 옆)에 연대기 진행 상황 칩
+  // ════════════════════════════════════════════════════════════
+  function chipHtml() {
+    var c = counts(), pct = Math.round(c.done / c.total * 100);
+    return '<div style="font-size:11px;font-weight:900;color:#fff;white-space:nowrap;">📚 연대기 ' + c.done + '/' + c.total + '</div>' +
+      '<div style="height:4px;width:96px;background:rgba(255,255,255,.35);border-radius:2px;margin-top:4px;overflow:hidden;">' +
+      '<div style="height:100%;width:' + pct + '%;background:linear-gradient(90deg,#FFB3CC,#FFD700);"></div></div>';
+  }
+  function updateChip() {
+    var banner = document.querySelector('.home-banner');
+    if (!banner) return;
+    var chip = document.getElementById('story-home-chip');
+    if (!chip) {
+      chip = document.createElement('div');
+      chip.id = 'story-home-chip';
+      chip.style.cssText = 'position:absolute;top:10px;right:10px;z-index:3;padding:7px 11px;border-radius:14px;background:rgba(40,20,70,.72);' +
+        'box-shadow:0 2px 8px #0003;cursor:pointer;backdrop-filter:blur(4px);';
+      chip.addEventListener('click', function (e) {
+        e.stopPropagation();
+        try { if (typeof goTo === 'function') goTo('quest'); else if (typeof showScreen === 'function') showScreen('quest'); } catch (err) {}
+        setTimeout(function () { var s2 = document.getElementById('story-section'); if (s2 && s2.scrollIntoView) s2.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 120);
+      });
+      banner.appendChild(chip);
+    }
+    var h = chipHtml();
+    if (chip.__h !== h) { chip.innerHTML = h; chip.__h = h; }
+  }
+
   // ───────── 시작 ─────────
   (function boot() {
     if (!register()) { setTimeout(boot, 250); return; }
     hookRender();
-    setInterval(tick, 2500);
+    setInterval(function () { tick(); updateChip(); }, 2500);
+    setTimeout(updateChip, 300);
   })();
 
   // 테스트용
