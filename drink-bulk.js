@@ -3,11 +3,12 @@
   'use strict';
   // stamina-balance.js 의 회복량(기본 ×3)과 똑같이 맞춤
   var MULT = 3;
-  var UP = { '사과주스': 10 * MULT, '딸기스무디': 20 * MULT, '에너지드링크': 30 * MULT };
+  var BONUS = 70;      // stamina-balance.js 의 DRINK_BONUS 와 같은 값
+  var UP = { '사과주스': 10 * MULT + BONUS, '딸기스무디': 20 * MULT + BONUS, '에너지드링크': 30 * MULT + BONUS };
   function useDrinks(name, n) {
     var item = bagItems.find(function (i) { return i.name === name; });
     if (!item) return;
-    var up = UP[name] || 10 * MULT;
+    var up = (window.__drinkUp ? window.__drinkUp(name) : (UP[name] || 10 * MULT + BONUS));
     var room = STAMINA_MAX - stamina;
     if (room <= 0) { showBagToast('⚡ 스태미나가 이미 가득 찼어요!'); return; }
     var need = Math.ceil(room / up);               // 가득 채우는 데 필요한 개수
