@@ -594,20 +594,24 @@
     return [{ icon: DEV_EMOJI, text: DEV_NAME + ' +' + n, color: '#34d399' }];
   }
 
-  // 📘 스킬북: 팬덤 원정 이벤트 성공 시 가끔 (드라마 촬영 스킬 숙련도 아이템 — skillbook.js 와 같은 이름)
-  var BOOK_NAME = '스킬북', BOOK_EMOJI = '📘';
+  // 📚 스킬북: 팬덤 원정 이벤트 성공 시 가끔 (드라마 촬영 스킬 숙련도 아이템 — skillbook.js 와 같은 이름). 종류는 무작위
+  var BOOKS = [
+    { cat: '감정', name: '감정 스킬북', emoji: '📕' },
+    { cat: '액션', name: '액션 스킬북', emoji: '📙' },
+    { cat: '애드리브', name: '애드리브 스킬북', emoji: '📗' },
+    { cat: '보조', name: '보조 스킬북', emoji: '📘' }
+  ];
   var BOOK_RATE = { normal: 0.02, golden: 0.06, npc: 0.3 };    // 일반 / 황금 / 특별 NPC 성공 시 나올 확률 (0.02 = 2%)
   function bookDrop(type, success) {
     if (!success) return [];
-    var n = 0;
     var p = type === 'legend' ? BOOK_RATE.npc : (type === 'golden' ? BOOK_RATE.golden : BOOK_RATE.normal);
-    if (Math.random() < p) n = 1;
-    if (n <= 0) return [];
-    if (typeof addToBag !== 'function' || !addToBag(BOOK_EMOJI, BOOK_NAME, 'skillbook', n, '드라마 촬영 스킬 숙련도 +5 · 🎥 드라마 촬영 > 준비 화면 > 스킬 세팅에서 사용해요')) {
+    if (Math.random() >= p) return [];
+    var bk = BOOKS[Math.floor(Math.random() * BOOKS.length)];
+    if (typeof addToBag !== 'function' || !addToBag(bk.emoji, bk.name, 'skillbook', 1, '드라마 촬영 ' + bk.cat + ' 스킬 숙련도 +5 · 🎥 드라마 촬영 > 준비 화면 > 스킬 세팅에서 사용해요')) {
       toast('가방이 가득 차서 스킬북을 못 받았어요! 가방을 비워주세요');
       return [];
     }
-    return [{ icon: BOOK_EMOJI, text: BOOK_NAME + ' +' + n, color: '#60a5fa' }];
+    return [{ icon: bk.emoji, text: bk.name + ' +1', color: '#60a5fa' }];
   }
 
   function grant(r) {
