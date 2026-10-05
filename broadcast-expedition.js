@@ -655,6 +655,11 @@
       return '<div style="opacity:0;animation:bcPop .45s ease-out forwards;animation-delay:' + (i * 0.18) + 's;display:inline-flex;align-items:center;gap:7px;background:rgba(255,255,255,.1);border:1.5px solid ' + l.color +
         ';border-radius:999px;padding:7px 14px;font-size:13px;font-weight:900;margin:3px;"><span style="font-size:16px;">' + l.icon + '</span>' + l.text + '</div>';
     }).join('');
+    // 🔊 아이템 얻을 때 효과음 — 칩이 뜨는 타이밍(0.18초 간격)에 맞춰 하나씩 (sfx.js 가 있을 때만)
+    lines.slice(0, 7).forEach(function (l, i) {
+      var nm = l.icon === '🍔' ? 'coin' : (l.icon === '⭐' || l.icon === '📸' || l.icon === '🎬' || l.icon === '✨') ? 'pick' : 'rarePick';
+      setTimeout(function () { try { if (window.pocaSfx && pocaSfx.play) pocaSfx.play(nm); } catch (e) {} }, 80 + i * 180);
+    });
     panel('<div style="font-size:19px;font-weight:900;margin-bottom:8px;">' + head + '</div>' +
       '<div style="margin-bottom:10px;">' + (chips || '<div style="font-size:12px;color:#aaa;">얻은 게 없어요</div>') + '</div>' +
       '<button id="bc-next" style="' + BTN + '">계속 탐험하기</button>');
