@@ -463,7 +463,7 @@
         ef.textContent = '🎤 ' + Math.min(S.done || 0, ENCORE_N) + '/' + ENCORE_N + (hasEng ? ' · ✨현상 효과' : '');
       } else if (pb && MAP.pieces) {
         ef.style.display = 'block';
-        ef.textContent = '💎 Lv.' + pb.lv + ' · 📸 +' + (pb.skill * 100).toFixed(1).replace('.0', '') + '%p · 🎬 ' + Math.round(pb.extra * 100) + '%';
+        ef.innerHTML = '💎 Lv.' + pb.lv + ' · 📸 +' + (pb.skill * 100).toFixed(1).replace('.0', '') + '%p · 🎬 ' + Math.round(pb.extra * 100) + '%' + (window.getPremiumEquipLines ? window.getPremiumEquipLines().map(function (t) { return '<br>' + t; }).join('') : '');
       } else ef.style.display = 'none';
     }
     if (el && typeof stamina !== 'undefined') el.textContent = '⚡ ' + stamina + '/' + (typeof STAMINA_MAX !== 'undefined' ? STAMINA_MAX : '') + ' · 이벤트 ⚡' + staminaCost();

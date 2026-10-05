@@ -381,5 +381,14 @@
     if (!any) return null;
     return { lv: lv, skill: skill, extra: Math.min(0.95, extra), skillName: '화보의 온도', effectName: '프리미엄 장착 효과' };
   };
+   // 맵 왼쪽 위에 보여줄, 지금 켜진 장착 효과 목록
+  window.getPremiumEquipLines = function () {
+    var act = activeSet();
+    return ORDER.filter(function (pid) { return act[pid]; }).map(function (pid) {
+      var p = PREMIUMS[pid];
+      return p.icon + ' ' + p.text(valueAt(pid, premiumLv(pid)));
+    });
+  };
+ 
   window.__peTest = { equip: equip, unequip: unequip, bonusOf: bonusOf, valueAt: valueAt, loadEq: loadEq, activeSet: activeSet, sanitize: sanitize, applyEnhanceRate: applyEnhanceRate, sectionHtml: sectionHtml };
 })();
