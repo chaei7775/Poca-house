@@ -596,12 +596,12 @@
 
   // 📘 스킬북: 팬덤 원정 이벤트 성공 시 가끔 (드라마 촬영 스킬 숙련도 아이템 — skillbook.js 와 같은 이름)
   var BOOK_NAME = '스킬북', BOOK_EMOJI = '📘';
-  var BOOK_RATE = { normal: 0.06, golden: 0.20, npc: 1 };      // 일반 / 황금 / 특별 NPC 성공 시 확률 (npc 는 개수)
+  var BOOK_RATE = { normal: 0.02, golden: 0.06, npc: 0.3 };    // 일반 / 황금 / 특별 NPC 성공 시 나올 확률 (0.02 = 2%)
   function bookDrop(type, success) {
     if (!success) return [];
     var n = 0;
-    if (type === 'legend') n = BOOK_RATE.npc;
-    else if (Math.random() < (type === 'golden' ? BOOK_RATE.golden : BOOK_RATE.normal)) n = 1;
+    var p = type === 'legend' ? BOOK_RATE.npc : (type === 'golden' ? BOOK_RATE.golden : BOOK_RATE.normal);
+    if (Math.random() < p) n = 1;
     if (n <= 0) return [];
     if (typeof addToBag !== 'function' || !addToBag(BOOK_EMOJI, BOOK_NAME, 'skillbook', n, '드라마 촬영 스킬 숙련도 +5 · 🎥 드라마 촬영 > 준비 화면 > 스킬 세팅에서 사용해요')) {
       toast('가방이 가득 차서 스킬북을 못 받았어요! 가방을 비워주세요');
