@@ -65,6 +65,7 @@ const NEW_CONTENT_FILES = [
   'story-quest.js',
   'clothes-equip.js',
   'skillbook.js',
+  'big-drop-popup.js',
 ];
 NEW_CONTENT_FILES.forEach(function(filename) {
   const s = document.createElement('script');
