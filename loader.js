@@ -27,6 +27,7 @@ const NEW_CONTENT_FILES = [
   'ticket-popup.js',
   'fancafe.js',
   'enhance.js',
+  'fan-skills.js',
   'cloud-extra.js',
   'stamina-balance.js',
   'drink-bulk.js',
