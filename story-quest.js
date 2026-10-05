@@ -14,7 +14,7 @@
 (function () {
   'use strict';
 
-  var KEY = 'ph_story';
+  var KEY = 'ph_chronicle';   // ⚠ 'ph_story' 는 game.js 가 아이돌 이야기 읽음 기록으로 이미 쓰는 이름이라 겹치면 안 됨
   var NAMES = { minjun: '민준', sion: '시온', doyun: '도윤', harin: '하린', yuna: '윤아', ara: '아라' };
   var ORDER = ['minjun', 'sion', 'doyun', 'harin', 'yuna', 'ara'];
 
@@ -32,6 +32,17 @@
     if (!s.flags) s.flags = {};
     return s;
   }
+  // 예전 버전이 'ph_story' 안에 섞어 저장했던 기록은 새 이름으로 옮김 (game.js 기록은 건드리지 않음)
+  (function migrate() {
+    try {
+      if (localStorage.getItem(KEY)) return;
+      var old = J('ph_story', null);
+      if (old && (old.cnt || old.flags || old.snap)) {
+        var m = {}; ['cnt', 'flags', 'snap'].forEach(function (k) { if (old[k]) m[k] = old[k]; });
+        localStorage.setItem(KEY, JSON.stringify(m));
+      }
+    } catch (e) {}
+  })();
   var S = load();
   function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
   function flag(n) { if (!S.flags[n]) { S.flags[n] = 1; save(); } }
@@ -67,12 +78,45 @@
     return ORDER.every(function (id) { var t = m.stat[id]; return t && t.v >= min && t.s >= min && t.m >= min; });
   }
   var cnt = function () { return S.cnt; };
+  function q2(n) { return !!(J('ph_quest2', {}) || {})[n]; }                       // quest-extra.js 가 남긴 '해봤음' 기록
+  function anyGate(min) { return ORDER.some(function (id) { return gate(id) >= min; }); }
+  function anyAffExp() { var a = J('ph_affectionExp', {}) || {}; return keys(a).some(function (k) { return a[k] > 0; }); }
+  function storyReadAny() { var r = J('ph_story', {}) || {}; return keys(r).some(function (k) { return /_\d+$/.test(k) && r[k] === true; }); }
+  function bagHas(name) { try { return typeof bagItems !== 'undefined' && bagItems.some(function (i) { return i && i.name === name; }); } catch (e) { return false; } }
+  function wishN() { try { return typeof wishFragments !== 'undefined' ? wishFragments : 0; } catch (e) { return 0; } }
+  function recombined() { return parseInt(localStorage.getItem('ph_rc_pity') || '0') > 0 || (J('ph_hiddenCards', []) || []).length > 0; }
   // 낚시를 해봤는지: 낚시 화면이 열린 적이 있거나, 가방에 낚시로 잡은 물고기가 있음
   function fishInBag() {
     try { return typeof bagItems !== 'undefined' && bagItems.some(function (i) { return i && i.desc && String(i.desc).indexOf('낚시로 잡은 물고기') !== -1; }); } catch (e) { return false; }
   }
   // fishing.js 는 호수 입구에서 window.startFishing 을 거치지 않고 안쪽 함수를 바로 불러서,
   // 기존 "호수에서 낚시" 튜토리얼이 완료 안 되는 문제가 있음 → 낚시 화면이 뜨면 우리가 직접 알려줌
+  (function watchExplore(tries) {
+    if (typeof window.checkQuestProgress !== 'function') { if (tries < 100) setTimeout(function () { watchExplore(tries + 1); }, 100); return; }
+    var orig = window.checkQuestProgress;
+    if (orig.__storyWatch) return;
+    var w3 = function (c) { try { if (c === 'first_explore') flag('explored'); } catch (e) {} return orig.apply(this, arguments); };
+    w3.__storyWatch = true;
+    window.checkQuestProgress = w3;
+  })(0);
+  // 드링크: 가방의 1개/5개/10개/가득 버튼(drink-bulk.js)은 기존 드링크 퀘스트 감지를 거치지 않아서,
+  // "스태미나 +N" 알림이 뜨면 우리가 직접 알려줌
+  (function watchDrink(tries) {
+    if (typeof window.showBagToast !== 'function') { if (tries < 100) setTimeout(function () { watchDrink(tries + 1); }, 100); return; }
+    var orig = window.showBagToast;
+    if (orig.__storyDrink) return;
+    var w2 = function (msg) {
+      try {
+        if (typeof msg === 'string' && msg.indexOf('사용!') !== -1 && msg.indexOf('스태미나 +') !== -1) {
+          flag('drank');
+          if (typeof checkQuestProgress === 'function') checkQuestProgress('q2_drink');
+        }
+      } catch (e) {}
+      return orig.apply(this, arguments);
+    };
+    w2.__storyDrink = true;
+    window.showBagToast = w2;
+  })(0);
   (function watchFishing() {
     if (!document.body) { setTimeout(watchFishing, 100); return; }
     new MutationObserver(function (list) {
@@ -106,13 +150,13 @@
       intro: '코인 한 닢 없이 도착한 마을. 그곳엔 이상한 가게와 이상한 카드가 있었다.',
       quests: [
         q('s1_1', '일단 살아야지', '🍔 포카버거에서 알바를 해보자. (튜토리얼 "일단 살아야지")', 100, 20,
-          function () { return qdone('tut_alba'); },
+          function () { return qdone('tut_alba') || albaN() >= 1; },
           ['n:주머니를 뒤집어 봐도 먼지뿐이었다. 마을에 도착한 첫날, 나는 정말로 빈털터리였다.',
            'n:포카버거 사장님이 나를 위아래로 훑어보더니 앞치마를 던져줬다.',
            'x:minjun:(멀리서 지켜보다 작게) …저 아이, 어딘가 낯이 익은데.',
            'n:첫 알바비로 받은 동전 몇 개. 이상하게 따뜻했다.']),
         q('s1_2', '저 가게가 궁금해', '🎴 포카 가게에서 카드를 뽑아보자.', 100, 20,
-          function () { return qdone('tut_gacha'); },
+          function () { return qdone('tut_gacha') || ownedN() >= 1; },
           ['n:골목 끝, 유리창 너머로 카드가 반짝이는 가게가 보였다.',
            'n:카드를 한 장 뽑자 종이가 아니라 마치 창문처럼 느껴졌다. 그 안에서 누군가 이쪽을 보고 있었다.',
            'n:카드 속 눈동자가 아주 잠깐, 깜빡였다.']),
@@ -127,12 +171,12 @@
           ['n:카드가 늘어날수록 방 안이 시끌시끌해졌다.',
            'n:표정은 다 달랐지만 공통점이 하나 있었다. 모두 뭔가를 잊은 사람처럼 먼 곳을 보고 있다는 것.']),
         q('s1_5', '선물로 마음 얻기', '🎁 인연 → 선물하기로 선물을 줘보자.', 200, 30,
-          function () { return qdone('tut_gift'); },
+          function () { return qdone('tut_gift') || q2('gift') || anyAffExp(); },
           ['n:서툴게 내민 선물을 아이돌은 한참 바라보다 두 손으로 받았다.',
            'i:…누가 나한테 뭘 준 건 처음인 것 같아. 아니, 처음이 아닌가?',
            'i:기억이 안 나는데도 기분은 좋아. 이상하지?'], 'yuna'),
         q('s1_6', '재료를 찾아서', '🚐 스케줄 가기로 숲·해변·공원에서 재료를 모아보자.', 200, 30,
-          function () { return qdone('tut_explore'); },
+          function () { return qdone('tut_explore') || q2('explore') || !!S.flags.fished || !!S.flags.explored; },
           ['n:숲속에서 반짝이는 가루를 발견했다. 별가루 같았다.',
            'n:가방에 담자 카드 속 아이돌들이 일제히 같은 쪽을 쳐다봤다. 마치 무언가를 알아본 것처럼.']),
         q('s1_7', '호수의 물고기', '🎣 동쪽 호수에서 낚시를 해보자.', 200, 30,
@@ -140,7 +184,7 @@
           ['n:호수는 거울처럼 조용했다. 낚싯줄을 던지자 수면에 별 모양 파문이 번졌다.',
            'n:이 마을의 물과 하늘은 어딘가 서로 이어져 있는 것 같다.']),
         q('s1_8', '배고프면 못 움직여', '🥤 가방의 드링크로 스태미나를 채워보자.', 150, 20,
-          function () { return qdone('tut_drink'); },
+          function () { return qdone('tut_drink') || !!S.flags.drank || !!(J('ph_quest2', {}) || {}).drink; },
           ['n:마을을 뛰어다니다 보니 다리가 풀렸다. 드링크 한 모금에 다시 힘이 났다.',
            'n:아이돌들도 똑같구나. 힘들면 쉬고, 배고프면 먹어야 하는 사람들.']),
         q('s1_9', '포카를 모아봐', '🎴 카드를 10장 모아보자.', 300, 50,
@@ -149,7 +193,7 @@
            'x:sion:…뭐야, 이 느낌. 누가 우리를 부르는 소리 같았는데.',
            'x:ara:착각이겠지. …그래도 신경 쓰이네.']),
         q('s1_10', '처음 듣는 이야기', '📖 인연 화면에서 아이돌의 이야기를 처음으로 들어보자.', 400, 60,
-          function () { return qdone('main_story'); },
+          function () { return qdone('main_story') || storyReadAny(); },
           ['i:있잖아. 나한테는 "별의 기록"이라는 말이 계속 맴돌아.',
            'i:뭔지는 몰라. 하지만 잃어버린 진실의 조각이 거기 있는 것 같아.',
            'p:같이 찾아볼게요.',
@@ -162,32 +206,32 @@
       intro: '아이돌들은 자신이 누구였는지 잊었다. 조각을 모으면 기억이 돌아올지도 모른다.',
       quests: [
         q('s2_1', '마음을 열어봐', '💞 아이돌과 인연 단계를 올려보자.', 300, 40,
-          function () { return qdone('main_affection'); },
+          function () { return qdone('main_affection') || anyGate(2); },
           ['n:자주 만나고, 선물하고, 이야기를 나누자 아이돌들의 말투가 조금씩 부드러워졌다.',
            'x:doyun:…계속 들러. 규칙은 아니지만, 그렇게 해주면 좋겠어.']),
         q('s2_2', '학원 문을 열어라', '⭐ 포카하우스 레벨 10을 달성하자.', 400, 50,
-          function () { return qdone('main_level'); },
+          function () { return qdone('main_level') || plv() >= 10; },
           ['n:잠겨 있던 기술학원 문이 열렸다. 먼지 쌓인 교실 칠판에 누군가 써둔 글씨가 남아 있었다.',
            'n:"이름이 불리면, 사람은 돌아온다."',
            'n:누가 썼는지는 알 수 없었다.']),
         q('s2_3', '전설의 섬', '🏝️ 신비의 섬을 열어보자.', 400, 50,
-          function () { return qdone('main_mystery'); },
+          function () { return qdone('main_mystery') || anyGate(3); },
           ['i:신비의 섬에 가봐. 거기에 네가 찾는 게 있을 거야.',
            'p:섬이라니, 지도에도 없는데.',
            'i:마음이 열려야 보이는 곳이래. 이제 네 앞에 나타날 거야.'], 'harin'),
         q('s2_4', '기억의 조각', '✨ 신비의 섬에서 소원의 조각을 찾아보자.', 500, 80,
-          function () { return qdone('main_wish'); },
+          function () { return qdone('main_wish') || wishN() > 0 || bagHas('소원의 결정') || q2('crystal'); },
           ['n:모래 위에서 손톱만 한 조각이 반짝였다. 쥐자마자 머릿속에 낯선 장면이 스쳤다.',
            'n:환한 조명, 함성, 그리고… 누군가 부르는 이름.',
            'n:그 사이로 낯선 하늘이 스쳤다. 날개도 없이 떨어지던, 나의 기억까지.',
            'n:이 조각들은 아이돌들의 것이면서, 어쩌면 나의 것이기도 하다.']),
         q('s2_5', '조각이 모이면', '🔮 소원의 조각 100개로 소원의 결정을 만들어보자.', 700, 100,
-          function () { return qdone('main_crystal'); },
+          function () { return qdone('main_crystal') || q2('crystal') || bagHas('소원의 결정'); },
           ['n:조각 백 개가 하나로 뭉쳐 푸른 결정이 되었다. 손에서 심장 소리처럼 쿵, 쿵 울렸다.',
            'x:minjun:이거야. 별의 기록 일부가 여기 담겨 있어.',
            'x:minjun:…아직 전부는 아니지만.']),
         q('s2_6', '카드 재조합', '🔮 카드 재조합기를 한 번 써보자.', 300, 40,
-          function () { return qdone('tut_recombine'); },
+          function () { return qdone('tut_recombine') || q2('recombine') || recombined(); },
           ['n:겹치는 카드 두 장이 빛으로 녹아 새로운 한 장이 되었다.',
            'n:사라진 게 아니라 이어진 것이라고, 카드 속 아이가 말해줬다.']),
         q('s2_7', '숨겨진 얼굴', '🌟 첫 히든카드를 얻어보자.', 600, 80,
@@ -240,7 +284,7 @@
           ['n:"컷! 오케이!" 스튜디오가 조용해졌다가 박수가 터졌다.',
            'x:doyun:…나쁘지 않았어. 내가 이런 칭찬을 하는 건 드문 일이야.']),
         q('s3_7', '팬덤 원정', '🚐 팬덤 원정을 출발해보자.', 600, 80,
-          function () { return qdone('main_expedition'); },
+          function () { return qdone('main_expedition') || q2('expedition'); },
           ['n:방송국 앞은 팬들의 목소리로 가득했다. 처음 들어보는 환호였다.',
            'n:환호 속에서 카드 한 장이 파르르 떨렸다. 이름이 불리는 건 이렇게 크게 울리는 일이었다.']),
         q('s3_8', '굿즈 장착', '🎁 굿즈를 아이돌 카드에 장착해보자.', 600, 80,
