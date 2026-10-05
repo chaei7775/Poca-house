@@ -136,7 +136,12 @@
     if (!st.stage || typeof st.stage !== 'object') st.stage = {};
     return st;
   }
-  function stones() { return loadEnh().stone; }
+  function bagStone() {
+    if (typeof bagItems === 'undefined') return 0;
+    var it = bagItems.find(function (i) { return i.name === '강화석'; });
+    return it ? Math.max(0, Math.floor(Number(it.qty) || 0)) : 0;
+  }
+  function stones() { return bagStone() + loadEnh().stone; }
   function nowCoins() { return (typeof coins !== 'undefined') ? coins : 0; }
   function fmt(n) { return Number(n).toLocaleString(); }
 
@@ -151,9 +156,11 @@
     if (lv < 1 || lv >= MAX_LV) return null;
     var i = lv - 1, needStone = ENH_STONE[i], needCoin = ENH_COIN[i];
     var st = loadEnh();
-    if (st.stone < needStone) { toast('강화석이 부족해요! (' + st.stone + '/' + needStone + ')'); return null; }
+    if (stones() < needStone) { toast('강화석이 부족해요! (' + stones() + '/' + needStone + ')'); return null; }
     if (nowCoins() < needCoin) { toast('코인이 부족해요! 🍔 ' + fmt(needCoin) + ' 필요'); return null; }
-    st.stone -= needStone;
+    var fromBag = Math.min(bagStone(), needStone);
+    if (fromBag > 0 && typeof useFromBag === 'function') useFromBag('강화석', fromBag);
+    st.stone -= (needStone - fromBag);
     try { localStorage.setItem(ENH_KEY, JSON.stringify(st)); } catch (e) {}
     if (typeof coins !== 'undefined') coins -= needCoin;
     var ok = Math.random() * 100 < ENH_RATE[i];
