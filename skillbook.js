@@ -11,7 +11,7 @@
   // ── 설정 ──
   var BOOK_NAME = '스킬북', BOOK_EMOJI = '📘';
   var BOOK_DESC = '드라마 촬영 스킬 숙련도 +5 · 🎥 드라마 촬영 > 준비 화면 > 스킬 세팅에서 사용해요';
-  var BOOK_DROP = { normal: 0.02, rare: 0.06 };   // 탐험에서 재료 1개 주울 때 같이 나올 확률 (희귀 재료는 더 높음)
+  var BOOK_DROP = { normal: 0.005, rare: 0.007 };   // 탐험에서 재료 1개 주울 때 같이 나올 확률 (희귀 재료는 더 높음)
   var EXPLORE_WINDOW_MS = 45000;                   // 스태미나를 쓴 직후 이 시간 안에 늘어난 재료만 "탐험 중 주운 것"으로 침
 
   function toast(msg) {
