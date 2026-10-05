@@ -261,7 +261,9 @@ const MAST_PER=0.05;   // 레벨 1 오를 때마다 효과 +5%  (Lv.10 = +45%)
 const MAST_CD=0.02;    // 레벨 1 오를 때마다 쿨타임 -2% (Lv.10 = -18%)
 const MAST_SUCC=0.02;  // 레벨 1 오를 때마다 도박 스킬(스턴트·애드리브·즉흥노래) 성공률 +2%p
 const MAST_HIT=2;      // 찬스 타이밍에 맞춰 쓰면 경험치 2 (평소엔 1)
-const BOOK_NAME='스킬북', BOOK_EMOJI='📘', BOOK_XP=5;   // 스킬북 1권 = 선택한 스킬 숙련 경험치 +5 (탐험·팬덤 원정에서 드랍 → skillbook.js / broadcast-expedition.js)
+const BOOK_XP=5;   // 스킬북 1권 = 같은 종류 스킬 숙련 경험치 +5 (탐험·팬덤 원정에서 드랍 → skillbook.js / broadcast-expedition.js, 거래소에서도 거래)
+const BOOKS={'감정':{n:'감정 스킬북',e:'📕'},'액션':{n:'액션 스킬북',e:'📙'},'애드리브':{n:'애드리브 스킬북',e:'📗'},'보조':{n:'보조 스킬북',e:'📘'}};   // 이름은 skillbook.js / broadcast-expedition.js / trade.js 와 같아야 해요
+const BOOK_OLD='스킬북';   // 예전에 얻은 범용 스킬북: 아무 스킬에나 쓸 수 있게 그대로 인정
 let MCTX=1,MLV=1;      // 스킬 설명글을 숙련도 기준으로 만들 때만 잠깐 쓰는 값
 const mastXp=id=>(S&&S.mast&&S.mast[id])||0;
 const mastLv=id=>{const x=mastXp(id);let l=1;for(let i=1;i<MAST_MAX;i++)if(x>=MAST_XP[i])l=i+1;return l};
@@ -431,7 +433,9 @@ function load(){try{const r=localStorage.getItem(KEY);if(r){S=JSON.parse(r)}}cat
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
 load();
 /* 게임 본체와 연결: 코인(coins) · 소원의 조각(wishFragments) · 보유 카드(owned/ownedHiddenCards) · 기획사 데뷔(__agencyTest) */
-function bookQty(){try{const b=bagItems.find(i=>i.name===BOOK_NAME);return b?b.qty:0}catch(e){return 0}}
+function bagQty(n){try{const b=bagItems.find(i=>i.name===n);return b?b.qty:0}catch(e){return 0}}
+const bookQty=cat=>bagQty(BOOKS[cat].n);          // 그 종류 전용 책
+const bookAny=cat=>bookQty(cat)+bagQty(BOOK_OLD); // 전용 책 + 예전 범용 책
 function slotxQty(){try{const b=bagItems.find(i=>i.name===SLOTX);return b?b.qty:0}catch(e){return 0}}
 function saveGame(){try{if(typeof saveAll==='function')saveAll()}catch(e){}}
 function debutMap(){try{return (window.__agencyTest&&window.__agencyTest.load().done)||{}}catch(e){return {}}}
@@ -522,9 +526,10 @@ function renderPrep(){
       ${locked?`<div class="s" style="color:var(--muted)">${lockWhy}</div>`:`
       <div class="slotrow"><span class="lab">슬롯</span>${Array.from({length:c_.slots},(_,i)=>{const it=mine[i];return it?`<button class="sl c-${SKILLS[it.s].cat} g-${SKILLS[it.s].gr} ic ic-${it.s}" data-a="eq" data-u="${it.u}">${SKILLS[it.s].i}</button>`:`<span class="sl empty">+</span>`}).join('')}</div>
       ${(()=>{const base=c_.slots,ex=S.slotExp[c_.id]||0,q=slotxQty(),full=base>=CFG.SLOT_MAX||ex>=CFG.SLOT_EXP_MAX;return `<button class="btn" data-a="slotx" style="width:100%;margin-bottom:12px;padding:10px 12px;font-size:13px" ${(q<1||full)?'disabled':''}>🎟️ 슬롯 확장권 사용 · 보유 ${q}개 · 이 카드 확장 ${ex}/${CFG.SLOT_EXP_MAX}${full?' (최대)':''}</button>`})()}
-      ${(()=>{const q=bookQty(),ids=[...new Set(S.inv.map(i=>i.s))].sort((a,b)=>GR[SKILLS[b].gr]-GR[SKILLS[a].gr]);
-        const rows=q>0?ids.map(id=>{const l=mastLv(id),mx=l>=MAST_MAX;return `<div style="display:flex;align-items:center;gap:6px;padding:6px 0;border-top:1px solid var(--line)"><div style="flex:1;min-width:0;font-size:13px"><b>${SKILLS[id].n}</b> <span style="color:#7ee8a5">Lv.${l}${mx?' MAX':''}</span><div style="font-size:11px;color:var(--muted)">${mx?'최대 숙련':`숙련 ${mastXp(id)}/${MAST_XP[l]}`}</div></div><button class="btn" data-a="book" data-s="${id}" data-n="1" ${mx?'disabled':''} style="padding:7px 10px;font-size:12px">1권</button><button class="btn" data-a="book" data-s="${id}" data-n="5" ${mx||q<5?'disabled':''} style="padding:7px 10px;font-size:12px">5권</button></div>`}).join(''):'';
-        return `<div style="border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:12px"><div style="font-size:13px"><b>${BOOK_EMOJI} 스킬북</b> <span style="color:var(--muted)">보유 ${q}권 · 1권 = 숙련 +${BOOK_XP}</span></div>${q>0?rows:'<div style="font-size:11px;color:var(--muted);margin-top:4px">탐험과 팬덤 원정에서 가끔 나와요. 쓰면 고른 스킬의 숙련도가 올라가요.</div>'}</div>`})()}
+      ${(()=>{const ids=[...new Set(S.inv.map(i=>i.s))].sort((a,b)=>GR[SKILLS[b].gr]-GR[SKILLS[a].gr]);
+        const have=CATS.map(c=>`${BOOKS[c].e}${c} ${bookQty(c)}`).join(' · ')+(bagQty(BOOK_OLD)?` · 범용 ${bagQty(BOOK_OLD)}`:''),total=CATS.reduce((s,c)=>s+bookAny(c),0);
+        const rows=total>0?ids.map(id=>{const cat=SKILLS[id].cat,q=bookAny(cat),l=mastLv(id),mx=l>=MAST_MAX;return `<div style="display:flex;align-items:center;gap:6px;padding:6px 0;border-top:1px solid var(--line)"><div style="flex:1;min-width:0;font-size:13px"><b>${SKILLS[id].n}</b> <span style="color:#7ee8a5">Lv.${l}${mx?' MAX':''}</span><div style="font-size:11px;color:var(--muted)">${mx?'최대 숙련':`숙련 ${mastXp(id)}/${MAST_XP[l]}`} · ${BOOKS[cat].e}${cat} 책 ${q}권</div></div><button class="btn" data-a="book" data-s="${id}" data-n="1" ${mx||q<1?'disabled':''} style="padding:7px 10px;font-size:12px">1권</button><button class="btn" data-a="book" data-s="${id}" data-n="5" ${mx||q<5?'disabled':''} style="padding:7px 10px;font-size:12px">5권</button></div>`}).join(''):'';
+        return `<div style="border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:12px"><div style="font-size:13px"><b>📚 스킬북</b> <span style="color:var(--muted)">1권 = 숙련 +${BOOK_XP} · 같은 종류 스킬에만</span></div><div style="font-size:11px;color:var(--muted);margin-top:2px">${have}</div>${total>0?rows:'<div style="font-size:11px;color:var(--muted);margin-top:4px">탐험과 팬덤 원정에서 가끔 나와요. 거래소에서도 살 수 있어요.</div>'}</div>`})()}
       ${groups}`}
     </div>
 
@@ -557,14 +562,16 @@ $('#dr-prep').addEventListener('click',e=>{
   else if(a==='book'){
     const id=b.dataset.s,n=+b.dataset.n||1;
     if(!SKILLS[id]||!S.inv.some(i=>i.s===id)){return}
+    const cat=SKILLS[id].cat;
     if(mastLv(id)>=MAST_MAX){snack('이미 최대 숙련이에요');}
-    else if(bookQty()<n){snack('스킬북이 부족해요');}
+    else if(bookAny(cat)<n){snack(BOOKS[cat].n+'이 부족해요');}
     else{
-      // 최대 레벨을 넘겨서 낭비하지 않게, 필요한 만큼만 사용
-      const need=Math.max(1,Math.ceil((MAST_XP[MAST_MAX-1]-mastXp(id))/BOOK_XP)),use=Math.min(n,need,bookQty());
-      let ok=false;try{ok=!!useFromBag(BOOK_NAME,use)}catch(e){}
+      // 최대 레벨을 넘겨서 낭비하지 않게 필요한 만큼만 사용. 전용 책을 먼저, 모자라면 범용 책
+      const need=Math.max(1,Math.ceil((MAST_XP[MAST_MAX-1]-mastXp(id))/BOOK_XP)),use=Math.min(n,need,bookAny(cat));
+      const a1=Math.min(use,bookQty(cat)),a2=use-a1;
+      let ok=true;try{if(a1>0)ok=!!useFromBag(BOOKS[cat].n,a1);if(ok&&a2>0)ok=!!useFromBag(BOOK_OLD,a2)}catch(e){ok=false}
       if(ok){const before=mastLv(id);addMast(id,BOOK_XP*use);saveGame();
-        const l=mastLv(id);snack(l>before?`${SKILLS[id].n} 숙련 Lv.${l}! 📘`:`${SKILLS[id].n} 숙련 +${BOOK_XP*use} 📘`)}
+        const l=mastLv(id);snack(l>before?`${SKILLS[id].n} 숙련 Lv.${l}! ${BOOKS[cat].e}`:`${SKILLS[id].n} 숙련 +${BOOK_XP*use} ${BOOKS[cat].e}`)}
     }
   }
   else if(a==='eq'){
@@ -873,7 +880,7 @@ $('#dr-result').addEventListener('click',e=>{const b=e.target.closest('[data-r]'
 function openDrama(){load();renderPrep();{const s_=$('#dr-prep .scroll');if(s_)s_.scrollTop=0}R.hidden=false;$('#dr-prep').hidden=false;$('#dr-shoot').hidden=true;$('#dr-result').hidden=true}
 function closeDrama(){if(G)return;R.hidden=true}
 window.openDrama=openDrama;
-window.__dramaTest={rating,SKILLS,SCRIPTS,CFG,MAST:{BOOK_XP,BOOK_NAME,XP:MAST_XP,MAX:MAST_MAX,lv:mastLv,mult:mastMult,cd:mastCd,add:addMast,xp:mastXp,dtext}};
+window.__dramaTest={rating,SKILLS,SCRIPTS,CFG,MAST:{BOOK_XP,BOOKS,XP:MAST_XP,MAX:MAST_MAX,lv:mastLv,mult:mastMult,cd:mastCd,add:addMast,xp:mastXp,dtext}};
 /* 광장 메뉴 버튼 (CF 촬영 버튼 아래) */
 let tries=0;
 (function hook(){
