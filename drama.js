@@ -253,7 +253,26 @@ const KIND_COLOR={emotion:'var(--emo)',action:'var(--act)',adlib:'var(--adl)'};
 const KIND_BANNER={emotion:'EMOTION CHANCE!',action:'ACTION CHANCE!',adlib:'AD-LIB CHANCE!'};
 const TONE_TRAIT={'수줍음':'plain','당당함':'funny','감성':'emotional'};
 const fmt=n=>Math.round(n*10)/10;
-const sc=v=>fmt(v*CFG.SK);
+/* ── 스킬 숙련도 ── 스킬을 쓸 때마다 경험치가 쌓여서 Lv.1 → Lv.10 (스킬 종류별로 따로 올라가요)
+   레벨이 오를수록 효과가 세지고 쿨타임이 줄어요. 아래 숫자만 바꾸면 밸런스 조절 가능! */
+const MAST_XP=[0,5,12,22,35,52,75,105,145,200]; // Lv.1~10 에 도달하는 누적 경험치
+const MAST_MAX=10;
+const MAST_PER=0.05;   // 레벨 1 오를 때마다 효과 +5%  (Lv.10 = +45%)
+const MAST_CD=0.02;    // 레벨 1 오를 때마다 쿨타임 -2% (Lv.10 = -18%)
+const MAST_SUCC=0.02;  // 레벨 1 오를 때마다 도박 스킬(스턴트·애드리브·즉흥노래) 성공률 +2%p
+const MAST_HIT=2;      // 찬스 타이밍에 맞춰 쓰면 경험치 2 (평소엔 1)
+let MCTX=1,MLV=1;      // 스킬 설명글을 숙련도 기준으로 만들 때만 잠깐 쓰는 값
+const mastXp=id=>(S&&S.mast&&S.mast[id])||0;
+const mastLv=id=>{const x=mastXp(id);let l=1;for(let i=1;i<MAST_MAX;i++)if(x>=MAST_XP[i])l=i+1;return l};
+const mastMult=id=>1+(mastLv(id)-1)*MAST_PER;
+const mastCd=id=>1-(mastLv(id)-1)*MAST_CD;
+const MM=()=>G&&G.curSkill?mastMult(G.curSkill):1;
+const ML=()=>G&&G.curSkill?mastLv(G.curSkill):1;
+const pr=(b,lv)=>Math.min(.95,b+MAST_SUCC*(lv-1));
+const bd=n=>Math.round(n*MCTX), bu=n=>Math.round(n*MM());
+function addMast(id,n){if(!S.mast)S.mast={};const b=mastLv(id);S.mast[id]=Math.min(MAST_XP[MAST_MAX-1],mastXp(id)+n);return mastLv(id)>b}
+function dtext(id){MCTX=mastMult(id);MLV=mastLv(id);try{return SKILLS[id].d()}finally{MCTX=1;MLV=1}}
+const sc=v=>fmt(v*CFG.SK*MCTX);
 const won=n=>'₩'+Math.round(n).toLocaleString('ko-KR');
 
 const CHARS=[
@@ -369,20 +388,20 @@ const SKILLS={
  tears:{n:'눈물연기',cat:'감정',gr:'레어',cd:15,i:'눈',chance:'emotion',d:()=>`+${sc(10)}% (감정 찬스 ×1.5)`,use:C=>{gain(10,C,'눈물연기');tearFx()}},
  rage:{n:'분노폭발',cat:'감정',gr:'레어',cd:18,i:'분',d:()=>`+${sc(12)}% 확정`,use:C=>{gain(12,C,'분노폭발');burstFx('#ff5468',22)}},
  dead:{n:'무표정 열연',cat:'감정',gr:'히든',cd:20,i:'무',d:()=>'다음 판정 GOOD 이상 보장',use:C=>{G.good=true;popup('열연 대기','sm','var(--ok)')}},
- chase:{n:'추격씬',cat:'액션',gr:'레어',cd:25,i:'추',d:()=>'8초간 자동 상승 2배',use:C=>{G.chaseUntil=G.t+8;popup('추격 2배!','','var(--act)')}},
- wire:{n:'와이어액션',cat:'액션',gr:'레어',cd:22,i:'와',d:()=>`액션씬 +${sc(15)}%, 화제성 +5`,use:C=>{const a=C.scene==='action';gain(a?15:4,C,'와이어');if(a){addBuzz(5);shakeFx()}}},
+ chase:{n:'추격씬',cat:'액션',gr:'레어',cd:25,i:'추',d:()=>`${fmt(8*MCTX)}초간 자동 상승 2배`,use:C=>{G.chaseUntil=G.t+8*MM();popup('추격 2배!','','var(--act)')}},
+ wire:{n:'와이어액션',cat:'액션',gr:'레어',cd:22,i:'와',d:()=>`액션씬 +${sc(15)}%, 화제성 +${bd(5)}`,use:C=>{const a=C.scene==='action';gain(a?15:4,C,'와이어');if(a){addBuzz(bu(5));shakeFx()}}},
  act:{n:'액션연기',cat:'액션',gr:'히든',cd:20,i:'액',chance:'action',d:()=>`액션씬 +${sc(22)}%, 그 외 +${sc(5)}%`,use:C=>{const a=C.scene==='action';gain(a?22:5,C,'액션연기');if(a||C.chance)shakeFx()}},
- stunt:{n:'스턴트',cat:'액션',gr:'프리미엄',cd:30,i:'스',d:()=>`60% +${sc(30)}% / 실패 -3초`,use:C=>{if(Math.random()<.6){gain(30,C,'스턴트 성공!');shakeFx();burstFx('#ffcf4a',26)}else{addTime(-3);popup('스턴트 실패 -3초','','var(--rec)')}}},
- laugh:{n:'웃음 참기 실패',cat:'애드리브',gr:'레어',cd:15,i:'웃',d:()=>`로맨스 +${sc(10)}%, 화제성 +8`,use:C=>{const r=C.scene==='romance';gain(r?10:3,C,'웃음 참기 실패');if(r)addBuzz(8)}},
- adlib:{n:'애드리브',cat:'애드리브',gr:'히든',cd:25,i:'애',chance:'adlib',d:()=>`50% +${sc(25)}%, 화제성 +10 / 실패 -4초`,use:C=>{if(Math.random()<.5){gain(25,C,'예상 밖의 명장면!');addBuzz(10);burstFx('#b793ff',30)}else{addTime(-4);popup('NG! 감독 당황 -4초','','var(--rec)');dirSay('…방금 뭐였지?')}}},
- song:{n:'즉흥 노래',cat:'애드리브',gr:'히든',cd:28,i:'노',d:()=>`70% +${sc(20)}% / 실패 -2초`,use:C=>{if(Math.random()<.7){gain(20,C,'즉흥 노래 대성공!');burstFx('#b793ff',24)}else{addTime(-2);popup('음이탈 -2초','','var(--rec)')}}},
- makeup:{n:'메이크업 수정',cat:'보조',gr:'일반',cd:12,i:'메',d:()=>'화제성 +5',use:C=>{addBuzz(5);popup('화제성 +5','sm','var(--aux)')}},
- guard:{n:'NG 방지',cat:'보조',gr:'일반',cd:20,i:'방',d:()=>'다음 NG 1회 무효',use:C=>{G.ng++;popup('NG 방지 대기','sm','var(--aux)')}},
- extend:{n:'시간 연장',cat:'보조',gr:'레어',cd:30,i:'연',d:()=>'촬영시간 +3초',use:C=>{addTime(3);popup('촬영시간 +3초','','var(--aux)')}},
+ stunt:{n:'스턴트',cat:'액션',gr:'프리미엄',cd:30,i:'스',d:()=>`${Math.round(pr(.6,MLV)*100)}% +${sc(30)}% / 실패 -3초`,use:C=>{if(Math.random()<pr(.6,ML())){gain(30,C,'스턴트 성공!');shakeFx();burstFx('#ffcf4a',26)}else{addTime(-3);popup('스턴트 실패 -3초','','var(--rec)')}}},
+ laugh:{n:'웃음 참기 실패',cat:'애드리브',gr:'레어',cd:15,i:'웃',d:()=>`로맨스 +${sc(10)}%, 화제성 +${bd(8)}`,use:C=>{const r=C.scene==='romance';gain(r?10:3,C,'웃음 참기 실패');if(r)addBuzz(bu(8))}},
+ adlib:{n:'애드리브',cat:'애드리브',gr:'히든',cd:25,i:'애',chance:'adlib',d:()=>`${Math.round(pr(.5,MLV)*100)}% +${sc(25)}%, 화제성 +${bd(10)} / 실패 -4초`,use:C=>{if(Math.random()<pr(.5,ML())){gain(25,C,'예상 밖의 명장면!');addBuzz(bu(10));burstFx('#b793ff',30)}else{addTime(-4);popup('NG! 감독 당황 -4초','','var(--rec)');dirSay('…방금 뭐였지?')}}},
+ song:{n:'즉흥 노래',cat:'애드리브',gr:'히든',cd:28,i:'노',d:()=>`${Math.round(pr(.7,MLV)*100)}% +${sc(20)}% / 실패 -2초`,use:C=>{if(Math.random()<pr(.7,ML())){gain(20,C,'즉흥 노래 대성공!');burstFx('#b793ff',24)}else{addTime(-2);popup('음이탈 -2초','','var(--rec)')}}},
+ makeup:{n:'메이크업 수정',cat:'보조',gr:'일반',cd:12,i:'메',d:()=>`화제성 +${bd(5)}`,use:C=>{const b=bu(5);addBuzz(b);popup(`화제성 +${b}`,'sm','var(--aux)')}},
+ guard:{n:'NG 방지',cat:'보조',gr:'일반',cd:20,i:'방',d:()=>`다음 NG ${1+(MLV>=5?1:0)+(MLV>=10?1:0)}회 무효`,use:C=>{const n=1+(ML()>=5?1:0)+(ML()>=10?1:0);G.ng+=n;popup(`NG 방지 ${n}회 대기`,'sm','var(--aux)')}},
+ extend:{n:'시간 연장',cat:'보조',gr:'레어',cd:30,i:'연',d:()=>`촬영시간 +${fmt(3*MCTX)}초`,use:C=>{const t=3*MM();addTime(t);popup(`촬영시간 +${fmt(t)}초`,'','var(--aux)')}},
  chemi:{n:'케미 부스트',cat:'보조',gr:'레어',cd:18,i:'케',multi:true,d:()=>'2인 이상 대본에서 다음 스킬 ×1.3',use:C=>{popup('1인 대본: 효과 없음','sm','var(--muted)')}},
- close:{n:'클로즈업',cat:'보조',gr:'히든',cd:25,i:'클',d:()=>'다음 스킬 효과 ×1.5',use:C=>{G.nextMult=1.5;popup('클로즈업! 다음 ×1.5','sm','var(--aux)')}},
- memo:{n:'대본 암기',cat:'보조',gr:'일반',cd:0,i:'암',passive:true,d:()=>'판정 구간 +0.5초 (패시브)',use:C=>{}},
- one:{n:'원테이크',cat:'보조',gr:'프리미엄',cd:40,i:'원',d:()=>'10초간 NG 무효, 게이지 상승 ×1.5',use:C=>{G.oneUntil=G.t+10;popup('원테이크!','','var(--slate)')}}
+ close:{n:'클로즈업',cat:'보조',gr:'히든',cd:25,i:'클',d:()=>`다음 스킬 효과 ×${fmt(1+0.5*MCTX)}`,use:C=>{G.nextMult=1+0.5*MM();popup(`클로즈업! 다음 ×${fmt(G.nextMult)}`,'sm','var(--aux)')}},
+ memo:{n:'대본 암기',cat:'보조',gr:'일반',cd:0,i:'암',passive:true,d:()=>`판정 구간 +${fmt(0.5*MCTX)}초 (패시브)`,use:C=>{}},
+ one:{n:'원테이크',cat:'보조',gr:'프리미엄',cd:40,i:'원',d:()=>`${fmt(10*MCTX)}초간 NG 무효, 게이지 상승 ×1.5`,use:C=>{G.oneUntil=G.t+10*MM();popup('원테이크!','','var(--slate)')}}
 };
 const DROP={low:{일반:65,레어:30,히든:5,프리미엄:0},high:{일반:40,레어:35,히든:20,프리미엄:5}};
 const BG_SRC={romance:'drama/bg/romance.jpg',action:'drama/bg/action.jpg',comedy:'drama/bg/comedy.jpg',horror:'drama/bg/horror.jpg'};
@@ -406,7 +425,7 @@ function fresh(){
 let S;
 function load(){try{const r=localStorage.getItem(KEY);if(r){S=JSON.parse(r)}}catch(e){}
   if(!S||!S.inv)S=fresh();
-  if(!S.equip)S.equip={};if(!S.slotExp)S.slotExp={};if(!S.fame)S.fame={};if(!S.star)S.star={};if(!S.learned)S.learned={};
+  if(!S.equip)S.equip={};if(!S.slotExp)S.slotExp={};if(!S.fame)S.fame={};if(!S.star)S.star={};if(!S.learned)S.learned={};if(!S.mast)S.mast={};
   if(S.day!==today()){S.day=today();S.free=CFG.HEAL_FREE}}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
 load();
@@ -472,7 +491,7 @@ function renderPrep(){
     if(!list.length)return '';
     return `<div class="grp"><h3>${cat}</h3><div class="chips">${list.map(i=>{
       const k=SKILLS[i.s],oc=onCard(i.u),mineOn=oc===c_.id;
-      return `<button class="chip ${mineOn?'on':''} ${oc&&!mineOn?'other':''}" data-a="eq" data-u="${i.u}"><span class="dot c-${k.cat} ic ic-${i.s}">${k.i}</span><div><b>${k.n} <span class="tag g-${k.gr}" style="display:inline">${k.gr}</span></b><span>${k.d()}${k.cd?` · 쿨 ${k.cd}초`:''}${oc&&!mineOn?` · ${card(oc).name} ${card(oc).grade} 장착중`:''}</span></div></button>`}).join('')}</div></div>`}).join('');
+      return `<button class="chip ${mineOn?'on':''} ${oc&&!mineOn?'other':''}" data-a="eq" data-u="${i.u}"><span class="dot c-${k.cat} ic ic-${i.s}">${k.i}</span><div><b>${k.n} <span class="tag g-${k.gr}" style="display:inline">${k.gr}</span> <span class="tag" style="display:inline;color:#7ee8a5">Lv.${mastLv(i.s)}${mastLv(i.s)>=MAST_MAX?' MAX':''}</span></b><span>${dtext(i.s)}${k.cd?` · 쿨 ${fmt(k.cd*mastCd(i.s))}초`:''}${mastLv(i.s)<MAST_MAX?` · 숙련 ${mastXp(i.s)}/${MAST_XP[mastLv(i.s)]}`:''}${oc&&!mineOn?` · ${card(oc).name} ${card(oc).grade} 장착중`:''}</span></div></button>`}).join('')}</div></div>`}).join('');
   const _sc=$('#dr-prep .scroll'),_top=_sc?_sc.scrollTop:0;
   $('#dr-prep').innerHTML=`
   <div class="scroll">
@@ -590,7 +609,7 @@ function addGauge(v,label,color){
   if(G.gauge>=100&&!G.frozen)triggerOK();
 }
 function gain(raw,C,label){
-  const cm=C.chance?1.5:1;const v=raw*CFG.SK*C.mult*cm;
+  const cm=C.chance?1.5:1;const v=raw*CFG.SK*C.mult*cm*MM();
   addGauge(v,C.chance?label+' ×1.5':label,C.chance?'var(--ok)':'var(--slate)');
   if(C.chance){popup('PERFECT TIMING!','sm','var(--ok)')}
 }
@@ -616,11 +635,13 @@ function useSkill(i){
   const inChance=!!(a&&a.type==='chance'&&!a.done&&G.t<=a.end&&k.chance===a.kind);
   const C={chance:inChance,scene:SCENE_OF[G.script.genre]||'romance',mult:G.nextMult};
   if(k.id!=='close')G.nextMult=1;
-  k.cdl=k.cd;
+  k.cdl=k.cd*mastCd(k.id);
   if(inChance)a.hit=true;
-  k.use(C);
+  G.curSkill=k.id;
+  try{k.use(C)}finally{G.curSkill=null}
+  {const up=addMast(k.id,inChance?MAST_HIT:1);G.mast=G.mast||{};const m=G.mast[k.id]||(G.mast[k.id]={xp:0,up:false});m.xp+=inChance?MAST_HIT:1;if(up){m.up=true;popup(`${k.n} 숙련 Lv.${mastLv(k.id)}!`,'sm','var(--ok)')}}
   const pz=POSE_OF[k.id];if(pz){G.pose={k:pz,t0:G.t,until:G.t+1.6};poseFx(pz)}
-  if(k.id==='close')G.nextMult=1.5;
+  if(k.id==='close')G.nextMult=1+0.5*mastMult('close');
 }
 /* --- judgement --- */
 function judgeGain(kind){
@@ -654,7 +675,7 @@ $('#dr-choices').addEventListener('click',e=>{const b=e.target.closest('.ch');if
 
 function activate(ev){
   const a={...ev,start:G.t,done:false,hit:false};
-  const extra=(G.memo?0.5:0)+G.nextWin;G.nextWin=0;
+  const extra=(G.memo?0.5*mastMult('memo'):0)+G.nextWin;G.nextWin=0;
   if(ev.type==='tap'){a.win=CFG.TAPWIN+extra}
   else if(ev.type==='choice'){a.win=CFG.CHOICE+extra;
     const tones=['plain','emotional','funny'].sort(()=>Math.random()-.5);
@@ -787,6 +808,9 @@ function finish(ok){
   const shards=r>=10?10:r>=5?5:0;
   const drop=rollSkill(hid);
   const learned=G.correct>=3;
+  G.mast=G.mast||{};
+  G.skills.forEach(k=>{if(k.passive){const up=addMast(k.id,1);const m=G.mast[k.id]||(G.mast[k.id]={xp:0,up:false});m.xp+=1;if(up)m.up=true}}); // 패시브는 촬영 1회당 경험치 1
+  const mastRows=Object.keys(G.mast).map(id=>{const m=G.mast[id],l=mastLv(id);return `<div><span>🎖️ ${SKILLS[id].n} 숙련</span><b>+${m.xp} ${m.up?`· Lv.${l} 달성!`:l>=MAST_MAX?'· MAX':`(Lv.${l} · ${mastXp(id)}/${MAST_XP[l]})`}</b></div>`}).join('');
   let fameGain=0,promoted=false;
   if(hid&&!star){fameGain=Math.round(r*2);S.fame[ch]=(S.fame[ch]||0)+fameGain;if(S.fame[ch]>=100){S.star[ch]=true;promoted=true}}
   let slotGot=0;
@@ -808,6 +832,7 @@ function finish(ok){
      <div><span>소원의조각</span><b>+${shards}</b></div>
      ${slotGot===1?`<div><span>🎟️ 슬롯 확장권</span><b>획득!</b></div>`:slotGot===-1?`<div><span>🎟️ 슬롯 확장권</span><b>가방이 꽉 차서 못 받았어요</b></div>`:''}
      <div><span>화제성</span><b>+${buzz}</b></div>
+     ${mastRows}
      ${star?'<div><span>탑스타 보너스</span><b>출연료 ×1.5</b></div>':''}
      ${capped?`<div><span>시청률 상한</span><b>일반·레어 카드는 ${CAP}.0%까지</b></div>`:''}
      ${hid&&!star?`<div><span>${G.card.name} 인지도</span><b>+${fameGain} (${Math.min(100,S.fame[ch])}/100)</b></div>`:''}
@@ -830,7 +855,7 @@ $('#dr-result').addEventListener('click',e=>{const b=e.target.closest('[data-r]'
 function openDrama(){load();renderPrep();{const s_=$('#dr-prep .scroll');if(s_)s_.scrollTop=0}R.hidden=false;$('#dr-prep').hidden=false;$('#dr-shoot').hidden=true;$('#dr-result').hidden=true}
 function closeDrama(){if(G)return;R.hidden=true}
 window.openDrama=openDrama;
-window.__dramaTest={rating,SKILLS,SCRIPTS,CFG};
+window.__dramaTest={rating,SKILLS,SCRIPTS,CFG,MAST:{XP:MAST_XP,MAX:MAST_MAX,lv:mastLv,mult:mastMult,cd:mastCd,add:addMast,xp:mastXp,dtext}};
 /* 광장 메뉴 버튼 (CF 촬영 버튼 아래) */
 let tries=0;
 (function hook(){
