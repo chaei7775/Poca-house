@@ -524,13 +524,23 @@
     var d = { stone: Math.random() < t.stone * Math.max(0, 1 + engB('stone')) ? 1 : 0, protect: Math.random() < t.protect ? 1 : 0, trans: Math.random() < t.trans ? 1 : 0 };
     if (type === 'legend') d.stone = Math.max(d.stone, MAP.enh.npcStone || 1);          // 특별 NPC 성공: 강화석 확정
     if (!d.stone && !d.protect && !d.trans) return [];
-    var st = null;
+    // 강화 재료는 가방 아이템으로 들어간다 (enhance.js 와 같은 이름/종류). 가방이 가득 차면 ph_enhance 에 임시 보관 → 다음에 가방으로 옮겨짐
+    var MATS = { stone: ['🔨', '강화석', '히든카드 강화 재료 · 더보기 > 트레이닝룸에서 사용해요'], protect: ['🛡️', '방지권', '히든카드 강화 실패 방지 · 더보기 > 트레이닝룸에서 사용해요'], trans: ['💎', '초월석', '히든카드 초월 재료 · 더보기 > 트레이닝룸에서 사용해요'] };
+    var st = null, overflow = false;
     try { st = JSON.parse(localStorage.getItem(ENH_KEY) || 'null'); } catch (e) {}
     if (!st || typeof st !== 'object') st = {};
-    ['stone', 'protect', 'trans'].forEach(function (k) { st[k] = Math.max(0, Math.floor(Number(st[k]) || 0)) + d[k]; });
-    if (!st.level || typeof st.level !== 'object') st.level = {};
-    if (!st.stage || typeof st.stage !== 'object') st.stage = {};
-    try { localStorage.setItem(ENH_KEY, JSON.stringify(st)); } catch (e) {}
+    ['stone', 'protect', 'trans'].forEach(function (k) {
+      if (!d[k]) return;
+      var ok = false;
+      try { ok = typeof addToBag === 'function' && !!addToBag(MATS[k][0], MATS[k][1], 'enhance', d[k], MATS[k][2]); } catch (e) {}
+      if (!ok) { st[k] = Math.max(0, Math.floor(Number(st[k]) || 0)) + d[k]; overflow = true; }
+    });
+    if (overflow) {
+      if (!st.level || typeof st.level !== 'object') st.level = {};
+      if (!st.stage || typeof st.stage !== 'object') st.stage = {};
+      try { localStorage.setItem(ENH_KEY, JSON.stringify(st)); } catch (e) {}
+      toast('가방이 가득 차서 강화 재료가 임시 보관돼요! 가방을 비워주세요');
+    }
     if (typeof saveAll === 'function') { try { saveAll(); } catch (e) {} }
     var out = [];
     if (d.stone) out.push({ icon: '🔨', text: '강화석 +' + d.stone, color: '#FFD700' });
