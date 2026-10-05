@@ -611,9 +611,11 @@
     function close() { ov.remove(); showing = false; setTimeout(pump, 300); }
     ov.addEventListener('click', function (e) {
       if (e.target && e.target.id === 'story-skip') { close(); return; }
+      try { if (window.pocaSfx) window.pocaSfx.play('page'); } catch (e2) {}
       if (idx >= lines.length - 1) close(); else { idx++; show(); }
     });
     showing = true;
+    try { if (window.pocaSfx) window.pocaSfx.play(reward ? 'reward' : 'open'); } catch (e3) {}
     show();
   }
   var storyQueue = [];
