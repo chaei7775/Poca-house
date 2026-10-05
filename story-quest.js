@@ -692,9 +692,10 @@
       if (!unlocked) {
         h += '<div style="font-size:12px;color:#888;">' + esc(t.lock.text) + '</div>';
       } else if (act) {
-        h += '<div style="font-size:11px;color:#FFB3CC;margin-bottom:2px;">▶ 지금 할 일</div>' +
+        h += '<div data-st="detail" data-q="' + act.id + '" style="cursor:pointer;">' +
+          '<div style="font-size:11px;color:#FFB3CC;margin-bottom:2px;">▶ 지금 할 일 <span style="color:#9b8cc4;">(탭하면 자세히)</span></div>' +
           '<div style="font-size:13px;font-weight:700;color:#fff;">' + esc(act.title) + ' <span style="font-size:11px;color:#FFD700;font-weight:400;">🍔' + act.coins + '</span></div>' +
-          '<div style="font-size:12px;color:#ccc;margin-top:3px;line-height:1.5;">' + esc(act.hint) + '</div>';
+          '<div style="font-size:12px;color:#ccc;margin-top:3px;line-height:1.5;">' + esc(act.hint) + '</div></div>';
       } else {
         h += '<div style="font-size:12px;color:#7ee0a0;">✅ 이야기를 모두 마쳤어요.</div>';
       }
@@ -714,6 +715,24 @@
     h += '</div>';
     return h;
   }
+  function openDetail(x) {
+    if (!x) return;
+    var t = trackById(x.track);
+    var old = document.getElementById('story-detail'); if (old) old.remove();
+    var ov = document.createElement('div');
+    ov.id = 'story-detail';
+    ov.style.cssText = 'position:fixed;inset:0;z-index:870;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center;padding:18px;';
+    ov.innerHTML = '<div style="width:100%;max-width:340px;background:linear-gradient(135deg,#1a1a2e,#2d1b4e);border:2px solid #C084FC;border-radius:20px;padding:22px 20px;text-align:center;color:#fff;">' +
+      '<div style="font-size:11px;color:#FFB3CC;">' + esc(t ? t.title : '') + '</div>' +
+      '<div style="font-size:19px;font-weight:900;margin:6px 0 10px;">' + esc(x.title) + '</div>' +
+      '<div style="font-size:12px;color:#c9bfe6;font-style:italic;line-height:1.6;margin-bottom:10px;">' + esc(t ? t.intro : '') + '</div>' +
+      '<div style="font-size:14px;line-height:1.7;background:rgba(255,255,255,.07);border-radius:12px;padding:12px;margin-bottom:10px;">🎯 ' + esc(x.hint) + '</div>' +
+      '<div style="font-size:13px;font-weight:900;color:#FFD700;margin-bottom:14px;">🍔 ' + x.coins.toLocaleString() + ' · ⭐ ' + x.exp + 'xp</div>' +
+      '<div style="font-size:11px;color:#aaa;margin-bottom:12px;">조건을 달성하면 자동으로 완료돼요.</div>' +
+      '<button id="story-detail-ok" style="width:100%;padding:12px;border:none;border-radius:12px;background:linear-gradient(135deg,#FF6B9D,#C084FC);color:#fff;font-weight:900;font-size:14px;cursor:pointer;">확인</button></div>';
+    document.body.appendChild(ov);
+    ov.addEventListener('click', function (e) { if (e.target === ov || e.target.id === 'story-detail-ok') ov.remove(); });
+  }
   function renderSection() {
     var el = document.getElementById('quest-list');
     if (!el) return;
@@ -727,6 +746,7 @@
         if (!n) return;
         if (n.getAttribute('data-st') === 'toggle') { var id = n.getAttribute('data-t'); openTracks[id] = !openTracks[id]; renderSection(); }
         else if (n.getAttribute('data-st') === 'replay') { if (!showing) openStory(BYID[n.getAttribute('data-q')], false); }
+        else if (n.getAttribute('data-st') === 'detail') { openDetail(BYID[n.getAttribute('data-q')]); }
       });
     }
   }
