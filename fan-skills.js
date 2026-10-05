@@ -495,6 +495,19 @@
       return Array.isArray(CHARS) ? CHARS.map(function (c) { return c.id; }) : Object.keys(CHARS);
     } catch (e) { return []; }
   }
+  function potionHtml() {                                  // ❤️ 원정 HP 회복약 (broadcast-expedition.js 문이 있을 때만)
+    var hk = bcHook();
+    if (!hk || !hk.potions) return '';
+    var rows = hk.potions.list().map(function (po) {
+      var enough = coinsNow() >= po.price;
+      return '<div style="display:flex;align-items:center;gap:12px;background:rgba(255,255,255,.07);border:1.5px solid rgba(74,222,128,.5);border-radius:16px;padding:10px 14px;margin-bottom:8px;">' +
+        '<div style="font-size:28px;">' + po.emoji + '</div>' +
+        '<div style="flex:1;min-width:0;"><div style="font-size:14px;font-weight:900;color:#fff;">' + po.name + ' <span style="font-size:11px;color:#4ade80;">보유 ' + hk.potions.qty(po.id) + '</span></div><div style="font-size:11px;color:#aaa;line-height:1.5;">' + po.desc + '</div></div>' +
+        '<button data-pbuy="' + po.id + '" style="padding:9px 12px;border:none;border-radius:12px;font-size:12px;font-weight:900;cursor:pointer;white-space:nowrap;color:' + (enough ? '#fff' : '#888') + ';background:' + (enough ? 'linear-gradient(135deg,#22c55e,#16a34a)' : 'rgba(255,255,255,.1)') + ';' + FONT + '">🍔 ' + fmt(po.price) + '</button></div>';
+    }).join('');
+    return '<div style="font-size:13px;font-weight:900;color:#fff;margin:4px 0 8px;">❤️ 회복약 <span style="font-size:11px;color:#aaa;font-weight:400;">(원정 중 HP 회복)</span></div>' + rows +
+      '<div style="height:1px;background:rgba(255,255,255,.15);margin:12px 0;"></div>';
+  }
   function openShop() {
     var old = $('fs-shop'); if (old) old.remove();
     var ov = document.createElement('div');
@@ -527,9 +540,19 @@
         '<button id="fs-shop-close" style="border:none;border-radius:12px;background:rgba(255,255,255,.12);color:#fff;padding:7px 12px;font-weight:900;cursor:pointer;' + FONT + '">닫기</button></div>' +
       '<div style="padding:0 16px 40px;">' +
         '<div style="background:rgba(255,255,255,.07);border:1px solid #FFD70066;border-radius:12px;padding:8px 12px;margin-bottom:12px;display:flex;justify-content:space-between;font-size:13px;color:#fff;"><span>🍔 보유 코인</span><b style="color:#FFD700;">' + fmt(coinsNow()) + '</b></div>' +
+        potionHtml() +
         '<div style="font-size:11px;color:#aaa;line-height:1.6;margin-bottom:10px;">팬 응대 스킬은 멤버마다 따로 배워요. 팬은 아직 못 배운 스킬도 원하니까, 많이 배울수록 😍 대만족이 자주 나와요.</div>' +
         '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;">' + chips + '</div>' +
         rows + '</div>';
+    Array.prototype.forEach.call(ov.querySelectorAll('[data-pbuy]'), function (b) {
+      b.onclick = function () {
+        var hk = bcHook(); if (!hk || !hk.potions) return;
+        var r = hk.potions.buy(b.getAttribute('data-pbuy'));
+        if (!r.ok) { toast(r.why === 'coins' ? '코인이 부족해요!' : r.why === 'bag' ? '가방이 가득 찼어요!' : '살 수 없어요'); return; }
+        toast('🧪 회복약을 샀어요!');
+        renderShop(ov);
+      };
+    });
     ov.querySelector('#fs-shop-close').onclick = function () { ov.remove(); };
     Array.prototype.forEach.call(ov.querySelectorAll('[data-ch]'), function (b) { b.onclick = function () { shopChar = b.getAttribute('data-ch'); renderShop(ov); }; });
     Array.prototype.forEach.call(ov.querySelectorAll('[data-buy]'), function (b) {
