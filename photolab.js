@@ -17,6 +17,13 @@
   var FILM_NAME = '필름', FILM_EMOJI = '🎞️';
   var BASE_COIN = 30000;          // 현상 1번(잠금 없음) 코인
   var BASE_FILM = 1;              // 현상 1번(잠금 없음) 필름
+  // ── 옵션 강화 (현상액 🧪) ──  센터/컴백/연습생 칸만, 실패하면 재료·코인만 사라지고 단계는 그대로, 다시 현상하면 그 칸의 강화는 사라짐(🔒 잠근 칸은 유지)
+  var DEV_NAME = '현상액', DEV_EMOJI = '🧪';
+  var ENH_MAX = 5;                // 최대 +5강
+  var ENH_RATE = [70, 50, 35, 20, 10];   // 성공 확률(%) — 왼쪽부터 +1강, +2강, +3강, +4강, +5강 도전 (숫자만 고치면 됨)
+  var ENH_STEP = 0.10;            // 1강마다 효과 +10% (예: 센터 코인 +30% → +5강 +45%)
+  var ENH_DEV_PER = 1;            // 현상액: (지금 강화 단계 + 1) × 이 값  → +1강 1개, +2강 2개 … +5강 5개 (전부 15개)
+  var ENH_COIN_PER = 20000;       // 코인: (지금 강화 단계 + 1) × 이 값
   var LOCK_ADD = 1;               // 슬롯 하나 잠글 때마다 비용이 기본의 몇 배 더해지는지 (1 = 잠금 1개면 2배)
   var ESC_STEP = 0.10, ESC_MAX = 3;   // 카드마다 현상할 때마다 코인 +10%, 최대 3배
   var IMG_BASE = 'https://raw.githubusercontent.com/chaei7775/Poca-house/main/';
@@ -115,15 +122,31 @@
     for (i = 0; i < BLACKS.length; i++) if (BLACKS[i].key === id) return BLACKS[i];
     return null;
   }
-  function slotValue(s) {
+  function enhLv(s) { return Math.max(0, Math.min(ENH_MAX, Math.floor((s && s.lv) || 0))); }
+  function canEnhance(s) { return !!s && (s.grade === 'center' || s.grade === 'comeback' || s.grade === 'trainee') && enhLv(s) < ENH_MAX; }
+  function enhRate(lv) { return ENH_RATE[Math.min(lv, ENH_RATE.length - 1)]; }   // lv = 지금 단계 → 다음 단계 도전 성공률(%)
+  function enhCost(lv) { return { dev: (lv + 1) * ENH_DEV_PER, coin: (lv + 1) * ENH_COIN_PER }; }
+  function slotBase(s) {   // 강화 전 기본 값
     var o = optOf(s.id);
     if (!o || s.grade === 'black') return 0;
     return s.grade === 'rumor' ? o.bad : o.v[s.grade];
+  }
+  function slotValue(s) {
+    var v = slotBase(s);
+    return (s.grade === 'black' || s.grade === 'rumor') ? v : v * (1 + ENH_STEP * enhLv(s));
   }
   function slotText(s) {
     var o = optOf(s.id);
     if (!o) return '';
     return s.grade === 'black' ? (s.id === 'cheer' ? '응원 멘트: "' + CHEERS[s.t || 0] + '"' : o.text()) : o.text(slotValue(s));
+  }
+  // 강화 1번: 비용만 있으면 100% 성공. 돌려주는 값 = 결과(바뀐 칸) 또는 null
+  function enhanceSlot(slots, idx) {
+    var s = slots[idx];
+    if (!canEnhance(s)) return null;
+    var out = slots.slice(); out[idx] = { id: s.id, grade: s.grade, lv: enhLv(s) + 1 };
+    if (s.t !== undefined) out[idx].t = s.t;
+    return out;
   }
 
   function costFor(rolls, lockCount) {
@@ -176,6 +199,11 @@
   function filmQty() {
     if (typeof bagItems === 'undefined' || !Array.isArray(bagItems)) return 0;
     var it = bagItems.find(function (i) { return i.name === FILM_NAME; });
+    return it ? it.qty : 0;
+  }
+  function devQty() {
+    if (typeof bagItems === 'undefined' || !Array.isArray(bagItems)) return 0;
+    var it = bagItems.find(function (i) { return i.name === DEV_NAME; });
     return it ? it.qty : 0;
   }
   function coinsNow() { return (typeof coins !== 'undefined') ? coins : 0; }
@@ -271,7 +299,8 @@
       var locked = ST.locked[idx];
       return '<div style="' + base + 'background:rgba(0,0,0,.45);border:2px solid ' + g.color + ';' + anim + '">' +
         '<span style="font-size:24px;">' + (o ? o.icon : '❔') + '</span>' +
-        '<span style="flex:1;font-size:13px;font-weight:700;"><span style="font-size:10px;font-weight:900;color:' + g.color + ';">[' + g.name + ']</span><br>' + slotText(s) + '</span>' +
+        '<span style="flex:1;font-size:13px;font-weight:700;"><span style="font-size:10px;font-weight:900;color:' + g.color + ';">[' + g.name + ']</span>' + (enhLv(s) ? ' <span style="font-size:10px;font-weight:900;color:#34d399;">+' + enhLv(s) + '강</span>' : '') + '<br>' + slotText(s) + '</span>' +
+        (canEnhance(s) ? '<button class="pl-enh" data-i="' + idx + '" style="background:rgba(52,211,153,.18);border:1.5px solid #34d399;border-radius:10px;color:#fff;padding:6px 8px;cursor:pointer;font-size:12px;font-weight:900;">🧪 강화</button>' : '') +
         '<button class="pl-lock" data-i="' + idx + '" style="background:' + (locked ? 'rgba(250,204,21,.25)' : 'rgba(255,255,255,.08)') + ';border:1.5px solid ' + (locked ? '#facc15' : 'rgba(255,255,255,.25)') + ';border-radius:10px;color:#fff;padding:6px 9px;cursor:pointer;font-size:14px;">' + (locked ? '🔒' : '🔓') + '</button></div>';
     }).join('');
 
@@ -282,8 +311,8 @@
       '<div style="font-size:16px;font-weight:900;margin-top:6px;">' + charName(id) + (bonus.fish ? ' 🐟' : '') + '</div>' +
       '<div style="font-size:11px;color:#fda4af;">' + (tint ? '현상 효과 적용 중' : '아직 효과 없음') + ' · 현상 ' + c.rolls + '번</div></div>' +
       '<div id="pl-flash"></div>' + slotsHtml +
-      '<div style="font-size:11px;color:#fda4af;text-align:center;margin:4px 0 10px;">🔒 잠그면 그 칸은 그대로! (잠금 1개마다 비용 +' + LOCK_ADD + '배) · 되돌릴 수 없어요</div>' +
-      '<div style="font-size:12px;text-align:center;margin-bottom:8px;color:' + (enough ? '#fff' : '#f87171') + ';">비용 ' + FILM_EMOJI + ' ' + cost.film + ' + 🍔 ' + cost.coin.toLocaleString() + '<br><span style="font-size:10px;color:#9ca3af;">보유 ' + FILM_EMOJI + ' ' + filmQty() + ' · 🍔 ' + coinsNow().toLocaleString() + '</span></div>' +
+      '<div style="font-size:11px;color:#fda4af;text-align:center;margin:4px 0 10px;">🔒 잠그면 그 칸은 그대로! (잠금 1개마다 비용 +' + LOCK_ADD + '배) · 되돌릴 수 없어요<br>' + DEV_EMOJI + ' 강화한 칸은 다시 현상하면 사라져요 (🔒 잠그면 유지)</div>' +
+      '<div style="font-size:12px;text-align:center;margin-bottom:8px;color:' + (enough ? '#fff' : '#f87171') + ';">비용 ' + FILM_EMOJI + ' ' + cost.film + ' + 🍔 ' + cost.coin.toLocaleString() + '<br><span style="font-size:10px;color:#9ca3af;">보유 ' + FILM_EMOJI + ' ' + filmQty() + ' · ' + DEV_EMOJI + ' ' + devQty() + ' · 🍔 ' + coinsNow().toLocaleString() + '</span></div>' +
       '<button id="pl-roll" style="' + BTN + (canRoll && enough ? '' : 'opacity:.45;') + '">' + (firstRoll ? '📷 첫 현상하기' : '📷 다시 현상하기') + '</button>' +
       '<button id="pl-back" style="' + BTN + 'margin-top:8px;background:rgba(255,255,255,.12);">다른 카드 고르기</button>',
       bonus.rainbow);
@@ -298,7 +327,59 @@
         renderLab(false);
       };
     });
+    Array.prototype.forEach.call(document.querySelectorAll('.pl-enh'), function (b) {
+      b.onclick = function () { openSlotEnhance(+b.getAttribute('data-i')); };
+    });
     $('pl-roll').onclick = function () { doRoll(); };
+  }
+
+  // 🧪 슬롯 강화 (실패 없음 · 현상액 + 코인)
+  function openSlotEnhance(idx) {
+    if (!ST || ST.busy) return;
+    var id = ST.charId, c = getCard(id), s = c.slots[idx];
+    if (!canEnhance(s)) { toast('이 칸은 더 강화할 수 없어요'); return; }
+    var lv = enhLv(s), cost = enhCost(lv);
+    var after = enhanceSlot(c.slots, idx)[idx];
+    var old = $('pl-enh-pop'); if (old) old.remove();
+    var pop = document.createElement('div');
+    pop.id = 'pl-enh-pop';
+    pop.style.cssText = 'position:fixed;inset:0;z-index:100001;background:rgba(0,0,0,.78);display:flex;align-items:center;justify-content:center;padding:18px;font-family:\'Noto Sans KR\',sans-serif;';
+    var enough = devQty() >= cost.dev && coinsNow() >= cost.coin;
+    pop.innerHTML = '<div style="width:100%;max-width:320px;background:linear-gradient(135deg,#1a0509,#3b0d1a);border:2px solid #34d399;border-radius:18px;padding:20px;text-align:center;color:#fff;">' +
+      '<div style="font-size:16px;font-weight:900;margin-bottom:10px;">🧪 옵션 강화 도전 +' + lv + ' → +' + (lv + 1) + '</div>' +
+      '<div style="font-size:12px;color:#9ca3af;">' + slotText(s) + '</div>' +
+      '<div style="font-size:18px;margin:2px 0;">⬇</div>' +
+      '<div style="font-size:14px;font-weight:900;color:#34d399;margin-bottom:12px;">' + slotText(after) + '</div>' +
+      '<div style="font-size:14px;font-weight:900;color:#fde68a;margin-bottom:6px;">성공 확률 ' + enhRate(lv) + '%</div>' +
+      '<div style="font-size:12px;margin-bottom:4px;color:' + (enough ? '#fff' : '#f87171') + ';">비용 ' + DEV_EMOJI + ' ' + cost.dev + ' + 🍔 ' + cost.coin.toLocaleString() + '</div>' +
+      '<div style="font-size:10px;color:#9ca3af;margin-bottom:6px;">보유 ' + DEV_EMOJI + ' ' + devQty() + ' · 🍔 ' + coinsNow().toLocaleString() + '</div>' +
+      '<div style="font-size:10px;color:#fda4af;margin-bottom:12px;">실패하면 재료와 코인만 사라지고 단계는 그대로예요 · 다시 현상하면 이 칸의 강화는 사라져요</div>' +
+      '<button id="pl-enh-go" style="' + BTN + 'background:linear-gradient(135deg,#059669,#34d399);' + (enough ? '' : 'opacity:.45;') + '">강화하기</button>' +
+      '<button id="pl-enh-no" style="' + BTN + 'margin-top:8px;background:rgba(255,255,255,.12);">취소</button></div>';
+    pop.querySelector('#pl-enh-no').onclick = function () { pop.remove(); };
+    pop.querySelector('#pl-enh-go').onclick = function () {
+      if (devQty() < cost.dev) { toast(DEV_EMOJI + ' 현상액이 부족해요! (' + devQty() + '/' + cost.dev + ') · 공연장에서 모아요'); return; }
+      if (coinsNow() < cost.coin) { toast('🍔 코인이 부족해요! (' + cost.coin.toLocaleString() + ' 필요)'); return; }
+      var cur = getCard(id);
+      var next = enhanceSlot(cur.slots, idx);
+      if (!next || enhLv(cur.slots[idx]) !== lv) { pop.remove(); renderLab(false); return; }   // 그 사이 칸이 바뀐 경우
+      if (typeof useFromBag === 'function') useFromBag(DEV_NAME, cost.dev);
+      coins -= cost.coin;
+      if (typeof updateCoinsDisplay === 'function') updateCoinsDisplay();
+      var success = (Math.random() * 100) < enhRate(lv);
+      if (success) { cur.slots = next; setCard(id, cur); }
+      if (typeof saveBag === 'function') saveBag();
+      if (typeof saveAll === 'function') saveAll();
+      try { if (window.pocaSfx) window.pocaSfx.play(success ? (lv + 1 >= ENH_MAX ? 'transOk' : 'enhOk') : 'enhFail'); } catch (e) {}
+      pop.remove();
+      var f = document.createElement('div');
+      f.style.cssText = 'position:fixed;inset:0;background:' + (success ? '#34d399' : '#ef4444') + ';z-index:100000;pointer-events:none;animation:plFlash .45s ease-out forwards;';
+      document.body.appendChild(f); setTimeout(function () { f.remove(); }, 480);
+      toast(success ? '🧪 +' + (lv + 1) + '강 성공! ' + slotText(next[idx]) : '💨 강화 실패… 재료와 코인만 사라졌어요 (+' + lv + '강 그대로)');
+      renderLab(false);
+    };
+    pop.addEventListener('click', function (e) { if (e.target === pop) pop.remove(); });
+    document.body.appendChild(pop);
   }
 
   function doRoll() {
@@ -312,7 +393,8 @@
     if (filmQty() < cost.film) { toast(FILM_EMOJI + ' 필름이 부족해요! (' + filmQty() + '/' + cost.film + ') · 공연장에서 모아요'); return; }
     if (coinsNow() < cost.coin) { toast('🍔 코인이 부족해요! (' + cost.coin.toLocaleString() + ' 필요)'); return; }
     var risky = c.slots.some(function (s, i) { return s && !locked[i] && (s.grade === 'center' || s.grade === 'comeback'); });
-    if (risky && !window.confirm('좋은 효과(센터/컴백)가 있는 칸도 새로 바뀌어요. 되돌릴 수 없어요. 현상할까요?\n(지키려면 🔒 잠금)')) return;
+    var lostEnh = c.slots.some(function (s, i) { return s && !locked[i] && enhLv(s) > 0; });
+    if ((risky || lostEnh) && !window.confirm('좋은 효과(센터/컴백)가 있는 칸도 새로 바뀌어요.' + (lostEnh ? '\n🧪 강화한 단계도 함께 사라져요!' : '') + '\n되돌릴 수 없어요. 현상할까요?\n(지키려면 🔒 잠금)')) return;
 
     if (typeof useFromBag === 'function') useFromBag(FILM_NAME, cost.film);
     coins -= cost.coin;
@@ -346,5 +428,5 @@
   };
 
   // 테스트용 (원정 화면 밖에서 확인)
-  window.__photolabTest = { rollAll: rollAll, costFor: costFor, GRADES: GRADES, OPTS: OPTS, slotText: slotText, slotValue: slotValue };
+  window.__photolabTest = { enhanceSlot: enhanceSlot, enhCost: enhCost, canEnhance: canEnhance, enhLv: enhLv, slotBase: slotBase, enhRate: enhRate, ENH: { MAX: ENH_MAX, STEP: ENH_STEP }, rollAll: rollAll, costFor: costFor, GRADES: GRADES, OPTS: OPTS, slotText: slotText, slotValue: slotValue };
 })();
