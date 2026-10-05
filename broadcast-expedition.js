@@ -594,6 +594,22 @@
     return [{ icon: DEV_EMOJI, text: DEV_NAME + ' +' + n, color: '#34d399' }];
   }
 
+  // 📘 스킬북: 팬덤 원정 이벤트 성공 시 가끔 (드라마 촬영 스킬 숙련도 아이템 — skillbook.js 와 같은 이름)
+  var BOOK_NAME = '스킬북', BOOK_EMOJI = '📘';
+  var BOOK_RATE = { normal: 0.06, golden: 0.20, npc: 1 };      // 일반 / 황금 / 특별 NPC 성공 시 확률 (npc 는 개수)
+  function bookDrop(type, success) {
+    if (!success) return [];
+    var n = 0;
+    if (type === 'legend') n = BOOK_RATE.npc;
+    else if (Math.random() < (type === 'golden' ? BOOK_RATE.golden : BOOK_RATE.normal)) n = 1;
+    if (n <= 0) return [];
+    if (typeof addToBag !== 'function' || !addToBag(BOOK_EMOJI, BOOK_NAME, 'skillbook', n, '드라마 촬영 스킬 숙련도 +5 · 🎥 드라마 촬영 > 준비 화면 > 스킬 세팅에서 사용해요')) {
+      toast('가방이 가득 차서 스킬북을 못 받았어요! 가방을 비워주세요');
+      return [];
+    }
+    return [{ icon: BOOK_EMOJI, text: BOOK_NAME + ' +' + n, color: '#60a5fa' }];
+  }
+
   function grant(r) {
     var lines = [];
     if (r.coins > 0) {
@@ -644,7 +660,7 @@
       if (r.pieces > 0 && Math.random() < pb.extra) { r.pieces += 1; notes.push({ icon: '🎬', text: pb.effectName + ' 발동! 조각 +1', color: '#7dd3fc' }); }
     }
     if (MAP.pieces && success && r.pieces > 0 && Math.random() < engB('pieceExtra')) { r.pieces += 1; notes.push({ icon: '✨', text: '현상 효과! 조각 +1', color: '#7dd3fc' }); }
-    var lines = grant(r).concat(notes).concat(enhDrop(type, success)).concat(filmDrop(type, success)).concat(devDrop(type, success));
+    var lines = grant(r).concat(notes).concat(enhDrop(type, success)).concat(filmDrop(type, success)).concat(devDrop(type, success)).concat(bookDrop(type, success));
     var heads = {
       PERFECT: '✨ PERFECT!', GREAT: '👍 GREAT!', GOOD: '😊 GOOD', MISS: '💦 MISS…',
       OPEN: type === 'letter' ? '💌 팬레터 도착!' : '🎁 굿즈 획득!',
