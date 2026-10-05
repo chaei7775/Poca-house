@@ -100,6 +100,26 @@
   }
 
   // ════════ 저장 ════════
+  // 🔨 강화석 · 🛡️ 방지권 · 💎 초월석 은 가방 아이템으로 들고 있는다 (가방에서 개수 확인 가능)
+  //   가방을 못 쓰는 상황(가방 가득 참 등)이면 ph_enhance 안에 임시로 보관했다가 다음에 가방으로 옮긴다
+  var MATS = {
+    stone:   ['🔨', '강화석', '히든카드 강화 재료 · 더보기 > 트레이닝룸에서 사용해요'],
+    protect: ['🛡️', '방지권', '히든카드 강화 실패 방지 · 더보기 > 트레이닝룸에서 사용해요'],
+    trans:   ['💎', '초월석', '히든카드 초월 재료 · 더보기 > 트레이닝룸에서 사용해요']
+  };
+  function bagOk() { try { return typeof bagItems !== 'undefined' && Array.isArray(bagItems) && typeof addToBag === 'function'; } catch (e) { return false; } }
+  function bagQty(k) {
+    try { var it = bagItems.find(function (i) { return i.name === MATS[k][1]; }); return it ? Math.max(0, Math.floor(Number(it.qty) || 0)) : 0; } catch (e) { return 0; }
+  }
+  function bagAdd(k, n) { try { return !!addToBag(MATS[k][0], MATS[k][1], 'enhance', n, MATS[k][2]); } catch (e) { return false; } }
+  function bagUse(k, n) {
+    try {
+      if (typeof useFromBag === 'function') { useFromBag(MATS[k][1], n); return; }
+      var it = bagItems.find(function (i) { return i.name === MATS[k][1]; });
+      if (it) { it.qty -= n; if (it.qty <= 0) bagItems.splice(bagItems.indexOf(it), 1); }
+    } catch (e) {}
+  }
+
   function load() {
     var s = null;
     try { s = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null'); } catch (e) {}
@@ -107,9 +127,35 @@
     ['stone', 'protect', 'trans'].forEach(function (k) { s[k] = Math.max(0, Math.floor(Number(s[k]) || 0)); });
     if (!s.level || typeof s.level !== 'object') s.level = {};     // { 히든카드id: 강화 단계 (지금 회차 안에서) }
     if (!s.stage || typeof s.stage !== 'object') s.stage = {};     // { 히든카드id: 초월 단계 }
+    if (bagOk()) {
+      var moved = false;
+      ['stone', 'protect', 'trans'].forEach(function (k) {
+        if (s[k] > 0 && bagAdd(k, s[k])) { s[k] = 0; moved = true; }   // 예전 저장분 / 임시 보관분을 가방으로 옮김
+      });
+      if (moved) save(s);
+      s._bag = { stone: bagQty('stone'), protect: bagQty('protect'), trans: bagQty('trans') };
+      ['stone', 'protect', 'trans'].forEach(function (k) { s[k] = s._bag[k] + s[k]; });
+    }
     return s;
   }
-  function save(s) { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(s)); } catch (e) {} }
+  function save(s) {
+    var out = {};
+    for (var key in s) { if (key !== '_bag') out[key] = s[key]; }
+    if (s._bag && bagOk()) {
+      ['stone', 'protect', 'trans'].forEach(function (k) {
+        var want = Math.max(0, Math.floor(Number(s[k]) || 0)), have = s._bag[k], extra = 0;
+        if (want < have) { bagUse(k, have - want); s._bag[k] = want; }
+        else if (want > have) {
+          if (bagAdd(k, want - have)) s._bag[k] = want;
+          else { extra = want - have; toastSafe('가방이 가득 차서 ' + MATS[k][1] + '이(가) 임시 보관돼요! 가방을 비워주세요'); }
+        }
+        out[k] = extra;
+      });
+      try { if (typeof saveAll === 'function') saveAll(); } catch (e) {}
+    }
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(out)); } catch (e) {}
+  }
+  function toastSafe(m) { try { if (typeof showBagToast === 'function') showBagToast(m); } catch (e) {} }
 
   // ════════ 게임 데이터 읽기 ════════
   function hiddenList() { return (typeof HIDDEN_CARDS !== 'undefined') ? HIDDEN_CARDS : []; }
