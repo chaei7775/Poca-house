@@ -25,9 +25,14 @@
     protect: { name: '방지권',        emoji: '🛡️', kind: 'enh', field: 'protect', min: 2000,  max: 3000000 },
     trans:   { name: '초월석',        emoji: '💎', kind: 'enh', field: 'trans',   min: 10000, max: 20000000 },
     slotx:   { name: '슬롯 확장권',  emoji: '🎟️', kind: 'bag', desc: '드라마 촬영 카드의 스킬 슬롯을 영구로 +1', min: 30000, max: 5000000 },
-    dev:     { name: '현상액',        emoji: '🧪', kind: 'bag', type: 'film', desc: '포토랩 옵션 강화 재료 · 공연장에서 얻어요', min: 1000, max: 2000000 }
+    dev:     { name: '현상액',        emoji: '🧪', kind: 'bag', type: 'film', desc: '포토랩 옵션 강화 재료 · 공연장에서 얻어요', min: 1000, max: 2000000 },
+    // 📚 드라마 촬영 스킬북 (종류별) — 이름은 skillbook.js 와 같아야 함. 규칙(rules)은 'bk_.*' 한 줄로 묶음
+    bk_emotion: { name: '감정 스킬북',     emoji: '📕', kind: 'bag', type: 'skillbook', desc: '드라마 촬영 감정 스킬 숙련도 +5',     min: 2000, max: 5000000 },
+    bk_action:  { name: '액션 스킬북',     emoji: '📙', kind: 'bag', type: 'skillbook', desc: '드라마 촬영 액션 스킬 숙련도 +5',     min: 2000, max: 5000000 },
+    bk_adlib:   { name: '애드리브 스킬북', emoji: '📗', kind: 'bag', type: 'skillbook', desc: '드라마 촬영 애드리브 스킬 숙련도 +5', min: 2000, max: 5000000 },
+    bk_aux:     { name: '보조 스킬북',     emoji: '📘', kind: 'bag', type: 'skillbook', desc: '드라마 촬영 보조 스킬 숙련도 +5',     min: 2000, max: 5000000 }
   };
-  var ORDER = ['recomb', 'ws', 'epic', 'stone', 'protect', 'trans', 'slotx', 'dev'];
+  var ORDER = ['recomb', 'ws', 'epic', 'stone', 'protect', 'trans', 'slotx', 'dev', 'bk_emotion', 'bk_action', 'bk_adlib', 'bk_aux'];
   // 🌿 탐험 재료도 거래 가능 (품목 키는 'mat_' + 재료이름 → Firebase 규칙에서 한 줄로 묶음)
   var MAT_MIN = 100, MAT_MAX = 50000;   // 재료 공통 가격 범위 (규칙 파일과 같아야 함)
   var MAT_ORDER = [];
