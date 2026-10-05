@@ -64,6 +64,7 @@ const NEW_CONTENT_FILES = [
   'meal.js',
   'story-quest.js',
   'clothes-equip.js',
+  'skillbook.js',
 ];
 NEW_CONTENT_FILES.forEach(function(filename) {
   const s = document.createElement('script');
