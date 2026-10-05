@@ -67,6 +67,7 @@ const NEW_CONTENT_FILES = [
   'clothes-equip.js',
   'skillbook.js',
   'big-drop-popup.js',
+  'transcend-aura.js',
 ];
 NEW_CONTENT_FILES.forEach(function(filename) {
   const s = document.createElement('script');
