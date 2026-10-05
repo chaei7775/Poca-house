@@ -3,6 +3,7 @@
 //
 // 1) 에너지 드링크 전 종류 회복량 ×3 (가격은 그대로)
 //      사과주스 10→30 / 딸기스무디 20→60 / 에너지드링크 30→90
+//      + 거기에 전부 DRINK_BONUS(+70) 추가 → 사과주스 100 / 딸기스무디 130 / 에너지드링크 160
 // 2) 일반 맵(숲·해변·공원·호수·광장) 탐험의 소원의 조각 드랍률 ÷3
 //      (원래 아이템 1개당 0.5% → 약 0.17%)
 //
@@ -13,10 +14,12 @@
   'use strict';
 
   var DRINK_MULT = 3;   // 드링크 회복량 배수
+  var DRINK_BONUS = 70; // ×배수 한 다음 전 종류에 더하는 회복량 (스태미나 최대치 3000 기준)
   var WISH_DIV = 3;     // 일반 맵 소원의 조각 드랍률을 나누는 값
 
   var DRINK_BASE = { '사과주스': 10, '딸기스무디': 20, '에너지드링크': 30 };
-  function drinkUp(name) { return (DRINK_BASE[name] || 10) * DRINK_MULT; }
+  function drinkUp(name) { return (DRINK_BASE[name] || 10) * DRINK_MULT + DRINK_BONUS; }
+  window.__drinkUp = drinkUp;   // drink-bulk.js 가 같은 값을 쓰도록
 
   // 가방에 이미 있는 드링크 설명 글씨를 바뀐 회복량으로 맞춤 (여러 번 실행해도 값이 안 변함)
   function fixDrinkDescs() {
