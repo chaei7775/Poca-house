@@ -651,8 +651,13 @@
     return lines;
   }
 
-  function finish(ev, type, grade) {
+  function finish(ev, type, grade, love) {
     var r = rewardFor(type, grade);
+    // 💖 팬 스킬 대만족 (fan-skills.js): 팬레터·굿즈는 보상이 업그레이드돼서 나온다
+    if (love && (type === 'letter' || type === 'goods')) {
+      r.coins *= 2; r.exp *= 2; r.mats += 1; r.gear = Math.min(1, r.gear * 2);
+      if (Math.random() < 0.25) r.pieces = Math.max(r.pieces, 1);
+    }
     var success = grade !== 'MISS' && grade !== 'FAIL';
     if (success) r.ticketOf = type;
     // 프리미엄 카드 효과 (premium-cards.js): 이 캐릭터의 카드를 갖고 있을 때만 적용
@@ -670,7 +675,7 @@
       OPEN: type === 'letter' ? '💌 팬레터 도착!' : '🎁 굿즈 획득!',
       SUCCESS: '🎉 특별 NPC 촬영 성공!', PARTIAL: '😮 아깝다!', FAIL: '💨 놓쳤어요…'
     };
-    var head = (type === 'golden' ? '🌟 ' : type === 'shutter' ? '📸 ' : '') + (heads[grade] || '');
+    var head = (love ? '😍 대만족! ' : '') + (type === 'golden' ? '🌟 ' : type === 'shutter' ? '📸 ' : '') + (heads[grade] || '');
     var chips = lines.map(function (l, i) {
       return '<div style="opacity:0;animation:bcPop .45s ease-out forwards;animation-delay:' + (i * 0.18) + 's;display:inline-flex;align-items:center;gap:7px;background:rgba(255,255,255,.1);border:1.5px solid ' + l.color +
         ';border-radius:999px;padding:7px 14px;font-size:13px;font-weight:900;margin:3px;"><span style="font-size:16px;">' + l.icon + '</span>' + l.text + '</div>';
@@ -1157,6 +1162,36 @@
     if (b) b.textContent = PIECE_EMOJI + ' ' + pieceCount() + '/' + PIECE_GOAL;
   }, 700);
   
+  // 💖 팬 스킬(fan-skills.js)이 맵 이벤트를 직접 처리할 때 쓰는 문
+  //  스킬을 쓰면 미니게임 없이 바로 결과가 나온다 (스태미나는 똑같이 든다)
+  //  love=true(대만족): 셔터/황금 → PERFECT · 팬레터/굿즈 → 보상 업그레이드 · 특별 NPC → 촬영 성공
+  //  love=false(만족) : 셔터/황금 → GREAT   · 팬레터/굿즈 → 기본 보상      · 특별 NPC → 아깝다(PARTIAL)
+  window.__bcHook = {
+    events: function () { return S ? S.events : []; },
+    canResolve: function (ev) {
+      if (!S || S.paused || S.events.indexOf(ev) === -1) return false;
+      var cost = staminaCost();
+      if (typeof stamina === 'undefined' || stamina < cost) { toast('스태미나가 부족해요! ⚡ 음료를 마셔봐요 (이벤트 1번 ' + cost + ')'); return false; }
+      return true;
+    },
+    resolve: function (ev, love) {
+      if (!S || S.paused || S.events.indexOf(ev) === -1) return false;
+      var cost = staminaCost();
+      if (typeof stamina === 'undefined' || stamina < cost) return false;
+      stamina -= cost;
+      if (typeof saveStamina === 'function') saveStamina();
+      S.paused = true; S.moving = false; S.tx = S.px; S.ty = S.py;
+      placePlayer();
+      S.current = ev;
+      hud();
+      var t = ev.type;
+      if (t === 'letter' || t === 'goods') finish(ev, t, 'OPEN', !!love);
+      else if (t === 'shutter' || t === 'golden') finish(ev, t, love ? 'PERFECT' : 'GREAT', !!love);
+      else finish(ev, 'legend', love ? 'SUCCESS' : 'PARTIAL', !!love);
+      return true;
+    }
+  };
+
   window.__bcTest = { rewardFor: rewardFor, pickNormal: pickNormal, simulate: simulate,
     spawnNpc: function () { if (S) spawnSpecial('legend'); } };   // 테스트용: 원정 화면에서 콘솔에 __bcTest.spawnNpc() 입력하면 특별 NPC가 바로 나옴
   install();
