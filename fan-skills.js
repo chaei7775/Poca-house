@@ -2,11 +2,15 @@
 // 💖 팬 응대 스킬 (fan-skills.js)
 //
 // 팬덤 원정 맵(방송국 앞 / 팬미팅장 / 공연장)에서 쓰는 '멤버 스킬'.
-// broadcast-expedition.js 는 건드리지 않고, 맵 화면이 뜨면 화면(DOM)에 붙어서 동작한다.
+// ★ 이 파일은 새 broadcast-expedition.js (끝에 window.__bcHook 이 추가된 버전)와 같이 써야 한다.
 //
 // 방식
-//  - 맵 이벤트(❗)를 하나 끝낼 때마다 팬이 근처에 찾아온다. (이벤트 = 스태미나를 쓰니까 팬 수도 자연스럽게 제한됨)
-//  - 팬 머리 위 말풍선에 그 팬이 좋아하는 스킬이 떠 있다.
+//  - 맵에 떠 있는 이벤트(❗ 셔터 / 💌 팬레터 / 🎁 굿즈 / 🌟 황금 셔터 / 🚨 특별 NPC) 머리 위에 좋아하는 스킬 말풍선이 뜬다.
+//  - 이벤트 가까이(미니게임이 열리기 전 거리) 걸어가서 아래 스킬 버튼을 누르면
+//      이펙트가 나오고 미니게임 없이 바로 결과가 나온다 (스태미나는 똑같이 듦)
+//      😊 만족   : 셔터 GREAT / 팬레터·굿즈 기본 보상 / 특별 NPC 아깝다(PARTIAL)
+//      😍 대만족 : 셔터 PERFECT / 팬레터·굿즈 보상 업그레이드(코인·EXP×2, 재료+1, 조각 확률) / 특별 NPC 촬영 성공
+//  - (옛 broadcast-expedition.js 라서 문이 없으면 예전처럼 이벤트 뒤에 팬이 따로 찾아오는 방식으로 동작)
 //  - 팬 가까이 걸어가서 아래 스킬 버튼을 누르면 이펙트가 나오고 팬이 떠난다.
 //      좋아하는 스킬 = 😍 대만족 (보상 ×2 + 프리미엄 조각 보너스 확률) / 다른 스킬 = 😊 만족
 //      팬은 아직 못 배운 스킬(🔒)도 원한다 → 스킬을 많이 배울수록 대만족이 자주 나온다
@@ -238,6 +242,40 @@
     return best;
   }
 
+  // ════════ 맵 이벤트(마커)를 스킬 대상으로 ════════
+  function bcHook() { return (window.__bcHook && typeof window.__bcHook.events === 'function') ? window.__bcHook : null; }
+  var EV_INFO = { shutter: ['📸', '셔터 찬스'], golden: ['🌟', '황금 셔터'], letter: ['💌', '팬레터'], goods: ['🎁', '굿즈'] };
+  function evTarget(ev) {
+    var info = EV_INFO[ev.type] || ['🚨', (ev.npc && ev.npc.name) || '특별 NPC'];
+    return { ev: ev, x: ev.x, y: ev.y, fav: ev.fsFav, emoji: info[0], name: info[1] };
+  }
+  function ensureEventBubbles() {
+    var hk = bcHook();
+    if (!hk || !F) return;
+    hk.events().forEach(function (ev) {
+      if (!ev.fsFav) ev.fsFav = SKILLS[Math.floor(Math.random() * SKILLS.length)].id;
+      if (!ev.el || ev.el.querySelector('.fs-evb')) return;
+      var sk = skillById(ev.fsFav);
+      var b = document.createElement('div');
+      b.className = 'fs-evb';
+      b.style.cssText = 'position:absolute;left:50%;top:-30px;transform:translateX(-50%);animation:fsBob 1s ease-in-out infinite;background:#fff;border:2px solid #FF6B9D;border-radius:999px;padding:0 8px;font-size:16px;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,.4);';
+      b.innerHTML = sk.icon + (hasSkill(F.cid, sk) ? '' : '<span style="font-size:10px;">🔒</span>');
+      ev.el.appendChild(b);
+    });
+  }
+  function nearestEvent() {
+    var hk = bcHook(), me = playerPos();
+    if (!hk || !F || !me) return null;
+    var best = null, bd = 1e9;
+    hk.events().forEach(function (ev) {
+      if (ev.fsBusy || !ev.fsFav) return;
+      var d = pxDist(ev.x, ev.y, me.x, me.y);
+      if (d <= FAN_RANGE && d < bd) { best = ev; bd = d; }
+    });
+    return best ? evTarget(best) : null;
+  }
+  function nearestTarget() { return nearestEvent() || nearestFan(); }
+
   // ════════ 보상 ════════
   function grant(love) {
     var mult = love ? LOVE_MULT : 1;
@@ -267,11 +305,27 @@
     if (!hasSkill(F.cid, sk)) { openBuyModal(sk); return null; }      // 아직 안 배운 스킬: 구매 창
     var now = Date.now();
     if ((F.cd[id] || 0) > now) return null;
-    var fan = nearestFan();
-    if (!fan) { toast('가까이에 팬이 없어요! 팬 쪽으로 걸어가 봐요'); return null; }
+    var fan = nearestTarget();
+    if (!fan) { toast(bcHook() ? '가까이에 이벤트가 없어요! ❗ 쪽으로 걸어가 봐요 (눌러서 닿기 전까지만)' : '가까이에 팬이 없어요! 팬 쪽으로 걸어가 봐요'); return null; }
     var me = playerPos();
     var love = fan.fav === id;
-    F.cd[id] = now + COOLDOWN * 1000;
+    if (fan.ev) {                                                    // 맵 이벤트에 스킬 사용: 이펙트 → 잠깐 뒤 결과창
+      var hk = bcHook(), evRef = fan.ev;
+      if (!hk.canResolve(evRef)) return null;                         // 스태미나 부족 등
+      F.cd[id] = now + COOLDOWN * 1000;
+      evRef.fsBusy = true;
+      effect(id, fan, me, love);
+      floatText(fan.x, fan.y - 0.03, '<div style="font-size:15px;font-weight:900;color:' + (love ? '#FFD700' : '#fff') + ';text-shadow:0 2px 6px #000;">' + (love ? '😍 대만족!' : '😊 만족') + '</div>');
+      sfx(love ? 'rarePick' : 'pick');
+      var cidNow = F.cid;
+      setTimeout(function () {
+        var ok = false;
+        try { ok = hk.resolve(evRef, love); } catch (e) {}
+        if (ok) addServe(cidNow); else evRef.fsBusy = false;
+      }, 900);
+      refreshBar();
+      return { love: love, event: true };
+    }
     var fanRef = fan;
     F.fans.splice(F.fans.indexOf(fan), 1);                           // 응대 중인 팬은 다른 스킬 대상에서 빠짐
     effect(id, fanRef, me, love);
@@ -332,7 +386,7 @@
   function refreshBar() {
     if (!F || !F.bar) return;
     F.bar.style.display = $('bc-panel') ? 'none' : 'flex';
-    var near = nearestFan();
+    var near = nearestTarget();
     var now = Date.now();
     SKILLS.forEach(function (s) {
       var b = F.btns[s.id];
@@ -347,7 +401,8 @@
       b.style.animation = (ready && near.fav === s.id) ? 'fsReady 1s ease-in-out infinite' : 'none';
     });
     var t;
-    if (near) t = '💬 ' + near.name + ' 바로 앞! ' + skillById(near.fav).icon + ' 를 좋아해요' + (hasSkill(F.cid, skillById(near.fav)) ? '' : ' (아직 못 배움 🔒)');
+    if (near) t = '💬 ' + near.emoji + ' ' + near.name + ' 바로 앞! ' + skillById(near.fav).icon + ' 를 좋아해요' + (hasSkill(F.cid, skillById(near.fav)) ? '' : ' (아직 못 배움 🔒)');
+    else if (bcHook()) t = '❗ 이벤트 가까이 가서 스킬을 써봐요 (닿으면 미니게임이 열려요)';
     else if (F.fans.length) t = '👀 팬이 기다리고 있어요! 가까이 걸어가요';
     else t = '✨ 이벤트가 끝나면 팬이 찾아와요';
     if (F.hint.textContent !== t) F.hint.textContent = t;
@@ -355,7 +410,7 @@
 
   // ════════ 맵 화면 감시 ════════
   function onEventDone() {
-    if (!F || Math.random() >= SPAWN_CHANCE) return;
+    if (!F || bcHook() || Math.random() >= SPAWN_CHANCE) return;      // 문이 있으면 이벤트 자체가 대상이라 따로 팬이 안 옴
     var view = F.view;
     setTimeout(function () { if (F && F.view === view && $('bc-view') === view) spawnFan(); }, 500);
   }
@@ -375,7 +430,7 @@
       });
       F.obs.observe(view, { childList: true });
     } catch (e) {}
-    showNote('💖 이벤트가 끝나면 팬이 찾아와요! 가까이 가서 스킬을 써봐요');
+    showNote(bcHook() ? '💖 이벤트 머리 위 스킬이 좋아하는 거예요! 가까이 가서 스킬을 써봐요' : '💖 이벤트가 끝나면 팬이 찾아와요! 가까이 가서 스킬을 써봐요');
     refreshBar();
   }
 
@@ -391,6 +446,7 @@
       if (f.until <= now) { removeFan(f, true); return; }
       if (f.el) f.el.style.opacity = (f.until - now < 8000) ? (Math.floor(now / 300) % 2 ? '.45' : '1') : '1';   // 곧 떠나면 깜빡
     });
+    ensureEventBubbles();
     var near = nearestFan();
     F.fans.forEach(function (f) {
       var fc = f.el && f.el.querySelector('.fs-face');
@@ -515,7 +571,7 @@
 
   window.__fanSkillsTest = {
     spawnFan: spawnFan, useSkill: useSkill, serves: serves, unlockedSkills: unlockedSkills,
-    buySkill: buySkill, hasSkill: hasSkill, openShop: openShop, openBuyModal: openBuyModal, skillById: skillById,
+    buySkill: buySkill, nearestTarget: nearestTarget, hasSkill: hasSkill, openShop: openShop, openBuyModal: openBuyModal, skillById: skillById,
     state: function () { return F; }, store: loadStore
   };
 })();
