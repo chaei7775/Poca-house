@@ -456,7 +456,7 @@
     var el = $('bc-stam');
     var ef = $('bc-eff');
     if (ef && S) {
-      var pb = (typeof window.getPremiumBonus === 'function') ? window.getPremiumBonus(S.charId) : null;
+      var pb = (typeof window.getPremiumBonus === 'function') && (window.getPremiumEquipBonus ? window.getPremiumEquipBonus(S.charId) > 0 : true) ? window.getPremiumBonus(S.charId) : null;
       if (MAP.encore) {
         var hasEng = Object.keys(engAll()).some(function (k) { return k !== 'cheer' && Number(engAll()[k]); });
         ef.style.display = 'block';
@@ -781,7 +781,7 @@
     if (success) r.ticketOf = type;
     // 프리미엄 카드 효과 (premium-cards.js): 이 캐릭터의 카드를 갖고 있을 때만 적용
     if (!MAP.pieces) r.pieces = 0;     // 팬미팅장 등: 프리미엄 조각 없음
-    var pb = (MAP.pieces && typeof window.getPremiumBonus === 'function') ? window.getPremiumBonus(S.charId) : null;
+    var pb = (MAP.pieces && typeof window.getPremiumBonus === 'function') && (window.getPremiumEquipBonus ? window.getPremiumEquipBonus(S.charId) > 0 : true) ? window.getPremiumBonus(S.charId) : null;
     var notes = [];
     if (pb && success) {
       if (r.pieces === 0 && Math.random() < pb.skill) { r.pieces = 1; notes.push({ icon: '📸', text: pb.skillName + ' 발동!', color: '#FFD700' }); }
