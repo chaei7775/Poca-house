@@ -684,6 +684,15 @@
       '<div style="margin-bottom:10px;">' + (chips || '<div style="font-size:12px;color:#aaa;">얻은 게 없어요</div>') + '</div>' +
       '<button id="bc-next" style="' + BTN + '">계속 탐험하기</button>');
     $('bc-next').onclick = function () { closeEvent(ev); };
+    // 🎫💎 등교권 / 초월석을 얻었으면 큰 팝업 (big-drop-popup.js) — 결과창 위에 뜸
+    try {
+      var gotTicket = lines.some(function (l) { return /^등교권 \+/.test(l.text) && !/조각 \+/.test(l.text); });
+      var gotTrans = lines.some(function (l) { return /^초월석 \+/.test(l.text); });
+      if ((gotTicket || gotTrans) && window.showBigDrop) setTimeout(function () {
+        if (gotTicket) window.showBigDrop('ticket');
+        if (gotTrans) window.showBigDrop('trans');
+      }, 500);
+    } catch (e) {}
   }
 
   function closeEvent(ev) {
