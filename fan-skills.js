@@ -257,21 +257,24 @@
     }
     return seq;
   }
+  var SPECIAL_MAPS = { broadcast_front: 1, fanmeeting: 1 };
+  function isSpecialEv(o) { return !!o.kind && (o.type === 'golden' || o.type === 'legend') && !!F && !!SPECIAL_MAPS[F.mapId]; }
   function ensureSeq(o) {
-    if (!o.fsSeq) { o.fsSeq = makeSeq(SEQ_LEN); o.fsStep = 0; o.fsGauge = 0; o.fsDirty = true; return; }
+    if (!o.fsSeq) { o.fsSpecial = isSpecialEv(o); o.fsGain = o.fsSpecial ? 50 : STEP_GAIN; o.fsSeq = makeSeq(o.fsSpecial ? 2 : SEQ_LEN); o.fsStep = 0; o.fsGauge = 0; o.fsDirty = true; return; }
     var pool = usablePool();
     if (!pool.length) return;
     var bad = false;
     for (var i = o.fsStep; i < o.fsSeq.length; i++) if (pool.indexOf(o.fsSeq[i]) === -1) bad = true;
     if (bad) {                                                       // 장착을 바꿔서 못 쓰는 스킬이 순서에 있으면 남은 칸만 새로 뽑음
-      var left = Math.max(1, Math.ceil((100 - o.fsGauge) / STEP_GAIN));
+      var left = Math.max(1, Math.ceil((100 - o.fsGauge) / (o.fsGain || STEP_GAIN)));
       o.fsSeq = o.fsSeq.slice(0, o.fsStep).concat(makeSeq(left)); o.fsDirty = true;
     }
   }
   function applyStep(o, id, sk, mlv) {
     ensureSeq(o);
-    if (sk.aoe) { o.fsGauge += Math.round(AOE_GAIN * (1 + 0.1 * (mlv || 0))); o.fsSeq.splice(o.fsStep, 2); o.fsAoe = true; }
-    else if (o.fsSeq[o.fsStep] === id) { o.fsGauge += STEP_GAIN; o.fsStep++; }
+    if (sk.aoe && o.fsSpecial) { o.fsGauge += o.fsGain; o.fsStep++; o.fsAoe = true; }      // 레어/특별 이벤트: 광역은 아무 칸이나 채우는 한 번으로만 침
+    else if (sk.aoe) { o.fsGauge += Math.round(AOE_GAIN * (1 + 0.1 * (mlv || 0))); o.fsSeq.splice(o.fsStep, 2); o.fsAoe = true; }
+    else if (o.fsSeq[o.fsStep] === id) { o.fsGauge += (o.fsGain || STEP_GAIN); o.fsStep++; }
     else { o.fsDirty = true; return 'fail'; }
     o.fsDirty = true;
     return o.fsGauge >= 100 ? 'done' : 'ok';
@@ -458,7 +461,7 @@
         var evRef = o, cidNow = F.cid;
         setTimeout(function () {
           var ok = false;
-          try { ok = hk.resolve(evRef, love); } catch (e) {}
+          try { ok = hk.resolve(evRef, love, 1 + 0.04 * mlv); } catch (e) {}
           if (ok) addServe(cidNow); else evRef.fsBusy = false;
         }, 900);
       } else {

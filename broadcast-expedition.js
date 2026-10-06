@@ -171,6 +171,8 @@
     }
   };
   var MAP_ORDER = ['broadcast_front', 'fanmeeting', 'concert'];
+  var curLoc = 'broadcast_front';
+  var SKILL_ONLY = { broadcast_front: 1, fanmeeting: 1 };   // 이 맵들의 레어/특별 이벤트는 미니게임 없이 스킬 2개로만 처리
   var MAP = MAPS.broadcast_front;     // 지금 들어가 있는 맵 (원정 시작할 때 바뀜)
 
   // 평균 조각 계산용 (실제 플레이어가 이 정도 비율로 성공한다고 가정)
@@ -844,6 +846,8 @@
 
   function finish(ev, type, grade, love) {
     var r = rewardFor(type, grade);
+    if (S && S.bonus > 1) { r.coins = Math.round(r.coins * S.bonus); r.exp = Math.round(r.exp * S.bonus); }   // 🏅 스킬 숙련도 보너스 (fan-skills.js)
+    if (S) S.bonus = 1;
     // 💖 팬 스킬 대만족 (fan-skills.js): 팬레터·굿즈는 보상이 업그레이드돼서 나온다
     if (love && (type === 'letter' || type === 'goods')) {
       r.coins *= 2; r.exp *= 2; r.mats += 1; r.gear = Math.min(1, r.gear * 2);
@@ -1164,7 +1168,10 @@
         }
         var dist = pxDist(ev.x, ev.y, me.px, me.py);
         if (dist < HIT_R + (ev.kind === 'special' ? 10 : 0)) {
-          if (!ev.skip) { tryStart(ev); break; }
+          if (!ev.skip) {
+            if (ev.kind === 'special' && SKILL_ONLY[curLoc]) { ev.skip = true; toast('✨ 이 이벤트는 스킬로만 응대할 수 있어요! 머리 위 순서대로 스킬 2개를 써요'); }
+            else { tryStart(ev); break; }
+          }
         } else if (dist > HIT_R * 2) {
           ev.skip = false;
         }
@@ -1191,6 +1198,7 @@
 
   function startBroadcast(charId, locId) {
     MAP = MAPS[locId] || MAPS.broadcast_front;
+    curLoc = MAPS[locId] ? locId : 'broadcast_front';
     var overlay = $('special-overlay');
     if (!overlay) return;
     var ch = (typeof CHARS !== 'undefined' && CHARS[charId]) ? CHARS[charId] : { name: '', img: '', gradeColor: '#fff', emoji: '🎬' };
@@ -1399,8 +1407,9 @@
       if (typeof stamina === 'undefined' || stamina < cost) { toast('스태미나가 부족해요! ⚡ 음료를 마셔봐요 (이벤트 1번 ' + cost + ')'); return false; }
       return true;
     },
-    resolve: function (ev, love) {
+    resolve: function (ev, love, bonus) {
       if (!S || S.paused || S.events.indexOf(ev) === -1) return false;
+      S.bonus = bonus > 1 ? bonus : 1;
       var cost = staminaCost();
       if (typeof stamina === 'undefined' || stamina < cost) return false;
       stamina -= cost;
