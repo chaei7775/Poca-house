@@ -1379,14 +1379,15 @@
     potions: {
       list: function () { return POTIONS; },
       qty: potionQty,
-      buy: function (id) {                                     // 상점 구매 (맵 밖에서도 가능)
+      buy: function (id, n) {                                  // 상점 구매 (맵 밖에서도 가능). n = 한 번에 살 개수
         var po = potionById(id);
+        n = Math.max(1, Math.floor(Number(n) || 1));
         if (!po) return { ok: false, why: 'none' };
-        if (typeof coins === 'undefined' || coins < po.price) return { ok: false, why: 'coins' };
+        if (typeof coins === 'undefined' || coins < po.price * n) return { ok: false, why: 'coins' };
         var added = false;
-        try { added = !!addToBag(po.emoji, po.name, 'potion', 1, po.desc); } catch (e) {}
+        try { added = !!addToBag(po.emoji, po.name, 'potion', n, po.desc); } catch (e) {}
         if (!added) return { ok: false, why: 'bag' };
-        coins -= po.price;
+        coins -= po.price * n;
         if (typeof saveAll === 'function') { try { saveAll(); } catch (e) {} }
         if (typeof updateCoinsDisplay === 'function') { try { updateCoinsDisplay(); } catch (e) {} }
         hpRefresh();

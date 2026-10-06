@@ -754,10 +754,18 @@
     Array.prototype.forEach.call(ov.querySelectorAll('[data-pbuy]'), function (b) {
       b.onclick = function () {
         var hk = bcHook(); if (!hk || !hk.potions) { shopSay(ov, '⚠️ 회복약 상점을 아직 못 불러왔어요. 잠깐 뒤에 다시 눌러봐요'); return; }
-        var r;
-        try { r = hk.potions.buy(b.getAttribute('data-pbuy')); } catch (e) { shopSay(ov, '⚠️ 구매 중 오류가 났어요: ' + (e && e.message || e)); return; }
-        if (!r.ok) { shopSay(ov, r.why === 'coins' ? '🍔 코인이 부족해요!' : r.why === 'bag' ? '🎒 가방이 가득 찼어요! 가방을 비우거나 넓혀봐요' : '살 수 없어요'); return; }
-        shopSay(ov, '🧪 회복약을 샀어요!');
+        var pid = b.getAttribute('data-pbuy');
+        var po = hk.potions.list().filter(function (x) { return x.id === pid; })[0];
+        if (!po) return;
+        function doBuy(n) {
+          var r;
+          try { r = hk.potions.buy(pid, n); } catch (e) { shopSay(ov, '⚠️ 구매 중 오류가 났어요: ' + (e && e.message || e)); return; }
+          if (!r.ok) { shopSay(ov, r.why === 'coins' ? '🍔 코인이 부족해요!' : r.why === 'bag' ? '🎒 가방이 가득 찼어요! 가방을 비우거나 넓혀봐요' : '살 수 없어요'); return; }
+          shopSay(ov, po.emoji + ' ' + po.name + ' ' + n + '개를 샀어요!');
+        }
+        if (typeof qpOpen === 'function') {                 // 일반 상점처럼 수량 고르는 팝업 (슬라이더 / 직접 입력 / 최대)
+          qpOpen({ mode: 'buy', emoji: po.emoji, name: po.name, unit: po.price, max: Math.floor(coinsNow() / po.price), onConfirm: doBuy });
+        } else doBuy(1);
       };
     });
     ov.querySelector('#fs-shop-close').onclick = function () { ov.remove(); };
