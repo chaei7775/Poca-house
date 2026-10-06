@@ -49,7 +49,7 @@
     // ───── 튜토리얼 (초반 길잡이) ─────
     tut_explore: { title:'스케줄 나가기', desc:'🚐 스케줄 가기 → 촬영 세트장·뷰티 살롱·공원에서 재료를 모아보자. 재료는 재조합과 데뷔에 쓰여.',
       condition:'q2_explore', rewardCoins:300, rewardExp:50, type:'tutorial', detect:function () { return !!F.explore; } },
-    tut_fishing: { title:'호수에서 낚시', desc:'🏞️ 동쪽 호수 → 낚시하기. 물고기가 다가오면 탭해서 낚싯대를 던져봐.',
+    tut_fishing: { title:'캠프에서 낚시', desc:'🏕️ 워크숍 캠프 → 낚시하기. 물고기가 다가오면 탭해서 낚싯대를 던져봐.',
       condition:'q2_fishing', rewardCoins:300, rewardExp:50, type:'tutorial', detect:function () { return !!F.fishing; } },
     tut_gift: { title:'선물로 마음 얻기', desc:'💞 인연 → 아이돌 선택 → 선물하기. 가방의 선물을 주면 인연 경험치가 올라.',
       condition:'q2_gift', rewardCoins:300, rewardExp:50, type:'tutorial', detect:function () { return !!F.gift; } },

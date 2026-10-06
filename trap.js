@@ -291,7 +291,7 @@
     ov.style.cssText = 'position:fixed;inset:0;z-index:960;background:rgba(0,0,0,0.78);display:flex;align-items:center;justify-content:center;padding:20px;' + FONT;
     ov.innerHTML = '<div style="width:100%;max-width:300px;background:linear-gradient(135deg,#0b2a3b,#1a1a2e);border:2px solid ' + ACC + ';border-radius:20px;padding:22px 18px;text-align:center;">' +
       '<div style="font-size:34px;margin-bottom:4px;">🌊</div>' +
-      '<div style="font-size:17px;font-weight:900;color:#fff;margin-bottom:14px;">동쪽 호수</div>' +
+      '<div style="font-size:17px;font-weight:900;color:#fff;margin-bottom:14px;">🏕️ 워크숍 캠프</div>' +
       '<button id="tc-fish" style="' + BTN + 'width:100%;padding:14px;margin-bottom:8px;font-size:15px;background:linear-gradient(135deg,#38BDF8,#C084FC);color:#fff;">🎣 낚시하기 <span style="font-size:12px;font-weight:400;">(⚡10 · 직접 잡기)</span></button>' +
       '<button id="tc-trap" style="' + BTN + 'width:100%;padding:14px;margin-bottom:8px;font-size:15px;background:linear-gradient(135deg,#34D399,#38BDF8);color:#fff;position:relative;">🪤 통발 ' +
       '<span style="font-size:12px;font-weight:400;">(방치)</span>' +
