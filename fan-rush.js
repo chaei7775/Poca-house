@@ -618,13 +618,13 @@
     c.shadowBlur = 0;
     if (T.boss) { c.font = Math.round(T.r * 1.0) + 'px sans-serif'; c.fillText('👑', f.x, f.y - T.r * 1.25 - 8 + bob); }
     // 머리 위: 써야 할 스킬 순서 + 💗 하트 게이지 (순서를 채울수록 차오르고, 가득 차면 만족)
-    var n = f.seq.length, iw = 16, tot = n * iw, ix = f.x - tot / 2, iy = f.y - T.r - (T.boss ? 44 : 34);
+    var n = f.seq.length, iw = 22, tot = n * iw, ix = f.x - tot / 2, iy = f.y - T.r - (T.boss ? 50 : 40);
     for (var i = 0; i < n; i++) {
       var k = skillById(f.seq[i]), cur = i === f.step, done = i < f.step;
       c.globalAlpha = done ? 0.3 : 1;
-      c.fillStyle = cur ? 'rgba(255,255,255,.95)' : 'rgba(255,255,255,.7)'; c.beginPath(); c.arc(ix + i * iw + iw / 2, iy, cur ? 9 : 7.5, 0, 7); c.fill();
+      c.fillStyle = cur ? 'rgba(255,255,255,.95)' : 'rgba(255,255,255,.7)'; c.beginPath(); c.arc(ix + i * iw + iw / 2, iy, cur ? 11 : 9, 0, 7); c.fill();
       if (cur) { c.strokeStyle = f.angry > 0 ? '#ff6b6b' : '#ffd76a'; c.lineWidth = 2; c.stroke(); }
-      c.font = (cur ? 12 : 10) + 'px sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillStyle = '#000';
+      c.font = (cur ? 15 : 12) + 'px sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillStyle = '#000';
       c.fillText(k ? k.icon : '?', ix + i * iw + iw / 2, iy + 1);
     }
     c.globalAlpha = 1;
@@ -636,7 +636,6 @@
       c.fillStyle = 'rgba(255,255,255,.35)'; roundRectP(c, gx + 2, gy + 1.5, Math.max(4, gw * gp - 4), 2.5, 2); c.fill();
     }
     c.lineWidth = 1.5; c.strokeStyle = f.angry > 0 ? 'rgba(255,120,120,.9)' : 'rgba(255,255,255,.6)'; roundRectP(c, gx - 2.5, gy - 2.5, gw + 5, gh + 5, 7); c.stroke();
-    c.font = '13px sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillStyle = '#fff'; c.fillText(gp > 0.5 ? '💖' : '🤍', gx - 9, gy + gh / 2 + 1);
   }
 
   function roundRectP(c, x, y, w, h, r) { c.beginPath(); c.moveTo(x + r, y); c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r); c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath(); }
@@ -921,10 +920,10 @@
       '<div id="fr-view" style="position:relative;flex:1;min-height:0;overflow:hidden;background:#0c0719;">' +
         '<canvas id="fr-cv" style="position:absolute;inset:0;width:100%;height:100%;touch-action:none;"></canvas>' +
         '<div style="position:absolute;left:8px;top:8px;right:8px;display:flex;align-items:center;gap:8px;pointer-events:none;">' +
-          '<div style="flex:1;max-width:190px;"><div style="font-size:11px;font-weight:900;color:#fff;text-shadow:0 1px 3px #000;margin-bottom:2px;">❤️ <span id="fr-hptxt"></span> · ' + ch.name + ' <span id="fr-hpa" style="color:#9fd8ff;"></span></div>' +
-            '<div id="fr-hpw" style="padding:7px 0;margin:-7px 0;pointer-events:auto;touch-action:none;cursor:ew-resize;"><div style="position:relative;height:12px;border-radius:7px;background:rgba(0,0,0,.6);border:1px solid rgba(255,255,255,.4);overflow:hidden;"><div id="fr-hp" style="height:100%;width:100%;background:linear-gradient(90deg,#ff5c8a,#ffb86b);transition:width .15s"></div><div id="fr-hpmk" style="position:absolute;top:0;bottom:0;width:3px;margin-left:-1.5px;background:#9fd8ff;box-shadow:0 0 6px #9fd8ff;"></div></div></div>' +
-            '<div style="font-size:10px;font-weight:900;color:#d9fbe8;text-shadow:0 1px 3px #000;margin:4px 0 1px;">😮‍💨 피로도 <span id="fr-fattxt">0</span>/100 <span id="fr-fata" style="color:#9fd8ff;"></span></div>' +
-            '<div id="fr-fatw" style="padding:7px 0;margin:-7px 0;pointer-events:auto;touch-action:none;cursor:ew-resize;"><div style="position:relative;height:8px;border-radius:5px;background:rgba(0,0,0,.6);border:1px solid rgba(255,255,255,.35);overflow:hidden;"><div id="fr-fat" style="height:100%;width:0%;background:linear-gradient(90deg,#6ee7a0,#ffd76a);"></div><div id="fr-fatmk" style="position:absolute;top:0;bottom:0;width:3px;margin-left:-1.5px;background:#9fd8ff;box-shadow:0 0 6px #9fd8ff;"></div></div></div></div>' +
+          '<div style="flex:1;max-width:190px;"><div style="font-size:11px;font-weight:900;color:#fff;text-shadow:0 1px 3px #000;margin-bottom:2px;">❤️ <span id="fr-hptxt"></span> · ' + ch.name + '</div>' +
+            '<div><div style="position:relative;height:12px;border-radius:7px;background:rgba(0,0,0,.6);border:1px solid rgba(255,255,255,.4);overflow:hidden;"><div id="fr-hp" style="height:100%;width:100%;background:linear-gradient(90deg,#ff5c8a,#ffb86b);transition:width .15s"></div></div></div>' +
+            '<div style="font-size:10px;font-weight:900;color:#d9fbe8;text-shadow:0 1px 3px #000;margin:4px 0 1px;">😮‍💨 피로도 <span id="fr-fattxt">0</span>/100</div>' +
+            '<div><div style="position:relative;height:8px;border-radius:5px;background:rgba(0,0,0,.6);border:1px solid rgba(255,255,255,.35);overflow:hidden;"><div id="fr-fat" style="height:100%;width:0%;background:linear-gradient(90deg,#6ee7a0,#ffd76a);"></div></div></div></div>' +
           '<div style="margin-left:auto;text-align:right;font-size:12px;font-weight:900;color:#fff;text-shadow:0 1px 3px #000;line-height:1.5;">🍔 <span id="fr-coin">0</span><br>😊 <span id="fr-kill">0</span>명 응대</div></div>' +
         '<div id="fr-pots" style="position:absolute;left:8px;top:74px;display:flex;flex-direction:column;gap:6px;"></div>' +
         '<div id="fr-skills" style="position:absolute;right:8px;bottom:10px;display:flex;flex-wrap:wrap-reverse;flex-direction:row-reverse;gap:8px;width:190px;justify-content:flex-start;"></div>' +
@@ -947,26 +946,46 @@
     });
     var ab = document.createElement('button'); ab.className = 'fr-pot'; ab.id = 'fr-auto';
     var paintAuto = function () { ab.textContent = autoOn() ? '🤖 자동 ON' : '🤖 자동 OFF'; ab.style.opacity = autoOn() ? '1' : '.55'; ab.style.fontSize = '11px'; };
-    ab.onclick = function (e) { e.stopPropagation(); setAuto(!autoOn()); paintAuto(); };
-    ab.addEventListener('pointerdown', function (e) { e.stopPropagation(); });
-    paintAuto(); pw.appendChild(ab);
-    // 📏 자동 기준: HP 바 / 피로도 바를 손가락으로 드래그해서 정함 (파란 선이 기준)
-    function bindDrag(w, key, lo, hi, paint) {
-      if (!w) return;
+    var panel = null;
+    function closePanel() { if (panel) { panel.remove(); panel = null; } }
+    function slider(key, lo, hi, label, unit, color, fill) {
+      var row = document.createElement('div'); row.style.cssText = 'margin:12px 0;';
+      row.innerHTML = '<div style="display:flex;justify-content:space-between;font-size:12px;font-weight:900;margin-bottom:6px;"><span>' + label + '</span><span class="v" style="color:#ffd76a;"></span></div>' +
+        '<div class="w" style="padding:10px 0;margin:-10px 0;touch-action:none;cursor:ew-resize;"><div style="position:relative;height:16px;border-radius:9px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.35);"><div class="f" style="height:100%;border-radius:9px;background:' + fill + ';"></div><div class="k" style="position:absolute;top:-4px;width:12px;height:22px;margin-left:-6px;border-radius:6px;background:#fff;box-shadow:0 0 8px ' + color + ';"></div></div></div>';
+      var w = row.querySelector('.w'), v = row.querySelector('.v'), f = row.querySelector('.f'), k = row.querySelector('.k');
+      var get = key === 'ph_fr_auto_hp' ? autoHp : autoFat;
+      function paint() { var x = get(); v.textContent = x + unit; f.style.width = x + '%'; k.style.left = x + '%'; }
       var on = false;
-      function setFrom(e) { var r = w.getBoundingClientRect(); var v = Math.round(((e.clientX - r.left) / r.width * 100) / 5) * 5; v = Math.max(lo, Math.min(hi, v)); try { localStorage.setItem(key, String(v)); } catch (x) {} paint(); }
-      w.addEventListener('pointerdown', function (e) { e.stopPropagation(); e.preventDefault(); on = true; try { w.setPointerCapture(e.pointerId); } catch (x) {} setFrom(e); });
+      function setFrom(e) { var r = w.getBoundingClientRect(); var x = Math.round(((e.clientX - r.left) / r.width * 100) / 5) * 5; x = Math.max(lo, Math.min(hi, x)); try { localStorage.setItem(key, String(x)); } catch (z) {} paint(); }
+      w.addEventListener('pointerdown', function (e) { e.stopPropagation(); e.preventDefault(); on = true; try { w.setPointerCapture(e.pointerId); } catch (z) {} setFrom(e); });
       w.addEventListener('pointermove', function (e) { if (on) { e.stopPropagation(); setFrom(e); } });
       w.addEventListener('pointerup', function (e) { on = false; e.stopPropagation(); });
       w.addEventListener('pointercancel', function () { on = false; });
+      paint(); return row;
     }
-    function paintMarks() {
-      var h = $('fr-hpmk'), f = $('fr-fatmk'); if (h) h.style.left = autoHp() + '%'; if (f) f.style.left = autoFat() + '%';
-      var ha = $('fr-hpa'), fa = $('fr-fata'); if (ha) ha.textContent = '🤖' + autoHp() + '%↓'; if (fa) fa.textContent = '🤖' + autoFat() + '↑';
-    }
-    bindDrag($('fr-hpw'), 'ph_fr_auto_hp', 10, 90, paintMarks);
-    bindDrag($('fr-fatw'), 'ph_fr_auto_fat', 30, 95, paintMarks);
-    paintMarks();
+    ab.onclick = function (e) {
+      e.stopPropagation();
+      if (panel) { closePanel(); return; }
+      panel = document.createElement('div'); panel.id = 'fr-autopanel';
+      panel.style.cssText = 'position:absolute;left:8px;right:8px;bottom:8px;z-index:30;background:rgba(18,8,34,.95);border:1px solid rgba(255,255,255,.35);border-radius:16px;padding:12px 16px 14px;color:#fff;font-family:inherit;box-shadow:0 -4px 24px rgba(0,0,0,.5);';
+      var head = document.createElement('div'); head.style.cssText = 'display:flex;align-items:center;justify-content:space-between;font-size:14px;font-weight:900;';
+      head.innerHTML = '<span>🤖 물약 자동 사용</span>';
+      var tg = document.createElement('button'); tg.style.cssText = 'border:none;border-radius:12px;padding:6px 12px;font-weight:900;font-family:inherit;cursor:pointer;';
+      var pt = function () { tg.textContent = autoOn() ? 'ON' : 'OFF'; tg.style.background = autoOn() ? '#ff7eb6' : '#555'; tg.style.color = '#fff'; paintAuto(); };
+      tg.onclick = function () { setAuto(!autoOn()); pt(); }; pt(); head.appendChild(tg);
+      panel.appendChild(head);
+      var hint = document.createElement('div'); hint.style.cssText = 'font-size:10px;color:rgba(255,255,255,.65);margin-top:4px;'; hint.textContent = '게이지를 끌어서 몇 %일 때 마실지 정해요';
+      panel.appendChild(hint);
+      panel.appendChild(slider('ph_fr_auto_hp', 10, 90, '❤️ HP가 이 % 이하면 회복약', '%', '#ff8fc4', 'linear-gradient(90deg,#ff5c8a,#ffb86b)'));
+      panel.appendChild(slider('ph_fr_auto_fat', 30, 95, '😮‍💨 피로도가 이 이상이면 드링크', '', '#6ee7a0', 'linear-gradient(90deg,#6ee7a0,#ffd76a)'));
+      var cl = document.createElement('button'); cl.textContent = '닫기'; cl.style.cssText = 'width:100%;border:none;border-radius:12px;padding:9px;background:rgba(255,255,255,.18);color:#fff;font-weight:900;font-family:inherit;cursor:pointer;';
+      cl.onclick = function (e2) { e2.stopPropagation(); closePanel(); };
+      panel.appendChild(cl);
+      panel.addEventListener('pointerdown', function (e2) { e2.stopPropagation(); });
+      $('fr-view').appendChild(panel);
+    };
+    ab.addEventListener('pointerdown', function (e) { e.stopPropagation(); });
+    paintAuto(); pw.appendChild(ab);
   }
 
   function updateHud() {
