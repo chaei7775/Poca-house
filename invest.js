@@ -557,7 +557,7 @@
     if (!ov) {
       ov = document.createElement('div'); ov.id = 'invest-overlay';
       ov.style.cssText = 'position:fixed;inset:0;z-index:760;overflow-y:auto;-webkit-overflow-scrolling:touch;color:' + C.text + ';' + FONT +
-        'background:linear-gradient(180deg,rgba(14,10,6,.78),rgba(14,10,6,.93)),url(' + IMG + ') center top/cover no-repeat,' + C.bg + ';';
+        'background:linear-gradient(180deg,rgba(14,10,6,.55),rgba(14,10,6,.88)),url(' + IMG + ') center top/cover no-repeat,' + C.bg + ';';
       document.body.appendChild(ov);
       ov.addEventListener('click', onClick);
     }
