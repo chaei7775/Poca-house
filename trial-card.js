@@ -17,7 +17,7 @@
 //   ?trial=reset   체험 카드 기록 지우기 (처음부터 다시 테스트)
 //
 // 저장: localStorage 'ph_trialCard' (ph_ 로 시작해서 기존 클라우드 저장에 같이 들어간다)
-// 카드 그림: repo 맨 위 폴더에 hidden-topstar-trial.jpg 를 올리면 자동 적용 (없으면 임시 그림)
+// 카드 그림: repo 맨 위 폴더의 hidden-seyeon-trial.jpg (없으면 임시 그림)
 // 값을 바꾸고 싶으면 아래 [설정]만 고치면 된다.
 // ════════════════════════════════
 (function () {
@@ -29,10 +29,11 @@
   var STAMINA_SAVE = 0.10;                  // 스태미나 절약 비율
   var LUCK_BONUS = 1;                       // 행운 +1 = 희귀재료 확률 +1%p
   var REWARD_COINS = 20000;                 // 만료될 때 위로 보상: 코인
-  var REWARD_STONES = 3;                    // 만료될 때 위로 보상: 재조합석
-  var CARD_NAME = '체험용 탑스타';           // 카드 이름 (탑스타 이름이 정해지면 여기만 바꾸면 됨)
-  var CARD_TITLE = '7일 한정 히든카드';
-  var CARD_IMG = 'hidden-topstar-trial.jpg';
+  var REWARD_STONES = 30;                   // 만료될 때 위로 보상: 재조합석
+  var CARD_NAME = '세연';                    // 카드 이름 (그림에도 적혀 있음)
+  var CARD_TITLE = '체험 히든카드 · 7일 한정';
+  var CARD_IMG = 'hidden-seyeon-trial.jpg';   // 카드 그림 (이름·효과 글씨가 그림 안에 들어 있음)
+  var CARD_RATIO = '1054/1492';
   var ACQUIRE_TEXT = '정식 카드를 얻는 방법은 곧 공개돼요!';
   var EFFECTS = [
     { label: '스태미나 소모', value: '-10%' },
@@ -130,13 +131,11 @@
 
   // ════════ 화면 ════════
   function cardHtml(w) {
-    var big = '<div style="width:' + w + 'px;aspect-ratio:3/4;margin:0 auto;border-radius:16px;overflow:hidden;border:3px solid ' + ACC + ';box-shadow:0 0 36px ' + ACC + '88;position:relative;' +
+    return '<div style="width:' + w + 'px;aspect-ratio:' + CARD_RATIO + ';margin:0 auto;border-radius:14px;overflow:hidden;border:2px solid ' + ACC + ';box-shadow:0 0 36px ' + ACC + '88;position:relative;' +
       'background:linear-gradient(160deg,#3b1d6e,#7c3aed 55%,#f59e0b);display:flex;align-items:center;justify-content:center;">' +
       '<div style="font-size:64px;filter:drop-shadow(0 4px 10px #0008);">🌟</div>' +
-      '<img src="' + imgUrl() + '" onerror="this.style.display=\'none\'" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;">' +
-      '<div style="position:absolute;top:8px;left:8px;background:rgba(0,0,0,.7);border:1.5px solid ' + ACC + ';border-radius:999px;padding:2px 9px;font-size:11px;font-weight:900;color:' + ACC + ';">🎟️ 체험용</div>' +
-      '<div style="position:absolute;top:8px;right:8px;background:rgba(220,38,38,.92);border-radius:999px;padding:2px 9px;font-size:12px;font-weight:900;color:#fff;">D-' + dday() + '</div></div>';
-    return big;
+      '<img src="' + imgUrl() + '" onerror="this.style.display=\'none\'" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;"></div>' +
+      '<div style="display:inline-block;margin-top:10px;background:rgba(220,38,38,.92);border-radius:999px;padding:3px 14px;font-size:13px;font-weight:900;color:#fff;">🎟️ 체험용 · D-' + dday() + '</div>';
   }
   function effectsHtml() {
     return EFFECTS.map(function (e) {
@@ -157,8 +156,8 @@
   function showGrantPopup() {
     var ov = overlay(
       '<div style="font-size:21px;font-weight:900;color:' + ACC + ';text-shadow:0 0 20px ' + ACC + 'aa;margin-bottom:14px;">🎟️ 체험용 히든카드 획득!</div>' +
-      cardHtml(210) +
-      '<div style="font-size:17px;font-weight:900;color:#fff;margin:14px 0 4px;">' + CARD_NAME + '</div>' + effectsHtml() +
+      cardHtml(230) +
+      '<div style="margin-top:10px;">' + effectsHtml() + '</div>' +
       '<div style="font-size:12px;color:#fca5a5;margin:12px 0 4px;font-weight:700;">⏳ ' + TRIAL_DAYS + '일 뒤에 사라져요</div>' +
       '<div style="font-size:11px;color:#bbb;margin-bottom:14px;">' + ACQUIRE_TEXT + '</div>' +
       '<button id="trial-ok" style="' + BTN + 'background:linear-gradient(135deg,#f59e0b,#ef4444);color:#fff;">좋아요!</button>');
@@ -170,7 +169,7 @@
     var ov = overlay(
       '<div style="font-size:42px;margin-bottom:6px;">🎟️</div>' +
       '<div style="font-size:19px;font-weight:900;color:#fff;margin-bottom:8px;">체험 기간이 끝났어요</div>' +
-      '<div style="font-size:13px;color:#ddd;line-height:1.7;margin-bottom:14px;">' + CARD_NAME + ' 카드가 사라졌어요.<br>써보느라 수고했어요! 대신 선물을 드려요 🎁</div>' +
+      '<div style="font-size:13px;color:#ddd;line-height:1.7;margin-bottom:14px;">' + CARD_NAME + ' 체험 카드가 사라졌어요.<br>써보느라 수고했어요! 대신 선물을 드려요 🎁</div>' +
       '<div style="display:inline-block;background:rgba(255,255,255,.1);border:1.5px solid ' + ACC + ';border-radius:14px;padding:10px 18px;font-size:14px;font-weight:900;color:#FFD700;line-height:1.8;margin-bottom:14px;">' +
       '🍔 ' + REWARD_COINS.toLocaleString() + ' 코인<br>🔹 재조합석 ×' + REWARD_STONES + '</div>' +
       '<div style="font-size:11px;color:#bbb;margin-bottom:14px;">' + ACQUIRE_TEXT + '</div>' +
@@ -185,9 +184,8 @@
     var pct = Math.max(0, Math.min(100, Math.round(remainMs() / (TRIAL_DAYS * DAY) * 100)));
     var ov = overlay(
       '<div style="display:flex;justify-content:flex-end;margin-bottom:8px;"><button id="trial-close" style="padding:7px 12px;border:none;border-radius:10px;background:rgba(255,255,255,.12);color:#fff;font-size:13px;font-weight:900;cursor:pointer;' + FONT + '">닫기</button></div>' +
-      cardHtml(210) +
-      '<div style="font-size:17px;font-weight:900;color:#fff;margin:14px 0 2px;">' + CARD_NAME + '</div>' +
-      '<div style="font-size:12px;color:#aaa;margin-bottom:6px;">' + CARD_TITLE + '</div>' + effectsHtml() +
+      cardHtml(230) +
+      '<div style="margin-top:10px;">' + effectsHtml() + '</div>' +
       '<div style="margin:16px 0 4px;font-size:13px;font-weight:900;color:#fca5a5;">⏳ 남은 시간 ' + remainText() + ' (D-' + dday() + ')</div>' +
       '<div style="height:10px;border-radius:5px;background:rgba(255,255,255,.12);overflow:hidden;margin-bottom:14px;"><div style="height:100%;width:' + pct + '%;background:linear-gradient(90deg,#ef4444,#f59e0b);"></div></div>' +
       '<div style="background:rgba(255,255,255,.07);border-radius:12px;padding:11px;font-size:12px;color:#ddd;line-height:1.6;">' +
