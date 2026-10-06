@@ -258,6 +258,23 @@
   SYNTH.stamp = function () { tone(110, 0, 0.1, 'sine', 0.35, 70); noise(0, 0.05, 0.3, 'lowpass', 700); tone(1319, 0.08, 0.14, 'triangle', 0.14); };
   SYNTH.cheer = function () { noise(0, 0.45, 0.2, 'bandpass', 2200); arp([523, 659, 784, 1047, 1319], 0.07, 0.2, 'triangle', 0.2); };
 
+  // 연습생 숙소촌 헬스장 (housing-explore.js): 연타할 때 '퍽', 게이지가 차면 기구마다 다른 성공 소리
+  function sparkle(notes, t0) { notes.forEach(function (f, i) { tone(f, t0 + i * 0.06, 0.16, 'triangle', 0.22); }); }
+  SYNTH.gymHit = function () { tone(120, 0, 0.08, 'sine', 0.38, 60); noise(0, 0.045, 0.32, 'lowpass', 1500); tone(1900, 0, 0.02, 'square', 0.06); };
+  SYNTH.gymPunch = function () {   // 샌드백: 쾅!
+    tone(80, 0, 0.28, 'sine', 0.5, 38); noise(0, 0.18, 0.5, 'lowpass', 1100); noise(0.03, 0.12, 0.3, 'highpass', 3000);
+    sparkle([784, 988, 1319, 1568], 0.1);
+  };
+  SYNTH.gymRun = function () {     // 러닝머신: 슈웅 질주
+    noise(0, 0.4, 0.35, 'bandpass', 900); tone(300, 0, 0.35, 'sawtooth', 0.1, 1200);
+    sparkle([988, 1319, 1568, 2093], 0.18);
+  };
+  SYNTH.gymLift = function () {    // 덤벨·랫풀다운·벤치: 철컹!
+    tone(880, 0, 0.25, 'square', 0.14); tone(1320, 0, 0.2, 'square', 0.1); tone(95, 0, 0.2, 'sine', 0.4, 50); noise(0, 0.06, 0.3, 'highpass', 3500);
+    sparkle([659, 880, 1175, 1568], 0.12);
+  };
+  GAPS.gymHit = 60;   // 연타해도 소리가 씹히지 않게 간격을 짧게
+
   window.pocaSfx.has = function (n) { return !!SYNTH[n]; };
 
   // 버튼/카드를 누르면 아주 작은 '톡' 소리 (이미 다른 효과음이 날 곳이라면 겹치지 않게 짧고 작음)

@@ -7,6 +7,7 @@
 //   😴 지친 연습생이 같이 떨어질 때가 있음 (누르면 시간 -3초, 그냥 두면 사라짐)
 //   ✨ 반짝이는 기구 1개: 거기서는 희귀 재료가 확정으로 나옴
 //   화면을 좌우로 밀거나 양쪽 화살표(◀ ▶)로 다른 기구로 이동
+//   게이지가 차는 순간: 기구마다 다른 성공 글자(쾅!/질주!/번쩍! 등) + 충격파 링 + 흔들림 + 성공 소리 (화면은 안 멈춤)
 // 기구를 전부 쓰고 재료를 다 주우면 일찍 끝남. 재조합석 18% 판정은 기존 탐험과 동일.
 //
 // 재료는 기존 재료 이름만 사용한다 (새 재료 없음). 값을 바꾸고 싶으면 아래 설정만 고치면 됨.
@@ -31,14 +32,16 @@
   // 이미지 좌표(1536x1024) 기준 기구 위치 (대략값. 어색하면 숫자만 조절)
   // x: 기구 중심, w: 탭 반폭, y0~y1: 탭 가능한 높이 범위
   var IMG_W = 1536, IMG_H = 1024;
+  // word: 게이지가 찼을 때 화면에 뜨는 성공 글자 / sfx: sfx.js 의 성공 소리 이름 (gymPunch, gymRun, gymLift)
   var GEARS = [
-    { name: '샌드백',     x: 0.105, w: 0.060, y0: 0.14, y1: 0.55 },
-    { name: '덤벨랙',     x: 0.250, w: 0.088, y0: 0.36, y1: 0.56 },
-    { name: '러닝머신 1', x: 0.450, w: 0.068, y0: 0.32, y1: 0.58 },
-    { name: '러닝머신 2', x: 0.573, w: 0.077, y0: 0.32, y1: 0.58 },
-    { name: '랫풀다운',   x: 0.710, w: 0.100, y0: 0.20, y1: 0.57 },
-    { name: '벤치',       x: 0.910, w: 0.068, y0: 0.46, y1: 0.64 }
+    { name: '샌드백',     x: 0.105, w: 0.060, y0: 0.14, y1: 0.55, word: '💥 쾅!',    sfx: 'gymPunch' },
+    { name: '덤벨랙',     x: 0.250, w: 0.088, y0: 0.36, y1: 0.56, word: '✨ 번쩍!',  sfx: 'gymLift' },
+    { name: '러닝머신 1', x: 0.450, w: 0.068, y0: 0.32, y1: 0.58, word: '💨 질주!',  sfx: 'gymRun' },
+    { name: '러닝머신 2', x: 0.573, w: 0.077, y0: 0.32, y1: 0.58, word: '💨 질주!',  sfx: 'gymRun' },
+    { name: '랫풀다운',   x: 0.710, w: 0.100, y0: 0.20, y1: 0.57, word: '🔥 으랏차!', sfx: 'gymLift' },
+    { name: '벤치',       x: 0.910, w: 0.068, y0: 0.46, y1: 0.64, word: '💪 파워!',  sfx: 'gymLift' }
   ];
+  var BURST_SEC = 0.7;        // 성공 글자가 떠 있는 시간 (게임은 멈추지 않음)
 
   // ════════ 순수 로직 (화면 없이도 테스트 가능) ════════
   // 기존 재료 이름만 사용. 숙소촌 전용 목록이라 game.js의 EXPLORE_MATERIALS는 건드리지 않는다.
@@ -100,9 +103,9 @@
       W: 0, H: 0, dpr: 1, s: 1, ox: 0, oy: 0, camX: 0.3 * IMG_W, camTarget: 0.3 * IMG_W,
       gears: GEARS.map(function (g, i) {
         var y0 = g.y0 * IMG_H, y1 = g.y1 * IMG_H;
-        return { x: g.x * IMG_W, hw: g.w * IMG_W, y0: y0, y1: y1, cy: y0 + (y1 - y0) * 0.35, hit: 0, anim: 0, done: false, golden: i === goldenIdx };
+        return { x: g.x * IMG_W, hw: g.w * IMG_W, y0: y0, y1: y1, cy: y0 + (y1 - y0) * 0.35, hit: 0, anim: 0, done: false, golden: i === goldenIdx, word: g.word, sfx: g.sfx };
       }),
-      items: [], sparks: [], pops: [], collected: [], timeLeft: SESSION_SEC, flash: 0,
+      items: [], sparks: [], pops: [], bursts: [], collected: [], timeLeft: SESSION_SEC, flash: 0, glow: 0, shakeT: 0,
       msg: '', msgT: 0, pointer: null, last: performance.now(), raf: 0, t: 0, ended: false, endDelay: -1
     };
     bg.onload = function () { if (S) S.bgOk = true; };
@@ -200,7 +203,7 @@
     if (g.done) { say('이 기구는 이미 다 썼어요 💦', 1.2); return; }
     g.hit += 1;
     g.anim = 0.25;
-    if (window.pocaSfx) window.pocaSfx.play('shake');
+    if (window.pocaSfx) window.pocaSfx.play('gymHit');
     for (var i = 0; i < 3; i++) addSpark(g.x + (Math.random() - 0.5) * g.hw * 2, g.y0 + Math.random() * (g.y1 - g.y0));
     if (navigator.vibrate) { try { navigator.vibrate(12); } catch (e) {} }
     if (g.hit >= HIT_NEED) dropFromGear(g);
@@ -212,7 +215,14 @@
   }
 
   function dropFromGear(g) {
-    if (window.pocaSfx) window.pocaSfx.play('treeDrop');
+    if (window.pocaSfx) {
+      window.pocaSfx.play(g.sfx || 'treeDrop');
+      if (g.golden) setTimeout(function () { window.pocaSfx.play('reward'); }, 260);
+    }
+    // 성공 연출: 글자 + 충격파 링 + 살짝 흔들림 + 번쩍. 화면은 멈추지 않고 바로 재료를 주울 수 있음
+    S.bursts.push({ x: g.x, y: g.cy, text: (g.golden ? '🌟 ' : '') + (g.word || '💥 성공!'), t: 0, golden: g.golden });
+    S.shakeT = 0.25; S.glow = 0.18;
+    if (navigator.vibrate) { try { navigator.vibrate([20, 30, 40]); } catch (e) {} }
     g.done = true; g.hit = HIT_NEED;
     var luck = typeof getEquippedStat === 'function' ? getEquippedStat('luck') : 0;
     var drops = planDrops(luck, Math.random, g.golden);
@@ -234,6 +244,7 @@
     if (it.tired) {
       S.timeLeft = Math.max(0, S.timeLeft - TIRED_PENALTY);
       S.flash = 0.35;
+      if (window.pocaSfx) window.pocaSfx.play('fail');
       S.pops.push({ x: it.x, y: it.y - 30, text: '😴 지친 연습생! -' + TIRED_PENALTY + '초', t: 0, bad: true });
       if (navigator.vibrate) { try { navigator.vibrate([80, 40, 80]); } catch (e) {} }
       return;
@@ -297,6 +308,10 @@
     S.sparks = S.sparks.filter(function (l) { return l.life > 0; });
     S.pops.forEach(function (p) { p.t += dt; });
     S.pops = S.pops.filter(function (p) { return p.t < 1.4; });
+    S.bursts.forEach(function (b) { b.t += dt; });
+    S.bursts = S.bursts.filter(function (b) { return b.t < BURST_SEC; });
+    if (S.shakeT > 0) S.shakeT -= dt;
+    if (S.glow > 0) S.glow -= dt;
 
     // 끝났는지
     var allDone = S.gears.every(function (g) { return g.done; }) && S.items.length === 0;
@@ -317,6 +332,12 @@
     c.setTransform(S.dpr, 0, 0, S.dpr, 0, 0);
     c.clearRect(0, 0, W, H);
     layout();
+
+    c.save();   // 성공했을 때 장면만 살짝 흔들기 (HUD는 흔들리지 않음)
+    if (S.shakeT > 0) {
+      var sk = 8 * (S.shakeT / 0.25);
+      c.translate((Math.random() - 0.5) * sk, (Math.random() - 0.5) * sk);
+    }
 
     if (S.bgOk) {
       // 위아래 빈 곳: 같은 그림을 크게 깔고 어둡게
@@ -381,6 +402,32 @@
       c.font = '34px sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle';
       c.fillText(emoji, p[0], p[1] + bob);
     });
+
+    // 성공 연출: 충격파 링 + 크게 톡 튀어나오는 글자
+    S.bursts.forEach(function (b) {
+      var k = Math.min(1, b.t / BURST_SEC), bp = toScreen(b.x, b.y);
+      // 링
+      c.globalAlpha = Math.max(0, 0.85 * (1 - k));
+      c.strokeStyle = b.golden ? '#FFD700' : '#ff8fc4';
+      c.lineWidth = 2 + 7 * (1 - k);
+      c.beginPath(); c.arc(bp[0], bp[1], 20 + k * 130, 0, 6.3); c.stroke();
+      // 글자 (커졌다가 제 크기로)
+      var sc = k < 0.25 ? 0.5 + (k / 0.25) * 0.75 : 1.25 - ((k - 0.25) / 0.75) * 0.25;
+      c.globalAlpha = k < 0.7 ? 1 : Math.max(0, 1 - (k - 0.7) / 0.3);
+      var bx = Math.max(90, Math.min(W - 90, bp[0])), by = bp[1] - 30 - k * 24;
+      c.save(); c.translate(bx, by); c.scale(sc, sc);
+      c.font = '900 34px "Noto Sans KR",sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle';
+      c.lineWidth = 7; c.strokeStyle = 'rgba(40,0,30,0.85)'; c.lineJoin = 'round';
+      c.strokeText(b.text, 0, 0);
+      c.fillStyle = b.golden ? '#FFD700' : '#fff';
+      c.fillText(b.text, 0, 0);
+      c.restore();
+    });
+    c.globalAlpha = 1;
+    c.restore();   // 흔들림 끝
+
+    // 성공하면 화면이 살짝 번쩍
+    if (S.glow > 0) { c.fillStyle = 'rgba(255,225,240,' + Math.min(0.5, S.glow * 2.2) + ')'; c.fillRect(0, 0, W, H); }
 
     // 말풍선 팝업
     S.pops.forEach(function (p) {
