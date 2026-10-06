@@ -45,6 +45,7 @@ const NEW_CONTENT_FILES = [
   'starter-boost.js',
   'newbie-tickets.js',
   'app-resume.js',
+  'bgm-btn-fix.js',
   'economy-boost.js',
   'ticket-fragment-fix.js',
   'photolab.js',
