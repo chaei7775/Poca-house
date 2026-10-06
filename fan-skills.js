@@ -54,7 +54,8 @@
   ];
   var FAV_IDS = ['sign', 'photo', 'shake', 'heart'];   // 팬이 좋아하는 스킬은 기본 4종 중에서만 (광역 스킬은 누구에게나 50% 확률로 대만족)
   var AOE_LOVE = 0.5;
-  var SEQ_LEN = 4;               // 팬 머리 위에 뜨는 스킬 순서 길이
+  var SEQ_NORMAL = 1, SEQ_RARE = 2, SEQ_LEGEND = 3;   // 머리 위 스킬 개수: 일반 팬·일반 이벤트 / 레어(황금 셔터) / 특별(NPC)
+  var SEQ_LEN = SEQ_NORMAL;
   var STEP_GAIN = 25;            // 단타 스킬 하나가 채우는 하트 게이지(%)
   var AOE_GAIN = 50;             // 광역 스킬이 채우는 하트 게이지(%) — 순서 중 2칸을 건너뜀
   var FANS = [
@@ -262,7 +263,7 @@
   var SPECIAL_MAPS = { broadcast_front: 1, fanmeeting: 1 };
   function isSpecialEv(o) { return !!o.kind && (o.type === 'golden' || o.type === 'legend') && !!F && !!SPECIAL_MAPS[F.mapId]; }
   function ensureSeq(o) {
-    if (!o.fsSeq) { o.fsSpecial = isSpecialEv(o); o.fsGain = o.fsSpecial ? 50 : STEP_GAIN; o.fsSeq = makeSeq(o.fsSpecial ? 2 : SEQ_LEN); o.fsStep = 0; o.fsGauge = 0; o.fsDirty = true; return; }
+    if (!o.fsSeq) { o.fsSpecial = isSpecialEv(o); var len = o.type === 'legend' ? SEQ_LEGEND : (o.type === 'golden' ? SEQ_RARE : SEQ_NORMAL); o.fsGain = Math.ceil(100 / len); o.fsSeq = makeSeq(len); o.fsStep = 0; o.fsGauge = 0; o.fsDirty = true; return; }
     var pool = usablePool();
     if (!pool.length) return;
     var bad = false;
@@ -274,8 +275,10 @@
   }
   function applyStep(o, id, sk, mlv) {
     ensureSeq(o);
-    if (sk.aoe && o.fsSpecial) { o.fsGauge += o.fsGain; o.fsStep++; o.fsAoe = true; }      // 레어/특별 이벤트: 광역은 아무 칸이나 채우는 한 번으로만 침
-    else if (sk.aoe) { o.fsGauge += Math.round(AOE_GAIN * (1 + 0.1 * (mlv || 0))); o.fsSeq.splice(o.fsStep, 2); o.fsAoe = true; }
+    if (sk.aoe) {                                                    // 광역: 순서와 상관없이 한 칸을 채움 (숙련 Lv마다 10% 확률로 한 칸 더)
+      o.fsGauge += o.fsGain; o.fsStep++; o.fsAoe = true;
+      if (o.fsGauge < 100 && Math.random() < 0.1 * (mlv || 0)) { o.fsGauge += o.fsGain; o.fsStep++; }
+    }
     else if (o.fsSeq[o.fsStep] === id) { o.fsGauge += (o.fsGain || STEP_GAIN); o.fsStep++; }
     else { o.fsDirty = true; return 'fail'; }
     o.fsDirty = true;
@@ -327,7 +330,7 @@
     var f = { id: ++F.nid, x: x, y: y, name: type.name, emoji: type.emoji, until: Date.now() + FAN_TTL * 1000, el: null };
     f.el = buildFanEl(f);
     F.fans.push(f);
-    showNote('💬 ' + f.name + '이(가) 찾아왔어요! 머리 위 순서대로 스킬을 써서 하트 게이지를 채워요 (순서가 틀리면 실패!)');
+    showNote('💬 ' + f.name + '이(가) 찾아왔어요! 머리 위에 뜬 스킬을 써서 하트 게이지를 채워요 (틀리면 실패!)');
     return f;
   }
 
@@ -423,7 +426,7 @@
     var me = playerPos();
     var hk = bcHook();
     if (fan.ev && !hk.canResolve(fan.ev)) return null;                // 스태미나 부족 등
-    F.cd[id] = now + (sk.aoe ? Math.max(1, COOLDOWN - 0.4 * mlv) : 0) * 1000;   // 단타 스킬은 쿨타임 없음, 광역만 쿨타임(숙련 Lv마다 -0.4초)   // 숙련 Lv마다 쿨타임 -0.4초 (최소 1초)
+    F.cd[id] = now + (sk.aoe ? Math.max(1, COOLDOWN - 0.4 * mlv) : Math.max(0.5, 1 - 0.1 * mlv)) * 1000;   // 단타 1초, 광역 3초 (숙련 Lv마다 단타 -0.1초 / 광역 -0.4초)   // 숙련 Lv마다 쿨타임 -0.4초 (최소 1초)
     // 대상 모으기: 가장 가까운 대상 + (광역이면) 범위 안의 다른 팬들
     var list = [fan.ev || fan];
     if (sk.aoe) {
@@ -545,7 +548,7 @@
       b.style.animation = (ready && want) ? 'fsReady 1s ease-in-out infinite' : 'none';
     }
     var t;
-    if (near) { var no = near.ev || near, nk = no.fsSeq && skillById(no.fsSeq[no.fsStep]); t = '💬 ' + near.emoji + ' ' + near.name + ' 앞! ' + (nk ? nk.icon + ' 차례 · ' : '') + '게이지 ' + Math.min(100, no.fsGauge || 0) + '% (광역은 순서 건너뛰기)'; }
+    if (near) { var no = near.ev || near, nk = no.fsSeq && skillById(no.fsSeq[no.fsStep]); t = '💬 ' + near.emoji + ' ' + near.name + ' 앞! ' + (nk ? nk.icon + ' 차례 · ' : '') + '게이지 ' + Math.min(100, no.fsGauge || 0) + '% (광역은 아무 칸이나 채워요)'; }
     else if (bcHook()) t = '❗ 이벤트 가까이 가서 스킬을 써봐요 (닿으면 미니게임이 열려요)';
     else if (F.fans.length) t = '👀 팬이 기다리고 있어요! 가까이 걸어가요';
     else t = '✨ 이벤트가 끝나면 팬이 찾아와요';

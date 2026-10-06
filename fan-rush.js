@@ -40,10 +40,10 @@
 
   // 스킬 (unlock = 플레이어 레벨 / dmg = 기본 위력 / cd = 쿨타임(초) / range = 사거리 or 반경)
   var SKILLS = [
-    { id: 'sign',   icon: '✍️', name: '사인',       unlock: 1, cd: 0,  dmg: 34,  range: 150, kind: 'single', desc: '가까운 팬 1명에게 사인!' },
-    { id: 'photo',  icon: '📸', name: '사진촬영',   unlock: 1, cd: 0,  dmg: 42,  range: 300, kind: 'line',   desc: '앞쪽 일직선의 팬을 한꺼번에 찰칵!' },
-    { id: 'shake',  icon: '🤝', name: '악수',       unlock: 10, cd: 0,  dmg: 130, range: 120, kind: 'single', desc: '한 명을 확실하게! HP도 조금 회복' },
-    { id: 'heart',  icon: '💗', name: '손하트',     unlock: 15, cd: 0,  dmg: 60,  range: 270, kind: 'multi',  desc: '하트 3발! 가까운 팬 3명을 한꺼번에 저격' },
+    { id: 'sign',   icon: '✍️', name: '사인',       unlock: 1, cd: 0.8,  dmg: 34,  range: 150, kind: 'single', desc: '가까운 팬 1명에게 사인!' },
+    { id: 'photo',  icon: '📸', name: '사진촬영',   unlock: 1, cd: 2.6,  dmg: 42,  range: 300, kind: 'line',   desc: '앞쪽 일직선의 팬을 한꺼번에 찰칵!' },
+    { id: 'shake',  icon: '🤝', name: '악수',       unlock: 10, cd: 5.5,  dmg: 130, range: 120, kind: 'single', desc: '한 명을 확실하게! HP도 조금 회복' },
+    { id: 'heart',  icon: '💗', name: '손하트',     unlock: 15, cd: 4.5,  dmg: 60,  range: 270, kind: 'multi',  desc: '하트 3발! 가까운 팬 3명을 한꺼번에 저격' },
     { id: 'highlight', icon: '🎤', name: '하이라이트', unlock: 20, cd: 7,  dmg: 75,  range: 170, kind: 'aoe', sfx: 'concertHigh',  desc: '하이라이트 부르기! 주변 팬들을 확 사로잡아요 (광역)' },
     { id: 'wink',   icon: '💖', name: '윙크 샤워',   unlock: 25, cd: 10, dmg: 50,  range: 270, kind: 'aoe', sfx: 'concertWink',  desc: '넓은 범위에 윙크 세례! 팬들을 멀리 밀어내요 (넓은 광역)' },
     { id: 'encore', icon: '✨', name: '앵콜 폭죽',   unlock: 30, cd: 18, dmg: 210, range: 310, kind: 'aoe', sfx: 'concertEncore', desc: '앵콜 폭죽! 전방위 대폭발 + 잠깐 무적 (대광역)' },
