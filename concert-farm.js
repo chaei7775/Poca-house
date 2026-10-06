@@ -136,6 +136,7 @@
   function startConcert(opts) {
     if (document.getElementById('concert-overlay')) return;
     opts = opts || {};
+    if (!document.getElementById('concert-style')) { var st = document.createElement('style'); st.id = 'concert-style'; st.textContent = 'body:has(#concert-overlay) #bgm-toggle-btn{display:none!important;}'; document.head.appendChild(st); }   // 콘서트 중엔 🔊 버튼이 대사를 가리지 않게 숨김
     var overlay = document.createElement('div');
     overlay.id = 'concert-overlay';
     overlay.style.cssText = 'position:fixed;inset:0;z-index:700;background:#140a24;touch-action:none;user-select:none;-webkit-user-select:none;';
