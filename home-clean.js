@@ -4,6 +4,7 @@
 //  · 길잡이 카드 + 일일퀘스트 카드를 한 덩어리로 붙임 (위: 다음 할 일, 아래: 일일퀘스트 한 줄)
 //  · 큰 버튼은 알바하기 / 스케줄 가기만 (카드 뽑기는 아래 탭의 ✨ 뽑기에 있어서 중복이던 버튼을 숨김)
 //  · 아래 탭을 두 줄 → 한 줄로
+//  · 더보기 메뉴: 3열 큰 칸 → 4열 작은 칸
 // ✏️ 되돌리려면 loader.js 에서 'home-clean.js' 한 줄만 지우면 됨.
 // ════════════════════════════════════════════════════════════
 (function () {
@@ -24,7 +25,12 @@
     // 아래 탭: 한 줄
     '.navbar{flex-direction:row !important;height:60px !important;}' +
     '.navbar .navbar-row{display:contents !important;}' +
-    '.navbar .nav-item{padding:7px 0 6px !important;}';
+    '.navbar .nav-item{padding:7px 0 6px !important;}' +
+    // 더보기 메뉴: 3열 큰 칸 → 4열 작은 칸 (아이콘·글씨는 키움)
+    '#more-menu-grid{grid-template-columns:repeat(4,1fr) !important;gap:8px !important;}' +
+    '#more-menu-grid > button{aspect-ratio:auto !important;min-height:78px !important;padding:9px 2px 8px !important;gap:5px !important;border-radius:14px !important;}' +
+    '#more-menu-grid > button > span:first-child{font-size:25px !important;line-height:1 !important;}' +
+    '#more-menu-grid > button > span:last-child{font-size:11.5px !important;line-height:1.25 !important;word-break:keep-all !important;text-align:center !important;}';
   var st = document.createElement('style'); st.id = 'home-clean-style'; st.textContent = css; document.head.appendChild(st);
 
   // 두 카드가 항상 [길잡이] 바로 뒤에 [일일퀘스트] 순서가 되게 맞춤
