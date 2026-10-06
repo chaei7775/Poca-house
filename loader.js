@@ -51,6 +51,7 @@ const NEW_CONTENT_FILES = [
   'concert-farm.js',
   'studio-explore.js',
   'album-studio.js',
+  'equip-panel.js',
   'room-themes.js',
   'mystery-unlock.js',
   'quest-concert.js',
