@@ -140,8 +140,9 @@
   // 📚 이야기 데이터
   //  q(id, 제목, 목표(힌트), 코인, 경험치, 달성조건, [대사들])
   // ════════════════════════════════════════════════════════════
+  var COIN_MULT = 5, EXP_MULT = 2;   // 보상 배율 (코인 ×5, 경험치 ×2)
   function q(id, title, hint, coins, exp, detect, lines, who) {
-    return { id: id, title: title, hint: hint, coins: coins, exp: exp, detect: detect, lines: lines, who: who || '' };
+    return { id: id, title: title, hint: hint, coins: Math.round(coins * COIN_MULT), exp: Math.round(exp * EXP_MULT), detect: detect, lines: lines, who: who || '' };
   }
 
   var CHAPTERS = [

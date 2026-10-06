@@ -17,6 +17,7 @@
   S.rewarded = S.rewarded || {};
 
   function flag(name) { if (!S.flags[name]) { S.flags[name] = 1; save(S); } }
+  function newAcct() { try { return localStorage.getItem('ph_starter_v1') === '1'; } catch (e) { return false; } }   // 새 계정이면 레벨 shortcut 없이 진짜로 해야 단계 완료
   function story(id) { try { return typeof storyProgress !== 'undefined' && storyProgress[id] === 'done'; } catch (e) { return false; } }
   function quest(id) { try { return typeof questProgress !== 'undefined' && questProgress[id] === 'done'; } catch (e) { return false; } }
   function hiLv() { try { return typeof getHighestCardLevel === 'function' ? getHighestCardLevel() : 1; } catch (e) { return 1; } }
@@ -49,30 +50,43 @@
 
   // ── 단계 정의 (순서대로 진행) ──
   // done(): 완료 판정 / go(): [가기] 눌렀을 때 이동 / target: 홈에서 반짝일 버튼
+  var REWARD_MULT = 5;
   var STEPS = [
     { id: 'gacha', icon: '✨', title: '카드 1장 뽑기',
       hint: '🎟️ 뽑기권이 있어요! ✨ 카드 뽑기에서 첫 아이돌을 만나봐요. 첫 뽑기는 좋은 카드가 나와요.',
-      done: function () { try { return owned.length >= 1 || quest('tut_gacha') || story('story_05'); } catch (e) { return false; } },
+      done: function () { try { return owned.length >= 1 || quest('tut_gacha') || story('story_05'); } catch (e) { return false; } }, reward: 100,
       go: function () { goTo('gacha'); }, target: '.btn-gacha' },
     { id: 'meet', icon: '💞', title: '아이돌 만나보기',
       hint: '아래 메뉴 💞 인연 → 뽑은 아이돌을 눌러 대화해 보세요. 선물도 줄 수 있어요.',
-      done: function () { return quest('tut_meet') || story('story_06'); },
+      done: function () { return quest('tut_meet') || story('story_06'); }, reward: 200,
+      go: function () { goTo('bond'); }, target: '#nav-bond' },
+    { id: 'gift', icon: '💝', title: '선물로 마음 얻기',
+      hint: '💞 인연 → 아이돌을 눌러 → 💝 선물하기! 가방의 선물을 주면 호감도가 올라요. 호감도가 오르면 이야기와 새 기능이 열려요.',
+      done: function () { return quest('tut_gift'); }, reward: 200,
       go: function () { goTo('bond'); }, target: '#nav-bond' },
     { id: 'alba', icon: '🍔', title: '알바로 첫 코인 벌기',
       hint: '선물과 뽑기에 쓸 코인을 벌어봐요. 🍔 알바하기 → 포카버거나 카페에서 게이지가 가운데 구간에 올 때 화면을 탭!',
-      done: function () { try { return albaDone > 0 || quest('tut_alba') || story('story_04'); } catch (e) { return false; } },
+      done: function () { try { return albaDone > 0 || quest('tut_alba') || story('story_04'); } catch (e) { return false; } }, reward: 200,
       go: function () { goTo('alba'); }, target: '.btn-alba' },
+    { id: 'drink', icon: '🧃', title: '사과주스 마셔서 스태미나 채우기',
+      hint: '🎒 가방 → 🧃 사과주스 → 사용하기. 스태미나(⚡)가 있어야 탐험을 나갈 수 있어요. 퀘스트를 깨면 주스를 계속 줘요!',
+      done: function () { return quest('tut_drink'); }, reward: 200,
+      go: function () { goTo('bag'); }, target: '#nav-bag' },
     { id: 'explore', icon: '🚐', title: '스케줄 나가서 재료 모으기',
       hint: '🚐 스케줄 가기 → 촬영 세트장·뷰티 살롱·공원에서 재료를 모아요. 🏕️ 워크숍 캠프에선 진짜 낚시도 할 수 있어요!',
-      done: function () { return story('story_10') || !!S.flags.first_explore || hiLv() >= 3; },
+      done: function () { return story('story_10') || !!S.flags.first_explore || (!newAcct() && hiLv() >= 3); }, reward: 300,
       go: function () { goTo('map'); }, target: '.btn-collection' },
     { id: 'school', icon: '🏫', title: '아이돌 학교 보내기',
       hint: '맵 → 🏫 연성고등학교. 학교 미니게임을 하면 아이돌(포카) 경험치가 올라요. 포카 레벨이 오르면 새 기능이 열려요!',
-      done: function () { return story('story_07') || hiLv() >= 2; },
+      done: function () { return story('story_07') || (!newAcct() && hiLv() >= 2); }, reward: 300,
       go: function () { goTo('map'); }, target: '#nav-map' },
     { id: 'lv3', icon: '🏠', title: '포카 레벨 3 만들기',
       hint: '학교·알바·탐험으로 포카 경험치를 모아 레벨 3을 찍으면 방 꾸미기가 열려요.',
       done: function () { return hiLv() >= 3; },
+      go: function () { goTo('map'); }, target: '#nav-map' },
+    { id: 'room', icon: '🛋️', title: '내 방 꾸미기',
+      hint: '🛍️ 맵 → 상점거리 → 방 테마 구매 → 🏠 내 집에서 적용! 포카 레벨 3부터 열려요.',
+      done: function () { try { return typeof ownedRooms !== 'undefined' && ownedRooms.length > 0 || quest('tut_room'); } catch (e) { return false; } }, reward: 300,
       go: function () { goTo('map'); }, target: '#nav-map' },
     { id: 'recombine', icon: '🔮', title: '카드 재조합 해보기',
       hint: '아래 ⋯ 더보기 → 🔮 카드 재조합기. 겹치는 카드 2장 + 재료로 더 높은 등급을 노려봐요. (재료는 탐험에서!)',
@@ -82,6 +96,14 @@
       hint: '맵 → 워크숍 캠프 → 낚시하기. 물고기가 다가오면 탭해서 낚싯대를 던져요. 잡은 건 재료로 쓰거나 팔 수 있어요.',
       done: function () { return !!S.flags.first_fishing; }, reward: 200,
       go: function () { goTo('map'); }, target: '#nav-map' },
+    { id: 'studio', icon: '🎹', title: '작곡 스튜디오에서 재료 모으기',
+      hint: '맵 → 🎹 작곡 스튜디오 탐험. 음표·악기·악보 재료가 20초 동안 튀어나와요! 이게 앨범의 재료예요.',
+      done: function () { return !!S.flags.first_studio; }, reward: 300,
+      go: function () { goTo('map'); }, target: '#nav-map' },
+    { id: 'album', icon: '💿', title: '첫 앨범 만들기',
+      hint: '스튜디오 → 🎼 작곡 테이블. 재료를 조합해 곡을 만들어요. 실패해도 재료는 안 사라지고 힌트를 줘요! 만든 앨범은 팔 수 있어요.',
+      done: function () { try { return Object.keys(JSON.parse(localStorage.getItem('ph_composeNote') || '{}')).length > 0; } catch (e) { return false; } }, reward: 600,
+      go: function () { if (typeof openComposeTable === 'function') openComposeTable('make'); else goTo('map'); }, target: '#nav-map' },
     { id: 'mystery', icon: '🏝️', title: '신비의 섬 들어가기',
       hint: '인연에서 아무 아이돌이나 친절 Lv.3을 만들면 맵의 ✨ 신비의 섬이 열려요. 선물을 꾸준히 주면 금방 올라요!',
       done: function () { return mysterySeen() || quest('main_mystery'); }, reward: 300,
@@ -136,6 +158,8 @@
       go: function () { if (typeof openEnhance === 'function') openEnhance(); else goTo('home'); }, target: '#nav-shop' },
   ];
 
+  STEPS.forEach(function (st) { if (st.reward) st.reward = st.reward * REWARD_MULT; });   // 길잡이 보상 배율 (코인)
+
   function currentIndex() {
     for (var i = 0; i < STEPS.length; i++) { if (!STEPS[i].done()) return i; }
     return -1;
@@ -169,6 +193,9 @@
       if (id === 'lake') flag('first_fishing');
       return r;
     };
+  });
+  hookLater('startStudio', function (orig) {
+    return function () { var r = orig.apply(this, arguments); flag('first_studio'); return r; };
   });
   hookLater('startFishing', function (orig) {
     return function () {
@@ -252,7 +279,7 @@
   }
 
   // ── 👆 손가락: 초반 단계(처음 FINGER_STEPS개)에서만, 목표 버튼 바로 아래에서 위를 가리킴 ──
-  var FINGER_STEPS = 6;
+  var FINGER_STEPS = 9;
   var curTarget = null, lastScrolled = '';
   function placeFinger() {
     var f = document.getElementById('qg-finger');

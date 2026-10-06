@@ -57,6 +57,7 @@ const NEW_CONTENT_FILES = [
   'room-themes.js',
   'mystery-unlock.js',
   'quest-concert.js',
+  'quest-boost.js',
   'square-explore.js',
   'daily-quest.js',
   'trade.js',
