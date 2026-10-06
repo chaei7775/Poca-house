@@ -450,7 +450,7 @@
     _floor = im; return im;
   }
   // 팬 얼굴 이미지: rfan-1.png ~ rfan-10.png (없으면 이모지로 대체), 보스는 rfan-boss.png
-  var FAN_FACES = 10, fanImgs = {};
+  var FAN_FACES = 5, fanImgs = {};
   function fanFace(key) {
     if (fanImgs[key]) return fanImgs[key];
     var im = new Image(); im.crossOrigin = 'anonymous';
@@ -502,10 +502,11 @@
     var fi = fanFace(T.boss ? 'boss' : f.face);
     if (T.boss && !fi._ok) fi = fanFace(f.face);
     if (fi && fi._ok) {
-      var R = T.r * 1.25, ring = f.angry > 0 ? '#ff6b6b' : (T.boss ? '#ffd76a' : f.type === 'tank' ? '#c084fc' : '#ffffff');
-      c.save(); c.beginPath(); c.arc(f.x, f.y + bob, R, 0, 7); c.closePath(); c.clip();
-      c.drawImage(fi, f.x - R, f.y + bob - R, R * 2, R * 2); c.restore();
-      c.strokeStyle = ring; c.lineWidth = T.boss ? 4 : 3; c.beginPath(); c.arc(f.x, f.y + bob, R, 0, 7); c.stroke();
+      var R = T.r * 1.3, glow = f.angry > 0 ? '#ff4d4d' : (T.boss ? '#ffd76a' : f.type === 'tank' ? '#c084fc' : 'rgba(255,255,255,.9)');
+      // 투명 스티커라서 동그랗게 자르지 않고 그대로 그림 (머리카락이 안 잘리게)
+      c.shadowColor = glow; c.shadowBlur = (f.angry > 0 || T.boss) ? 14 : 6;
+      c.drawImage(fi, f.x - R * 1.1, f.y + bob - R * 1.1, R * 2.2, R * 2.2);
+      c.shadowBlur = 0;
       if (T.ranged) { c.font = '16px sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('💌', f.x + R * 0.8, f.y + bob + R * 0.7); }
       if (f.type === 'rusher') { c.font = '14px sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('⚡', f.x + R * 0.8, f.y + bob - R * 0.7); }
     } else {
