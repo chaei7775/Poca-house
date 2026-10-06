@@ -28,6 +28,7 @@
   var ASSET = 'meal-assets/';
   var STAT_START = 50;           // 처음 수치
   var MEALS_PER_DAY = 2;         // 하루 식사 횟수 (점심/저녁)
+  var COOLDOWN_MS = 30 * 60 * 1000;   // 같은 날 첫 끼니 → 다음 끼니까지 기다려야 하는 시간 (실제 30분)
   var DRIFT = 5;                 // 하루 지나면 50쪽으로 돌아오는 양
   var PREP_DAYS = 3;             // 촬영/컴백 며칠 전부터 준비 기간인지
   var BOOK_MIN = 3, BOOK_MAX = 7;// 촬영/컴백은 오늘로부터 며칠 뒤까지 잡을 수 있는지
@@ -183,11 +184,19 @@
   }
 
   // 먹이기: 코인은 화면 쪽에서 처리. 여기선 수치/횟수/들킴만 계산.
+  function coolLeft(st, cid, now) {      // 다음 끼니까지 남은 ms (0이면 먹을 수 있음)
+    var e = st.eaten[cid];
+    if (!e || e.day !== st.day || !e.n || !e.at) return 0;
+    return Math.max(0, e.at + COOLDOWN_MS - (now || Date.now()));
+  }
+  function coolText(ms) { var t = Math.ceil(ms / 1000), m = Math.floor(t / 60), sec = t % 60; return m + ':' + (sec < 10 ? '0' : '') + sec; }
+
   function eat(st, cid, foodId, rng) {
     rng = rng || Math.random;
     var food = FOOD_BY_ID[foodId];
     if (!food) return { ok: false, why: 'invalid' };
     if (mealsLeft(st, cid) <= 0) return { ok: false, why: 'full' };
+    if (coolLeft(st, cid) > 0) return { ok: false, why: 'cool', wait: coolLeft(st, cid) };
     var phase = phaseOf(st, cid, st.day);
     var d = mealDelta(cid, food, phase);
     var caught = false;
@@ -197,6 +206,7 @@
     var e = st.eaten[cid];
     if (!e || e.day !== st.day) e = st.eaten[cid] = { day: st.day, n: 0 };
     e.n += 1;
+    e.at = Date.now();
     return { ok: true, food: food, phase: phase, d: d, caught: caught, before: before, price: PRICE_COIN[food.price] || 0 };
   }
 
@@ -419,13 +429,14 @@
   }
 
   function foodsHtml(st, cid) {
-    var phase = phaseOf(st, cid, st.day), left = mealsLeft(st, cid), have = money();
+    var phase = phaseOf(st, cid, st.day), left = mealsLeft(st, cid), have = money(), cool = left > 0 ? coolLeft(st, cid) : 0;
     var head = '<div style="display:flex;justify-content:space-between;align-items:center;margin:14px 0 8px;">' +
       '<div style="font-size:13px;font-weight:900;color:#ddd;">🍴 오늘의 식사 <span style="color:#aaa;font-weight:700;">(남은 끼니 ' + left + '/' + MEALS_PER_DAY + ')</span></div>' +
-      '<div style="font-size:12px;color:#ffe08a;font-weight:900;">🍔 ' + have.toLocaleString() + '</div></div>';
+      '<div style="font-size:12px;color:#ffe08a;font-weight:900;">🍔 ' + have.toLocaleString() + '</div></div>' +
+      (cool > 0 ? '<div style="font-size:12px;font-weight:900;color:#ffb36b;background:rgba(255,179,107,.12);border:1px solid rgba(255,179,107,.4);border-radius:10px;padding:7px 10px;margin-bottom:8px;text-align:center;">⏳ 방금 먹었어요! 다음 식사까지 <span data-cool="' + (Date.now() + cool) + '">' + coolText(cool) + '</span></div>' : '');
     var cards = FOODS.map(function (f) {
       var d = mealDelta(cid, f, phase), price = PRICE_COIN[f.price] || 0;
-      var disabled = left <= 0 || have < price;
+      var disabled = left <= 0 || cool > 0 || have < price;
       function chip(label, val, color) {
         var c = val > 0 ? '#7ee8a5' : val < 0 ? '#ff8a8a' : '#888';
         return '<span style="font-size:10px;font-weight:900;color:' + c + ';">' + label + (val > 0 ? '+' : '') + val + '</span>';
@@ -582,6 +593,7 @@
     var f = FOOD_BY_ID[foodId]; if (!f) return;
     var st = load(), cid = selected, c = CH[cid];
     if (mealsLeft(st, cid) <= 0) { toast('오늘 식사는 다 했어요. 하루를 보내 주세요'); return; }
+    if (coolLeft(st, cid) > 0) { toast('⏳ 방금 먹었어요! 다음 식사까지 ' + coolText(coolLeft(st, cid))); return; }
     var price = PRICE_COIN[f.price] || 0;
     if (money() < price) { toast('코인이 부족해요'); return; }
     var phase = phaseOf(st, cid, st.day), ph = PHASES[phase], d = mealDelta(cid, f, phase);
@@ -613,7 +625,7 @@
     ov.querySelector('#meal-eat-go').onclick = function () {
       if (busy) return;
       var st2 = load();
-      if (mealsLeft(st2, cid) <= 0 || money() < price) { toast('지금은 먹을 수 없어요'); closeEat(); return; }
+      if (mealsLeft(st2, cid) <= 0 || coolLeft(st2, cid) > 0 || money() < price) { toast('지금은 먹을 수 없어요'); closeEat(); return; }
       var res = eat(st2, cid, foodId);
       if (!res.ok) { closeEat(); return; }
       spend(price); save(st2);
@@ -774,12 +786,21 @@
     watchAgency();
   }
 
+  // 쿨타임 표시: 남은 시간을 1초마다 갱신하고, 0이 되면 화면을 다시 그려 버튼을 푼다
+  setInterval(function () {
+    var el = document.querySelector('#meal-overlay [data-cool]');
+    if (!el) return;
+    var left = Number(el.getAttribute('data-cool')) - Date.now();
+    if (left <= 0) { try { render(); } catch (e) {} return; }
+    el.textContent = coolText(left);
+  }, 1000);
+
   window.openMealSchedule = openMeal;
   window.__mealTest = {
     FOODS: FOODS, CH: CH, CATERING: CATERING,
-    load: load, save: save, statOf: statOf, mealsLeft: mealsLeft, phaseOf: phaseOf, mealDelta: mealDelta, eat: eat,
+    load: load, save: save, statOf: statOf, mealsLeft: mealsLeft, coolLeft: coolLeft, phaseOf: phaseOf, mealDelta: mealDelta, eat: eat,
     advanceDay: advanceDay, book: book, resolveEvent: resolveEvent, bonusOf: bonusOf, dramaBonus: dramaBonus,
     incomeMultOf: incomeMultOf, reactionOf: reactionOf, pickLine: pickLine, qualityOf: qualityOf,
-    CFG: { MEALS_PER_DAY: MEALS_PER_DAY, DRIFT: DRIFT, PREP_DAYS: PREP_DAYS, REST_DAYS: REST_DAYS, BOOK_MIN: BOOK_MIN, BOOK_MAX: BOOK_MAX }
+    CFG: { COOLDOWN_MS: COOLDOWN_MS, MEALS_PER_DAY: MEALS_PER_DAY, DRIFT: DRIFT, PREP_DAYS: PREP_DAYS, REST_DAYS: REST_DAYS, BOOK_MIN: BOOK_MIN, BOOK_MAX: BOOK_MAX }
   };
 })();
