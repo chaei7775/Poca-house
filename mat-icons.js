@@ -7,10 +7,10 @@
   'use strict';
   if (window.__matIcons) return; window.__matIcons = true;
   var BASE = 'https://raw.githubusercontent.com/chaei7775/Poca-house/main/';
-  var MAP = {"반짝이는조개": "mat-shell.png", "달빛모래": "mat-moonsand.png", "별빛모래": "mat-starsand.png", "맑은샘물": "mat-spring.png", "바다진주": "mat-pearl.png", "달의눈물": "mat-moontear.png", "무지개꽃": "mat-rainbowflower.png", "장미꽃": "mat-rose.png", "나비가루": "mat-butterflydust.png", "네잎클로버": "mat-clover4.png", "나비의날개": "mat-butterflywing.png", "벚꽃결정": "mat-sakuracrystal.png", "별빛나무": "mat-starwood.png", "고급원목": "mat-goodwood.png", "신비버섯": "mat-mushroom.png", "새의깃털": "mat-birdfeather.png", "행운의잎": "mat-luckyleaf.png", "천사의깃털": "mat-angelfeather.png", "빛나는돌": "mat-shiningstone.png", "은빛거미줄": "mat-spiderweb.png", "기타": "mat-gtr.png", "베이스": "mat-bas.png", "드럼": "mat-drm.png", "피아노": "mat-pno.png", "신스": "mat-syn.png", "스트링": "mat-str.png", "마이크": "mat-mic.png", "색소폰": "mat-sax.png", "트럼펫": "mat-tpt.png", "코러스": "mat-cho.png", "믹싱콘솔": "mat-mix.png", "달빛수정": "mat-moonlightcrystal.png", "별의파편": "mat-starfragment.png", "무지개수정": "mat-rainbowcrystal.png", "구름조각": "mat-cloudpiece.png", "해바라기": "mat-sunflower.png", "공방의 원석": "mat-forgeore.png", "재조합석": "mat-recombine.png", "강화석": "mat-enhance.png", "방지권": "mat-protect.png", "초월석": "mat-transcend.png", "프리미엄 조각": "mat-premiumpiece.png", "온음표": "mat-n1.png", "2분음표": "mat-n2.png", "4분음표": "mat-n4.png", "8분음표": "mat-n8.png", "16분음표": "mat-n16.png", "셋잇단음표": "mat-trp.png", "악보용지": "mat-scr.png", "가사조각": "mat-lyr.png", "영감의불꽃": "mat-spk.png"};
+  var MAP = {"반짝이는조개": "mat-shell.png", "달빛모래": "mat-moonsand.png", "별빛모래": "mat-starsand.png", "맑은샘물": "mat-spring.png", "바다진주": "mat-pearl.png", "달의눈물": "mat-moontear.png", "무지개꽃": "mat-rainbowflower.png", "장미꽃": "mat-rose.png", "나비가루": "mat-butterflydust.png", "네잎클로버": "mat-clover4.png", "나비의날개": "mat-butterflywing.png", "벚꽃결정": "mat-sakuracrystal.png", "별빛나무": "mat-starwood.png", "고급원목": "mat-goodwood.png", "신비버섯": "mat-mushroom.png", "새의깃털": "mat-birdfeather.png", "행운의잎": "mat-luckyleaf.png", "천사의깃털": "mat-angelfeather.png", "빛나는돌": "mat-shiningstone.png", "은빛거미줄": "mat-spiderweb.png", "기타": "mat-gtr.png", "베이스": "mat-bas.png", "드럼": "mat-drm.png", "피아노": "mat-pno.png", "신스": "mat-syn.png", "스트링": "mat-str.png", "마이크": "mat-mic.png", "색소폰": "mat-sax.png", "트럼펫": "mat-tpt.png", "코러스": "mat-cho.png", "믹싱콘솔": "mat-mix.png", "달빛수정": "mat-moonlightcrystal.png", "별의파편": "mat-starfragment.png", "무지개수정": "mat-rainbowcrystal.png", "구름조각": "mat-cloudpiece.png", "해바라기": "mat-sunflower.png", "공방의 원석": "mat-forgeore.png", "재조합석": "mat-recombine.png", "강화석": "mat-enhance.png", "방지권": "mat-protect.png", "초월석": "mat-transcend.png", "프리미엄 조각": "mat-premiumpiece.png", "온음표": "mat-n1.png", "2분음표": "mat-n2.png", "4분음표": "mat-n4.png", "8분음표": "mat-n8.png", "16분음표": "mat-n16.png", "셋잇단음표": "mat-trp.png", "악보용지": "mat-scr.png", "가사조각": "mat-lyr.png", "영감의불꽃": "mat-spk.png", "꽃다발": "mat-gift_bouquet.png", "케이크": "mat-gift_cake.png", "게임기": "mat-gift_game.png", "곰인형": "mat-gift_bear.png", "책": "mat-gift_book.png", "에너지드링크": "mat-drink_energy.png", "딸기스무디": "mat-drink_smoothie.png", "사과주스": "mat-drink_juice.png", "에픽 재조합석": "mat-epicstone.png", "소원의 조각": "mat-wishpiece.png", "소원의 결정": "mat-wishcrystal.png", "별빛 털": "mat-sp_fur.png", "반짝이는 날개가루": "mat-sp_dust.png", "은빛 깃털": "mat-sp_feather.png", "신비한 꽃가루": "mat-sp_pollen.png", "달빛 잎사귀": "mat-sp_leaf.png", "수정 조각": "mat-sp_crystal.png", "월광 리본": "mat-gear_ribbon.png", "프리즘 브로치": "mat-gear_prism.png", "천공 깃털 배지": "mat-gear_sky.png", "은하수 브로치": "mat-gear_galaxy.png", "수정 왕관 배지": "mat-gear_crown.png", "불꽃 펜던트": "mat-gear_flame.png", "성운 펜던트": "mat-gear_nebula.png", "용의 심장 브로치": "mat-gear_dragon.png"};
   var NAMES = Object.keys(MAP).sort(function (a, b) { return b.length - a.length; });
 
-  function url(name) { var f = MAP[String(name || '').replace(/^[^\w가-힣]+/, '').trim()]; return f ? BASE + f : ''; }
+  function url(name) { var f = MAP[String(name || '').replace(/^[^\w가-힣\[]+/, '').replace(/^\[[^\]]*\]\s*/, '').trim()]; return f ? BASE + f : ''; }
   function icon(name, px, fb) {
     var u = url(name); px = px || 24;
     if (!u) return fb || '';
@@ -26,7 +26,7 @@
 
   // ── 글자로 나오는 "🐚 이름" → "[그림] 이름" 자동 교체 ──
   var EM = '[\\u2600-\\u27BF\\u2B00-\\u2BFF\\u2669-\\u266F\\u{1F000}-\\u{1FAFF}][\\uFE0F\\u200D]?';
-  var RE = new RegExp('(' + EM + ')\\s?(' + NAMES.map(function (n) { return n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }).join('|') + ')', 'u');
+  var RE = new RegExp('(' + EM + ')\\s?(?:\\[[^\\]]{1,8}\\]\\s?)?(' + NAMES.map(function (n) { return n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + (n.length <= 2 ? '(?![가-힣])' : ''); }).join('|') + ')', 'u');
   var SKIP = { SCRIPT: 1, STYLE: 1, TEXTAREA: 1, INPUT: 1, CANVAS: 1, OPTION: 1, SELECT: 1 };
   function fixText(node) {
     var t = node.nodeValue; if (!t || t.length > 400) return;
@@ -40,8 +40,21 @@
     frag.appendChild(document.createTextNode(' ' + after));
     par.replaceChild(frag, node);
   }
+  // 잡화점 칸(선물·음료·재료 판매): 이름으로 그림 찾아서 이모지 자리에 끼움
+  function fixShop(root) {
+    if (!root.querySelectorAll) return;
+    var list = root.matches && root.matches('.shop-item-emoji') ? [root] : Array.prototype.slice.call(root.querySelectorAll('.shop-item-emoji'));
+    list.forEach(function (el) {
+      if (el.querySelector('[data-mi]')) return;
+      var row = el.closest('.shop-item'), nm = row && row.querySelector('.shop-item-name');
+      if (!nm) return;
+      var name = nm.textContent.replace(/\s*\(\d+개\)\s*$/, '').trim();
+      if (url(name)) el.innerHTML = icon(name, 38, el.textContent);
+    });
+  }
   function scan(root) {
     if (!root) return;
+    if (root.nodeType === 1) { try { fixShop(root); } catch (e) {} }
     if (root.nodeType === 3) { fixText(root); return; }
     if (root.nodeType !== 1 || SKIP[root.nodeName]) return;
     var w = document.createTreeWalker(root, 4, null), list = [], n;
