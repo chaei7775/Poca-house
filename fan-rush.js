@@ -22,7 +22,7 @@
   var WAVES = 8;                   // 웨이브 수 (마지막은 보스)
   var WAVE_MAX_SEC = 24;           // 한 웨이브가 이 시간 넘으면 다음 웨이브가 먼저 시작
   var PLAYER_SPEED = 140;          // 이동 속도 (px/초)
-  var BASE_HP = 135, HP_PER_LV = 3;          // 최대 HP = BASE + (플레이어 레벨 - 10) × HP_PER_LV
+  var BASE_HP = 135, HP_PER_LV = 10;         // 최대 HP = BASE + (플레이어 레벨 - 10) × HP_PER_LV
   var DMG_PER_LV = 0.04;           // 스킬 위력: 1 + (플레이어 레벨 - 10) × 이 값
   var HIT_COOLDOWN = 0.5;          // 한 번 맞고 나서 무적 시간(초)
   // 보상 (한 판 전부 성공했을 때 대략: 코인 약 10만, 경험치 약 2천, 조각 0~2개)
