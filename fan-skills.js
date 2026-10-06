@@ -48,7 +48,9 @@
     { id: 'heart', name: '손하트',     short: '하트', icon: '💗', price: 1000000, useLv: 15, desc: '하트를 날려서 팬 마음을 저격해요' },
     { id: 'highlight', name: '하이라이트 부르기', short: '하이라이트', icon: '🎤', price: 2000000, useLv: 20, aoe: true, reach: 170, desc: '광역! 주변 팬들을 확 사로잡아요' },
     { id: 'wink',  name: '윙크 샤워',  short: '윙크샤워', icon: '💖', price: 3000000, useLv: 25, aoe: true, reach: 250, desc: '넓은 광역! 넓은 범위에 윙크 세례' },
-    { id: 'encore', name: '앵콜 폭죽', short: '앵콜폭죽', icon: '✨', price: 5000000, useLv: 30, aoe: true, reach: 320, desc: '대광역! 전방위 대폭발' }
+    { id: 'encore', name: '앵콜 폭죽', short: '앵콜폭죽', icon: '✨', price: 5000000, useLv: 30, aoe: true, reach: 320, desc: '대광역! 전방위 대폭발' },
+    { id: 'rose',  name: '장미 세례',  short: '장미세례', icon: '🌹', price: 8000000,  useLv: 35, aoe: true, reach: 360, desc: '초광역! 장미꽃이 쏟아져요 (공항 입국장에선 팬들이 느려져요)' },
+    { id: 'finale', name: '피날레 불꽃쇼', short: '불꽃쇼', icon: '🎆', price: 12000000, useLv: 40, aoe: true, reach: 440, desc: '화면 전체급 광역! 불꽃이 터지며 팬들을 확 밀어내요' }
   ];
   var FAV_IDS = ['sign', 'photo', 'shake', 'heart'];   // 팬이 좋아하는 스킬은 기본 4종 중에서만 (광역 스킬은 누구에게나 50% 확률로 대만족)
   var AOE_LOVE = 0.5;
@@ -220,11 +222,11 @@
       var mx = (fx + me.x) / 2, my = (fy + me.y) / 2;
       addAt(mx, my, '<div style="font-size:38px;">🤝</div>', 'animation:fsPulse .9s ease-out forwards;', 950);
       setTimeout(function () { burst(mx, my, ['✨', '💫', '⭐'], love ? 12 : 7, 60); }, 350);
-    } else if (id === 'highlight' || id === 'wink' || id === 'encore') {
-      var col = id === 'wink' ? 'rgba(255,205,90,.55)' : (id === 'encore' ? 'rgba(190,140,255,.55)' : 'rgba(255,120,170,.55)');
+    } else if (id === 'highlight' || id === 'wink' || id === 'encore' || id === 'rose' || id === 'finale') {
+      var col = id === 'wink' ? 'rgba(255,205,90,.55)' : (id === 'encore' ? 'rgba(190,140,255,.55)' : (id === 'rose' ? 'rgba(255,90,120,.55)' : (id === 'finale' ? 'rgba(120,200,255,.55)' : 'rgba(255,120,170,.55)')));
       addAt(me.x, me.y, '', 'width:40px;height:40px;border-radius:50%;border:4px solid ' + col + ';background:' + col.replace('.55', '.18') + ';animation:fsFlashC .8s ease-out forwards;', 900);
       addAt(me.x, me.y, '<div style="font-size:34px;">' + skillById(id).icon + '</div>', 'animation:fsPulse .9s ease-out forwards;', 950);
-      setTimeout(function () { burst(fx, fy, id === 'wink' ? ['💖', '✨', '😉'] : (id === 'encore' ? ['✨', '🎆', '⭐'] : ['🎤', '🎵', '✨']), love ? 14 : 9, id === 'encore' ? 90 : 70); }, 420);
+      setTimeout(function () { burst(fx, fy, id === 'wink' ? ['💖', '✨', '😉'] : (id === 'encore' ? ['✨', '🎆', '⭐'] : (id === 'rose' ? ['🌹', '🌸', '💖'] : (id === 'finale' ? ['🎆', '🎇', '✨', '⭐'] : ['🎤', '🎵', '✨']))), love ? 14 : 9, (id === 'encore' || id === 'finale') ? 100 : 70); }, 420);
     } else if (id === 'heart') {
       var h = addAt(me.x, me.y, '<div style="font-size:30px;">💗</div>', 'transition:left .5s ease-in,top .5s ease-in;', 1300);
       if (h) setTimeout(function () { h.style.left = (fx * 100) + '%'; h.style.top = (fy * 100) + '%'; }, 30);

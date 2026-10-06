@@ -46,7 +46,9 @@
     { id: 'heart',  icon: '💗', name: '손하트',     unlock: 15, cd: 4.5,  dmg: 60,  range: 270, kind: 'multi',  desc: '하트 3발! 가까운 팬 3명을 한꺼번에 저격' },
     { id: 'highlight', icon: '🎤', name: '하이라이트', unlock: 20, cd: 7,  dmg: 75,  range: 170, kind: 'aoe', sfx: 'concertHigh',  desc: '하이라이트 부르기! 주변 팬들을 확 사로잡아요 (광역)' },
     { id: 'wink',   icon: '💖', name: '윙크 샤워',   unlock: 25, cd: 10, dmg: 50,  range: 270, kind: 'aoe', sfx: 'concertWink',  desc: '넓은 범위에 윙크 세례! 팬들을 멀리 밀어내요 (넓은 광역)' },
-    { id: 'encore', icon: '✨', name: '앵콜 폭죽',   unlock: 30, cd: 18, dmg: 210, range: 310, kind: 'aoe', sfx: 'concertEncore', desc: '앵콜 폭죽! 전방위 대폭발 + 잠깐 무적 (대광역)' }
+    { id: 'encore', icon: '✨', name: '앵콜 폭죽',   unlock: 30, cd: 18, dmg: 210, range: 310, kind: 'aoe', sfx: 'concertEncore', desc: '앵콜 폭죽! 전방위 대폭발 + 잠깐 무적 (대광역)' },
+    { id: 'rose',   icon: '🌹', name: '장미 세례',   unlock: 35, cd: 12, dmg: 90,  range: 340, kind: 'aoe', sfx: 'concertWink',  desc: '장미꽃 세례! 초광역 + 팬들이 3초간 느려져요' },
+    { id: 'finale', icon: '🎆', name: '피날레 불꽃쇼', unlock: 40, cd: 28, dmg: 260, range: 430, kind: 'aoe', sfx: 'concertEncore', desc: '불꽃쇼! 거의 화면 전체 + 팬들을 크게 밀어내고 잠깐 무적' }
   ];
   // 팬 종류 (hp = 만족해야 하는 양 / sp = 속도 / dmg = 닿았을 때 HP 깎임 / r = 크기)
   var FANTYPES = {
@@ -228,7 +230,8 @@
         }
       } else { vx = ux; vy = uy; }
       f.wob += dt * 6;
-      f.x += vx * T.sp * dt + f.kx * dt; f.y += vy * T.sp * dt + f.ky * dt;
+      var spm = (f.slow > 0) ? 0.45 : 1; if (f.slow > 0) f.slow -= dt;
+      f.x += vx * T.sp * spm * dt + f.kx * dt; f.y += vy * T.sp * spm * dt + f.ky * dt;
       f.kx *= Math.max(0, 1 - dt * 6); f.ky *= Math.max(0, 1 - dt * 6);
       f.flash = Math.max(0, f.flash - dt);
       f.x = clamp(f.x, 20, WORLD - 20); f.y = clamp(f.y, 20, WORLD - 20);
@@ -313,13 +316,14 @@
       if (!hit) return false;
       addFx({ k: 'flash', x: G.px, y: G.py, x2: G.px + dx * s.range, y2: G.py + dy * s.range, t: 0.3, max: 0.3 });
       used = true;
-    } else if (id === 'highlight' || id === 'wink' || id === 'encore') {
+    } else if (s.kind === 'aoe') {
       var inR = G.fans.filter(function (f3) { return dist(f3.x, f3.y, G.px, G.py) - f3.T.r < s.range; });
       if (!inR.length) return false;
-      var kb = id === 'encore' ? 55 : (id === 'wink' ? 45 : 28);
-      inR.forEach(function (f4) { fanHit(f4, dmg, kb, G.px, G.py); });
-      addFx({ k: id === 'encore' ? 'bigring' : 'ring', x: G.px, y: G.py, r: s.range, t: 0.7, max: 0.7, c: id === 'wink' ? 'gold' : '' });
+      var kb = id === 'finale' ? 70 : (id === 'encore' ? 55 : (id === 'wink' ? 45 : (id === 'rose' ? 35 : 28)));
+      inR.forEach(function (f4) { fanHit(f4, dmg, kb, G.px, G.py); if (id === 'rose') f4.slow = 3; });
+      addFx({ k: (id === 'encore' || id === 'finale') ? 'bigring' : 'ring', x: G.px, y: G.py, r: s.range, t: 0.7, max: 0.7, c: (id === 'wink' || id === 'rose') ? 'gold' : '' });
       if (id === 'encore') { G.shield = 1.5; G.shake = 10; }
+      if (id === 'finale') { G.shield = 2.2; G.shake = 14; }
       used = true;
     }
     if (used) { G.cd[id] = s.cd; sfx(s.sfx || (id === 'encore' ? 'reward' : 'pick')); }
