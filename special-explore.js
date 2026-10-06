@@ -154,6 +154,7 @@ function pickGrowingIdol() {
     return best;
   } catch (e) { return null; }
 }
+window.pickGrowingIdol = pickGrowingIdol;
 function trialActiveNow() { try { return !!(window.__trialTest && window.__trialTest.isActive()); } catch (e) { return false; } }
 
 function getEquippedGearFor(charId) {

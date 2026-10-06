@@ -668,7 +668,10 @@
   function mount(view) {
     if (F && F.obs) { try { F.obs.disconnect(); } catch (e) {} }
     var st = (typeof specialExploreState !== 'undefined') ? specialExploreState : null;
-    F = { view: view, cid: (st && st.charId) || '', mapId: (st && st.locationId) || 'broadcast_front', fans: [], cd: {}, nid: 0, obs: null, bar: null, hint: null, btns: null };
+    var scid = (st && st.charId) || '';
+    // 🎟️ 세연(체험용 히든카드)은 스킬·숙련도·경험치가 없으니, 내가 키우는 아이돌의 것을 빌려 쓴다
+    if (scid === 'seyeon_trial') { try { scid = (typeof window.pickGrowingIdol === 'function' && window.pickGrowingIdol()) || ''; } catch (e) { scid = ''; } }
+    F = { view: view, cid: scid, mapId: (st && st.locationId) || 'broadcast_front', fans: [], cd: {}, nid: 0, obs: null, bar: null, hint: null, btns: null };
     injectStyle();
     buildBar(view);
     setTimeout(function () { if (F && F.view === view && F.mapId !== 'fan_rush') seqTutorial(); }, 700);
