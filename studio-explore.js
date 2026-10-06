@@ -1,6 +1,6 @@
 // ════════════════════════════════
 // 🎹 작곡 스튜디오 탐험 (studio-explore.js)
-// 새 탐험 맵. 신비의 섬과 같은 조건(친절 Lv.3)으로 열리고, 포카마을 지도에 "🎹 작곡 스튜디오" 버튼이 생긴다.
+// 새 탐험 맵. 처음부터 바로 들어갈 수 있고, 포카마을 지도에 "🎹 작곡 스튜디오" 버튼이 생긴다.
 // game.js / index.html 은 건드리지 않고 이 파일이 장소 목록·버튼을 스스로 등록한다.
 //
 // 흐름: 스태미나 15 소모 → 20초 동안 스튜디오 곳곳(건반·기타·모니터·녹음 부스·소파…)에서 빛나는 구슬이 켜졌다 꺼진다.
@@ -76,7 +76,6 @@
   // ════════ 화면 ════════
   function startStudio() {
     if (document.getElementById('studio-overlay') || document.getElementById('explore-overlay')) return;
-    if (typeof isMysteryIslandUnlocked === 'function' && !isMysteryIslandUnlocked()) { showBagToast('🎹 작곡 스튜디오는 아무 포카나 친절 Lv.3 달성 후 열려요!'); return; }
     if (typeof stamina !== 'undefined' && stamina < STAMINA_COST) { showBagToast('스태미나가 부족해요! ⚡ 음료를 마셔봐요 (작곡 스튜디오 ' + STAMINA_COST + ')'); return; }
     stamina -= STAMINA_COST;
     saveStamina();
@@ -285,8 +284,7 @@
   // ════════ 장소 등록 (game.js / index.html 은 그대로) ════════
   var BTN_ID = 'btn-explore-studio';
   function lockText() {
-    var ok = typeof isMysteryIslandUnlocked !== 'function' || isMysteryIslandUnlocked();
-    return ok ? '🎹 작곡 스튜디오 탐험 (⚡' + STAMINA_COST + ')' : '🔒 작곡 스튜디오 (친절 Lv.3 필요)';
+    return '🎹 작곡 스튜디오 탐험 (⚡' + STAMINA_COST + ')';
   }
   (function register() {
     if (typeof PLACE_BUTTONS === 'undefined' || typeof ALL_PLACE_BTNS === 'undefined' || typeof PLACE_IMGS === 'undefined' || typeof PLACE_TITLES === 'undefined' ||
