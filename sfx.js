@@ -291,6 +291,20 @@
     noise(0, 0.3, 0.16, 'highpass', 5000); sparkle([784, 988, 1319, 1568, 2093], 0.05); tone(2637, 0.4, 0.25, 'sine', 0.12);
   };
   GAPS.beautyDry = 140; GAPS.beautySpray = 120; GAPS.beautyPuff = 60;
+  // 콘서트 파밍 (concert-farm.js): 스킬 3종 + 하트 가득 + 앵콜 드롭
+  SYNTH.concertHigh = function () {      // 🎤 하이라이트 부르기: 올라가는 멜로디 + 반짝
+    arp([523, 659, 784, 1047, 1319], 0.06, 0.22, 'triangle', 0.22); tone(262, 0, 0.35, 'sawtooth', 0.08, 392); sparkle([1568, 2093], 0.3);
+  };
+  SYNTH.concertWink = function () {      // 💖 윙크 샤워: 통통 튀는 반짝임
+    sparkle([1047, 1319, 1568, 1976, 2349], 0); noise(0, 0.25, 0.12, 'highpass', 5200);
+  };
+  SYNTH.concertEncore = function () {    // ✨ 앵콜 폭죽: 쾅 + 폭죽 + 환호
+    tone(90, 0, 0.35, 'sine', 0.5, 40); noise(0, 0.5, 0.3, 'lowpass', 1800); noise(0.05, 0.4, 0.22, 'highpass', 4000);
+    sparkle([784, 988, 1319, 1568, 1976, 2637], 0.12); noise(0.2, 0.6, 0.14, 'bandpass', 2400);
+  };
+  SYNTH.concertFull = function () { tone(1568, 0, 0.1, 'sine', 0.14); tone(2093, 0.07, 0.14, 'sine', 0.14); };   // 하트 가득 찬 순간
+  SYNTH.concertDrop = function () { tone(988, 0, 0.07, 'triangle', 0.16); tone(1319, 0.05, 0.1, 'triangle', 0.16); };
+  GAPS.concertFull = 70; GAPS.concertDrop = 45; GAPS.concertWink = 150;
 
   window.pocaSfx.has = function (n) { return !!SYNTH[n]; };
 

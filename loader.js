@@ -48,6 +48,7 @@ const NEW_CONTENT_FILES = [
   'photolab.js',
   'premium-equip.js',
   'trial-card.js',
+  'concert-farm.js',
   'room-themes.js',
   'mystery-unlock.js',
   'quest-concert.js',
