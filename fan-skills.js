@@ -108,7 +108,7 @@
   }
   // ════════ 📘 스킬북: 드랍되면 가방에 쌓이고, 쓰면 그 스킬의 숙련도가 오른다 ════════
   var BOOK_USES = 1;                                            // 스킬북 1권 = 숙련 포인트 +1 (숙련 Lv.5 = 15권)
-  var BOOK_DROP = { fan: 0.04, shutter: 0.05, letter: 0.05, goods: 0.05, golden: 0.20, legend: 0.50 };   // 응대 성공 때 스킬북이 나올 확률
+  var BOOK_DROP = { fan: 0.015, shutter: 0.02, letter: 0.02, goods: 0.02, golden: 0.08, legend: 0.20 };   // 응대 성공 때 스킬북이 나올 확률
   function bookName(sk) { return sk.short + ' 스킬북'; }
   function bookSkill(name) { return SKILLS.filter(function (k) { return bookName(k) === name; })[0] || null; }
   function giveBook(id) {

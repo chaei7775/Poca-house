@@ -33,8 +33,8 @@
   var BOSS_PIECE_BONUS = 0.25;     // 거기에 한 번 더(+1) 줄 확률
   var BOSS_STONE_CHANCE = 0.15;    // 보스 응대 시 강화석 +1 확률
   var DEFEAT_RATE = 0.5;           // 쫓겨났을 때 코인·경험치를 받는 비율
-  var BOOK_FAN = 0.012;            // 팬 한 명 응대할 때 📘 스킬북(장착 스킬 중 하나)이 나올 확률
-  var BOOK_BOSS = 2;               // 보스까지 깨면 보장되는 스킬북 개수
+  var BOOK_FAN = 0.005;            // 팬 한 명 응대할 때 📘 스킬북(장착 스킬 중 하나)이 나올 확률
+  var BOOK_BOSS = 1;               // 보스까지 깨면 보장되는 스킬북 개수
   var HEART_DROP = 0.05;           // 팬이 만족했을 때 하트(HP +10)를 떨어뜨릴 확률
   var PIECE_NAME = '프리미엄 조각', PIECE_EMOJI = '🖼️', PIECE_GOAL = 100;
   var IMG_BASE = 'https://raw.githubusercontent.com/chaei7775/Poca-house/main/';
