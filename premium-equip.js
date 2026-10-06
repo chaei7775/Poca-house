@@ -338,6 +338,8 @@
   // 4) 데뷔 정산금: 기획사 수익 배율에 곱하기
   whenReady(function () { return typeof window.getEnhanceIncomeMult === 'function'; }, function () {
     if (window.getEnhanceIncomeMult.__peWrapped) return;
+    var desc = Object.getOwnPropertyDescriptor(window, 'getEnhanceIncomeMult');
+    var isAccessor = !!(desc && desc.get);          // meal.js가 getter/setter로 바꿔둔 경우
     var orig = window.getEnhanceIncomeMult;
     var w = function () {
       var m = orig.apply(this, arguments);
@@ -345,7 +347,13 @@
       return b > 0 ? m * (1 + b / 100) : m;
     };
     w.__peWrapped = true;
-    window.getEnhanceIncomeMult = w;
+    if (isAccessor) {
+      // 그냥 대입하면 meal.js의 setter가 w를 base로 저장 → w가 다시 자기 자신을 부르는 무한 반복(오류)이 난다.
+      // 그래서 getter만 감싸고, setter는 그대로 둔다.
+      Object.defineProperty(window, 'getEnhanceIncomeMult', { configurable: true, get: function () { return w; }, set: desc.set });
+    } else {
+      window.getEnhanceIncomeMult = w;
+    }
   });
 
   // 5) 원정 코인 / 스태미나 / 조각 +1 확률: 현상 효과 합계에 더하기
