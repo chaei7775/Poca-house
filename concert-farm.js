@@ -265,13 +265,26 @@
       }).join('') + '</div>';
     box.addEventListener('pointerdown', function (e) { e.stopPropagation(); });
     S.overlay.appendChild(box);
+    var openedAt = performance.now(), sel = -1;
+    var bar = document.createElement('div');
+    bar.style.cssText = 'position:sticky;bottom:0;margin:14px -14px -30px;padding:12px 14px 18px;background:linear-gradient(to top,rgba(10,5,20,0.97) 70%,rgba(10,5,20,0));';
+    bar.innerHTML = '<button id="concert-go" style="width:100%;padding:14px;border:none;border-radius:14px;font-size:15px;font-weight:900;color:#fff;background:#555;font-family:\'Noto Sans KR\',sans-serif;">카드를 먼저 골라주세요</button>';
+    box.appendChild(bar);
+    var go = bar.firstChild;
     Array.prototype.forEach.call(box.querySelectorAll('[data-i]'), function (el) {
       el.onclick = function () {
-        var c = list[Number(el.getAttribute('data-i'))];
-        if (!c || !S || S.phase !== 'pick') return;
-        S.charId = c.charId; box.remove(); beginPlay();
+        if (performance.now() - openedAt < 700) return;          // 열리자마자 들어온 탭은 무시
+        sel = Number(el.getAttribute('data-i'));
+        Array.prototype.forEach.call(box.querySelectorAll('[data-i]'), function (o) { o.style.transform = ''; o.style.boxShadow = ''; o.style.opacity = '0.55'; });
+        el.style.opacity = '1'; el.style.transform = 'scale(1.05)'; el.style.boxShadow = '0 0 16px 3px #f59e0b';
+        go.textContent = '✨ ' + list[sel].name + ' 로 시작!'; go.style.background = 'linear-gradient(135deg,#f59e0b,#ec4899)';
+        sfx('concertDrop');
       };
     });
+    go.onclick = function () {
+      if (sel < 0 || !S || S.phase !== 'pick') return;
+      S.charId = list[sel].charId; box.remove(); beginPlay();
+    };
   }
 
   // ── 효과 도우미 ──
