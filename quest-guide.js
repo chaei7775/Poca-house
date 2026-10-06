@@ -61,6 +61,9 @@
     try { if (Object.keys(inventory || {}).some(function (k) { return inventory[k] > 0; })) return true; } catch (e) {}
     return false;
   }
+  function fishInBag() {   // 낚시로 잡은 물고기가 가방에 있으면 낚시를 해본 것 (story-quest.js 와 같은 기준)
+    try { return bagItems.some(function (i) { return i && i.desc && String(i.desc).indexOf('낚시로 잡은 물고기') !== -1; }); } catch (e) { return false; }
+  }
   function mysterySeen() { try { return localStorage.getItem('ph_mystery_seen') === '1'; } catch (e) { return false; } }
 
   // ── 단계 정의 (순서대로 진행) ──
@@ -116,7 +119,7 @@
       go: function () { if (typeof openRecombine === 'function') openRecombine(); else goTo('home'); }, target: '#nav-shop' },
     { id: 'fishing', icon: '🎣', title: '캠프에서 낚시하기',
       hint: '맵 → 워크숍 캠프 → 낚시하기. 물고기가 다가오면 탭해서 낚싯대를 던져요. 잡은 건 재료로 쓰거나 팔 수 있어요.',
-      done: function () { return !!S.flags.first_fishing; }, reward: 200,
+      done: function () { return !!S.flags.first_fishing || fishInBag(); }, reward: 200,
       go: function () { goTo('map'); }, target: '#nav-map' },
     { id: 'studio', icon: '🎹', title: '작곡 스튜디오에서 재료 모으기',
       hint: '맵 → 🎹 작곡 스튜디오 탐험. 음표·악기·악보 재료가 20초 동안 튀어나와요! 이게 앨범의 재료예요.',
@@ -326,6 +329,12 @@
       return r;
     };
   });
+  // fishing.js 는 호수(캠프) 입구에서 window.startFishing / 위쪽 explorePlace 를 거치지 않고 안쪽 함수를 바로 부르므로,
+  // 위 후킹만으로는 '낚시 해봄' 표시가 안 남는다 → 낚시 화면(#fishing-overlay)이 뜨는 순간을 직접 감지
+  setInterval(function () {
+    if (!S.flags.first_fishing && document.getElementById('fishing-overlay')) { flag('first_fishing'); flag('first_explore'); }
+  }, 400);
+
   // ── 보상 (새 기능 첫 체험 보너스, 1회만) ──
   function giveRewards() {
     STEPS.forEach(function (st) {
