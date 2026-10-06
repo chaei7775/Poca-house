@@ -89,6 +89,21 @@
     saveStore(s);
     return s[cid].serves;
   }
+  // ════════ 스킬 숙련도: 응대에 성공적으로 쓸수록 스킬별로 Lv.1~5 ════════
+  var MASTERY = [0, 10, 30, 70, 150, 300];          // 숙련 Lv.0~5 에 필요한 누적 사용 횟수
+  function useCount(cid, id) { var s = loadStore(); return Math.max(0, Math.floor(Number(s[cid] && s[cid].uses && s[cid].uses[id]) || 0)); }
+  function masteryLv(cid, id) { var n = useCount(cid, id), lv = 0; for (var i = 1; i < MASTERY.length; i++) if (n >= MASTERY[i]) lv = i; return lv; }
+  function addUse(cid, id) {
+    var s = loadStore();
+    if (!s[cid] || typeof s[cid] !== 'object') s[cid] = { serves: 0 };
+    if (!s[cid].uses || typeof s[cid].uses !== 'object') s[cid].uses = {};
+    var before = masteryLv(cid, id);
+    s[cid].uses[id] = useCount(cid, id) + 1;
+    saveStore(s);
+    var after = masteryLv(cid, id);
+    if (after > before) { var k = skillById(id); toast('⭐ ' + (k ? k.icon + ' ' + k.name : '스킬') + ' 숙련도 Lv.' + after + '! 더 강해졌어요'); }
+  }
+  function mLv(id) { return F ? masteryLv(F.cid, id) : 0; }
   function ownedMap(cid) { var s = loadStore(); return (s[cid] && s[cid].owned && typeof s[cid].owned === 'object') ? s[cid].owned : {}; }
   function hasSkill(cid, sk) { return !!sk && (sk.price === 0 || !!ownedMap(cid)[sk.id]); }
   function unlockedSkills(cid) { return SKILLS.filter(function (s) { return hasSkill(cid, s); }); }
@@ -253,9 +268,9 @@
       o.fsSeq = o.fsSeq.slice(0, o.fsStep).concat(makeSeq(left)); o.fsDirty = true;
     }
   }
-  function applyStep(o, id, sk) {
+  function applyStep(o, id, sk, mlv) {
     ensureSeq(o);
-    if (sk.aoe) { o.fsGauge += AOE_GAIN; o.fsSeq.splice(o.fsStep, 2); o.fsAoe = true; }
+    if (sk.aoe) { o.fsGauge += Math.round(AOE_GAIN * (1 + 0.1 * (mlv || 0))); o.fsSeq.splice(o.fsStep, 2); o.fsAoe = true; }
     else if (o.fsSeq[o.fsStep] === id) { o.fsGauge += STEP_GAIN; o.fsStep++; }
     else { o.fsDirty = true; return 'fail'; }
     o.fsDirty = true;
@@ -368,8 +383,8 @@
   function nearestTarget(rng) { return nearestEvent(rng) || nearestFan(rng); }
 
   // ════════ 보상 ════════
-  function grant(love) {
-    var mult = love ? LOVE_MULT : 1;
+  function grant(love, bonus) {
+    var mult = (love ? LOVE_MULT : 1) * (bonus || 1);
     var lines = [];
     var cm = COIN_MULT[F.mapId] || 1;
     var gain = Math.max(1, Math.round(COIN_BASE * cm * mult * (0.9 + Math.random() * 0.2)));
@@ -397,23 +412,24 @@
     if (!hasSkill(F.cid, sk)) { openBuyModal(sk); return null; }      // 아직 안 배운 스킬: 구매 창
     var now = Date.now();
     if ((F.cd[id] || 0) > now) return null;
-    var fan = nearestTarget(sk.reach);
+    var mlv = mLv(id), reachM = sk.reach * (1 + 0.05 * mlv);          // 숙련 Lv마다 사거리 +5%
+    var fan = nearestTarget(reachM);
     if (!fan) { toast(bcHook() ? '가까이에 이벤트가 없어요! ❗ 쪽으로 걸어가 봐요 (눌러서 닿기 전까지만)' : '가까이에 팬이 없어요! 팬 쪽으로 걸어가 봐요'); return null; }
     var me = playerPos();
     var hk = bcHook();
     if (fan.ev && !hk.canResolve(fan.ev)) return null;                // 스태미나 부족 등
-    F.cd[id] = now + COOLDOWN * 1000;
+    F.cd[id] = now + Math.max(1, COOLDOWN - 0.4 * mlv) * 1000;   // 숙련 Lv마다 쿨타임 -0.4초 (최소 1초)
     // 대상 모으기: 가장 가까운 대상 + (광역이면) 범위 안의 다른 팬들
     var list = [fan.ev || fan];
     if (sk.aoe) {
       F.fans.forEach(function (o) {
-        if (o === fan || o.fsBusy || !me || pxDist(o.x, o.y, me.x, me.y) > sk.reach) return;
+        if (o === fan || o.fsBusy || !me || pxDist(o.x, o.y, me.x, me.y) > reachM) return;
         list.push(o);
       });
     }
-    var res = { done: 0, fail: 0, ok: 0 };
+    var res = { done: 0, fail: 0, ok: 0 }, didUse = false;
     list.forEach(function (o) {
-      var st = applyStep(o, id, sk);
+      var st = applyStep(o, id, sk, mlv);
       var isEv = !!o.type && !!o.el && !o.emoji;                       // 맵 이벤트인지
       var tg = isEv ? evTarget(o) : o;
       effect(id, tg, me, st === 'done');
@@ -426,6 +442,7 @@
         else { var i0 = F.fans.indexOf(o); if (i0 !== -1) F.fans.splice(i0, 1); var fc0 = o.el && o.el.querySelector('.fs-face'); if (fc0) fc0.textContent = '😤'; setTimeout(function () { removeFan(o, true); }, 900); }
         return;
       }
+      if (!didUse) { didUse = true; addUse(F.cid, id); }
       if (st === 'ok') {
         res.ok++;
         floatText(tg.x, tg.y - 0.03, '<div style="font-size:13px;font-weight:900;color:#FF9EC7;text-shadow:0 2px 6px #000;white-space:nowrap;">💗 게이지 ' + Math.min(100, o.fsGauge) + '%</div>');
@@ -446,7 +463,7 @@
         }, 900);
       } else {
         var i1 = F.fans.indexOf(o); if (i1 !== -1) F.fans.splice(i1, 1);
-        var r = grant(love); addServe(F.cid);
+        var r = grant(love, 1 + 0.04 * mlv); addServe(F.cid);
         var fc = o.el && o.el.querySelector('.fs-face'); if (fc) fc.textContent = love ? '😍' : '😊';
         floatText(o.x, o.y - 0.09, '<div style="text-align:center;">' + r.lines.join('') + '</div>');
         setTimeout(function () { removeFan(o, true); }, 900);
@@ -513,7 +530,7 @@
       if (!s) { ic.textContent = '➕'; lb.textContent = '장착'; b.style.opacity = '.5'; b.style.borderColor = '#666'; b.style.animation = 'none'; continue; }
       var lvLock = !levelOk(s), locked = !hasSkill(F.cid, s);
       var left = Math.max(0, Math.ceil(((F.cd[s.id] || 0) - now) / 1000));
-      var nr = nearestTarget(s.reach);
+      var nr = nearestTarget(s.reach * (1 + 0.05 * masteryLv(F.cid, s.id)));
       ic.textContent = (lvLock || locked) ? '🔒' : s.icon;
       lb.textContent = lvLock ? ('Lv.' + s.useLv) : (locked ? ('🍔' + priceLabel(s.price)) : (left > 0 ? left + '초' : s.short));
       var ready = !lvLock && !locked && left === 0 && !!nr;
@@ -635,7 +652,7 @@
       return '<div data-pick="' + s.id + '" style="display:flex;align-items:center;gap:10px;padding:9px 11px;margin-bottom:7px;border-radius:13px;cursor:pointer;background:' + (eq ? 'rgba(124,58,237,.3)' : 'rgba(255,255,255,.07)') + ';border:1.5px solid ' + (eq ? '#C084FC' : 'rgba(255,255,255,.14)') + ';opacity:' + (low ? '.6' : '1') + ';">' +
         '<div style="font-size:24px;">' + s.icon + '</div><div style="flex:1;min-width:0;"><div style="font-size:13px;font-weight:900;color:#fff;">' + s.name + (s.aoe ? ' <span style="font-size:10px;color:#ffd76a;">광역</span>' : '') + '</div>' +
         '<div style="font-size:10px;color:#bbb;line-height:1.4;">' + s.desc + '</div></div>' +
-        '<div style="font-size:11px;font-weight:900;color:' + (low ? '#ff9a9a' : '#9fe8b0') + ';white-space:nowrap;text-align:right;">' + (low ? '🔒 Lv.' + s.useLv : '사용 가능') + (eq ? '<br><span style="color:#C084FC;">장착중</span>' : '') + '</div></div>';
+        '<div style="font-size:11px;font-weight:900;color:' + (low ? '#ff9a9a' : '#9fe8b0') + ';white-space:nowrap;text-align:right;">' + (low ? '🔒 Lv.' + s.useLv : '사용 가능') + ((F && hasSkill(F.cid, s)) ? '<br><span style="color:#FFD700;">숙련 Lv.' + masteryLv(F.cid, s.id) + '</span>' : '') + (eq ? '<br><span style="color:#C084FC;">장착중</span>' : '') + '</div></div>';
     }).join('');
     ov.innerHTML = '<div style="width:100%;max-width:380px;max-height:92vh;overflow-y:auto;background:linear-gradient(135deg,#1a1a2e,#2d1b4e);border:2px solid #C084FC;border-radius:20px;padding:18px 14px;color:#fff;">' +
       '<div style="font-size:17px;font-weight:900;text-align:center;">⚔️ 스킬 장착</div>' +
@@ -773,7 +790,7 @@
   window.__fanSkillsAPI = { SKILLS: SKILLS, SLOTS: SLOTS, loadout: loadLoadout, equip: equip, levelOk: levelOk, hasSkill: function (cid, id) { var sk = skillById(id); return !!sk && hasSkill(cid, sk); }, openEditor: openEditor, openShop: openShop };
 
   window.__fanSkillsTest = {
-    spawnFan: spawnFan, useSkill: useSkill, serves: serves, unlockedSkills: unlockedSkills,
+    spawnFan: spawnFan, useSkill: useSkill, serves: serves, masteryLv: masteryLv, useCount: useCount, unlockedSkills: unlockedSkills,
     buySkill: buySkill, nearestTarget: nearestTarget, hasSkill: hasSkill, openShop: openShop, openBuyModal: openBuyModal, skillById: skillById,
     state: function () { return F; }, store: loadStore, playerPos: playerPos, evTarget: evTarget
   };
