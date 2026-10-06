@@ -93,6 +93,21 @@
   function skillOpen(s) { var a = API(); return a ? plv() >= (a.SKILLS.filter(function (x) { return x.id === s.id; })[0] || { useLv: s.unlock }).useLv : plv() >= s.unlock; }
   function skillOwned(s) { var a = API(); return !a || !G || a.hasSkill(G.charId, s.id); }
   function loadoutIds() { var a = API(); return a ? a.loadout() : ['sign', 'photo', null, null, null]; }
+  // 스킬은 멤버별로 배우는 거라, 다른 멤버가 산 스킬은 이 멤버가 못 써요 → 누가 배웠는지 알려줌
+  function whoHas(sid) {
+    var a = API(), out = [];
+    try { Object.keys(CHARS).forEach(function (cid) { if (a && a.hasSkill(cid, sid)) out.push(CHARS[cid].name); }); } catch (e) {}
+    return out;
+  }
+  function lackHtml(charId) {
+    var a = API(); if (!a) return '';
+    var lack = loadoutIds().filter(Boolean).map(skillById).filter(function (k) { return k && !a.hasSkill(charId, k.id); });
+    if (!lack.length) return '';
+    var nm = (typeof CHARS !== 'undefined' && CHARS[charId]) ? CHARS[charId].name : '이 멤버';
+    return '<div style="font-size:12px;line-height:1.6;color:#ffb3b3;background:rgba(255,80,80,.12);border:1px solid rgba(255,120,120,.4);border-radius:10px;padding:8px 10px;margin:0 0 10px;text-align:left;">🔒 ' + nm + '은(는) 장착한 스킬을 아직 못 배웠어요<br>' +
+      lack.map(function (k) { var w = whoHas(k.id).slice(0, 4); return k.icon + ' ' + k.name + (w.length ? ' <span style="color:#ddd;">(배운 멤버: ' + w.join(', ') + ')</span>' : ''); }).join('<br>') +
+      '<br><span style="color:#ddd;">스킬은 멤버별로 사요 · 더보기 &gt; 💖 팬 스킬 상점</span></div>';
+  }
   function skillById(id) { return SKILLS.filter(function (x) { return x.id === id; })[0] || null; }
 
   // 웨이브 구성: 웨이브마다 [종류, 수] 목록 (마지막 웨이브는 보스 + 졸개)
@@ -328,7 +343,7 @@
     var s = SKILLS.filter(function (x) { return x.id === id; })[0];
     if (!s) return false;
     if (!skillOpen(s)) { toast('🔒 ' + s.name + '은(는) 플레이어 Lv.' + (API() ? API().SKILLS.filter(function (x) { return x.id === id; })[0].useLv : s.unlock) + '부터 쓸 수 있어요'); return false; }
-    if (!skillOwned(s)) { toast('🔒 ' + (G.ch.name || '이 멤버') + '은(는) ' + s.name + '을(를) 아직 못 배웠어요 · 더보기 > 💖 팬 스킬 상점'); return false; }
+    if (!skillOwned(s)) { toast('🔒 ' + (G.ch.name || '이 멤버') + '은(는) ' + s.name + '을(를) 아직 못 배웠어요' + (whoHas(s.id).length ? ' (배운 멤버: ' + whoHas(s.id).slice(0, 3).join(', ') + ')' : '') + ' · 더보기 > 💖 팬 스킬 상점'); return false; }
     if (G.cd[id] > 0) return false;
     var used = false;
     var near = G.fans.slice().sort(function (a, b) { return dist(a.x, a.y, G.px, G.py) - dist(b.x, b.y, G.px, G.py); });
@@ -788,7 +803,7 @@
       var t = total(), have = (typeof coins !== 'undefined') ? coins : 0, lack = t > have;
       el.innerHTML = '<div style="width:100%;max-width:340px;text-align:center;">' +
         '<div style="font-size:20px;font-weight:900;color:#fff;">🕶️ 보디가드 고용</div>' +
-        '<div style="font-size:12px;color:#ccc;margin:4px 0 12px;">공항 입국장은 고렙 지역이라 팬들이 거세요!<br>최대 ' + BG_MAX + '명까지 고용할 수 있어요 (한 판 동안)</div>' + rows +
+        '<div style="font-size:12px;color:#ccc;margin:4px 0 12px;">공항 입국장은 고렙 지역이라 팬들이 거세요!<br>최대 ' + BG_MAX + '명까지 고용할 수 있어요 (한 판 동안)</div>' + lackHtml(charId) + rows +
         '<button id="fr-hire-go" style="width:100%;padding:13px;margin-top:4px;border:none;border-radius:12px;background:' + (lack ? '#555' : 'linear-gradient(135deg,#FB7185,#C084FC)') + ';color:#fff;font-size:15px;font-weight:900;cursor:pointer;font-family:inherit;">' +
         (lack ? '코인이 모자라요 (🍔 ' + fmt(t) + ')' : (t ? '고용하고 출동! (🍔 ' + fmt(t) + ')' : '혼자 출동!')) + '</button>' +
         '<button id="fr-hire-no" style="width:100%;padding:10px;margin-top:8px;border:none;border-radius:12px;background:rgba(255,255,255,.1);color:#ccc;font-size:13px;cursor:pointer;font-family:inherit;">취소</button></div>';
