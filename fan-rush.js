@@ -176,7 +176,7 @@
     f.hp -= dmg; f.flash = 0.12;
     var d = dist(f.x, f.y, fromX, fromY) || 1, k = f.T.boss ? kb * 0.15 : (f.T.r > 20 ? kb * 0.5 : kb);
     f.kx += (f.x - fromX) / d * k * 4; f.ky += (f.y - fromY) / d * k * 4;
-    addDn(f.x + rnd(-6, 6), f.y - f.T.r - 8, String(Math.round(dmg)), '#fff', dmg >= 100);
+    addDn(f.x + rnd(-6, 6), f.y - f.T.r - 8, '💗+' + Math.round(dmg), '#ff9ec7', dmg >= 100);
     if (f.hp <= 0) satisfy(f);
   }
   function nearestFan(maxD) {
@@ -406,11 +406,11 @@
     c.fillText(T.emoji, f.x, f.y + bob);
     c.shadowBlur = 0;
     if (T.boss) { c.font = Math.round(T.r * 1.0) + 'px sans-serif'; c.fillText('👑', f.x, f.y - T.r - 6 + bob); }
-    if (f.hp < f.mhp) {
-      var w = Math.max(26, T.r * 2), bx = f.x - w / 2, by = f.y - T.r - (T.boss ? 22 : 10);
-      c.fillStyle = 'rgba(0,0,0,.6)'; c.fillRect(bx - 1, by - 1, w + 2, 6);
-      c.fillStyle = T.boss ? '#ff5c8a' : '#ffd76a'; c.fillRect(bx, by, w * Math.max(0, f.hp / f.mhp), 4);
-    }
+    // 💗 하트 게이지: 스킬을 맞을수록 차오르고, 가득 차면 만족해서 돌아간다 (처음부터 항상 보임)
+    var w = Math.max(30, T.r * 2), bx = f.x - w / 2, by = f.y - T.r - (T.boss ? 24 : 12), fill = Math.min(1, Math.max(0, 1 - f.hp / f.mhp));
+    c.fillStyle = 'rgba(0,0,0,.65)'; c.fillRect(bx - 1.5, by - 1.5, w + 3, 8);
+    c.fillStyle = fill >= 0.99 ? '#ffd76a' : '#ff6fb1'; c.fillRect(bx, by, w * fill, 5);
+    c.font = '9px sans-serif'; c.textAlign = 'center'; c.textBaseline = 'bottom'; c.fillStyle = '#fff'; c.fillText('💗', bx - 6, by + 7);
   }
 
   function drawPlayer(c) {
