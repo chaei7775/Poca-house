@@ -11,7 +11,10 @@
 (function () {
   'use strict';
   var KEY = 'ph_issue';
-  var CHANCE = 0.35;
+  var CHANCE = 0.6;          // 하루 보내기 때
+  var EXTRA_CHANCE = 0.3;    // 드라마 촬영 끝 / 기획사 정산 때
+  var EXTRA_GAP_MS = 90000;  // 추가 발생 최소 간격
+  var EXTRA_PER_DAY = 3;     // 게임 하루당 추가 발생 상한
   var POLL_MS = 1500;
   var STAT_MULT = 2;      // 기사 효과 배율: 비주얼·체력·기분 (아래 기사 숫자 × 이 값)
   var COIN_MULT = 4;      // 기사 효과 배율: 코인
@@ -218,5 +221,27 @@
   }
   setInterval(tick, POLL_MS);
 
-  window.__issueTest = { fire: fire, GENERIC: GENERIC, BY_IDOL: BY_IDOL, tick: tick, CHANCE: CHANCE, load: load };
+  // ── 드라마 촬영 끝 / 기획사 정산 때도 가끔 발생 ──
+  var lastExtra = 0, extraDay = null, extraCnt = 0, drShown = false;
+  function extra() {
+    var day = mealState().day, now = Date.now();
+    if (extraDay !== day) { extraDay = day; extraCnt = 0; }
+    if (extraCnt >= EXTRA_PER_DAY || now - lastExtra < EXTRA_GAP_MS) return;
+    var ids = debuted(); if (!ids.length || Math.random() >= EXTRA_CHANCE) return;
+    lastExtra = now; extraCnt++;
+    var cid = pick(ids);
+    setTimeout(function () { if (!document.getElementById('issue-pop')) fire(cid); }, 1800);
+  }
+  document.addEventListener('click', function (e) {
+    var t = e.target && e.target.closest && e.target.closest('#agency-claim');
+    if (t) extra();
+  }, true);
+  setInterval(function () {
+    var r = document.getElementById('dr-result');
+    var shown = !!(r && !r.hidden && r.innerHTML.length > 20);
+    if (shown && !drShown) extra();
+    drShown = shown;
+  }, 800);
+
+  window.__issueTest = { fire: fire, GENERIC: GENERIC, BY_IDOL: BY_IDOL, tick: tick, CHANCE: CHANCE, extra: extra, load: load };
 })();
