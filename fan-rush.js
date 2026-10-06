@@ -168,7 +168,7 @@
   }
 
   // ── 팬 머리 위에 뜨는 스킬 순서 (팬마다 필요한 스킬 개수가 다름) ──
-  var SEQ_BY = { normal: 1, rusher: 1, thrower: 1, tank: 2, boss: 4 };
+  var SEQ_BY = { normal: 2, rusher: 2, thrower: 2, tank: 3, boss: 5 };   // 팬마다 달고 나오는 랜덤 스킬 개수
   function usablePool() {
     var out = [];
     loadoutIds().forEach(function (id) {
@@ -325,6 +325,7 @@
     // 효과·숫자
     if (G.xf) { var X0 = G.xf; X0.flash = Math.max(0, X0.flash - dt); X0.zoom *= Math.exp(-dt * 7); if (X0.zoom < 0.001) X0.zoom = 0; if (X0.cut) { X0.cut.t -= dt; if (X0.cut.t <= 0) X0.cut = null; }
       for (var ci = X0.conf.length - 1; ci >= 0; ci--) { var q = X0.conf[ci]; q.x += q.vx * dt; q.y += q.vy * dt; q.rot += q.vr * dt; q.vx += Math.sin(q.rot) * 30 * dt; if (q.y > G.vh + 20) X0.conf.splice(ci, 1); } }
+    G.fans.forEach(function (f) { var tg = f.seq.length ? 100 * f.step / f.seq.length : 0; f.vis = (f.vis || 0) + (tg - (f.vis || 0)) * Math.min(1, dt * 8); });   // 게이지가 부드럽게 차오르게
     for (var xi = G.fx.length - 1; xi >= 0; xi--) { G.fx[xi].t -= dt; if (G.fx[xi].t <= 0) G.fx.splice(xi, 1); }
     for (var ni = G.dn.length - 1; ni >= 0; ni--) { var N = G.dn[ni]; N.t -= dt; N.y -= 26 * dt; if (N.t <= 0) G.dn.splice(ni, 1); }
     // 장착을 바꿔서 못 쓰는 스킬이 팬의 남은 순서에 있으면 남은 칸만 새로 뽑음
@@ -589,7 +590,8 @@
     c.fillStyle = 'rgba(0,0,0,.35)'; c.beginPath(); c.ellipse(f.x, f.y + T.r * 0.7, T.r * 0.9, T.r * 0.4, 0, 0, 7); c.fill();
     if (f.flash > 0) { c.shadowColor = '#fff'; c.shadowBlur = 18; }
     var fi = fanFace(T.boss ? 'boss' : f.face);
-    if (T.boss && !fi._ok) fi = fanFace(f.face);
+    if (!fi._ok) fi = fanFace(f.face);
+    if (!fi._ok) { for (var fk = 1; fk <= FAN_FACES; fk++) { var alt = fanFace(fk); if (alt._ok) { fi = alt; break; } } }   // 아직 안 불러와진 얼굴은 불러와진 다른 얼굴로 대신 (이모지로 안 나오게)
     if (fi && fi._ok) {
       var R = T.r * 1.3, glow = f.angry > 0 ? '#ff4d4d' : (T.boss ? '#ffd76a' : f.type === 'tank' ? '#c084fc' : 'rgba(255,255,255,.9)');
       // 투명 스티커라서 동그랗게 자르지 않고 그대로 그림 (머리카락이 안 잘리게)
@@ -606,7 +608,7 @@
     c.shadowBlur = 0;
     if (T.boss) { c.font = Math.round(T.r * 1.0) + 'px sans-serif'; c.fillText('👑', f.x, f.y - T.r * 1.25 - 8 + bob); }
     // 머리 위: 써야 할 스킬 순서 + 💗 하트 게이지 (순서를 채울수록 차오르고, 가득 차면 만족)
-    var n = f.seq.length, iw = 16, tot = n * iw, ix = f.x - tot / 2, iy = f.y - T.r - (T.boss ? 34 : 24);
+    var n = f.seq.length, iw = 16, tot = n * iw, ix = f.x - tot / 2, iy = f.y - T.r - (T.boss ? 44 : 34);
     for (var i = 0; i < n; i++) {
       var k = skillById(f.seq[i]), cur = i === f.step, done = i < f.step;
       c.globalAlpha = done ? 0.3 : 1;
@@ -616,10 +618,18 @@
       c.fillText(k ? k.icon : '?', ix + i * iw + iw / 2, iy + 1);
     }
     c.globalAlpha = 1;
-    var w = Math.max(30, T.r * 2, tot), bx = f.x - w / 2, by = f.y - T.r - (T.boss ? 20 : 10), fill = f.step / n;
-    c.fillStyle = 'rgba(0,0,0,.65)'; c.fillRect(bx - 1.5, by - 1.5, w + 3, 8);
-    c.fillStyle = f.angry > 0 ? '#ff6b6b' : '#ff6fb1'; c.fillRect(bx, by, w * fill, 5);
+    var gp = clamp((f.vis || 0) / 100, 0, 1), gw = Math.max(48, T.r * 2.3, tot), gh = T.boss ? 11 : 8, gx = f.x - gw / 2, gy = f.y - T.r - (T.boss ? 24 : 14);
+    c.fillStyle = 'rgba(20,6,36,.85)'; roundRectP(c, gx - 2.5, gy - 2.5, gw + 5, gh + 5, 7); c.fill();
+    if (gp > 0) {
+      var gg = c.createLinearGradient(gx, 0, gx + gw, 0); gg.addColorStop(0, f.angry > 0 ? '#ff9a9a' : '#ff8fc4'); gg.addColorStop(1, f.angry > 0 ? '#ff4d4d' : (gp > 0.85 ? '#ffd76a' : '#ff4f9a'));
+      c.fillStyle = gg; roundRectP(c, gx, gy, Math.max(gh, gw * gp), gh, 5); c.fill();
+      c.fillStyle = 'rgba(255,255,255,.35)'; roundRectP(c, gx + 2, gy + 1.5, Math.max(4, gw * gp - 4), 2.5, 2); c.fill();
+    }
+    c.lineWidth = 1.5; c.strokeStyle = f.angry > 0 ? 'rgba(255,120,120,.9)' : 'rgba(255,255,255,.6)'; roundRectP(c, gx - 2.5, gy - 2.5, gw + 5, gh + 5, 7); c.stroke();
+    c.font = '13px sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillStyle = '#fff'; c.fillText(gp > 0.5 ? '💖' : '🤍', gx - 9, gy + gh / 2 + 1);
   }
+
+  function roundRectP(c, x, y, w, h, r) { c.beginPath(); c.moveTo(x + r, y); c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r); c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath(); }
 
   function drawPlayer(c) {
     var x = G.px, y = G.py, R = 20;
@@ -999,7 +1009,7 @@
     if (A && A.tut && !again) A.tut('ph_tut_airport', '✈️', '공항 입국장 · 고렙 러쉬!', [
       '팬들이 <b>몰려와요!</b> 닿으면 HP가 깎여요. 화면을 누른 채 끌어서 도망치면서 응대해요.',
       '팬 머리 위에 <b>스킬 아이콘</b>이 떠요. 그 스킬 버튼을 눌러 하트 게이지를 채우면 만족해서 돌아가요.',
-      '일반 팬은 <b>1개</b>, 덕후는 <b>2개</b>, 👑 보스는 <b>4개</b>! 순서가 틀리면 팬이 <b>화나서</b> 더 빨라지고 처음부터예요.',
+      '일반 팬은 <b>2개</b>, 덕후는 <b>3개</b>, 👑 보스는 <b>5개</b>! 순서가 틀리면 팬이 <b>화나서</b> 더 빨라지고 처음부터예요.',
       '몰려올 땐 <b>광역 스킬</b>! 범위 안 팬 전부의 칸을 한꺼번에 채워요.',
       '🕶️ 출동 전에 <b>보디가드</b>를 고용할 수 있어요 (최대 2명, 한 판 동안).',
       '8웨이브 + 보스를 모두 응대하면 성공! 코인·경험치·프리미엄 조각·📘 스킬북을 받아요.'
@@ -1059,6 +1069,7 @@
     try { if (typeof saveStamina === 'function') saveStamina(); } catch (e) {}
     try { if (typeof saveAll === 'function') saveAll(); } catch (e) {}
     curChar = charId; styleOnce();
+    for (var pf = 1; pf <= FAN_FACES; pf++) fanFace(pf); fanFace('boss');   // 얼굴 그림 미리 불러오기
     if (raf) { cancelAnimationFrame(raf); raf = 0; }
     stick = null; keys = {};
     buildUi(ov, charId);
