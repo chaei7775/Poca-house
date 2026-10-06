@@ -751,6 +751,7 @@
     edSel = null;
     renderEditor();
   }
+  function ownCount(s) { var n = 0; try { charIds().forEach(function (cid) { if (hasSkill(cid, s)) n++; }); } catch (e) {} return n; }
   function renderEditor() {
     var ov = $('fs-editor'); if (!ov) return;
     var L = loadLoadout();
@@ -764,7 +765,7 @@
       return '<div data-pick="' + s.id + '" style="display:flex;align-items:center;gap:10px;padding:9px 11px;margin-bottom:7px;border-radius:13px;cursor:pointer;background:' + (eq ? 'rgba(124,58,237,.3)' : 'rgba(255,255,255,.07)') + ';border:1.5px solid ' + (eq ? '#C084FC' : 'rgba(255,255,255,.14)') + ';opacity:' + (low ? '.6' : '1') + ';">' +
         '<div style="font-size:24px;">' + s.icon + '</div><div style="flex:1;min-width:0;"><div style="font-size:13px;font-weight:900;color:#fff;">' + s.name + (s.aoe ? ' <span style="font-size:10px;color:#ffd76a;">광역</span>' : '') + '</div>' +
         '<div style="font-size:10px;color:#bbb;line-height:1.4;">' + s.desc + '</div></div>' +
-        '<div style="font-size:11px;font-weight:900;color:' + (low ? '#ff9a9a' : '#9fe8b0') + ';white-space:nowrap;text-align:right;">' + (low ? '🔒 Lv.' + s.useLv : '사용 가능') + ((F && hasSkill(F.cid, s)) ? '<br><span style="color:#FFD700;">숙련 Lv.' + masteryLv(F.cid, s.id) + '</span>' : '') + (eq ? '<br><span style="color:#C084FC;">장착중</span>' : '') + '</div></div>';
+        '<div style="font-size:11px;font-weight:900;color:' + (low ? '#ff9a9a' : '#9fe8b0') + ';white-space:nowrap;text-align:right;">' + (low ? '🔒 Lv.' + s.useLv : (s.price === 0 ? '기본 스킬' : (ownCount(s) ? '배운 멤버 ' + ownCount(s) + '명' : '<span style="color:#ff9a9a;">🔒 아직 아무도 안 배움</span>'))) + ((F && hasSkill(F.cid, s)) ? '<br><span style="color:#FFD700;">숙련 Lv.' + masteryLv(F.cid, s.id) + '</span>' : '') + (eq ? '<br><span style="color:#C084FC;">장착중</span>' : '') + '</div></div>';
     }).join('');
     ov.innerHTML = '<div style="width:100%;max-width:380px;max-height:92vh;overflow-y:auto;background:linear-gradient(135deg,#1a1a2e,#2d1b4e);border:2px solid #C084FC;border-radius:20px;padding:18px 14px;color:#fff;">' +
       '<div style="font-size:17px;font-weight:900;text-align:center;">⚔️ 스킬 장착</div>' +
