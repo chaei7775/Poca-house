@@ -259,7 +259,7 @@
       emoji = typeof getMaterialEmoji === 'function' ? getMaterialEmoji(d.name) : '✨';
     }
     S.collected.push(label);
-    S.pops.push({ x: it.x, y: it.y - 30, text: emoji + ' ' + label + (d.isRare ? ' ✨' : ''), t: 0 });
+    S.pops.push({ x: it.x, y: it.y - 30, text: label + (d.isRare ? ' ✨' : ''), icon: d.isWish ? '소원의 조각' : d.name, emoji: emoji, t: 0 });
     if (navigator.vibrate) { try { navigator.vibrate(25); } catch (e) {} }
   }
 
@@ -399,8 +399,14 @@
         c.fillStyle = it.d.isRare ? 'rgba(255,215,0,0.35)' : 'rgba(255,255,255,0.25)';
         c.beginPath(); c.arc(p[0], p[1] + bob, 24, 0, 6.3); c.fill();
       }
-      c.font = '34px sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle';
-      c.fillText(emoji, p[0], p[1] + bob);
+      var mim = null;
+      if (!it.tired && window.matImage) { try { mim = window.matImage(it.d.isWish ? '소원의 조각' : it.d.name); } catch (e) {} }
+      if (mim && mim._ok && mim.naturalWidth) {
+        c.drawImage(mim, p[0] - 21, p[1] + bob - 21, 42, 42);
+      } else {
+        c.font = '34px sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle';
+        c.fillText(emoji, p[0], p[1] + bob);
+      }
     });
 
     // 성공 연출: 충격파 링 + 크게 톡 튀어나오는 글자
@@ -436,9 +442,15 @@
       c.font = '900 14px "Noto Sans KR",sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle';
       c.lineWidth = 4; c.strokeStyle = 'rgba(0,0,0,0.7)';
       var tx = Math.max(70, Math.min(W - 70, sp[0])), ty = sp[1] - p.t * 40;
-      c.strokeText(p.text, tx, ty);
+      var pim = null;
+      if (p.icon && window.matImage) { try { pim = window.matImage(p.icon); } catch (e) {} }
+      var pt = p.text, ix = 0;
+      if (pim && pim._ok && pim.naturalWidth) { ix = 12; }
+      else if (p.emoji) { pt = p.emoji + ' ' + pt; }
+      c.strokeText(pt, tx + ix, ty);
       c.fillStyle = p.bad ? '#ff8a8a' : (p.dim ? '#bbb' : '#fff');
-      c.fillText(p.text, tx, ty);
+      c.fillText(pt, tx + ix, ty);
+      if (ix) { var tw = c.measureText(pt).width; c.drawImage(pim, tx + ix - tw / 2 - 22, ty - 10, 20, 20); }
     });
     c.globalAlpha = 1;
 
