@@ -106,6 +106,34 @@
     var after = masteryLv(cid, id);
     if (after > before) { var k = skillById(id); toast('⭐ ' + (k ? k.icon + ' ' + k.name : '스킬') + ' 숙련도 Lv.' + after + '! 더 강해졌어요'); }
   }
+  // ════════ 📖 처음 한 번만 뜨는 설명 창 (key = localStorage, ph_ 로 시작 → 클라우드 저장) ════════
+  function tutModal(key, icon, title, lines, onClose) {
+    try { if (localStorage.getItem(key)) { if (onClose) onClose(); return false; } } catch (e) {}
+    if ($('fs-tut')) return false;
+    var ov = document.createElement('div'); ov.id = 'fs-tut';
+    ov.style.cssText = 'position:fixed;inset:0;z-index:2200;background:rgba(0,0,0,.8);display:flex;align-items:center;justify-content:center;padding:18px;' + FONT;
+    ov.addEventListener('pointerdown', function (e) { e.stopPropagation(); });
+    ov.innerHTML = '<div style="width:100%;max-width:330px;max-height:88vh;overflow-y:auto;background:linear-gradient(135deg,#1a1a2e,#2d1b4e);border:2px solid #FFB86B;border-radius:20px;padding:22px 18px;text-align:center;">' +
+      '<div style="font-size:42px;">' + icon + '</div><div style="font-size:17px;font-weight:900;color:#fff;margin:4px 0 12px;">' + title + '</div>' +
+      '<div style="text-align:left;font-size:13px;color:#e8e0f5;line-height:1.7;">' + lines.map(function (l) { return '<div style="margin-bottom:6px;">' + l + '</div>'; }).join('') + '</div>' +
+      '<button id="fs-tut-ok" style="width:100%;margin-top:12px;padding:13px;border:none;border-radius:12px;background:linear-gradient(135deg,#FF6B9D,#C084FC);color:#fff;font-size:15px;font-weight:900;cursor:pointer;' + FONT + '">알겠어요!</button></div>';
+    document.body.appendChild(ov);
+    ov.querySelector('#fs-tut-ok').onclick = function () {
+      try { localStorage.setItem(key, '1'); } catch (e) {}
+      ov.remove(); if (typeof saveAll === 'function') { try { saveAll(); } catch (e) {} }
+      if (onClose) onClose();
+    };
+    return true;
+  }
+  function seqTutorial() {
+    tutModal('ph_tut_seq', '💖', '팬 응대가 바뀌었어요!', [
+      '1️⃣ 팬이나 이벤트 <b>머리 위에 뜬 스킬</b>을 그 스킬 버튼으로 눌러요.',
+      '2️⃣ 일반은 <b>1개</b>, 🌟 레어는 <b>2개</b>, 특별 NPC는 <b>3개</b>! 순서대로 써서 하트 게이지를 채우면 성공이에요.',
+      '3️⃣ <b>순서가 틀리면 실패</b>예요. 팬은 화내며 가버리고 이벤트는 사라져요.',
+      '4️⃣ 광역 스킬은 <b>아무 칸이나</b> 채워줘요. 범위 안 팬을 한꺼번에 응대할 때 써요!',
+      '5️⃣ 스킬은 ⚙️로 <b>5칸</b>까지 장착해요. 더보기 → 💖 팬 스킬 상점에서 배울 수 있어요.'
+    ]);
+  }
   // ════════ 📘 스킬북: 드랍되면 가방에 쌓이고, 쓰면 그 스킬의 숙련도가 오른다 ════════
   var BOOK_USES = 1;                                            // 스킬북 1권 = 숙련 포인트 +1 (숙련 Lv.5 = 15권)
   var BOOK_DROP = { fan: 0.015, shutter: 0.02, letter: 0.02, goods: 0.02, golden: 0.08, legend: 0.20 };   // 응대 성공 때 스킬북이 나올 확률
@@ -115,7 +143,15 @@
     var sk = skillById(id); if (!sk || typeof addToBag !== 'function') return false;
     var ok = false;
     try { ok = !!addToBag('📘', bookName(sk), 'skillbook', 1, sk.icon + ' ' + sk.name + ' 숙련도 올리기 · 가방에서 열어 멤버를 골라 먹여요'); } catch (e) {}
-    if (ok) { try { if (typeof saveAll === 'function') saveAll(); } catch (e) {} toast('📘 ' + bookName(sk) + '을(를) 얻었어요!'); }
+    if (ok) {
+      try { if (typeof saveAll === 'function') saveAll(); } catch (e) {} toast('📘 ' + bookName(sk) + '을(를) 얻었어요!');
+      setTimeout(function () { tutModal('ph_tut_book', '📘', '스킬북을 얻었어요!', [
+        '스킬 숙련도는 <b>스킬북</b>을 먹여서만 올라가요.',
+        '🎒 가방 → 스킬북을 눌러 <b>📘 숙련도 올리기</b> → 멤버를 골라요.',
+        '숙련 Lv마다 쿨타임↓ 사거리↑ 보상↑! 스킬북 <b>15권</b>이면 최대 Lv.5예요.',
+        '그 멤버가 배운 스킬에만 쓸 수 있어요.'
+      ]); }, 1500);
+    }
     return ok;
   }
   function maybeBook(kind, usedId) {
@@ -635,6 +671,7 @@
     F = { view: view, cid: (st && st.charId) || '', mapId: (st && st.locationId) || 'broadcast_front', fans: [], cd: {}, nid: 0, obs: null, bar: null, hint: null, btns: null };
     injectStyle();
     buildBar(view);
+    setTimeout(function () { if (F && F.view === view && F.mapId !== 'fan_rush') seqTutorial(); }, 700);
     // 이벤트가 끝나면(결과창 #bc-panel 이 사라지면) 팬이 찾아온다
     try {
       F.obs = new MutationObserver(function (muts) {
@@ -644,7 +681,7 @@
       });
       F.obs.observe(view, { childList: true });
     } catch (e) {}
-    showNote(bcHook() ? '💖 이벤트 머리 위 스킬이 좋아하는 거예요! 가까이 가서 스킬을 써봐요' : '💖 이벤트가 끝나면 팬이 찾아와요! 가까이 가서 스킬을 써봐요');
+    showNote(bcHook() ? '💖 이벤트 머리 위에 뜬 스킬을 그대로 써요! 가까이 가서 스킬 버튼을 눌러요 (틀리면 실패)' : '💖 이벤트가 끝나면 팬이 찾아와요! 가까이 가서 스킬을 써봐요');
     refreshBar();
   }
 
@@ -895,7 +932,7 @@
       return r;
     };
   })();
-  window.__fanSkillsAPI = { giveBook: giveBook, bookName: function (id) { var k = skillById(id); return k ? bookName(k) : ''; }, feedBook: feedBook, SKILLS: SKILLS, SLOTS: SLOTS, loadout: loadLoadout, equip: equip, levelOk: levelOk, hasSkill: function (cid, id) { var sk = skillById(id); return !!sk && hasSkill(cid, sk); }, openEditor: openEditor, openShop: openShop };
+  window.__fanSkillsAPI = { tut: tutModal, giveBook: giveBook, bookName: function (id) { var k = skillById(id); return k ? bookName(k) : ''; }, feedBook: feedBook, SKILLS: SKILLS, SLOTS: SLOTS, loadout: loadLoadout, equip: equip, levelOk: levelOk, hasSkill: function (cid, id) { var sk = skillById(id); return !!sk && hasSkill(cid, sk); }, openEditor: openEditor, openShop: openShop };
 
   window.__fanSkillsTest = {
     spawnFan: spawnFan, useSkill: useSkill, serves: serves, masteryLv: masteryLv, useCount: useCount, unlockedSkills: unlockedSkills,

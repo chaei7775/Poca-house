@@ -372,6 +372,7 @@
     coins += fee;
     var now = Date.now();
     d.slots.push({ title: albumTitle(), cid: cid, start: now, last: now, daily: Math.round(fee * ROY_DAILY * cardMult(cid)) });
+    d.ever = true;
     saveRoy(d);
     try { updateCoinsDisplay(); } catch (e) {}
     return { ok: true, fee: fee };

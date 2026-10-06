@@ -397,6 +397,7 @@
       var A = API();
       bk.forEach(function (sid) { if (A && A.giveBook && A.giveBook(sid)) gotBooks.push(sid); });
     } catch (e) {}
+    if (won) { try { localStorage.setItem('ph_fr_clear', '1'); } catch (e) {} }
     G.result = { books: gotBooks, won: !!won, coin: coin, exp: exp, pieces: pieces, stones: stones, kills: G.kills, wave: G.wave, time: Math.round(G.time) };
     try {
       if (coin > 0 && typeof coins !== 'undefined') coins += coin;
@@ -717,7 +718,16 @@
     if (plv() < NEED_LEVEL) { toast('✈️ 공항 입국장은 플레이어 Lv.' + NEED_LEVEL + '부터 열려요 (지금 Lv.' + plv() + ')'); return false; }
     var ov = $('special-overlay'); if (!ov) return false;
     if (typeof stamina === 'undefined' || stamina < ENTRY_STAMINA) { toast('스태미나가 부족해요! ⚡ 음료를 마셔봐요 (입장 ' + ENTRY_STAMINA + ')'); return false; }
-    openHire(charId, ov);
+    var A = API();
+    var go = function () { openHire(charId, ov); };
+    if (A && A.tut && !again) A.tut('ph_tut_airport', '✈️', '공항 입국장 · 고렙 러쉬!', [
+      '팬들이 <b>몰려와요!</b> 닿으면 HP가 깎여요. 화면을 누른 채 끌어서 도망치면서 응대해요.',
+      '팬 머리 위에 <b>스킬 아이콘</b>이 떠요. 그 스킬 버튼을 눌러 하트 게이지를 채우면 만족해서 돌아가요.',
+      '일반 팬은 <b>1개</b>, 덕후는 <b>2개</b>, 👑 보스는 <b>4개</b>! 순서가 틀리면 팬이 <b>화나서</b> 더 빨라지고 처음부터예요.',
+      '몰려올 땐 <b>광역 스킬</b>! 범위 안 팬 전부의 칸을 한꺼번에 채워요.',
+      '🕶️ 출동 전에 <b>보디가드</b>를 고용할 수 있어요 (최대 2명, 한 판 동안).',
+      '8웨이브 + 보스를 모두 응대하면 성공! 코인·경험치·프리미엄 조각·📘 스킬북을 받아요.'
+    ], go); else go();
     return true;
   }
 
