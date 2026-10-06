@@ -212,7 +212,7 @@
 
       var need = DEBUT_NEED.map(function (n) {
         var have = bagQty(n.name), ok = have >= n.qty;
-        return '<div style="display:flex;justify-content:space-between;font-size:13px;padding:5px 0;color:' + (ok ? '#fff' : '#ff8a8a') + ';"><span>' + emojiOf(n.name) + ' ' + n.name + ' <span style="color:#888;font-size:11px;">(' + n.where + ')</span></span><span>' + have + ' / ' + n.qty + '</span></div>';
+        return '<div style="display:flex;justify-content:space-between;font-size:13px;padding:5px 0;color:' + (ok ? '#fff' : '#ff8a8a') + ';"><span>' + emojiOf(n.name) + ' ' + n.name + ' <span style="color:#8fd3ff;font-size:11px;">📍 ' + ((window.matWhere && window.matWhere(n.name)) || n.where) + '</span></span><span>' + have + ' / ' + n.qty + '</span></div>';
       }).join('') + '<div style="display:flex;justify-content:space-between;font-size:13px;padding:5px 0;color:' + (coins >= DEBUT_COIN ? '#fff' : '#ff8a8a') + ';"><span>🍔 연습비</span><span>' + coins.toLocaleString() + ' / ' + DEBUT_COIN.toLocaleString() + '</span></div>';
 
       var gradesHtml = ['N', 'R', 'SR', 'SSR', 'UR'].filter(function (g) { return dups[g] > 0; }).map(function (g) {

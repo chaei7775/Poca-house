@@ -227,7 +227,7 @@
     var canAdd = s.traps.length < MAX_TRAPS;
     var matsHtml = Object.keys(CRAFT_MATS).map(function (n) {
       var have = matQty(n), need = CRAFT_MATS[n];
-      return '<span style="display:inline-block;margin:2px 8px 2px 0;color:' + (have >= need ? '#4ade80' : '#ff8a8a') + ';">' + n + ' ' + have + '/' + need + '</span>';
+      return '<div style="margin:2px 0;color:' + (have >= need ? '#4ade80' : '#ff8a8a') + ';">' + n + ' ' + have + '/' + need + (window.matWhereTag ? '<br>' + window.matWhereTag(n) : '') + '</div>';
     }).join('');
     var free = canFree(s) ?
       '<button id="trap-free" style="' + BTN + 'width:100%;padding:15px;margin:2px 0 12px;font-size:15px;background:linear-gradient(135deg,#FF6B9D,#FFD700);color:#1a1a2e;box-shadow:0 0 16px rgba(255,215,0,.5);">🎁 첫 통발 무료로 받기!</button>' : '';

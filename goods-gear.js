@@ -362,6 +362,7 @@
   // 재료가 나오는 맵 이름 (EXPLORE_MATERIALS + 맵 이름표에서 자동 계산 → 맵이 바뀌어도 항상 맞음)
   var EXTRA_POOLS = { housing: ['빛나는돌', '별빛모래', '네잎클로버', '고급원목', '행운의잎', '달의눈물'] };   // 숙소촌은 자체 목록 사용
   function matWhere(name) {
+    if (window.matWhere) { var w = window.matWhere(name); if (w) return w; }
     if (name === STONE_NAME) return '탐험 맵 어디서나 재료를 주울 때 가끔 (희귀 재료일수록 잘 나와요)';
     var out = [], titles = (typeof PLACE_TITLES !== 'undefined') ? PLACE_TITLES : {};
     try {

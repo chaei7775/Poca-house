@@ -287,7 +287,7 @@
       var propsHtml = PROPS.map(function (p) {
         var have = bagQty(p.name), on = !!sel.props[p.name], can = have >= 1;
         return '<button data-prop="' + p.name + '"' + (!can ? ' disabled' : '') + ' style="' + BTN + 'display:flex;justify-content:space-between;align-items:center;width:100%;padding:8px 10px;margin-bottom:5px;background:' + (on ? 'rgba(255,215,0,0.22)' : 'rgba(255,255,255,0.07)') + ';border:1.5px solid ' + (on ? '#FFD700' : 'transparent') + ';color:' + (can ? '#fff' : '#666') + ';font-size:12px;">' +
-          '<span>' + emojiOf(p.name) + ' ' + p.name + ' <span style="color:#888;font-size:10px;">(' + p.where + ')</span></span><span>' + (on ? '✔ 사용 ' : '') + have + '개</span></button>';
+          '<span>' + emojiOf(p.name) + ' ' + p.name + ' <span style="color:#8fd3ff;font-size:10px;">📍 ' + ((window.matWhere && window.matWhere(p.name)) || p.where) + '</span></span><span>' + (on ? '✔ 사용 ' : '') + have + '개</span></button>';
       }).join('');
 
       var guestHtml = creatures.length

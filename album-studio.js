@@ -251,7 +251,7 @@
   function makeHtml() {
     var ids = selIds(), n = ids.length, tier = null;
     var cats = [['note', '🎵 음표'], ['inst', '🎸 악기'], ['score', '🎼 악보'], ['lyric', '📝 가사 · 💡 영감']];
-    var h = '<div style="font-size:12px;color:#e6d6c4;line-height:1.55;margin-bottom:10px;">재료 종류를 골라 곡을 만들어요 (최대 ' + MAX_KINDS + '종류). 곡마다 <b>정해진 조합</b>이 있어요. 📒 작곡노트의 단서를 보고 찾아봐요. 실패해도 재료는 안 사라져요!</div>';
+    var h = '<div style="font-size:12px;color:#e6d6c4;line-height:1.55;margin-bottom:10px;">재료 종류를 골라 곡을 만들어요 (최대 ' + MAX_KINDS + '종류). 곡마다 <b>정해진 조합</b>이 있어요. 📒 작곡노트의 단서를 보고 찾아봐요. 실패해도 재료는 안 사라져요!<br><span style="color:#8fd3ff;font-size:11px;">📍 재료는 🎹 작곡 스튜디오 탐험에서 모아요</span></div>';
     cats.forEach(function (c) {
       var list = kinds().filter(function (k) { return c[0] === 'lyric' ? (k.cat === 'lyric' || k.cat === 'spark') : k.cat === c[0]; });
       h += '<div style="font-size:11px;font-weight:900;color:#ffd9a8;margin:8px 0 5px;">' + c[1] + '</div><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:7px;">';

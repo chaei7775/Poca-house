@@ -2325,8 +2325,8 @@ function openSewingRecipe(clothId) {
     const have = getMaterialQty(req.name);
     const ok = have >= req.qty;
     return `<div style="display:flex;justify-content:space-between;gap:8px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,0.06);font-size:12px;">
-      <span style="color:${req.kind === '희귀' ? '#C084FC' : '#ddd'};">${req.kind === '희귀' ? '💎' : '🌿'} ${req.name}</span>
-      <span style="color:${ok ? '#4ade80' : '#FF6B9D'};font-weight:900;">${have}/${req.qty}</span>
+      <span style="color:${req.kind === '희귀' ? '#C084FC' : '#ddd'};text-align:left;">${req.kind === '희귀' ? '💎' : '🌿'} ${req.name}${window.matWhere && window.matWhere(req.name) ? `<br><span style="color:#8fd3ff;font-size:10px;font-weight:400;">📍 ${window.matWhere(req.name)}</span>` : ''}</span>
+      <span style="color:${ok ? '#4ade80' : '#FF6B9D'};font-weight:900;white-space:nowrap;">${have}/${req.qty}</span>
     </div>`;
   }).join('');
   const ownedItems = bagItems.filter(i => i.type === 'cloth' && (i.clothId === cloth.id || i.name === cloth.name || i.name === `✨ ${cloth.name}`));
