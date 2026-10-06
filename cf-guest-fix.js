@@ -11,7 +11,7 @@
   if (window.__cfGuestFixLoaded) return;
   window.__cfGuestFixLoaded = true;
 
-  var EMPTY_HTML = '분양받은 동물이 없어요.<br>주택가 🐾 분양소에서 동물을 분양받으면 게스트로 쓸 수 있어요!';
+  var EMPTY_HTML = '분양받은 동물이 없어요.<br>연습생 숙소촌 🐾 분양소에서 동물을 분양받으면 게스트로 쓸 수 있어요!';
   var EMPTY_STYLE = 'font-size:12px;color:#888;line-height:1.5;';
   var obs = null;
 

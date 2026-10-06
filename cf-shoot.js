@@ -296,7 +296,7 @@
             return '<button data-guest="' + c.id + '" style="' + BTN + 'width:58px;padding:5px 2px;background:' + (on ? 'rgba(74,222,128,0.25)' : 'rgba(255,255,255,0.07)') + ';border:1.5px solid ' + (on ? '#4ade80' : 'transparent') + ';color:#fff;font-size:10px;">' +
               '<div style="height:40px;display:flex;align-items:center;justify-content:center;">' + creatureImg(c, 38) + '</div>' + (c.rare ? '✨' : '') + esc(c.name) + (c.lv ? '<div style="font-size:9px;color:#4ade80;font-weight:700;">Lv.' + c.lv + '</div>' : '') + '</button>';
           }).join('') + '</div>'
-        : '<div style="font-size:12px;color:#888;line-height:1.5;">화보집에 등록된 생물이 없어요.<br>특별탐험에서 생물을 촬영하거나, 주택가 🐾 분양소에서 동물을 분양받으면 게스트로 쓸 수 있어요!</div>';
+        : '<div style="font-size:12px;color:#888;line-height:1.5;">화보집에 등록된 생물이 없어요.<br>특별탐험에서 생물을 촬영하거나, 연습생 숙소촌 🐾 분양소에서 동물을 분양받으면 게스트로 쓸 수 있어요!</div>';
 
       ov.innerHTML = '<div style="width:100%;max-width:350px;max-height:92vh;overflow-y:auto;background:linear-gradient(135deg,#1a1a2e,#2d1b4e);border:2px solid #C084FC;border-radius:20px;padding:20px 18px;">' +
         '<div style="text-align:center;margin-bottom:12px;"><div style="font-size:30px;">' + req.emoji + '</div><div style="font-size:16px;font-weight:900;color:#fff;">' + esc(req.brand) + ' · ' + esc(req.item) + '</div>' +

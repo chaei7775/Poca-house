@@ -13,6 +13,7 @@ const NEW_CONTENT_FILES = [
   'sparkle-dust.js',
   'qty-picker.js',
   'forest-explore.js',
+  'housing-explore.js',
   'beach-explore.js',
   'park-explore.js',
   'mystery-explore.js',

@@ -103,7 +103,7 @@
       done: function () { return (J('ph_drama', {}) || {}).shoots > 0; }, reward: 400,
       go: function () { goTo('map'); }, target: '#nav-map' },
     { id: 'fancafe', icon: '☕', title: '팬카페 열어보기',
-      hint: '맵 → 🏘️ 주택가 → ☕ 팬카페. 처음엔 회원이 나 혼자뿐이에요. CF가 터지면 팬들이 하나둘 들어와요!',
+      hint: '맵 → 🏘️ 연습생 숙소촌 → ☕ 팬카페. 처음엔 회원이 나 혼자뿐이에요. CF가 터지면 팬들이 하나둘 들어와요!',
       done: function () { return fancafeOpened(); }, reward: 400,
       go: function () { goTo('map'); }, target: '#nav-map' },
     { id: 'hidden', icon: '🌟', title: '히든카드 얻기',

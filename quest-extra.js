@@ -72,7 +72,7 @@
       condition:'q2_debut', rewardCoins:1500, rewardExp:200, type:'main', detect:function () { return debutCount() >= 1; } },
     main_cf: { title:'CF 촬영', desc:'맵 → 광장 → 🎬 CF 촬영. 매일 새 의뢰가 올라와. 포스터가 쌓이면 팬들이 반응해.',
       condition:'q2_cf', rewardCoins:1000, rewardExp:150, type:'main', detect:function () { return posterCount() >= 1; } },
-    main_fancafe: { title:'팬카페 오픈', desc:'맵 → 🏘️ 주택가 → ☕ 팬카페. 처음엔 회원이 나 혼자뿐이야. 활동하면 팬이 들어와.',
+    main_fancafe: { title:'팬카페 오픈', desc:'맵 → 🏘️ 연습생 숙소촌 → ☕ 팬카페. 처음엔 회원이 나 혼자뿐이야. 활동하면 팬이 들어와.',
       condition:'q2_fancafe', rewardCoins:1000, rewardExp:150, type:'main',
       detect:function () { return keys((J('ph_fancafe', {}) || {}).idols).length > 0; } },
     main_fan5: { title:'팬 다섯 명', desc:'☕ 팬카페에 팬 5명 모으기. CF를 찍고 팬카페를 자주 들여다보면 늘어나.',
