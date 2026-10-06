@@ -162,8 +162,12 @@
   }
 
   function baseScale() {
-    var v = S.view;
-    return Math.max(v.clientHeight / IMG_H, v.clientWidth / IMG_W);
+    // 폰 브라우저 주소창이 접혔다 펴지면 화면 높이가 계속 바뀌어서 지도가 커졌다 작아졌다 했음
+    // → 배율은 한 번 정하면 고정 (가로폭이 크게 바뀔 때만 다시 계산, 높이가 커져서 모자랄 때만 한 번 키움)
+    var v = S.view, need = Math.max(v.clientHeight / IMG_H, v.clientWidth / IMG_W);
+    if (!S.bs || Math.abs(v.clientWidth - (S.bsW || 0)) > 60) { S.bs = need; S.bsW = v.clientWidth; }
+    else if (need > S.bs) S.bs = need;
+    return S.bs;
   }
   function worldSize() { var s = baseScale() * ZOOMS[S.zoom]; return { w: IMG_W * s, h: IMG_H * s, s: s }; }
   function applyPan() {
@@ -193,7 +197,7 @@
 
     var ov = document.createElement('div');
     ov.id = 'square-overlay';
-    ov.style.cssText = 'position:fixed;inset:0;z-index:700;background:#2b1f3a;color:#fff;font-family:\'Noto Sans KR\',sans-serif;display:flex;flex-direction:column;user-select:none;-webkit-user-select:none;';
+    ov.style.cssText = 'position:fixed;inset:0;z-index:700;background:#2b1f3a;color:#fff;font-family:\'Noto Sans KR\',sans-serif;display:flex;flex-direction:column;user-select:none;-webkit-user-select:none;touch-action:none;overscroll-behavior:none;';
     ov.innerHTML =
       '<div style="display:flex;align-items:center;gap:8px;padding:10px 12px;background:rgba(0,0,0,.6);z-index:5;">' +
         '<button id="sq-exit" style="background:rgba(255,255,255,.15);border:none;border-radius:14px;color:#fff;padding:8px 12px;font-size:13px;font-weight:700;cursor:pointer;">← 나가기</button>' +
@@ -228,7 +232,7 @@
     S.view.addEventListener('pointercancel', function () { if (S) S.drag = null; });
     window.addEventListener('resize', onResize);
     nextRound();
-    setTimeout(function () { if (S) { fit(); } }, 0);
+    setTimeout(function () { if (S) { S.bs = null; fit(); } }, 0);
   }
 
   function onResize() { if (S) { fit(); } }
