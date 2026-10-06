@@ -87,6 +87,8 @@
       var slots = document.querySelectorAll('#bag-grid .bag-slot.has-item');
       Array.prototype.forEach.call(slots, function (el, i) {
         var it = bagItems[i], u = it && !it.img ? url(it.name) : '';
+        var nmEl = el.querySelector('.bag-item-name');
+        if (it && nmEl) nmEl.textContent = String(it.name).replace(/[\u{1F300}-\u{1FFFF}]/gu, '').trim();   // 5글자로 잘리던 이름을 전부 보여줌
         var em = el.querySelector('.bag-item-emoji');
         if (u && em) em.innerHTML = icon(it.name, 40, it.emoji);
       });
@@ -99,6 +101,7 @@
       Array.prototype.forEach.call(ovs, function (d) { if (d.textContent.trim() === String(it.emoji).trim()) d.innerHTML = icon(it.name, 64, it.emoji); });
     } catch (e) {}
   }
+  try { var st = document.createElement('style'); st.textContent = '#bag-grid .bag-item-name{white-space:normal!important;line-height:1.15;font-size:8.5px!important;word-break:keep-all;max-height:2.4em;}'; document.head.appendChild(st); } catch (e) {}
   function hookBag() { wrap('renderBag', bagGrid); wrap('showBagItemDetail', bagDetail); }
   hookBag(); setTimeout(hookBag, 1500); setTimeout(hookBag, 4000);
 })();
