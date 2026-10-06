@@ -28,6 +28,9 @@
   var DRINK_HEAL = 60;         // 🥤 피로회복 드링크 한 병이 내려주는 피로도
   var DRINK_NAME = '피로회복 드링크', DRINK_EMOJI = '🥤';   // 상점에서 사는 가방 아이템 이름 (broadcast-expedition.js POTIONS 와 같아야 함)
   var FREE_DRINKS = 5;         // 튜토리얼에서는 처음부터 이만큼 들고 들어감
+  var RING_T = 1.2;            // 스킬 버튼 위 링이 한 번 모이는 시간(초)
+  var PERFECT_FROM = 0.78;     // 링 진행도가 이 값 이상(마지막 약 0.26초)일 때 누르면 PERFECT
+  var PERFECT_MULT = 1.5, PERFECT_FAT = 10;   // PERFECT: 하트 1.5배, 피로도 -10
   var SESSION_SEC = 75;        // 무대 시간
   var FAN_DROP_P = 0.33;       // 앵콜 때 하트 가득 찬 팬 한 명이 재료를 떨어뜨릴 확률 (팬 30명 기준 봇 시뮬레이션 평균 약 10개)
   var EXTRA_DROP = 0.0;        // (예비) 재료가 2개 나올 확률
@@ -96,9 +99,9 @@
     fans.forEach(function (f, i) { if (!f.done && Math.hypot(f.x - x, f.y - y) <= r) out.push(i); });
     return out;
   }
-  function applyGain(fans, x, y, skill) {
-    var hit = inRange(fans, x, y, skill.radius);
-    hit.forEach(function (i) { fans[i].g = Math.min(100, fans[i].g + skill.gain); });
+  function applyGain(fans, x, y, skill, mult) {
+    var hit = inRange(fans, x, y, skill.radius), add = Math.round(skill.gain * (mult || 1));
+    hit.forEach(function (i) { fans[i].g = Math.min(100, fans[i].g + add); });
     return hit;
   }
   // 앵콜: 하트 가득 찬 팬을 끝내고, 재료를 떨어뜨리는 팬 번호와 재료를 돌려줌
@@ -154,7 +157,7 @@
       fans: makeFans(), px: START.x, py: START.y, tx: START.x, ty: START.y, moving: false,
       nx: START.x - 70, ny: START.y + 20,                       // 세연
       camX: START.x, camY: START.y,
-      fat: 0, fatShake: 0, drinks: 0, drinkBag: false, cd: [0, 0, 0], phase: 'intro', introIdx: 0, timeLeft: SESSION_SEC, t: 0,
+      perfects: 0, judge: null, fat: 0, fatShake: 0, drinks: 0, drinkBag: false, cd: [0, 0, 0], phase: 'intro', introIdx: 0, timeLeft: SESSION_SEC, t: 0,
       rings: [], parts: [], floats: [], sparks: [], confetti: [], petals: [], fly: [], pops: [],
       banner: null, flash: 0, flashRgb: '255,255,255', shake: 0, zoomP: 0, ts: 1, slowT: 0, slowScale: 1,
       cut: null, nJump: 0, giftBump: 0, trailT: 0, tapRip: 0, hintT: 7,
@@ -338,14 +341,17 @@
       floatText(S.px, S.py - 60, '😵 피로도가 가득! ' + (S.drinks > 0 ? DRINK_EMOJI + ' 드링크를 마셔요' : '조금 쉬어야 해요'), '#ffb4c8', 18);
       return;
     }
-    S.cd[i] = k.cd; if (k.fat) S.fat += k.fat;
-    startCut(k, i);
+    var perfect = !k.finale && ringPhase() >= PERFECT_FROM;
+    S.cd[i] = k.cd; if (k.fat) S.fat += perfect ? Math.max(0, k.fat - PERFECT_FAT) : k.fat;
+    if (perfect) { S.perfects++; S.judge = { text: 'PERFECT!', t: 0 }; sfx('concertFull'); }
+    startCut(k, i, perfect ? PERFECT_MULT : 1);
   }
   // 스킬 컷인: 화면이 어두워지고 멤버 얼굴이 크게 튀어나오며 스킬 이름이 날아온다 → 그 순간에 효과가 터짐
-  function startCut(k, i) {
+  function ringPhase() { return (S.t % RING_T) / RING_T; }
+  function startCut(k, i, mult) {
     var dur = k.finale ? 1.25 : 0.95;
     var lines = []; for (var n = 0; n < 26; n++) lines.push({ a: Math.random() * 6.283, l: rnd(0.4, 1), w: rnd(1, 3.5) });
-    S.cut = { k: k, i: i, t: 0, dur: dur, fireAt: dur * 0.46, fired: false, lines: lines };
+    S.cut = { mult: mult || 1, k: k, i: i, t: 0, dur: dur, fireAt: dur * 0.46, fired: false, lines: lines };
     slowmo(dur * 0.9, 0.12);
     sfx('concertCut');
     S.nJump = 1;
@@ -356,7 +362,7 @@
     var k = S.cut.k, i = S.cut.i;
     S.cut.fired = true;
     if (k.finale) { doEncore(k); return; }
-    var hit = applyGain(S.fans, S.px, S.py, k);
+    var hit = applyGain(S.fans, S.px, S.py, k, S.cut.mult), added = Math.round(k.gain * S.cut.mult);
     ringAt(S.px, S.py, k.radius, k.rgb, 0, 0.7);
     ringAt(S.px, S.py, k.radius * 0.72, '255,255,255', 0.08, 0.6);
     ringAt(S.px, S.py, k.radius * 0.45, k.rgb, 0.16, 0.55);
@@ -364,7 +370,7 @@
     hit.forEach(function (n, idx) {
       var f = S.fans[n];
       f.hop = 1; f.vis = Math.max(0, f.vis - 0);
-      f.pop = { t: 0, text: '+' + k.gain };
+      f.pop = { t: 0, text: '+' + added, gold: S.cut.mult > 1 };
       for (var q = 0; q < 4; q++) S.parts.push({ x: S.px, y: S.py, tx: f.x, ty: f.y - 14, t: -q * 0.07 - idx * 0.012, dur: 0.6, ch: k.id === 'wink' ? '💖' : '✨', sz: 22 + (q === 0 ? 6 : 0), rgb: k.rgb });
     });
     S.flash = 0.55; S.flashRgb = k.rgb; S.shake = 0.45; S.zoomP = 1;
@@ -497,6 +503,7 @@
       for (var i = 0; i < 3; i++) if (S.cd[i] > 0) S.cd[i] = Math.max(0, S.cd[i] - dt);
       if (!S.cut) S.fat = Math.max(0, S.fat - FAT_REGEN * g);
       if (S.fatShake > 0) S.fatShake -= dt;
+      if (S.judge) { S.judge.t += dt; if (S.judge.t > 1) S.judge = null; }
       S.bubbleT -= dt;
       if (S.bubbleT <= 0) { S.bubble = CHEERS[Math.floor(Math.random() * CHEERS.length)]; S.bubbleT = 5 + Math.random() * 3; S.bubbleShow = 2.2; }
       if (S.bubbleShow > 0) { S.bubbleShow -= dt; if (S.bubbleShow <= 0) S.bubble = null; }
@@ -751,7 +758,7 @@
       var ha = Math.min(1, S.hintT / 1.2);
       c.save(); c.globalAlpha = ha; var hy = H * 0.5 + Math.sin(S.t * 5) * 6;
       outlined(c, '👆 눌러서 객석으로 이동!', W / 2, hy, 20, '#fff', 'rgba(120,20,100,0.95)');
-      outlined(c, '그다음 아래 스킬 💖 (쓸수록 피로↑, 🥤로 회복)', W / 2, hy + 30, 16, '#ffe3f0', 'rgba(120,20,100,0.95)'); c.restore();
+      outlined(c, '링이 딱 모일 때 누르면 PERFECT!', W / 2, hy + 30, 16, '#ffe3f0', 'rgba(120,20,100,0.95)'); c.restore();
     }
   }
 
@@ -833,6 +840,7 @@
       c.globalAlpha = canDrink ? 1 : 0.45; c.font = '26px sans-serif'; c.fillStyle = '#fff'; c.fillText(DRINK_EMOJI, d.x + d.w / 2, d.y + 22);
       c.font = '900 12px "Noto Sans KR",sans-serif'; c.fillText('×' + S.drinks, d.x + d.w / 2, d.y + 44); c.restore();
     }
+    if (S.judge) { var jp = S.judge.t; c.save(); c.globalAlpha = 1 - jp * jp; var js = 1 + (1 - Math.min(1, jp * 6)) * 0.5; c.translate(W / 2, H * 0.55 - jp * 30); c.scale(js, js); outlined(c, S.judge.text, 0, 0, 34, '#ffe27a', 'rgba(120,50,0,0.95)'); c.restore(); }
     for (var i = 0; i < 3; i++) {
       var k = SKILLS[i], b = btnRect(i), cd = S.cd[i], ready = cd <= 0;
       var canEncore = !k.finale || full > 0, lit = ready && canEncore && (!k.fat || S.fat + k.fat <= 100);
@@ -840,6 +848,12 @@
       if (lit) { var pu = 1 + Math.sin(S.t * 6 + i) * 0.04; c.translate(b.x + b.w / 2, b.y + b.h / 2); c.scale(pu, pu); c.translate(-(b.x + b.w / 2), -(b.y + b.h / 2)); c.shadowColor = 'rgb(' + k.rgb + ')'; c.shadowBlur = 18; }
       c.fillStyle = 'rgba(20,10,36,0.85)'; roundRect(c, b.x, b.y, b.w, b.h, 18); c.fill();
       c.shadowBlur = 0;
+      if (lit && !k.finale && !S.cut) {          // 모이는 링: 버튼 테두리에 딱 맞을 때(금색) 누르면 PERFECT
+        var rp = ringPhase(), inW = rp >= PERFECT_FROM, grow = (1 - rp) * 20;
+        c.save(); c.lineWidth = inW ? 5 : 3; c.strokeStyle = inW ? '#ffe27a' : 'rgba(255,255,255,0.75)';
+        if (inW) { c.shadowColor = '#ffd54a'; c.shadowBlur = 14; }
+        roundRect(c, b.x - grow, b.y - grow, b.w + grow * 2, b.h + grow * 2, 18 + grow); c.stroke(); c.restore();
+      }
       c.lineWidth = lit ? 4 : 2; c.strokeStyle = lit ? 'rgb(' + k.rgb + ')' : 'rgba(255,255,255,0.25)'; c.stroke();
       c.font = '30px sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.globalAlpha = ready ? 1 : 0.5; c.fillText(k.icon, b.x + b.w / 2, b.y + 28);
       c.globalAlpha = 1; c.fillStyle = '#fff'; c.font = '900 10.5px "Noto Sans KR",sans-serif';
