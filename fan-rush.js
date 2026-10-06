@@ -3,7 +3,7 @@
 //
 // 팬덤 원정에 추가되는 4번째 칸. 탑뷰 맵에서 팬들이 몹처럼 몰려오고, 내 아이돌이 스킬로 '응대'한다.
 //  - 화면을 누른 채 끌면 그쪽으로 이동 (카메라가 아이돌을 따라감)
-//  - 스킬 버튼으로 팬을 응대: ✍️사인 · 📸사진 · 🤝악수 · 💗손하트(광역) · 🎤앙코르 콘서트(대광역). 스킬마다 쿨타임, 플레이어 레벨로 해금
+//  - 스킬 버튼으로 팬을 응대: ✍️사인 · 📸사진 · 🤝악수 · 🎤하이라이트 부르기(광역) · 💖윙크 샤워(넓은 광역) · ✨앵콜 폭죽(대광역). 스킬마다 쿨타임, 플레이어 레벨로 해금
 //  - 팬한테 치이면 HP가 깎임. 0이 되면 쫓겨남 (그때까지 번 보상의 절반만 받음). 회복약(가방)으로 회복
 //  - 팬 종류: 🙋일반 · ⚡열혈(빠름) · 🧸덕후(튼튼) · 💌편지러(멀리서 편지를 던짐) · 👑 고인물 팬클럽장(마지막 웨이브 보스)
 //  - 8웨이브 클리어 + 보스를 응대하면 성공 → 코인 / 카드 경험치 / 프리미엄 조각 / 강화석
@@ -43,8 +43,9 @@
     { id: 'sign',   icon: '✍️', name: '사인',       unlock: 10, cd: 0.8,  dmg: 34,  range: 150, kind: 'single', desc: '가까운 팬 1명에게 사인!' },
     { id: 'photo',  icon: '📸', name: '사진촬영',   unlock: 10, cd: 2.6,  dmg: 42,  range: 300, kind: 'line',   desc: '앞쪽 일직선의 팬을 한꺼번에 찰칵!' },
     { id: 'shake',  icon: '🤝', name: '악수',       unlock: 15, cd: 5.5,  dmg: 130, range: 120, kind: 'single', desc: '한 명을 확실하게! HP도 조금 회복' },
-    { id: 'heart',  icon: '💗', name: '손하트',     unlock: 20, cd: 7,    dmg: 75,  range: 170, kind: 'aoe',    desc: '광역! 주변 팬들 마음을 저격' },
-    { id: 'encore', icon: '🎤', name: '앙코르 콘서트', unlock: 30, cd: 18, dmg: 210, range: 310, kind: 'aoe',    desc: '대광역! 팬들을 밀어내고 잠깐 무적' }
+    { id: 'highlight', icon: '🎤', name: '하이라이트', unlock: 20, cd: 7,  dmg: 75,  range: 170, kind: 'aoe', sfx: 'concertHigh',  desc: '하이라이트 부르기! 주변 팬들을 확 사로잡아요 (광역)' },
+    { id: 'wink',   icon: '💖', name: '윙크 샤워',   unlock: 25, cd: 10, dmg: 50,  range: 270, kind: 'aoe', sfx: 'concertWink',  desc: '넓은 범위에 윙크 세례! 팬들을 멀리 밀어내요 (넓은 광역)' },
+    { id: 'encore', icon: '✨', name: '앵콜 폭죽',   unlock: 30, cd: 18, dmg: 210, range: 310, kind: 'aoe', sfx: 'concertEncore', desc: '앵콜 폭죽! 전방위 대폭발 + 잠깐 무적 (대광역)' }
   ];
   // 팬 종류 (hp = 만족해야 하는 양 / sp = 속도 / dmg = 닿았을 때 HP 깎임 / r = 크기)
   var FANTYPES = {
@@ -269,16 +270,16 @@
       if (!hit) return false;
       addFx({ k: 'flash', x: G.px, y: G.py, x2: G.px + dx * s.range, y2: G.py + dy * s.range, t: 0.3, max: 0.3 });
       used = true;
-    } else if (id === 'heart' || id === 'encore') {
+    } else if (id === 'highlight' || id === 'wink' || id === 'encore') {
       var inR = G.fans.filter(function (f3) { return dist(f3.x, f3.y, G.px, G.py) - f3.T.r < s.range; });
       if (!inR.length) return false;
-      var kb = id === 'encore' ? 55 : 28;
+      var kb = id === 'encore' ? 55 : (id === 'wink' ? 45 : 28);
       inR.forEach(function (f4) { fanHit(f4, dmg, kb, G.px, G.py); });
-      addFx({ k: id === 'encore' ? 'bigring' : 'ring', x: G.px, y: G.py, r: s.range, t: 0.7, max: 0.7 });
+      addFx({ k: id === 'encore' ? 'bigring' : 'ring', x: G.px, y: G.py, r: s.range, t: 0.7, max: 0.7, c: id === 'wink' ? 'gold' : '' });
       if (id === 'encore') { G.shield = 1.5; G.shake = 10; }
       used = true;
     }
-    if (used) { G.cd[id] = s.cd; sfx(id === 'encore' ? 'reward' : 'pick'); }
+    if (used) { G.cd[id] = s.cd; sfx(s.sfx || (id === 'encore' ? 'reward' : 'pick')); }
     return used;
   }
 
@@ -389,7 +390,7 @@
       if (e.k === 'beam') { c.strokeStyle = e.c; c.globalAlpha = 1 - p; c.lineWidth = 6 * (1 - p) + 2; c.shadowColor = e.c; c.shadowBlur = 14; c.beginPath(); c.moveTo(e.x, e.y); c.lineTo(e.x2, e.y2); c.stroke(); c.shadowBlur = 0; c.globalAlpha = 1; }
       else if (e.k === 'flash') { c.strokeStyle = '#fff'; c.globalAlpha = (1 - p) * 0.85; c.lineWidth = 46 * (1 - p) + 6; c.lineCap = 'round'; c.beginPath(); c.moveTo(e.x, e.y); c.lineTo(e.x2, e.y2); c.stroke(); c.lineCap = 'butt'; c.globalAlpha = 1; }
       else if (e.k === 'ring' || e.k === 'bigring') {
-        var big = e.k === 'bigring', col = big ? '255,215,106' : '255,120,190';
+        var big = e.k === 'bigring', col = (big || e.c === 'gold') ? '255,215,106' : '255,120,190';
         c.globalAlpha = 1 - p; c.strokeStyle = 'rgba(' + col + ',1)'; c.lineWidth = big ? 10 : 6;
         c.beginPath(); c.arc(e.x, e.y, e.r * (0.2 + 0.8 * p), 0, 7); c.stroke();
         if (big) { c.beginPath(); c.arc(e.x, e.y, e.r * (0.1 + 0.6 * p), 0, 7); c.stroke(); }
@@ -490,7 +491,7 @@
     var sk = $('fr-skills');
     SKILLS.forEach(function (s) {
       var b = document.createElement('button'); b.className = 'fr-sk'; b.id = 'fr-sk-' + s.id;
-      b.innerHTML = s.icon + '<span class="nm">' + s.name.replace('앙코르 콘서트', '앙코르') + '</span><div class="cd"></div><span class="tm"></span>';
+      b.innerHTML = s.icon + '<span class="nm">' + s.name.replace('윙크 샤워', '윙크샤워') + '</span><div class="cd"></div><span class="tm"></span>';
       b.onclick = function (e) { e.stopPropagation(); useSkill(s.id); };
       b.addEventListener('pointerdown', function (e) { e.stopPropagation(); });
       sk.appendChild(b);
@@ -551,7 +552,7 @@
     keys[k] = down;
     var x = (keys['d'] || keys['arrowright'] ? 1 : 0) - (keys['a'] || keys['arrowleft'] ? 1 : 0), y = (keys['s'] || keys['arrowdown'] ? 1 : 0) - (keys['w'] || keys['arrowup'] ? 1 : 0);
     if (!stick) G.input = { x: x, y: y };
-    if (down && k >= '1' && k <= '5') useSkill(SKILLS[Number(k) - 1].id);
+    if (down && k >= '1' && k <= '6') useSkill(SKILLS[Number(k) - 1].id);
   }
   window.addEventListener('keydown', onKey); window.addEventListener('keyup', onKey);
   document.addEventListener('visibilitychange', function () { if (G && !G.over) G.paused = document.hidden; });
