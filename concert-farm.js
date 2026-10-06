@@ -27,7 +27,7 @@
   var FAT_REGEN = 2.5;         // 피로도는 가만히 있어도 초당 이만큼 내려감
   var DRINK_HEAL = 60;         // 🥤 피로회복 드링크 한 병이 내려주는 피로도
   var DRINK_NAME = '피로회복 드링크', DRINK_EMOJI = '🥤';   // 상점에서 사는 가방 아이템 이름 (broadcast-expedition.js POTIONS 와 같아야 함)
-  var FREE_DRINKS = 3;         // 튜토리얼에서는 처음부터 이만큼 들고 들어감
+  var FREE_DRINKS = 5;         // 튜토리얼에서는 처음부터 이만큼 들고 들어감
   var SESSION_SEC = 75;        // 무대 시간
   var FAN_DROP_P = 0.33;       // 앵콜 때 하트 가득 찬 팬 한 명이 재료를 떨어뜨릴 확률 (팬 30명 기준 봇 시뮬레이션 평균 약 10개)
   var EXTRA_DROP = 0.0;        // (예비) 재료가 2개 나올 확률
@@ -494,7 +494,7 @@
     }
     if (S.phase === 'play') {
       if (!S.cut) S.timeLeft -= g;
-      for (var i = 0; i < 3; i++) if (S.cd[i] > 0) S.cd[i] = Math.max(0, S.cd[i] - g);
+      for (var i = 0; i < 3; i++) if (S.cd[i] > 0) S.cd[i] = Math.max(0, S.cd[i] - dt);
       if (!S.cut) S.fat = Math.max(0, S.fat - FAT_REGEN * g);
       if (S.fatShake > 0) S.fatShake -= dt;
       S.bubbleT -= dt;
