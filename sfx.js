@@ -304,6 +304,8 @@
   };
   SYNTH.concertFull = function () { tone(1568, 0, 0.1, 'sine', 0.14); tone(2093, 0.07, 0.14, 'sine', 0.14); };   // 하트 가득 찬 순간
   SYNTH.concertDrop = function () { tone(988, 0, 0.07, 'triangle', 0.16); tone(1319, 0.05, 0.1, 'triangle', 0.16); };
+  SYNTH.concertCut = function () { noise(0, 0.35, 0.28, 'bandpass', 1200); tone(220, 0, 0.3, 'sawtooth', 0.12, 880); tone(1760, 0.18, 0.12, 'triangle', 0.14); };   // 컷인 슈웅
+  GAPS.concertCut = 200;
   GAPS.concertFull = 70; GAPS.concertDrop = 45; GAPS.concertWink = 150;
 
   window.pocaSfx.has = function (n) { return !!SYNTH[n]; };

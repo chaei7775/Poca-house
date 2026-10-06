@@ -41,9 +41,9 @@
   var ROW_Y = [535, 640, 830, 940, 1040];     // 위 블록 2줄 + 아래 블록 3줄 (map-concert.jpg 그림의 객석 위치에 맞춤)
   var FAN_R = 28;              // 팬 크기(반지름)
   var SKILLS = [
-    { id: 'highlight', name: '하이라이트 부르기', short: '하이라이트', icon: '🎤', radius: 250, gain: 50, cd: 5,  rgb: '255,120,170', sfx: 'concertHigh' },
-    { id: 'wink',      name: '윙크 샤워',         short: '윙크 샤워', icon: '💖', radius: 430, gain: 30, cd: 8,  rgb: '255,205,90',  sfx: 'concertWink' },
-    { id: 'encore',    name: '앵콜 폭죽',         short: '앵콜 폭죽', icon: '✨', radius: 0,   gain: 0,  cd: 14, rgb: '190,140,255', sfx: 'concertEncore', finale: true }
+    { id: 'highlight', name: '하이라이트 부르기', short: '하이라이트', desc: '주변 팬 하트 +50', icon: '🎤', radius: 250, gain: 50, cd: 5,  rgb: '255,120,170', sfx: 'concertHigh' },
+    { id: 'wink',      name: '윙크 샤워',         short: '윙크 샤워', desc: '넓은 범위 하트 +30', icon: '💖', radius: 430, gain: 30, cd: 8,  rgb: '255,205,90',  sfx: 'concertWink' },
+    { id: 'encore',    name: '앵콜 폭죽',         short: '앵콜 폭죽', desc: '하트 가득 찬 팬 전원 선물!', icon: '✨', radius: 0,   gain: 0,  cd: 14, rgb: '190,140,255', sfx: 'concertEncore', finale: true }
   ];
   var INTRO = [
     '어? 연습생이네! 오늘 내 무대 같이 볼래? 따라와!',
@@ -123,6 +123,10 @@
   }
   function sfx(name) { try { if (window.pocaSfx) window.pocaSfx.play(name); } catch (e) {} }
   function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
+  function rnd(a, b) { return a + Math.random() * (b - a); }
+  function easeOutBack(t) { var c1 = 1.9, c3 = c1 + 1; return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2); }
+  function easeOutCubic(t) { return 1 - Math.pow(1 - t, 3); }
+  var FIRE_COLORS = ['255,120,170', '255,210,90', '190,140,255', '120,220,255', '255,255,255', '255,150,90'];
 
   // ════════ 화면 ════════
   function startConcert(opts) {
@@ -146,10 +150,13 @@
       nx: START.x - 70, ny: START.y + 20,                       // 세연
       camX: START.x, camY: START.y,
       cd: [0, 0, 0], phase: 'intro', introIdx: 0, timeLeft: SESSION_SEC, t: 0,
-      rings: [], parts: [], floats: [], banner: null, flash: 0, shake: 0,
+      rings: [], parts: [], floats: [], sparks: [], confetti: [], petals: [], fly: [], pops: [],
+      banner: null, flash: 0, flashRgb: '255,255,255', shake: 0, zoomP: 0, ts: 1, slowT: 0, slowScale: 1,
+      cut: null, nJump: 0, giftBump: 0, trailT: 0, tapRip: 0, hintT: 7,
       collected: [], drops: 0, finaleT: 0, bubble: null, bubbleT: 4, dragging: false, exitDown: false,
       last: performance.now(), raf: 0, ended: false
     };
+    for (var i = 0; i < 16; i++) S.petals.push(newPetal(true));
     resize();
     window.addEventListener('resize', resize);
     canvas.addEventListener('pointerdown', onDown);
@@ -157,6 +164,9 @@
     canvas.addEventListener('pointerup', onUp);
     canvas.addEventListener('pointercancel', onUp);
     S.raf = requestAnimationFrame(loop);
+  }
+  function newPetal(anywhere) {
+    return { x: rnd(0, 420), y: anywhere ? rnd(-50, 820) : -30, vx: rnd(-14, 14), vy: rnd(28, 60), rot: rnd(0, 6.28), vr: rnd(-2, 2), sz: rnd(10, 20), ch: ['🌸', '✨', '💖', '⭐', '🌸'][Math.floor(rnd(0, 5))], a: rnd(0.35, 0.8) };
   }
 
   function resize() {
@@ -167,6 +177,7 @@
     S.s = S.W / VIEW_W;
   }
   function toWorld(sx, sy) { return [S.camX + (sx - S.W / 2) / S.s, S.camY + (sy - S.H / 2) / S.s]; }
+  function toScreen(x, y) { return [S.W / 2 + (x - S.camX) * S.s, S.H / 2 + (y - S.camY) * S.s]; }
   function pos(e) { var r = S.canvas.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; }
 
   // 스킬 버튼 (화면 좌표)
@@ -189,7 +200,7 @@
     if (p[0] < 110 && p[1] < 56) { S.exitDown = true; return; }
     var b = hitBtn(p[0], p[1]);
     if (b >= 0) { castSkill(b); return; }
-    S.dragging = true; setTarget(p);
+    S.dragging = true; setTarget(p); S.tapRip = 0.001;
   }
   function onMove(e) { if (!S || S.ended || !S.dragging) return; e.preventDefault(); setTarget(pos(e)); }
   function onUp(e) {
@@ -204,6 +215,7 @@
   }
   function advanceIntro() {
     S.introIdx++;
+    sfx('concertDrop');
     if (S.introIdx >= INTRO.length - 1 && S.charId) { beginPlay(); return; }          // 이미 정해져 있으면 고르기 생략
     if (S.introIdx >= INTRO.length) openPicker();
   }
@@ -213,6 +225,8 @@
       S.charName = (typeof CHARS !== 'undefined' && CHARS[S.charId]) ? CHARS[S.charId].name : '나';
     }
     S.phase = 'play'; showBanner('🎪 무대 시작!', '255,205,90'); sfx('cheer');
+    S.flash = 0.4; S.flashRgb = '255,230,150'; S.zoomP = 0.8;
+    burstAt(S.px, S.py - 20, 26, '255,220,120', 260);
   }
 
   // 가지고 있는 카드 중에서 같이 갈 한 장 고르기 (등급 상관 없음, 얼굴은 그 멤버의 얼굴 이미지를 재활용)
@@ -222,18 +236,25 @@
     var out = [];
     try {
       if (typeof CARDS !== 'undefined' && typeof owned !== 'undefined') CARDS.forEach(function (c) { if (owned.indexOf(c.id) >= 0 && FACE_CHARS.indexOf(c.charId) >= 0) out.push({ id: c.id, charId: c.charId, name: c.name, grade: c.grade, img: c.img }); });
+    } catch (e) {}
+    try {
       if (typeof HIDDEN_CARDS !== 'undefined' && typeof ownedHiddenCards !== 'undefined') HIDDEN_CARDS.forEach(function (h) { if (ownedHiddenCards.indexOf(h.id) >= 0 && FACE_CHARS.indexOf(h.charId) >= 0) out.push({ id: h.id, charId: h.charId, name: h.name, grade: h.grade, img: h.img }); });
     } catch (e) {}
     out.sort(function (a, b) { return (GRADE_RANK[b.grade] || 0) - (GRADE_RANK[a.grade] || 0); });
+    if (!out.length) {          // 카드를 못 읽었으면 멤버 6명을 그대로 보여줌
+      FACE_CHARS.forEach(function (id) {
+        var nm = (typeof CHARS !== 'undefined' && CHARS[id]) ? CHARS[id].name : id;
+        out.push({ id: id, charId: id, name: nm, grade: 'R', img: (typeof B !== 'undefined' ? B : '') + 'face-' + id + '.png' });
+      });
+    }
     return out;
   }
   function openPicker() {
     var list = ownedCardList();
-    if (!list.length) { S.charId = 'yuna'; beginPlay(); return; }                 // 카드가 하나도 없으면 임시로 윤아
     S.phase = 'pick';
     var box = document.createElement('div');
     box.id = 'concert-pick';
-    box.style.cssText = 'position:absolute;inset:0;z-index:5;background:rgba(10,5,20,0.88);overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y;font-family:\'Noto Sans KR\',sans-serif;padding:16px 14px 30px;';
+    box.style.cssText = 'position:absolute;inset:0;z-index:5;background:rgba(10,5,20,0.9);overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y;font-family:\'Noto Sans KR\',sans-serif;padding:16px 14px 30px;';
     box.innerHTML = '<div style="text-align:center;color:#f59e0b;font-weight:900;font-size:16px;margin:6px 0 4px;">🌟 같이 무대에 설 포카를 골라요!</div>' +
       '<div style="text-align:center;color:#ddd;font-size:12px;margin-bottom:14px;">가지고 있는 카드라면 어떤 등급이든 괜찮아요</div>' +
       '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;">' + list.map(function (c, i) {
@@ -253,46 +274,88 @@
     });
   }
 
+  // ── 효과 도우미 ──
+  // 불꽃 터뜨리기 (월드 좌표, 더하기 합성으로 그려짐)
+  function burstAt(x, y, n, rgb, speed, grav) {
+    if (S.sparks.length > 1100) return;
+    for (var i = 0; i < n; i++) {
+      var a = Math.random() * 6.283, v = rnd(0.35, 1) * (speed || 220);
+      S.sparks.push({ x: x, y: y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, g: grav === undefined ? 160 : grav, life: 0, max: rnd(0.5, 1.0), sz: rnd(2.2, 4.2), rgb: rgb || FIRE_COLORS[Math.floor(Math.random() * FIRE_COLORS.length)] });
+    }
+  }
+  function ringAt(x, y, r1, rgb, delay, dur) { S.rings.push({ x: x, y: y, r0: 14, r1: r1, t: -(delay || 0), dur: dur || 0.6, rgb: rgb }); }
+  function showBanner(text, rgb) { S.banner = { text: text, rgb: rgb, t: 0, dur: 1.2 }; }
+  function floatText(x, y, text, color, size) { S.floats.push({ x: x, y: y, text: text, color: color || '#fff', size: size || 18, t: 0, dur: 1.4 }); }
+  function slowmo(sec, scale) { S.slowT = sec; S.slowScale = scale; }
+
   // ── 스킬 ──
   function castSkill(i) {
+    if (S.cut) return;
     var k = SKILLS[i];
     if (S.cd[i] > 0) { floatText(S.px, S.py - 60, '재사용 대기 ' + Math.ceil(S.cd[i]) + '초', '#ddd'); return; }
     if (k.finale) {
       var any = S.fans.some(function (f) { return !f.done && f.g >= 100; });
       if (!any) { floatText(S.px, S.py - 60, '하트가 가득 찬 팬이 없어요', '#ffb4c8'); return; }
-      doEncore(k);
-      S.cd[i] = k.cd; return;
     }
     S.cd[i] = k.cd;
+    startCut(k, i);
+  }
+  // 스킬 컷인: 화면이 어두워지고 멤버 얼굴이 크게 튀어나오며 스킬 이름이 날아온다 → 그 순간에 효과가 터짐
+  function startCut(k, i) {
+    var dur = k.finale ? 1.25 : 0.95;
+    var lines = []; for (var n = 0; n < 26; n++) lines.push({ a: Math.random() * 6.283, l: rnd(0.4, 1), w: rnd(1, 3.5) });
+    S.cut = { k: k, i: i, t: 0, dur: dur, fireAt: dur * 0.46, fired: false, lines: lines };
+    slowmo(dur * 0.9, 0.12);
+    sfx('concertCut');
+    S.nJump = 1;
+    S.zoomP = 0.5;
+    burstAt(S.px, S.py - 10, 14, k.rgb, 180, -20);
+  }
+  function fireCut() {
+    var k = S.cut.k, i = S.cut.i;
+    S.cut.fired = true;
+    if (k.finale) { doEncore(k); return; }
     var hit = applyGain(S.fans, S.px, S.py, k);
-    S.rings.push({ x: S.px, y: S.py, r0: 20, r1: k.radius, t: 0, dur: 0.6, rgb: k.rgb });
-    S.rings.push({ x: S.px, y: S.py, r0: 10, r1: k.radius * 0.7, t: -0.1, dur: 0.55, rgb: '255,255,255' });
-    hit.forEach(function (n) {
+    ringAt(S.px, S.py, k.radius, k.rgb, 0, 0.7);
+    ringAt(S.px, S.py, k.radius * 0.72, '255,255,255', 0.08, 0.6);
+    ringAt(S.px, S.py, k.radius * 0.45, k.rgb, 0.16, 0.55);
+    burstAt(S.px, S.py, 40, k.rgb, 340, 40);
+    hit.forEach(function (n, idx) {
       var f = S.fans[n];
-      for (var q = 0; q < 3; q++) S.parts.push({ x: S.px, y: S.py, tx: f.x, ty: f.y - 10, t: -q * 0.08, dur: 0.55, ch: k.id === 'wink' ? '💖' : '✨', sz: 22 });
+      f.hop = 1; f.vis = Math.max(0, f.vis - 0);
+      f.pop = { t: 0, text: '+' + k.gain };
+      for (var q = 0; q < 4; q++) S.parts.push({ x: S.px, y: S.py, tx: f.x, ty: f.y - 14, t: -q * 0.07 - idx * 0.012, dur: 0.6, ch: k.id === 'wink' ? '💖' : '✨', sz: 22 + (q === 0 ? 6 : 0), rgb: k.rgb });
     });
-    showBanner(k.icon + ' ' + k.name + '!', k.rgb);
-    S.flash = 0.35; S.flashRgb = k.rgb; S.shake = 0.25;
+    S.flash = 0.55; S.flashRgb = k.rgb; S.shake = 0.45; S.zoomP = 1;
+    slowmo(0.28, 0.35);
     sfx(k.sfx);
-    if (navigator.vibrate) { try { navigator.vibrate(15); } catch (e) {} }
+    if (navigator.vibrate) { try { navigator.vibrate(18); } catch (e) {} }
     if (hit.length === 0) floatText(S.px, S.py - 60, '근처에 팬이 없어요 — 객석 쪽으로!', '#ffb4c8');
+    else floatText(S.px, S.py - 70, k.icon + ' ' + hit.length + '명 두근!', '#ffe3f0', 22);
   }
   function doEncore(k) {
     var luck = typeof getEquippedStat === 'function' ? getEquippedStat('luck') : 0;
     var res = encore(S.fans, luck);
-    showBanner(k.icon + ' ' + k.name + '!', k.rgb);
-    S.flash = 0.5; S.flashRgb = k.rgb; S.shake = 0.5;
-    sfx(k.sfx);
-    S.rings.push({ x: S.px, y: S.py, r0: 30, r1: 900, t: 0, dur: 0.9, rgb: k.rgb });
+    S.flash = 0.85; S.flashRgb = '255,245,220'; S.shake = 0.8; S.zoomP = 1.3;
+    slowmo(1.0, 0.4);
+    sfx(k.sfx); sfx('cheer');
+    ringAt(S.px, S.py, 1100, '255,230,150', 0, 1.0);
+    ringAt(S.px, S.py, 900, '190,140,255', 0.12, 1.0);
+    ringAt(S.px, S.py, 700, '255,120,170', 0.24, 1.0);
     res.fulls.forEach(function (n, idx) {
-      var f = S.fans[n];
-      S.parts.push({ x: f.x, y: f.y, burst: true, t: -idx * 0.05, dur: 0.8, ch: '🎆', sz: 34 });
+      var f = S.fans[n], d = idx * 0.07;
+      // 로켓처럼 솟았다가 평 하고 터지는 폭죽
+      S.sparks.push({ rocket: true, x: f.x, y: f.y - 20, vx: rnd(-20, 20), vy: -rnd(280, 380), g: 120, life: -d, max: rnd(0.42, 0.55), sz: 3.5, rgb: '255,240,200', fx: FIRE_COLORS[idx % FIRE_COLORS.length] });
+      S.parts.push({ x: f.x, y: f.y - 20, burst: true, t: -d, dur: 0.9, ch: '😍', sz: 30 });
+      f.hop = 1;
     });
+    for (var c = 0; c < 70; c++) S.confetti.push({ x: rnd(0, S.W), y: rnd(-S.H * 0.6, -10), vx: rnd(-40, 40), vy: rnd(90, 230), rot: rnd(0, 6.28), vr: rnd(-8, 8), col: FIRE_COLORS[Math.floor(rnd(0, FIRE_COLORS.length))], sz: rnd(6, 12), w: rnd(0.4, 1) });
     res.drops.forEach(function (dr, idx) {
       var f = S.fans[dr.fan];
-      setTimeout(function () { if (S && !S.ended) giveDrop(dr.d, f.x, f.y); }, 300 + idx * 140);
+      setTimeout(function () { if (S && !S.ended) giveDrop(dr.d, f.x, f.y); }, 700 + idx * 130);
     });
-    if (res.fulls.length) floatText(S.px, S.py - 90, '💖 ' + res.fulls.length + '명 만족!', '#ffd1e6');
+    if (res.fulls.length) floatText(S.px, S.py - 100, '💖 ' + res.fulls.length + '명 대만족!!', '#fff2c4', 26);
+    if (navigator.vibrate) { try { navigator.vibrate([30, 40, 60]); } catch (e) {} }
   }
   function giveDrop(d, x, y) {
     var label = null, emoji = '✨', before = exploreCollected.length;
@@ -304,12 +367,11 @@
       emoji = typeof getMaterialEmoji === 'function' ? getMaterialEmoji(d.name) : '✨';
     }
     S.collected.push(label); S.drops++;
-    floatText(x, y - 40, emoji + (d.isRare ? ' 희귀!' : ''), d.isRare ? '#ffd700' : '#fff', d.isRare ? 30 : 24);
+    S.fly.push({ ch: emoji, wx: x, wy: y - 20, t: 0, dur: 0.95, rare: !!d.isRare });
+    floatText(x, y - 44, (d.isRare ? '🌟 ' : '') + label.replace(/^[^ ]+ /, ''), d.isRare ? '#ffd700' : '#fff', d.isRare ? 22 : 17);
+    burstAt(x, y - 20, d.isRare ? 22 : 10, d.isRare ? '255,215,90' : '255,255,255', 200, 60);
     sfx(d.isRare ? 'reward' : 'concertDrop');
   }
-
-  function showBanner(text, rgb) { S.banner = { text: text, rgb: rgb, t: 0, dur: 1.1 }; }
-  function floatText(x, y, text, color, size) { S.floats.push({ x: x, y: y, text: text, color: color || '#fff', size: size || 18, t: 0, dur: 1.4 }); }
 
   // ── 진행 ──
   function loop(now) {
@@ -322,37 +384,84 @@
   }
 
   function update(dt) {
+    // 슬로모션: 게임 시간(g)만 느려지고 컷인과 화면 효과는 실제 시간
+    if (S.slowT > 0) { S.slowT -= dt; S.ts += (S.slowScale - S.ts) * Math.min(1, dt * 18); }
+    else S.ts += (1 - S.ts) * Math.min(1, dt * 7);
+    var g = dt * S.ts;
+
     if (S.flash > 0) S.flash -= dt;
     if (S.shake > 0) S.shake -= dt;
+    if (S.zoomP > 0) S.zoomP = Math.max(0, S.zoomP - dt * 2.6);
+    if (S.nJump > 0) S.nJump = Math.max(0, S.nJump - dt * 2.2);
+    if (S.giftBump > 0) S.giftBump = Math.max(0, S.giftBump - dt * 3);
+    if (S.hintT > 0 && S.phase === 'play') S.hintT -= dt;
     if (S.banner) { S.banner.t += dt; if (S.banner.t > S.banner.dur) S.banner = null; }
-    S.rings = S.rings.filter(function (r) { r.t += dt; return r.t < r.dur; });
-    S.parts = S.parts.filter(function (q) { q.t += dt; return q.t < q.dur; });
+    if (S.cut) {
+      S.cut.t += dt;
+      if (!S.cut.fired && S.cut.t >= S.cut.fireAt) fireCut();
+      if (S.cut && S.cut.t >= S.cut.dur) S.cut = null;
+    }
+    S.rings = S.rings.filter(function (r) { r.t += g; return r.t < r.dur; });
+    S.parts = S.parts.filter(function (q) { q.t += g; return q.t < q.dur; });
     S.floats = S.floats.filter(function (f) { f.t += dt; return f.t < f.dur; });
+    S.fly = S.fly.filter(function (f) { f.t += dt; if (f.t >= f.dur) { S.giftBump = 1; return false; } return true; });
+    S.confetti = S.confetti.filter(function (q) { q.x += q.vx * dt; q.y += q.vy * dt; q.vx += Math.sin(S.t * 3 + q.rot) * 30 * dt; q.rot += q.vr * dt; return q.y < S.H + 20; });
+    S.petals.forEach(function (p, i) { p.x += p.vx * dt; p.y += p.vy * dt; p.rot += p.vr * dt; if (p.y > S.H + 30 || p.x < -40 || p.x > S.W + 40) { var n = newPetal(false); n.x = rnd(0, S.W); S.petals[i] = n; } });
+    // 불꽃: 로켓이 솟다가 터지면 알록달록 불꽃이 퍼짐
+    var born = [];
+    S.sparks = S.sparks.filter(function (sp) {
+      sp.life += g;
+      if (sp.life < 0) return true;
+      sp.x += sp.vx * g; sp.y += sp.vy * g; sp.vy += (sp.g || 0) * g;
+      if (sp.rocket) {
+        if (Math.random() < 0.5) born.push({ x: sp.x, y: sp.y, vx: rnd(-20, 20), vy: rnd(10, 50), g: 0, life: 0, max: 0.35, sz: 2.2, rgb: '255,220,150' });
+        if (sp.life >= sp.max) {
+          for (var q = 0; q < 26; q++) { var a = q / 26 * 6.283 + rnd(-0.1, 0.1), v = rnd(120, 300); born.push({ x: sp.x, y: sp.y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, g: 140, life: 0, max: rnd(0.7, 1.15), sz: rnd(2.6, 4.4), rgb: Math.random() < 0.5 ? sp.fx : FIRE_COLORS[Math.floor(Math.random() * FIRE_COLORS.length)] }); }
+          born.push({ ring: true, x: sp.x, y: sp.y, vx: 0, vy: 0, g: 0, life: 0, max: 0.4, sz: 0, rgb: sp.fx });
+          return false;
+        }
+        return true;
+      }
+      return sp.life < sp.max;
+    });
+    if (born.length && S.sparks.length < 1400) S.sparks = S.sparks.concat(born);
+
     S.fans.forEach(function (f) {
       f.vis += (f.g - f.vis) * Math.min(1, dt * 8);
-      if (!f.done && f.g >= 100 && !f.wasFull) { f.wasFull = true; sfx('concertFull'); S.parts.push({ x: f.x, y: f.y - 30, burst: true, t: 0, dur: 0.5, ch: '💖', sz: 22 }); }
+      if (f.hop > 0) f.hop = Math.max(0, f.hop - dt * 2.8);
+      if (f.pop) { f.pop.t += dt; if (f.pop.t > 0.9) f.pop = null; }
+      if (!f.done && f.g >= 100 && !f.wasFull) {
+        f.wasFull = true; f.hop = 1; sfx('concertFull');
+        f.pop = { t: 0, text: 'MAX!', gold: true };
+        ringAt(f.x, f.y, 70, '255,215,90', 0, 0.5);
+        burstAt(f.x, f.y - 10, 16, '255,215,90', 190, 30);
+      }
     });
 
     if (S.phase === 'play' || S.phase === 'finale') {
       // 이동
       var dx = S.tx - S.px, dy = S.ty - S.py, d = Math.hypot(dx, dy);
-      if (S.moving && d > 6) { var st = Math.min(d, SPEED * dt); S.px += dx / d * st; S.py += dy / d * st; }
-      else S.moving = false;
+      if (S.moving && d > 6) {
+        var st = Math.min(d, SPEED * g); S.px += dx / d * st; S.py += dy / d * st;
+        S.trailT -= dt;
+        if (S.trailT <= 0) { S.trailT = 0.05; S.sparks.push({ x: S.px + rnd(-8, 8), y: S.py + 20, vx: rnd(-18, 18), vy: rnd(-30, -6), g: -10, life: 0, max: 0.55, sz: rnd(2.4, 4), rgb: Math.random() < 0.5 ? '255,170,210' : '255,240,200' }); }
+      } else S.moving = false;
+      if (S.tapRip > 0) S.tapRip += dt;
       // 세연은 플레이어를 살짝 뒤따라옴
       var gx = S.px - 64, gy = S.py + 28, nd = Math.hypot(gx - S.nx, gy - S.ny);
-      if (nd > 4) { var ns = Math.min(nd, Math.max(nd * 4, 60) * dt); S.nx += (gx - S.nx) / nd * ns; S.ny += (gy - S.ny) / nd * ns; }
+      if (nd > 4) { var ns = Math.min(nd, Math.max(nd * 4, 60) * g); S.nx += (gx - S.nx) / nd * ns; S.ny += (gy - S.ny) / nd * ns; }
     }
     if (S.phase === 'play') {
-      S.timeLeft -= dt;
-      for (var i = 0; i < 3; i++) if (S.cd[i] > 0) S.cd[i] = Math.max(0, S.cd[i] - dt);
+      if (!S.cut) S.timeLeft -= g;
+      for (var i = 0; i < 3; i++) if (S.cd[i] > 0) S.cd[i] = Math.max(0, S.cd[i] - g);
       S.bubbleT -= dt;
       if (S.bubbleT <= 0) { S.bubble = CHEERS[Math.floor(Math.random() * CHEERS.length)]; S.bubbleT = 5 + Math.random() * 3; S.bubbleShow = 2.2; }
       if (S.bubbleShow > 0) { S.bubbleShow -= dt; if (S.bubbleShow <= 0) S.bubble = null; }
-      if (S.timeLeft <= 0) { S.timeLeft = 0; startFinale(); }
-      if (S.fans.every(function (f) { return f.done; })) startFinale();
+      if (S.timeLeft <= 0 && !S.cut) { S.timeLeft = 0; startFinale(); }
+      if (!S.cut && S.fans.every(function (f) { return f.done; })) startFinale();
     } else if (S.phase === 'finale') {
       S.finaleT -= dt;
-      if (S.finaleT <= 0) endNow(true);
+      if (S.finaleT <= 0 && !S.cut) endNow(true);
     }
     if (!S || S.ended) return;
     // 카메라
@@ -365,10 +474,10 @@
   // 시간이 끝나면 자동으로 마지막 앵콜
   function startFinale() {
     if (S.phase !== 'play') return;
-    S.phase = 'finale'; S.finaleT = 2.6;
+    S.phase = 'finale';
     var any = S.fans.some(function (f) { return !f.done && f.g >= 100; });
-    if (any) { showBanner('⏰ 마지막 앵콜!', '190,140,255'); doEncore(SKILLS[2]); }
-    else { showBanner('⏰ 무대 끝!', '255,205,90'); S.finaleT = 1.2; }
+    if (any) { S.finaleT = 4.2; startCut(SKILLS[2], 2); }
+    else { showBanner('⏰ 무대 끝!', '255,205,90'); S.finaleT = 1.3; }
   }
 
   // ── 그리기 ──
@@ -382,53 +491,118 @@
     c.lineWidth = Math.max(3, size / 5); c.strokeStyle = stroke || 'rgba(40,0,50,0.9)'; c.lineJoin = 'round';
     c.strokeText(text, x, y); c.fillStyle = fill || '#fff'; c.fillText(text, x, y);
   }
+  function star4(c, x, y, r, rot) {
+    c.save(); c.translate(x, y); c.rotate(rot); c.beginPath();
+    for (var i = 0; i < 8; i++) { var rr = i % 2 ? r * 0.28 : r, a = i * Math.PI / 4; c.lineTo(Math.cos(a) * rr, Math.sin(a) * rr); }
+    c.closePath(); c.fill(); c.restore();
+  }
 
   function drawWorld(c) {
     var bg = IMGS[BG_FILE];
     if (bg && bg.ok) { c.drawImage(bg.im, 0, 0, WORLD_W, WORLD_H); }
     else {
-      // 임시 배경: 객석 바닥 + 통로 + 무대
       var g = c.createLinearGradient(0, 0, 0, WORLD_H);
       g.addColorStop(0, '#2a1450'); g.addColorStop(0.3, '#3a1c66'); g.addColorStop(1, '#1d1038');
       c.fillStyle = g; c.fillRect(0, 0, WORLD_W, WORLD_H);
       c.fillStyle = 'rgba(255,255,255,0.05)';
       BLOCK_X.forEach(function (cols) { c.fillRect(cols[0] - 70, ROW_Y[0] - 80, cols[2] - cols[0] + 140, ROW_Y[ROW_Y.length - 1] - ROW_Y[0] + 160); });
-      c.fillStyle = 'rgba(255,200,120,0.10)'; c.fillRect(400, STAGE.y1, 200, WORLD_H - STAGE.y1);   // 가운데 통로
-      // 무대
+      c.fillStyle = 'rgba(255,200,120,0.10)'; c.fillRect(400, STAGE.y1, 200, WORLD_H - STAGE.y1);
       var sg = c.createLinearGradient(0, STAGE.y0, 0, STAGE.y1);
       sg.addColorStop(0, '#5b2a9a'); sg.addColorStop(1, '#a04cd0');
       c.fillStyle = sg; roundRect(c, STAGE.x0, STAGE.y0, STAGE.x1 - STAGE.x0, STAGE.y1 - STAGE.y0, 30); c.fill();
-      c.strokeStyle = '#ffd1e6'; c.lineWidth = 6; c.stroke();
-      c.fillStyle = 'rgba(255,255,255,0.12)'; c.fillRect(STAGE.x0 + 30, STAGE.y0 + 30, STAGE.x1 - STAGE.x0 - 60, 14);
       c.font = '900 56px "Noto Sans KR",sans-serif'; c.textAlign = 'center'; c.fillStyle = 'rgba(255,255,255,0.75)'; c.fillText('🎪 STAGE', WORLD_W / 2, (STAGE.y0 + STAGE.y1) / 2 + 18);
-      c.fillStyle = 'rgba(255,255,255,0.07)'; c.fillRect(0, WORLD_H - 220, WORLD_W, 220);
-      c.fillStyle = 'rgba(255,255,255,0.35)'; c.font = '900 34px "Noto Sans KR",sans-serif'; c.fillText('⬆ ENTRANCE', WORLD_W / 2, WORLD_H - 90);
     }
   }
-  function drawFan(c, f) {
-    var rec = IMGS[FAN_FILES[f.img]], bob = Math.sin(S.t * 3 + f.pulse) * 2;
-    c.save(); c.translate(f.x, f.y + bob);
-    c.globalAlpha = f.done ? 0.45 : 1;
+  // 무대 조명 빔: 천천히 좌우로 쓸고 지나가는 색색의 빛줄기
+  function drawBeams(c) {
+    var cols = ['255,120,200', '170,130,255', '255,215,120', '120,220,255', '255,150,200'];
+    var boost = S.cut ? 1.6 : 1;
+    c.save(); c.globalCompositeOperation = 'lighter';
+    for (var i = 0; i < 5; i++) {
+      var ox = 200 + i * 150, sw = Math.sin(S.t * 0.7 + i * 1.7) * 150, tipX = ox + sw, baseX = ox + sw * 1.6;
+      var len = 760 + Math.sin(S.t * 0.9 + i) * 80;
+      var g = c.createLinearGradient(ox, 50, baseX, 50 + len);
+      g.addColorStop(0, 'rgba(' + cols[i] + ',' + (0.30 * boost).toFixed(2) + ')'); g.addColorStop(1, 'rgba(' + cols[i] + ',0)');
+      c.fillStyle = g; c.beginPath(); c.moveTo(ox - 14, 50); c.lineTo(ox + 14, 50); c.lineTo(baseX + 110, 50 + len); c.lineTo(baseX - 110, 50 + len); c.closePath(); c.fill();
+    }
+    c.restore();
+  }
+  function drawFan(c, f, idx) {
+    var rec = IMGS[FAN_FILES[f.img]];
+    var hop = f.hop > 0 ? Math.sin((1 - f.hop) * Math.PI) * 22 : 0;
+    var sway = Math.sin(S.t * 3 + f.pulse) * 2;
+    var scale = 1 + (f.hop > 0 ? Math.sin((1 - f.hop) * Math.PI) * 0.22 : 0);
+    var full = !f.done && f.g >= 100;
+    // 응원봉 (게이지가 찰수록 밝아짐)
+    if (!f.done) {
+      var glow = 0.25 + f.vis / 100 * 0.75, ang = -0.5 + Math.sin(S.t * 4 + f.pulse * 2) * 0.35;
+      c.save(); c.translate(f.x + 26, f.y + 6 - hop); c.rotate(ang);
+      c.globalCompositeOperation = 'lighter';
+      var rg = c.createRadialGradient(0, -18, 2, 0, -18, 26 + glow * 16); rg.addColorStop(0, 'rgba(' + (full ? '255,220,110' : '255,120,190') + ',' + (0.55 * glow).toFixed(2) + ')'); rg.addColorStop(1, 'rgba(255,120,190,0)');
+      c.fillStyle = rg; c.fillRect(-50, -70, 100, 100);
+      c.globalCompositeOperation = 'source-over';
+      c.fillStyle = full ? '#ffe9a0' : '#ff9fd0'; roundRect(c, -3.5, -34, 7, 36, 3.5); c.fill();
+      c.restore();
+    }
+    if (full) {      // 가득 찬 팬은 금빛으로 맥동
+      var pu = 1 + Math.sin(S.t * 7 + f.pulse) * 0.18;
+      c.save(); c.globalCompositeOperation = 'lighter';
+      var ag = c.createRadialGradient(f.x, f.y, 6, f.x, f.y, 52 * pu); ag.addColorStop(0, 'rgba(255,225,120,0.55)'); ag.addColorStop(1, 'rgba(255,200,80,0)');
+      c.fillStyle = ag; c.beginPath(); c.arc(f.x, f.y, 52 * pu, 0, 6.283); c.fill(); c.restore();
+    }
+    c.save(); c.translate(f.x + sway * 0.2, f.y - hop); c.scale(scale, scale);
+    c.globalAlpha = f.done ? 0.5 : 1;
     if (rec && rec.ok) c.drawImage(rec.im, -FAN_R, -FAN_R, FAN_R * 2, FAN_R * 2);
     else { c.fillStyle = f.done ? '#7a6a8c' : '#e9d5ff'; c.beginPath(); c.arc(0, 0, FAN_R * 0.8, 0, 6.283); c.fill(); c.font = '30px sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(f.done ? '😍' : '🙂', 0, 2); }
     c.restore();
     if (f.done) return;
     // 하트 게이지
-    var w = 54, h = 9, x = f.x - w / 2, y = f.y - FAN_R - 18, p = clamp(f.vis / 100, 0, 1);
-    c.fillStyle = 'rgba(0,0,0,0.6)'; roundRect(c, x - 2, y - 2, w + 4, h + 4, 6); c.fill();
-    var col = p >= 0.999 ? '#ffd700' : (p > 0.5 ? '#ff6fa8' : '#ff9ccf');
-    c.fillStyle = col; if (p > 0) { roundRect(c, x, y, w * p, h, 4); c.fill(); }
-    if (f.g >= 100) { var pu = 1 + Math.sin(S.t * 8 + f.pulse) * 0.15; c.save(); c.translate(f.x, y - 14); c.scale(pu, pu); c.font = '24px sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('💖', 0, 0); c.restore(); }
-    else { c.font = '14px sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('🤍', x - 10, y + 5); }
+    var w = 56, h = 10, x = f.x - w / 2, y = f.y - FAN_R - 22 - hop * 0.6, p = clamp(f.vis / 100, 0, 1);
+    c.fillStyle = 'rgba(20,6,36,0.8)'; roundRect(c, x - 2.5, y - 2.5, w + 5, h + 5, 7); c.fill();
+    if (p > 0) {
+      var gg = c.createLinearGradient(x, 0, x + w, 0);
+      if (full) { gg.addColorStop(0, '#ffb300'); gg.addColorStop(0.5, '#fff1a8'); gg.addColorStop(1, '#ffb300'); }
+      else { gg.addColorStop(0, '#ff8fc4'); gg.addColorStop(1, '#ff4f9a'); }
+      c.fillStyle = gg; roundRect(c, x, y, Math.max(h, w * p), h, 5); c.fill();
+      c.fillStyle = 'rgba(255,255,255,0.35)'; roundRect(c, x + 2, y + 1.5, Math.max(4, w * p - 4), 3, 2); c.fill();
+    }
+    c.lineWidth = 1.5; c.strokeStyle = full ? 'rgba(255,230,140,0.95)' : 'rgba(255,255,255,0.55)'; roundRect(c, x - 2.5, y - 2.5, w + 5, h + 5, 7); c.stroke();
+    c.font = '15px sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle';
+    var hs = full ? 1 + Math.sin(S.t * 9 + f.pulse) * 0.18 : 1;
+    c.save(); c.translate(x - 9, y + 5); c.scale(hs, hs); c.fillText(full ? '💖' : '🤍', 0, 0); c.restore();
+    if (f.pop) {
+      var pp = f.pop.t / 0.9;
+      c.globalAlpha = 1 - Math.pow(pp, 2);
+      outlined(c, f.pop.text, f.x, y - 12 - easeOutCubic(pp) * 34, f.pop.gold ? 20 : 18, f.pop.gold ? '#ffe27a' : '#fff', f.pop.gold ? 'rgba(120,60,0,0.95)' : 'rgba(180,20,100,0.95)');
+      c.globalAlpha = 1;
+    }
   }
-  function drawToken(c, x, y, rec, emoji, color, label) {
+  function drawToken(c, x, y, rec, emoji, color, label, opt) {
+    opt = opt || {};
+    var bob = opt.moving ? Math.abs(Math.sin(S.t * 14)) * 6 : Math.sin(S.t * 2.4 + (opt.ph || 0)) * 2;
+    var sq = opt.moving ? 1 + Math.sin(S.t * 14) * 0.07 : 1 + Math.sin(S.t * 2.4 + (opt.ph || 0)) * 0.02;
+    var jump = (opt.jump || 0) > 0 ? Math.sin((1 - opt.jump) * Math.PI) * 34 : 0;
     c.save(); c.translate(x, y);
-    c.fillStyle = 'rgba(0,0,0,0.35)'; c.beginPath(); c.ellipse(0, 26, 24, 9, 0, 0, 6.283); c.fill();
+    c.fillStyle = 'rgba(0,0,0,0.35)'; c.beginPath(); c.ellipse(0, 28, 24 - jump * 0.2, 9 - jump * 0.1, 0, 0, 6.283); c.fill();
+    c.translate(0, -bob - jump); c.scale(1 / sq, sq);
+    // 후광
+    c.save(); c.globalCompositeOperation = 'lighter';
+    var gl = c.createRadialGradient(0, 0, 10, 0, 0, 56 + Math.sin(S.t * 5) * 4); gl.addColorStop(0, 'rgba(' + (opt.glow || '255,150,210') + ',0.5)'); gl.addColorStop(1, 'rgba(255,150,210,0)');
+    c.fillStyle = gl; c.beginPath(); c.arc(0, 0, 60, 0, 6.283); c.fill(); c.restore();
     c.beginPath(); c.arc(0, 0, 28, 0, 6.283); c.fillStyle = color; c.fill();
     if (rec && rec.ok) { c.save(); c.beginPath(); c.arc(0, 0, 25, 0, 6.283); c.clip(); c.drawImage(rec.im, -30, -29, 60, 60); c.restore(); }
     else { c.font = '32px sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(emoji, 0, 2); }
     c.lineWidth = 4; c.strokeStyle = '#fff'; c.beginPath(); c.arc(0, 0, 28, 0, 6.283); c.stroke();
-    outlined(c, label, 0, 44, 16, '#fff');
+    c.restore();
+    outlined(c, label, x, y + 46, 16, '#fff');
+  }
+  function drawFaceCircle(c, x, y, r, rec, emoji, color) {
+    c.save(); c.translate(x, y);
+    c.shadowColor = 'rgba(' + color + ',0.9)'; c.shadowBlur = 22;
+    c.beginPath(); c.arc(0, 0, r, 0, 6.283); c.fillStyle = 'rgb(' + color + ')'; c.fill(); c.shadowBlur = 0;
+    if (rec && rec.ok) { c.save(); c.beginPath(); c.arc(0, 0, r - 4, 0, 6.283); c.clip(); c.drawImage(rec.im, -r * 1.12, -r * 1.1, r * 2.24, r * 2.24); c.restore(); }
+    else { c.font = (r * 1.1) + 'px sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(emoji, 0, 3); }
+    c.lineWidth = 5; c.strokeStyle = '#fff'; c.beginPath(); c.arc(0, 0, r, 0, 6.283); c.stroke();
     c.restore();
   }
 
@@ -436,45 +610,90 @@
     var c = S.ctx, W = S.W, H = S.H, s = S.s;
     c.setTransform(S.dpr, 0, 0, S.dpr, 0, 0);
     c.fillStyle = '#140a24'; c.fillRect(0, 0, W, H);
-    var shx = S.shake > 0 ? (Math.random() - 0.5) * 8 * S.shake * 4 : 0, shy = S.shake > 0 ? (Math.random() - 0.5) * 8 * S.shake * 4 : 0;
+    var amp = S.shake > 0 ? Math.min(1, S.shake * 2.2) : 0;
+    var shx = (Math.random() - 0.5) * 14 * amp, shy = (Math.random() - 0.5) * 14 * amp;
+    var zoom = 1 + S.zoomP * 0.07;
     c.save();
-    c.translate(W / 2 + shx, H / 2 + shy); c.scale(s, s); c.translate(-S.camX, -S.camY);
+    c.translate(W / 2 + shx, H / 2 + shy); c.scale(s * zoom, s * zoom); c.translate(-S.camX, -S.camY);
     drawWorld(c);
-    // 스킬 범위 미리보기 (플레이어 주변 은은한 원)
-    if (S.phase === 'play') {
-      SKILLS.forEach(function (k, i) { if (!k.finale && S.cd[i] <= 0) { c.strokeStyle = 'rgba(' + k.rgb + ',0.28)'; c.lineWidth = 3; c.setLineDash([14, 12]); c.beginPath(); c.arc(S.px, S.py, k.radius, 0, 6.283); c.stroke(); c.setLineDash([]); } });
+    drawBeams(c);
+    // 스킬 범위 미리보기: 쓸 수 있는 스킬만 은은하게 맥동
+    if (S.phase === 'play' && !S.cut) {
+      SKILLS.forEach(function (k, i) {
+        if (k.finale || S.cd[i] > 0) return;
+        var pu = 0.22 + Math.sin(S.t * 4 + i) * 0.08;
+        c.strokeStyle = 'rgba(' + k.rgb + ',' + pu.toFixed(2) + ')'; c.lineWidth = 3; c.setLineDash([14, 12]); c.lineDashOffset = -S.t * 30;
+        c.beginPath(); c.arc(S.px, S.py, k.radius, 0, 6.283); c.stroke(); c.setLineDash([]);
+      });
     }
-    // 이동 목표 표시
-    if (S.moving) { c.strokeStyle = 'rgba(255,255,255,0.7)'; c.lineWidth = 3; c.beginPath(); c.arc(S.tx, S.ty, 14 + Math.sin(S.t * 8) * 3, 0, 6.283); c.stroke(); }
+    // 이동 목표 표시 (물결)
+    if (S.moving) {
+      var tr = (S.t * 1.6) % 1; c.strokeStyle = 'rgba(255,255,255,' + (0.8 - tr * 0.8).toFixed(2) + ')'; c.lineWidth = 3;
+      c.beginPath(); c.arc(S.tx, S.ty, 8 + tr * 26, 0, 6.283); c.stroke();
+      c.fillStyle = 'rgba(255,255,255,0.8)'; c.beginPath(); c.arc(S.tx, S.ty, 4, 0, 6.283); c.fill();
+    }
     // 팬 (위에서 아래 순서)
-    S.fans.slice().sort(function (a, b) { return a.y - b.y; }).forEach(function (f) { drawFan(c, f); });
-    // 스킬 링
+    S.fans.slice().sort(function (a, b) { return a.y - b.y; }).forEach(function (f, i) { drawFan(c, f, i); });
+    // 스킬 링 (더하기 합성)
+    c.save(); c.globalCompositeOperation = 'lighter';
     S.rings.forEach(function (r) {
       if (r.t < 0) return;
-      var p = r.t / r.dur, rad = r.r0 + (r.r1 - r.r0) * (1 - Math.pow(1 - p, 3));
-      c.strokeStyle = 'rgba(' + r.rgb + ',' + (1 - p).toFixed(2) + ')'; c.lineWidth = 16 * (1 - p) + 3;
+      var p = r.t / r.dur, rad = r.r0 + (r.r1 - r.r0) * easeOutCubic(p);
+      c.strokeStyle = 'rgba(' + r.rgb + ',' + (1 - p).toFixed(2) + ')'; c.lineWidth = 22 * (1 - p) + 3;
       c.beginPath(); c.arc(r.x, r.y, rad, 0, 6.283); c.stroke();
-      c.fillStyle = 'rgba(' + r.rgb + ',' + ((1 - p) * 0.14).toFixed(3) + ')'; c.beginPath(); c.arc(r.x, r.y, rad, 0, 6.283); c.fill();
+      var rg = c.createRadialGradient(r.x, r.y, rad * 0.55, r.x, r.y, rad); rg.addColorStop(0, 'rgba(' + r.rgb + ',0)'); rg.addColorStop(1, 'rgba(' + r.rgb + ',' + ((1 - p) * 0.28).toFixed(3) + ')');
+      c.fillStyle = rg; c.beginPath(); c.arc(r.x, r.y, rad, 0, 6.283); c.fill();
     });
-    // 세연 / 플레이어 (아래에 있는 쪽이 앞)
-    var toks = [{ y: S.ny, f: function () { drawToken(c, S.nx, S.ny, IMGS[SEYEON_FACE], '🌟', '#f59e0b', '세연'); if (S.bubble) bubble(c, S.nx, S.ny - 48, S.bubble); } },
-                { y: S.py, f: function () { drawToken(c, S.px, S.py, S.faceFile ? IMGS[S.faceFile] : null, '🙋', '#ec4899', S.charName); } }].sort(function (a, b) { return a.y - b.y; });
+    c.restore();
+    // 세연 / 나 (아래에 있는 쪽이 앞)
+    var toks = [{ y: S.ny, f: function () { drawToken(c, S.nx, S.ny, IMGS[SEYEON_FACE], '🌟', '#f59e0b', '세연', { ph: 1.5, jump: S.nJump, glow: '255,210,110' }); if (S.bubble) bubble(c, S.nx, S.ny - 56, S.bubble); } },
+                { y: S.py, f: function () { drawToken(c, S.px, S.py, S.faceFile ? IMGS[S.faceFile] : null, '🙋', '#ec4899', S.charName, { moving: S.moving, jump: S.cut ? 0.5 : 0 }); } }].sort(function (a, b) { return a.y - b.y; });
     toks.forEach(function (t) { t.f(); });
-    // 파티클
+    // 하트·별이 날아가는 파티클
     S.parts.forEach(function (q) {
       if (q.t < 0) return;
       var p = q.t / q.dur; c.globalAlpha = 1 - Math.pow(p, 3); c.font = q.sz + 'px sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle';
-      if (q.burst) { var sc = 0.6 + p * 1.2; c.save(); c.translate(q.x, q.y - p * 40); c.scale(sc, sc); c.fillText(q.ch, 0, 0); c.restore(); }
-      else { var e = 1 - Math.pow(1 - p, 2); c.fillText(q.ch, q.x + (q.tx - q.x) * e, q.y + (q.ty - q.y) * e - Math.sin(p * 3.14) * 30); }
+      if (q.burst) { var sc = 0.6 + p * 1.2; c.save(); c.translate(q.x, q.y - p * 60); c.scale(sc, sc); c.fillText(q.ch, 0, 0); c.restore(); }
+      else {
+        var e = 1 - Math.pow(1 - p, 2), px = q.x + (q.tx - q.x) * e, py = q.y + (q.ty - q.y) * e - Math.sin(p * 3.14) * 40;
+        c.save(); c.globalCompositeOperation = 'lighter'; c.fillStyle = 'rgba(' + (q.rgb || '255,150,200') + ',0.35)'; c.beginPath(); c.arc(px, py, q.sz * 0.8, 0, 6.283); c.fill(); c.restore();
+        c.fillText(q.ch, px, py);
+      }
       c.globalAlpha = 1;
     });
+    // 불꽃·반짝이 (더하기 합성)
+    c.save(); c.globalCompositeOperation = 'lighter'; c.lineCap = 'round';
+    S.sparks.forEach(function (sp) {
+      if (sp.life < 0) return;
+      if (sp.ring) { var pr = sp.life / sp.max; c.strokeStyle = 'rgba(' + sp.rgb + ',' + (0.7 * (1 - pr)).toFixed(2) + ')'; c.lineWidth = 5 * (1 - pr) + 1; c.beginPath(); c.arc(sp.x, sp.y, 8 + pr * 90, 0, 6.283); c.stroke(); return; }
+      var a = sp.rocket ? 1 : clamp(1 - sp.life / sp.max, 0, 1);
+      c.strokeStyle = 'rgba(' + sp.rgb + ',' + a.toFixed(2) + ')'; c.lineWidth = sp.sz * (sp.rocket ? 1.2 : (0.4 + a * 0.6));
+      c.beginPath(); c.moveTo(sp.x - sp.vx * 0.035, sp.y - sp.vy * 0.035); c.lineTo(sp.x, sp.y); c.stroke();
+    });
+    c.restore();
     // 떠오르는 글씨
     S.floats.forEach(function (f) { var p = f.t / f.dur; c.globalAlpha = 1 - Math.pow(p, 2); outlined(c, f.text, f.x, f.y - p * 50, f.size, f.color); c.globalAlpha = 1; });
     c.restore();
 
-    // ── 화면 고정 UI ──
-    if (S.flash > 0) { c.fillStyle = 'rgba(' + S.flashRgb + ',' + (S.flash * 0.7).toFixed(2) + ')'; c.fillRect(0, 0, W, H); }
+    // ── 화면 고정 효과 ──
+    // 가장자리 어둡게 (비네트)
+    var vg = c.createRadialGradient(W / 2, H / 2, Math.min(W, H) * 0.45, W / 2, H / 2, Math.max(W, H) * 0.78);
+    vg.addColorStop(0, 'rgba(10,2,24,0)'); vg.addColorStop(1, 'rgba(10,2,24,0.55)'); c.fillStyle = vg; c.fillRect(0, 0, W, H);
+    // 떠다니는 꽃잎·별
+    S.petals.forEach(function (p) { c.save(); c.globalAlpha = p.a * 0.8; c.translate(p.x, p.y); c.rotate(p.rot); c.font = p.sz + 'px sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(p.ch, 0, 0); c.restore(); });
+    // 종이 꽃가루
+    S.confetti.forEach(function (q) { c.save(); c.translate(q.x, q.y); c.rotate(q.rot); c.scale(1, Math.abs(Math.sin(q.rot * 1.3)) * 0.8 + 0.2); c.fillStyle = 'rgb(' + q.col + ')'; c.fillRect(-q.sz / 2, -q.sz / 4, q.sz, q.sz / 2); c.restore(); });
+    if (S.flash > 0) { c.fillStyle = 'rgba(' + S.flashRgb + ',' + clamp(S.flash * 0.9, 0, 0.9).toFixed(2) + ')'; c.fillRect(0, 0, W, H); }
     drawHud(c);
+    // 날아가는 재료 → 🎁 카운터
+    S.fly.forEach(function (f) {
+      var p = easeOutCubic(f.t / f.dur), a = toScreen(f.wx, f.wy), tx = W / 2 + 46, ty = 29;
+      var x = a[0] + (tx - a[0]) * p, y = a[1] + (ty - a[1]) * p - Math.sin(p * 3.14) * 90;
+      c.save(); c.globalCompositeOperation = 'lighter';
+      for (var k = 1; k <= 4; k++) { var pk = Math.max(0, p - k * 0.04), xk = a[0] + (tx - a[0]) * pk, yk = a[1] + (ty - a[1]) * pk - Math.sin(pk * 3.14) * 90; c.fillStyle = 'rgba(' + (f.rare ? '255,215,90' : '255,255,255') + ',' + (0.35 - k * 0.07).toFixed(2) + ')'; c.beginPath(); c.arc(xk, yk, 12 - k * 2, 0, 6.283); c.fill(); }
+      c.restore();
+      c.font = (f.rare ? 34 : 28) * (1.3 - p * 0.5) + 'px sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(f.ch, x, y);
+    });
     if (S.banner) {
       var b = S.banner, p = b.t / b.dur, sc = 1 + (1 - Math.min(1, p * 4)) * 0.6, a = p > 0.7 ? (1 - p) / 0.3 : 1;
       c.save(); c.globalAlpha = Math.max(0, a); c.translate(W / 2, H * 0.3); c.scale(sc, sc);
@@ -482,8 +701,59 @@
       var tw = c.measureText(b.text).width; if (tw > (W - 40) / sc) bs = Math.floor(bs * (W - 40) / sc / tw);
       outlined(c, b.text, 0, 0, bs, '#fff', 'rgba(' + b.rgb + ',0.95)'); c.restore();
     }
+    if (S.cut) drawCut(c);
     if (S.phase === 'intro') drawIntro(c);
     if (S.phase === 'pick') { c.fillStyle = 'rgba(10,5,20,0.55)'; c.fillRect(0, 0, W, H); }
+    if (S.phase === 'play' && S.hintT > 0 && !S.cut) {
+      var ha = Math.min(1, S.hintT / 1.2);
+      c.save(); c.globalAlpha = ha; var hy = H * 0.5 + Math.sin(S.t * 5) * 6;
+      outlined(c, '👆 눌러서 객석으로 이동!', W / 2, hy, 20, '#fff', 'rgba(120,20,100,0.95)');
+      outlined(c, '그다음 아래 스킬 💖', W / 2, hy + 30, 16, '#ffe3f0', 'rgba(120,20,100,0.95)'); c.restore();
+    }
+  }
+
+  // 스킬 컷인: 어두워진 화면 위로 띠가 펼쳐지고 멤버 얼굴이 튀어나오며 스킬 이름이 날아온다
+  function drawCut(c) {
+    var k = S.cut.k, W = S.W, H = S.H, t = S.cut.t, dur = S.cut.dur;
+    var inP = clamp(t / 0.2, 0, 1), outP = clamp((t - (dur - 0.22)) / 0.22, 0, 1), e = easeOutBack(inP), a = 1 - outP;
+    c.fillStyle = 'rgba(8,2,22,' + (0.62 * a * inP).toFixed(2) + ')'; c.fillRect(0, 0, W, H);
+    var cy = H * 0.38, bh = Math.min(190, H * 0.24);
+    // 띠
+    c.save(); c.translate(W / 2, cy); c.scale(1, Math.max(0.01, e * (1 - outP * 0.7))); c.globalAlpha = a;
+    c.transform(1, 0, -0.2, 1, 0, 0);
+    var g = c.createLinearGradient(-W / 2, 0, W / 2, 0);
+    g.addColorStop(0, 'rgba(25,8,50,0.95)'); g.addColorStop(0.35, 'rgba(' + k.rgb + ',0.92)'); g.addColorStop(0.75, 'rgba(' + k.rgb + ',0.78)'); g.addColorStop(1, 'rgba(25,8,50,0.95)');
+    c.fillStyle = g; c.fillRect(-W, -bh / 2, W * 2, bh);
+    c.save(); c.beginPath(); c.rect(-W, -bh / 2, W * 2, bh); c.clip();
+    c.fillStyle = 'rgba(255,255,255,0.13)';
+    for (var i = -12; i < 12; i++) { var sx = i * 70 + (t * 260) % 70; c.save(); c.translate(sx, 0); c.transform(1, 0, 0.7, 1, 0, 0); c.fillRect(0, -bh / 2, 26, bh); c.restore(); }
+    c.restore();
+    c.fillStyle = '#fff'; c.shadowColor = 'rgb(' + k.rgb + ')'; c.shadowBlur = 18; c.fillRect(-W, -bh / 2 - 3, W * 2, 5); c.fillRect(-W, bh / 2 - 2, W * 2, 5); c.shadowBlur = 0;
+    c.restore();
+    // 속도선
+    c.save(); c.globalAlpha = 0.5 * a * inP; c.strokeStyle = 'rgba(255,255,255,0.9)';
+    S.cut.lines.forEach(function (ln) {
+      var r1 = bh * 0.8 + Math.sin(t * 40 + ln.a * 9) * 10, r2 = r1 + ln.l * W * 0.55;
+      c.lineWidth = ln.w; c.beginPath(); c.moveTo(W / 2 + Math.cos(ln.a) * r1, cy + Math.sin(ln.a) * r1 * 0.55); c.lineTo(W / 2 + Math.cos(ln.a) * r2, cy + Math.sin(ln.a) * r2 * 0.55); c.stroke();
+    });
+    c.restore();
+    // 반짝이
+    c.save(); c.globalCompositeOperation = 'lighter'; c.fillStyle = 'rgba(255,255,255,' + (0.9 * a).toFixed(2) + ')';
+    for (var q = 0; q < 12; q++) { var qx = (q * 97 + t * 60 * (q % 2 ? 1 : -1)) % W; if (qx < 0) qx += W; star4(c, qx, cy + Math.sin(q * 3.1 + t * 6) * bh * 0.6, 5 + (q % 3) * 4 * Math.abs(Math.sin(t * 8 + q)), t * 4 + q); }
+    c.restore();
+    // 멤버 얼굴 (왼쪽에서 튀어나옴)
+    var fr = bh * 0.62, fx = W * 0.2 - (1 - e) * W * 0.5 - outP * W * 0.3;
+    c.save(); c.globalAlpha = a; drawFaceCircle(c, fx, cy - bh * 0.06, fr, S.faceFile ? IMGS[S.faceFile] : null, '🙋', k.rgb); c.restore();
+    if (k.finale) { c.save(); c.globalAlpha = a; drawFaceCircle(c, W - fx, cy - bh * 0.06, fr * 0.8, IMGS[SEYEON_FACE], '🌟', '255,210,110'); c.restore(); }
+    // 스킬 이름 (오른쪽에서 날아옴)
+    var tx = W * (k.finale ? 0.5 : 0.6) + (1 - e) * W * 0.8 + outP * W * 0.5, size = Math.min(40, W / 9.5);
+    c.save(); c.globalAlpha = a; c.translate(tx, cy - 10); c.transform(1, 0, -0.2, 1, 0, 0);
+    c.font = '900 ' + size + 'px "Noto Sans KR",sans-serif'; var label = k.icon + ' ' + k.name; var tw = c.measureText(label).width, maxW = W * (k.finale ? 0.52 : 0.62);
+    if (tw > maxW) size = Math.floor(size * maxW / tw);
+    c.shadowColor = 'rgb(' + k.rgb + ')'; c.shadowBlur = 24;
+    outlined(c, label, 0, 0, size, '#fff', 'rgba(' + k.rgb + ',1)'); c.shadowBlur = 0;
+    outlined(c, k.desc, 0, size * 0.85, Math.max(13, size * 0.42), '#ffe9f4', 'rgba(60,10,70,0.95)');
+    c.restore();
   }
 
   function bubble(c, x, y, text) {
@@ -494,23 +764,23 @@
 
   function drawHud(c) {
     var W = S.W, H = S.H;
-    // 위 바
     c.fillStyle = 'rgba(20,10,36,0.72)'; roundRect(c, 10, 10, 96, 36, 18); c.fill();
     c.fillStyle = '#fff'; c.font = '900 14px "Noto Sans KR",sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('← 나가기', 58, 29);
     var full = S.fans.filter(function (f) { return !f.done && f.g >= 100; }).length, done = S.fans.filter(function (f) { return f.done; }).length;
     c.fillStyle = 'rgba(20,10,36,0.72)'; roundRect(c, W / 2 - 74, 10, 148, 36, 18); c.fill();
     c.fillStyle = S.timeLeft <= 10 ? '#ff7a7a' : '#fff'; c.font = '900 16px "Noto Sans KR",sans-serif';
     c.fillText('⏱ ' + Math.ceil(S.timeLeft) + '초', W / 2 - 20, 29);
-    c.fillStyle = '#ffd700'; c.fillText('🎁 ' + S.drops, W / 2 + 46, 29);
+    c.save(); c.translate(W / 2 + 46, 29); var gb = 1 + S.giftBump * 0.5; c.scale(gb, gb); c.fillStyle = S.giftBump > 0 ? '#fff6c0' : '#ffd700'; c.fillText('🎁 ' + S.drops, 0, 0); c.restore();
     c.fillStyle = 'rgba(20,10,36,0.72)'; roundRect(c, W - 126, 10, 116, 36, 18); c.fill();
-    c.fillStyle = '#ff9ccf'; c.fillText('💖 ' + full + ' · 😍 ' + done, W - 68, 29);
-    // 스킬 버튼
+    c.fillStyle = '#ff9ccf'; c.font = '900 16px "Noto Sans KR",sans-serif'; c.fillText('💖 ' + full + ' · 😍 ' + done, W - 68, 29);
     for (var i = 0; i < 3; i++) {
       var k = SKILLS[i], b = btnRect(i), cd = S.cd[i], ready = cd <= 0;
-      var canEncore = !k.finale || full > 0;
+      var canEncore = !k.finale || full > 0, lit = ready && canEncore;
       c.save();
-      c.fillStyle = 'rgba(20,10,36,0.82)'; roundRect(c, b.x, b.y, b.w, b.h, 18); c.fill();
-      c.lineWidth = ready && canEncore ? 4 : 2; c.strokeStyle = ready && canEncore ? 'rgb(' + k.rgb + ')' : 'rgba(255,255,255,0.25)'; c.stroke();
+      if (lit) { var pu = 1 + Math.sin(S.t * 6 + i) * 0.04; c.translate(b.x + b.w / 2, b.y + b.h / 2); c.scale(pu, pu); c.translate(-(b.x + b.w / 2), -(b.y + b.h / 2)); c.shadowColor = 'rgb(' + k.rgb + ')'; c.shadowBlur = 18; }
+      c.fillStyle = 'rgba(20,10,36,0.85)'; roundRect(c, b.x, b.y, b.w, b.h, 18); c.fill();
+      c.shadowBlur = 0;
+      c.lineWidth = lit ? 4 : 2; c.strokeStyle = lit ? 'rgb(' + k.rgb + ')' : 'rgba(255,255,255,0.25)'; c.stroke();
       c.font = '30px sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.globalAlpha = ready ? 1 : 0.5; c.fillText(k.icon, b.x + b.w / 2, b.y + 28);
       c.globalAlpha = 1; c.fillStyle = '#fff'; c.font = '900 10.5px "Noto Sans KR",sans-serif';
       c.fillText(k.short, b.x + b.w / 2, b.y + 58);
@@ -526,7 +796,7 @@
     var bw = Math.min(W - 24, 420), bh = 150, bx = (W - bw) / 2, by = H - bh - 30;
     c.fillStyle = 'rgba(30,14,54,0.96)'; roundRect(c, bx, by, bw, bh, 20); c.fill();
     c.lineWidth = 3; c.strokeStyle = '#f59e0b'; c.stroke();
-    drawToken(c, bx + 52, by - 6, IMGS[SEYEON_FACE], '🌟', '#f59e0b', '');
+    drawToken(c, bx + 52, by - 6, IMGS[SEYEON_FACE], '🌟', '#f59e0b', '', { glow: '255,210,110' });
     c.fillStyle = '#f59e0b'; c.font = '900 15px "Noto Sans KR",sans-serif'; c.textAlign = 'left'; c.textBaseline = 'top'; c.fillText('🌟 세연', bx + 96, by + 14);
     c.fillStyle = '#fff'; c.font = '700 15px "Noto Sans KR",sans-serif';
     wrap(c, INTRO[S.introIdx], bx + 20, by + 44, bw - 40, 22);
@@ -548,7 +818,7 @@
     S.ended = true;
     cancelAnimationFrame(S.raf);
     window.removeEventListener('resize', resize);
-    var got = S.collected.slice(), ov = S.overlay, opts = S.opts, left = S.fans.filter(function (f) { return !f.done && f.g >= 100; }).length;
+    var got = S.collected.slice(), ov = S.overlay, opts = S.opts;
     if (normal && Math.random() < STONE_DROP) {
       if (addToBag('🔹', '재조합석', 'material', 1, '카드 재조합에 필요한 재료')) { got.push('🔹 재조합석'); exploreCollected.push('🔹 재조합석'); }
     }
