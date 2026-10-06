@@ -43,6 +43,7 @@ const NEW_CONTENT_FILES = [
   'shop-coin-sync.js',
   'bond-gift.js',
   'starter-boost.js',
+  'newbie-tickets.js',
   'economy-boost.js',
   'ticket-fragment-fix.js',
   'photolab.js',

@@ -50,18 +50,18 @@
   // ── 단계 정의 (순서대로 진행) ──
   // done(): 완료 판정 / go(): [가기] 눌렀을 때 이동 / target: 홈에서 반짝일 버튼
   var STEPS = [
-    { id: 'alba', icon: '🍔', title: '알바로 첫 코인 벌기',
-      hint: '주머니가 텅 비었어요. 🍔 알바하기 → 포카버거나 카페에서 게이지가 가운데 구간에 올 때 화면을 탭!',
-      done: function () { try { return albaDone > 0 || quest('tut_alba') || story('story_04'); } catch (e) { return false; } },
-      go: function () { goTo('alba'); }, target: '.btn-alba' },
     { id: 'gacha', icon: '✨', title: '카드 1장 뽑기',
-      hint: '번 코인으로 ✨ 카드 뽑기! 카드가 있어야 아이돌이 생겨요. 코인이 모자라면 알바 한 번 더.',
+      hint: '🎟️ 뽑기권이 있어요! ✨ 카드 뽑기에서 첫 아이돌을 만나봐요. 첫 뽑기는 좋은 카드가 나와요.',
       done: function () { try { return owned.length >= 1 || quest('tut_gacha') || story('story_05'); } catch (e) { return false; } },
       go: function () { goTo('gacha'); }, target: '.btn-gacha' },
     { id: 'meet', icon: '💞', title: '아이돌 만나보기',
       hint: '아래 메뉴 💞 인연 → 뽑은 아이돌을 눌러 대화해 보세요. 선물도 줄 수 있어요.',
       done: function () { return quest('tut_meet') || story('story_06'); },
       go: function () { goTo('bond'); }, target: '#nav-bond' },
+    { id: 'alba', icon: '🍔', title: '알바로 첫 코인 벌기',
+      hint: '선물과 뽑기에 쓸 코인을 벌어봐요. 🍔 알바하기 → 포카버거나 카페에서 게이지가 가운데 구간에 올 때 화면을 탭!',
+      done: function () { try { return albaDone > 0 || quest('tut_alba') || story('story_04'); } catch (e) { return false; } },
+      go: function () { goTo('alba'); }, target: '.btn-alba' },
     { id: 'explore', icon: '🚐', title: '스케줄 나가서 재료 모으기',
       hint: '🚐 스케줄 가기 → 촬영 세트장·뷰티 살롱·공원에서 재료를 모아요. 🏕️ 워크숍 캠프에선 진짜 낚시도 할 수 있어요!',
       done: function () { return story('story_10') || !!S.flags.first_explore || hiLv() >= 3; },
