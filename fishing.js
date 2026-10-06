@@ -30,11 +30,11 @@
   // hz: 타이밍 칸 크기(클수록 쉬움) / ht: 구슬이 한 번 왕복하는 시간(초, 짧을수록 빠름)
   // pull: 힘겨루기에서 물고기가 끌어당기는 힘(클수록 힘듦)
   var SPECIES = [
-    { id: 'songsari', name: '별빛 송사리', emoji: '🐟', weight: 40, size: 20, speed: 70, price: 20,  hz: 0.30, ht: 1.8, pull: 0.06, bite: 1.4, rare: false },
-    { id: 'bungeo',   name: '은빛 붕어',   emoji: '🐟', weight: 28, size: 30, speed: 60, price: 30,  hz: 0.26, ht: 1.6, pull: 0.10, bite: 1.3, rare: false },
-    { id: 'ingeo',    name: '달빛 잉어',   emoji: '🐠', weight: 17, size: 42, speed: 52, price: 50, hz: 0.22, ht: 1.4, pull: 0.14, bite: 1.2, rare: true },
-    { id: 'goldfish', name: '꽃잎 금붕어', emoji: '🐠', weight: 10, size: 34, speed: 80, price: 90, hz: 0.18, ht: 1.2, pull: 0.17, bite: 1.1, rare: true },
-    { id: 'goldcarp', name: '황금 잉어',   emoji: '🐡', weight: 5,  size: 54, speed: 66, price: 180, hz: 0.14, ht: 1.0, pull: 0.20, bite: 1.0, rare: true }
+    { id: 'songsari', name: '별빛 송사리', emoji: '🐟', weight: 40, size: 20, speed: 70, price: 200, hz: 0.30, ht: 1.8, pull: 0.06, bite: 1.4, rare: false },
+    { id: 'bungeo',   name: '은빛 붕어',   emoji: '🐟', weight: 28, size: 30, speed: 60, price: 300, hz: 0.26, ht: 1.6, pull: 0.10, bite: 1.3, rare: false },
+    { id: 'ingeo',    name: '달빛 잉어',   emoji: '🐠', weight: 17, size: 42, speed: 52, price: 500, hz: 0.22, ht: 1.4, pull: 0.14, bite: 1.2, rare: true },
+    { id: 'goldfish', name: '꽃잎 금붕어', emoji: '🐠', weight: 10, size: 34, speed: 80, price: 900, hz: 0.18, ht: 1.2, pull: 0.17, bite: 1.1, rare: true },
+    { id: 'goldcarp', name: '황금 잉어',   emoji: '🐡', weight: 5,  size: 54, speed: 66, price: 1800, hz: 0.14, ht: 1.0, pull: 0.20, bite: 1.0, rare: true }
   ];
   // ✨ 반짝이는 곳 (기존 호수 재료가 올라옴, 타이밍만 맞추면 끝)
   var TREASURE = { id: 'treasure', name: '반짝이는 것', emoji: '✨', size: 16, speed: 8, hz: 0.40, ht: 2.0, pull: 0, bite: 2.0, treasure: true };

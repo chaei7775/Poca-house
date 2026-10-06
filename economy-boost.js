@@ -6,6 +6,7 @@
 (function economyBoost() {
   // ── 여기 숫자만 바꾸면 됨 ──
   var MATERIAL_MULT = 10;    // 재료 판매가 배수 (일반 50→500, 희귀 200→2000, 특별탐험 재료 300→3000)
+  var ALBA_MULT = 10;        // 알바(버거·카페·꽃집·청소) 보상 배수. 리듬 알바는 원래 값이 커서 그대로
   var RC_DIV = 1;            // 재조합 코인 비용을 이 숫자로 나눔 (5 = 1/5로 감소, 1 = 안 줄임)
   var RC_COIN = {            // 재조합 코인 기준 비용 (나누기 전 값). 적지 않은 단계는 원래 값 유지
     'SR_SR':    12000,       // → 2,400
@@ -36,6 +37,15 @@
     MATERIALS.forEach(function (name) {
       if (typeof MATERIAL_SELL_PRICES[name] === 'number') MATERIAL_SELL_PRICES[name] = MATERIAL_SELL_PRICES[name] * MATERIAL_MULT;
     });
+
+    // 알바 보상: 버거·카페·꽃집은 applyClothCoinBonus 를 거치므로 거기서 한 번에 곱한다
+    if (typeof window.applyClothCoinBonus === 'function' && !window.applyClothCoinBonus.__albaBoost) {
+      var origCloth = window.applyClothCoinBonus;
+      window.applyClothCoinBonus = function (amount) { return origCloth.call(this, Math.round(amount * ALBA_MULT)); };
+      window.applyClothCoinBonus.__albaBoost = true;
+    }
+    // 청소 알바: 한 번 닦을 때 받는 기본값
+    try { if (typeof CLEAN_DIFFICULTIES !== 'undefined') Object.keys(CLEAN_DIFFICULTIES).forEach(function (k) { CLEAN_DIFFICULTIES[k].hitBase = Math.round(CLEAN_DIFFICULTIES[k].hitBase * ALBA_MULT); }); } catch (err) {}
 
     // 2) 재조합 코인 비용: 기준값 적용 → 전 구간 RC_DIV로 나눔
     Object.keys(RC_COIN).forEach(function (key) {
