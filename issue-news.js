@@ -173,7 +173,6 @@
         '<div style="padding:16px 14px 14px;">' + (twist ? '<div style="font-size:11px;font-weight:900;color:#c00;margin-bottom:6px;">⚠️ 예상 밖의 전개!</div>' : '') +
         '<div style="font-size:18px;font-weight:900;line-height:1.4;margin-bottom:12px;">' + esc(fill(res, cid)) + '</div>' +
         '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;">' + cs.map(function (t) { return '<span style="font-size:11px;font-weight:900;padding:4px 8px;border-radius:10px;background:#111;color:#fff;">' + t + '</span>'; }).join('') + '</div>' +
-        '<div style="font-size:10px;color:#777;margin-bottom:10px;">📸 화면을 캡처해서 자랑해 보세요!</div>' +
         '<button id="issue-ok" style="width:100%;padding:12px;border:none;border-radius:8px;background:#111;color:#fff;font-size:14px;font-weight:900;cursor:pointer;' + FONT + '">확인</button></div></div>';
       ov.querySelector('#issue-ok').onclick = function () { ov.remove(); };
       try { if (window.pocaSfx && pocaSfx.play) pocaSfx.play(twist ? 'reward' : 'cheer'); } catch (e) {}
