@@ -275,6 +275,14 @@
   };
   GAPS.gymHit = 60;   // 연타해도 소리가 씹히지 않게 간격을 짧게
 
+  // 촬영 세트장 (set-explore.js): 소품 집을 때 '톡', 칸에 놓을 때 슬레이트처럼 '딱!'
+  SYNTH.setGrab = function () { tone(988, 0, 0.04, 'sine', 0.14); tone(1319, 0.025, 0.04, 'sine', 0.08); };
+  SYNTH.setClap = function () {
+    noise(0, 0.05, 0.45, 'highpass', 2500); tone(180, 0, 0.07, 'square', 0.22, 110);
+    tone(1319, 0.05, 0.12, 'triangle', 0.2); tone(1760, 0.1, 0.14, 'triangle', 0.16);
+  };
+  GAPS.setGrab = 50;
+
   window.pocaSfx.has = function (n) { return !!SYNTH[n]; };
 
   // 버튼/카드를 누르면 아주 작은 '톡' 소리 (이미 다른 효과음이 날 곳이라면 겹치지 않게 짧고 작음)

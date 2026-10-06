@@ -27,7 +27,7 @@
   var WISH_MAX = 3;             // 한 번에 걸 수 있는 소원의 조각 최대 개수 (성공/실패 상관없이 소모)
   var DEBUT_COIN = 2000;        // 도전할 때 내는 코인
   var DEBUT_NEED = [            // 도전할 때 내는 재료
-    { name: '고급원목', qty: 6, where: '🌲 숲' },
+    { name: '고급원목', qty: 6, where: '🎬 촬영 세트장' },
     { name: '반짝이는조개', qty: 6, where: '🏖️ 해변' },
     { name: '장미꽃', qty: 6, where: '🌸 공원' }
   ];

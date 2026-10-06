@@ -14,6 +14,7 @@ const NEW_CONTENT_FILES = [
   'qty-picker.js',
   'forest-explore.js',
   'housing-explore.js',
+  'set-explore.js',
   'beach-explore.js',
   'park-explore.js',
   'mystery-explore.js',

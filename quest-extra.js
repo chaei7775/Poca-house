@@ -47,7 +47,7 @@
   // ── 퀘스트 정의 ──  detect(): 달성 여부
   var NEW = {
     // ───── 튜토리얼 (초반 길잡이) ─────
-    tut_explore: { title:'스케줄 나가기', desc:'🚐 스케줄 가기 → 숲·해변·공원에서 재료를 모아보자. 재료는 재조합과 데뷔에 쓰여.',
+    tut_explore: { title:'스케줄 나가기', desc:'🚐 스케줄 가기 → 촬영 세트장·해변·공원에서 재료를 모아보자. 재료는 재조합과 데뷔에 쓰여.',
       condition:'q2_explore', rewardCoins:300, rewardExp:50, type:'tutorial', detect:function () { return !!F.explore; } },
     tut_fishing: { title:'호수에서 낚시', desc:'🏞️ 동쪽 호수 → 낚시하기. 물고기가 다가오면 탭해서 낚싯대를 던져봐.',
       condition:'q2_fishing', rewardCoins:300, rewardExp:50, type:'tutorial', detect:function () { return !!F.fishing; } },
@@ -68,7 +68,7 @@
     // ───── 메인: 데뷔·활동 ─────
     main_hidden: { title:'첫 히든카드', desc:'⋯ 더보기 → 🔮 카드 재조합기에서 히든카드에 도전! 실패가 쌓이면 확률이 올라가.',
       condition:'q2_hidden', rewardCoins:1000, rewardExp:150, type:'main', detect:function () { return hiddenCount() >= 1; } },
-    main_debut: { title:'첫 데뷔', desc:'맵 → 광장 → 🎤 기획사. 숲·해변·공원 재료와 코인으로 아이돌을 데뷔시켜!',
+    main_debut: { title:'첫 데뷔', desc:'맵 → 광장 → 🎤 기획사. 촬영 세트장·해변·공원 재료와 코인으로 아이돌을 데뷔시켜!',
       condition:'q2_debut', rewardCoins:1500, rewardExp:200, type:'main', detect:function () { return debutCount() >= 1; } },
     main_cf: { title:'CF 촬영', desc:'맵 → 광장 → 🎬 CF 촬영. 매일 새 의뢰가 올라와. 포스터가 쌓이면 팬들이 반응해.',
       condition:'q2_cf', rewardCoins:1000, rewardExp:150, type:'main', detect:function () { return posterCount() >= 1; } },
