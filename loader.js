@@ -61,6 +61,7 @@ const NEW_CONTENT_FILES = [
   'quest-concert.js',
   'quest-boost.js',
   'invest.js',
+  'stamina-fix.js',
   'square-explore.js',
   'daily-quest.js',
   'trade.js',
