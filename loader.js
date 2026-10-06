@@ -30,6 +30,7 @@ const NEW_CONTENT_FILES = [
   'ticket-popup.js',
   'fancafe.js',
   'live.js',
+  'rising.js',
   'enhance.js',
   'fan-skills.js',
   'cloud-extra.js',
