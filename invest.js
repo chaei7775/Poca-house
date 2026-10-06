@@ -41,8 +41,9 @@
   // chance: 일반 투자 대박(minRatio 이상)일 때 나올 확률 (0 이면 오디션에서만)
   var LIMITED = [
     { id: 'ace',  name: '한정판 챔피언', real: '지민', sub: '코트 위의 에이스', img: 'limited-ace.jpg', minRatio: 1.45, chance: 0.12, aud: true },
-    { id: 'star', name: '한정판 스타',   real: '이안', sub: '무대 위의 천재',   img: 'limited-b.jpg',   minRatio: 99,   chance: 0,    aud: true },
-    { id: 'song', name: '한정판 보컬',   real: '서율', sub: '노래하는 별',     img: 'limited-c.jpg',   minRatio: 99,   chance: 0,    aud: true }
+    { id: 'luna', name: '한정판 루나', real: '루나', sub: '무대를 찢는 록 보컬', img: 'limited-luna.jpg', minRatio: 99, chance: 0, aud: true },
+    { id: 'taeo', name: '한정판 태오', real: '태오', sub: '스트릿의 댄스 킹',   img: 'limited-taeo.jpg', minRatio: 99, chance: 0, aud: true },
+    { id: 'pri',  name: '한정판 프리', real: '프리', sub: '벚꽃빛 요정 보컬',   img: 'limited-pri.jpg',  minRatio: 99, chance: 0, aud: true }
   ];
   var LIM_KEY = 'ph_invest_limited';
   function limLoad() { try { var d = JSON.parse(localStorage.getItem(LIM_KEY) || '{}'); return d && typeof d === 'object' ? d : {}; } catch (e) { return {}; } }
