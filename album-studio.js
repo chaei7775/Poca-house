@@ -181,7 +181,7 @@
           '<div style="position:absolute;inset:88px;border-radius:50%;background:#140c10;"></div></div>' +
         '<div style="font-size:23px;font-weight:900;color:#fff;line-height:1.35;text-shadow:0 0 18px ' + accent + ';">〈' + esc(r.title) + '〉</div>' +
         '<div style="margin-top:8px;display:inline-block;padding:5px 14px;border-radius:20px;background:rgba(255,255,255,.12);border:1px solid ' + accent + ';font-size:13px;font-weight:900;color:' + accent + ';">' + r.tier.name + ' · ' + esc(r.genre.name) + '</div>' +
-        (r.isNew ? '<div style="margin-top:14px;font-size:14px;font-weight:900;color:#ffe2bd;">✨ 작곡노트에 새로 등록!</div><div style="font-size:12px;color:#d9c3ae;margin-top:2px;">📒 ' + cnt + ' / 30칸 완성</div>' : '<div style="margin-top:14px;font-size:12px;color:#d9c3ae;">이미 노트에 있는 곡이에요 · 앨범만 가방에 들어왔어요</div>') +
+        (r.isNew ? '<div style="margin-top:14px;font-size:14px;font-weight:900;color:#ffe2bd;">✨ 작곡노트에 새로 등록!</div><div style="font-size:12px;color:#d9c3ae;margin-top:2px;">📒 ' + cnt + ' / ' + (GENRES.length * TIERS.length) + '칸 완성</div>' : '<div style="margin-top:14px;font-size:12px;color:#d9c3ae;">이미 노트에 있는 곡이에요 · 앨범만 가방에 들어왔어요</div>') +
         '<div style="margin-top:10px;font-size:12px;color:#d9c3ae;">💰 판매가 🍔 ' + price.toLocaleString() + '</div>' +
         '<button id="cp-release-ok" style="margin-top:20px;width:100%;padding:14px;border:none;border-radius:14px;font-size:15px;font-weight:900;font-family:inherit;color:#2a1208;cursor:pointer;background:linear-gradient(135deg,#ffd9a0,#ff9ec4);">좋아요!</button>' +
       '</div>';
@@ -238,7 +238,7 @@
     document.body.appendChild(ov);
     render();
   }
-  function close() { var o = document.getElementById(ROOT); if (o) o.remove(); ST = null; }
+  function close() { var o = document.getElementById(ROOT); if (o) o.remove(); var pp = document.getElementById('compose-pop'); if (pp) pp.remove(); ST = null; }
 
   function render() {
     var body = document.getElementById('compose-body'); if (!body || !ST) return;
@@ -257,51 +257,72 @@
     bindMake(); bindSell(); bindNote(); bindRoy();
   }
 
-  // 🎼 작곡 탭
+  // 🎼 작곡 탭 — 작곡하기를 누르면 팝업이 뜬다 (위: 재료 슬롯 칸 / 아래: 재료 가방 → 터치하면 슬롯에 들어감 → 확인)
   function selIds() { return Object.keys(ST.sel).filter(function (k) { return ST.sel[k]; }); }
   function makeHtml() {
-    var ids = selIds(), n = ids.length, tier = null;
-    var cats = [['note', '🎵 음표'], ['inst', '🎸 악기'], ['score', '🎼 악보'], ['gear', '🎚️ 장비'], ['lyric', '📝 가사 · 💡 영감']];
-    var h = '<div style="font-size:12px;color:#e6d6c4;line-height:1.55;margin-bottom:10px;">재료 종류를 골라 곡을 만들어요 (최대 ' + MAX_KINDS + '종류). 곡마다 <b>정해진 조합</b>이 있어요. 📒 작곡노트의 단서를 보고 찾아봐요. 실패해도 재료는 안 사라져요!<br><span style="color:#8fd3ff;font-size:11px;">📍 재료는 🎹 작곡 스튜디오 탐험에서 모아요</span></div>';
-    cats.forEach(function (c) {
-      var list = kinds().filter(function (k) { return c[0] === 'lyric' ? (k.cat === 'lyric' || k.cat === 'spark') : k.cat === c[0]; });
-      h += '<div style="font-size:11px;font-weight:900;color:#ffd9a8;margin:8px 0 5px;">' + c[1] + '</div><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:7px;">';
-      list.forEach(function (k) {
-        var q = qtyOf(k.name, bag()), on = !!ST.sel[k.id], need = tier ? needFor(k, tier) : null, short = on && need && q < need;
-        h += '<div data-k="' + k.id + '" style="cursor:pointer;background:' + (on ? 'rgba(255,184,107,.28)' : 'rgba(255,255,255,.08)') + ';border:2px solid ' + (short ? '#f87171' : on ? ACC : 'rgba(255,255,255,.14)') + ';border-radius:12px;padding:8px 4px;text-align:center;opacity:' + (q || on ? 1 : .55) + ';">' +
-          '<div style="font-size:22px;color:#fff;">' + k.emoji + '</div><div style="font-size:11px;font-weight:900;color:#fff;margin-top:2px;">' + k.name + '</div>' +
-          '<div style="font-size:11px;font-weight:900;color:' + (short ? '#fca5a5' : '#c9d6ff') + ';">' + (on && need ? q + ' / ' + need : '보유 ' + q) + '</div></div>';
-      });
-      h += '</div>';
-    });
-    var info = n === 0 ? '재료 종류를 골라보세요' : '이 조합으로 곡이 될까요?';
-    h += '<div style="position:sticky;bottom:0;margin:12px -12px -18px;padding:10px 12px 14px;background:linear-gradient(180deg,rgba(20,12,8,0),rgba(20,12,8,.95) 30%);">' +
-      '<div style="display:flex;justify-content:space-between;font-size:12px;font-weight:900;color:#fff;margin-bottom:7px;"><span>선택 ' + n + '/' + MAX_KINDS + '종류</span><span style="color:#ffd9a8;">' + info + '</span></div>' +
-      '<div style="display:flex;gap:8px;"><button id="cp-clear" style="padding:13px 14px;border:none;border-radius:12px;background:rgba(255,255,255,.14);color:#fff;font-size:13px;font-weight:900;font-family:inherit;cursor:pointer;">비우기</button>' +
-      '<button id="cp-go" style="flex:1;padding:13px;border:none;border-radius:12px;background:' + (n ? 'linear-gradient(135deg,#ffb86b,#ff6fb1)' : '#555') + ';color:#fff;font-size:15px;font-weight:900;font-family:inherit;cursor:pointer;">🎶 작곡하기</button></div></div>';
-    return h;
+    var have = kinds().filter(function (k) { return qtyOf(k.name, bag()) > 0; }).length;
+    return '<div style="font-size:12px;color:#e6d6c4;line-height:1.6;margin-bottom:12px;">재료 종류를 골라 곡을 만들어요. 곡마다 <b>정해진 조합</b>이 있어요. 📒 작곡노트의 단서를 보고 찾아봐요. 실패해도 재료는 안 사라져요!<br><span style="color:#ffd9a8;">📍 재료는 🎹 작곡 스튜디오 탐험에서 모아요</span></div>' +
+      '<div style="background:rgba(255,255,255,.08);border:1.5px solid rgba(255,184,107,.4);border-radius:16px;padding:18px 14px;text-align:center;">' +
+        '<div style="font-size:40px;">🎼</div>' +
+        '<div style="font-size:13px;color:#fff;font-weight:900;margin:6px 0 2px;">가지고 있는 재료 ' + have + '/' + kinds().length + '종류</div>' +
+        '<div style="font-size:11px;color:#c9b8a6;margin-bottom:12px;">슬롯 ' + MAX_KINDS + '칸 · 재료를 눌러 넣고 확인!</div>' +
+        '<button id="cp-open" style="width:100%;padding:14px;border:none;border-radius:13px;background:linear-gradient(135deg,#ffb86b,#ff6fb1);color:#fff;font-size:16px;font-weight:900;font-family:inherit;cursor:pointer;">🎶 작곡하기</button></div>';
   }
   function bindMake() {
-    Array.prototype.forEach.call(document.querySelectorAll('[data-k]'), function (el) {
-      el.onclick = function () {
+    var o = document.getElementById('cp-open'); if (o) o.onclick = function () { ST.sel = {}; openPop(); };
+  }
+  // ── 작곡 팝업 ──
+  var POP = 'compose-pop';
+  function closePop() { var e = document.getElementById(POP); if (e) e.remove(); }
+  function openPop() { closePop(); var pop = document.createElement('div'); pop.id = POP; pop.setAttribute('data-msg', ''); pop.style.cssText = 'position:fixed;inset:0;z-index:1000;background:rgba(6,3,2,.82);display:flex;align-items:flex-end;justify-content:center;font-family:\'Noto Sans KR\',sans-serif;'; document.body.appendChild(pop); renderPop(); }
+  function renderPop() {
+    var pop = document.getElementById(POP); if (!pop || !ST) return;
+    var ids = selIds(), n = ids.length, msg = pop.getAttribute('data-msg') || '';
+    var slots = '';
+    for (var i = 0; i < MAX_KINDS; i++) {
+      var k = ids[i] ? kindById(ids[i]) : null;
+      slots += k
+        ? '<div data-slot="' + k.id + '" style="cursor:pointer;height:60px;border-radius:12px;background:rgba(255,184,107,.28);border:2px solid ' + ACC + ';display:flex;flex-direction:column;align-items:center;justify-content:center;"><div style="font-size:22px;line-height:1.1;">' + k.emoji + '</div><div style="font-size:10px;font-weight:900;color:#fff;margin-top:2px;">' + k.name + '</div></div>'
+        : '<div style="height:60px;border-radius:12px;background:rgba(255,255,255,.05);border:2px dashed rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.25);font-size:18px;">' + (i + 1) + '</div>';
+    }
+    var tray = kinds().map(function (k) {
+      var q = qtyOf(k.name, bag()), on = !!ST.sel[k.id];
+      return '<div data-k="' + k.id + '" style="cursor:pointer;position:relative;padding:7px 2px 5px;border-radius:11px;text-align:center;background:' + (on ? 'rgba(255,184,107,.25)' : 'rgba(255,255,255,.1)') + ';border:2px solid ' + (on ? ACC : 'rgba(255,255,255,.14)') + ';opacity:' + (q || on ? 1 : .4) + ';">' +
+        '<div style="font-size:21px;line-height:1.1;">' + k.emoji + '</div><div style="font-size:9.5px;font-weight:900;color:#fff;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + k.name + '</div>' +
+        '<div style="font-size:10px;font-weight:900;color:#c9d6ff;">×' + q + '</div>' + (on ? '<div style="position:absolute;top:2px;right:4px;font-size:10px;color:' + ACC + ';">✔</div>' : '') + '</div>';
+    }).join('');
+    pop.innerHTML = '<div style="width:100%;max-width:430px;max-height:96vh;display:flex;flex-direction:column;background:linear-gradient(180deg,#2a1a12,#150c08);border:2px solid ' + ACC + ';border-bottom:none;border-radius:22px 22px 0 0;padding:14px 12px 12px;">' +
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;"><div style="font-size:16px;font-weight:900;color:#fff;">🎼 작곡</div><div style="font-size:12px;font-weight:900;color:#ffd9a8;">선택 ' + n + '/' + MAX_KINDS + '</div><button id="cp-pop-x" style="background:none;border:none;color:#fff;font-size:20px;cursor:pointer;">✕</button></div>' +
+      '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:8px;">' + slots + '</div>' +
+      (msg ? '<div style="background:rgba(248,113,113,.18);border:1px solid #f87171;border-radius:10px;padding:8px 10px;font-size:12px;color:#fff;line-height:1.55;margin-bottom:8px;">' + msg + '</div>' : '<div style="font-size:11px;color:#c9b8a6;text-align:center;margin-bottom:8px;">아래 재료 가방에서 재료를 눌러 슬롯에 넣어요 · 슬롯을 누르면 빼요</div>') +
+      '<div style="font-size:11px;font-weight:900;color:#ffd9a8;margin-bottom:5px;">🎒 재료 가방</div>' +
+      '<div style="overflow-y:auto;-webkit-overflow-scrolling:touch;display:grid;grid-template-columns:repeat(5,1fr);gap:6px;padding-bottom:4px;max-height:34vh;">' + tray + '</div>' +
+      '<div style="display:flex;gap:8px;margin-top:10px;"><button id="cp-pop-clear" style="padding:13px 14px;border:none;border-radius:12px;background:rgba(255,255,255,.14);color:#fff;font-size:13px;font-weight:900;font-family:inherit;cursor:pointer;">비우기</button>' +
+      '<button id="cp-pop-go" style="flex:1;padding:13px;border:none;border-radius:12px;background:' + (n ? 'linear-gradient(135deg,#ffb86b,#ff6fb1)' : '#555') + ';color:#fff;font-size:15px;font-weight:900;font-family:inherit;cursor:pointer;">✅ 확인</button></div></div>';
+    var keep = function (fn) { return function () { var sc = pop.querySelector('[style*="overflow-y:auto"]'), top = sc ? sc.scrollTop : 0; fn.apply(this, arguments); var sc2 = pop.querySelector('[style*="overflow-y:auto"]'); if (sc2) sc2.scrollTop = top; }; };
+    document.getElementById('cp-pop-x').onclick = closePop;
+    Array.prototype.forEach.call(pop.querySelectorAll('[data-k]'), function (el) {
+      el.onclick = keep(function () {
         var id = el.getAttribute('data-k');
         if (ST.sel[id]) delete ST.sel[id];
         else if (selIds().length >= MAX_KINDS) { toast('재료는 최대 ' + MAX_KINDS + '종류까지예요'); return; }
         else ST.sel[id] = true;
-        ST.msg = ''; var sc = document.getElementById('cp-main'), top = sc ? sc.scrollTop : 0; render(); sc = document.getElementById('cp-main'); if (sc) sc.scrollTop = top;
-      };
+        pop.setAttribute('data-msg', ''); renderPop();
+      });
     });
-    var clr = document.getElementById('cp-clear'); if (clr) clr.onclick = function () { ST.sel = {}; ST.msg = ''; render(); };
-    var go = document.getElementById('cp-go');
-    if (go) go.onclick = function () {
-      var ids = selIds();
-      if (!ids.length) { toast('재료 종류를 먼저 골라주세요'); return; }
-      var r = compose(ids);
+    Array.prototype.forEach.call(pop.querySelectorAll('[data-slot]'), function (el) {
+      el.onclick = function () { delete ST.sel[el.getAttribute('data-slot')]; pop.setAttribute('data-msg', ''); renderPop(); };
+    });
+    document.getElementById('cp-pop-clear').onclick = function () { ST.sel = {}; pop.setAttribute('data-msg', ''); renderPop(); };
+    document.getElementById('cp-pop-go').onclick = function () {
+      var sel = selIds();
+      if (!sel.length) { toast('재료를 먼저 슬롯에 넣어주세요'); return; }
+      var r = compose(sel);
       if (r.ok) {
-        sfx('reward'); ST.sel = {}; try { releasePopup(r); } catch (e) {}
+        sfx('reward'); ST.sel = {}; closePop(); try { releasePopup(r); } catch (e) {}
         ST.msg = '🎶 〈' + esc(r.title) + '〉 발매! ' + r.tier.emoji + ' ' + r.tier.name + ' · 장르 <b>' + r.genre.name + '</b>' + (r.isNew ? '<br>✨ 작곡노트에 새로 등록됐어요!' : '<br>이미 노트에 있는 곡이에요 (앨범은 가방에 들어왔어요)');
-      } else { sfx('concertDrop'); ST.msg = '❌ ' + r.reason; }
-      render();
+        render();
+      } else { sfx('concertDrop'); pop.setAttribute('data-msg', '❌ ' + r.reason); renderPop(); }
     };
   }
 
