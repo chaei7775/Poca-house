@@ -25,10 +25,10 @@
   var BASE_HP = 135, HP_PER_LV = 3;          // 최대 HP = BASE + (플레이어 레벨 - 10) × HP_PER_LV
   var DMG_PER_LV = 0.04;           // 스킬 위력: 1 + (플레이어 레벨 - 10) × 이 값
   var HIT_COOLDOWN = 0.5;          // 한 번 맞고 나서 무적 시간(초)
-  // 보상 (한 판 전부 성공했을 때 대략: 코인 4~5천, 경험치 수백, 조각 0~2개)
-  var COIN_PER_FAN = 16;           // 팬 1명 응대 코인 (웨이브가 높을수록 조금씩 늘어남)
-  var EXP_PER_FAN = 3;             // 팬 1명 응대 카드 경험치
-  var BOSS_COIN = 2000, BOSS_EXP = 300;
+  // 보상 (한 판 전부 성공했을 때 대략: 코인 약 10만, 경험치 약 2천, 조각 0~2개)
+  var COIN_PER_FAN = 250;          // 팬 1명 응대 코인 (웨이브가 높을수록 조금씩 늘어남)
+  var EXP_PER_FAN = 8;             // 팬 1명 응대 카드 경험치
+  var BOSS_COIN = 40000, BOSS_EXP = 800;
   var BOSS_PIECE_CHANCE = 0.7;     // 보스를 응대했을 때 🖼️ 프리미엄 조각 +1 확률
   var BOSS_PIECE_BONUS = 0.25;     // 거기에 한 번 더(+1) 줄 확률
   var BOSS_STONE_CHANCE = 0.15;    // 보스 응대 시 강화석 +1 확률
