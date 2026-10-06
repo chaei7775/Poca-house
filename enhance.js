@@ -517,7 +517,7 @@
     if (original.__enhanceWrapped) return;
     var wrapped = function () {
       if (typeof stamina !== 'undefined') {
-        if (stamina < SPECIAL_STAMINA) { toast('스태미나가 부족해요! ⚡ 음료를 마셔봐요 (특별탐험은 ' + SPECIAL_STAMINA + ' 필요)'); return; }
+        if (stamina < SPECIAL_STAMINA) { toast('스태미나가 부족해요! ⚡ 음료를 마셔봐요 (팬덤 원정은 ' + SPECIAL_STAMINA + ' 필요)'); return; }
         stamina -= SPECIAL_STAMINA;
         if (typeof saveStamina === 'function') saveStamina();
       }
