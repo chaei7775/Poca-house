@@ -4,6 +4,8 @@
 // 위에서 내려다보는 큰 콘서트장을 돌아다니며(화면이 플레이어를 따라감) 관객석 팬들의 하트 게이지를 채우고,
 // 마지막에 "앵콜 폭죽"으로 하트가 가득 찬 팬들이 재료를 터뜨리게 하는 파밍. 튜토리얼 전용이라 스태미나는 안 든다.
 //
+// 시작 전에 세연이 "같이 무대에 설 포카를 골라봐!" 하고 가지고 있는 카드(등급 무관) 중 한 장을 고르게 한다.
+//   고른 카드의 멤버 얼굴(face-멤버.png)이 걸어 다닌다. startConcertFarm({ charId: 'yuna' }) 로 미리 정해 주면 고르기를 건너뜀.
 // 조작: 화면을 누르거나 끌면 그쪽으로 걸어간다. 아래 스킬 버튼 3개를 누르면 범위 안 팬들의 하트가 찬다.
 //   🎤 하이라이트 부르기 : 내 주변(작은 범위) 하트 +50
 //   💖 윙크 샤워         : 넓은 범위 하트 +30
@@ -32,7 +34,7 @@
   var BG_FILE = 'map-concert.png';
   var SEYEON_FACE = 'face-seyeon.png';
   var FAN_FILES = ['fan-1.png', 'fan-2.png', 'fan-3.png', 'fan-4.png', 'fan-5.png', 'fan-6.png', 'fan-7.png', 'fan-8.png'];
-  var START = { x: 520, y: 1760 };
+  var START = { x: 520, y: 1600 };
   var STAGE = { x0: 120, x1: 880, y0: 40, y1: 400 };
   // 관객석: 왼쪽/오른쪽 블록, 가운데는 통로
   var BLOCK_X = [[140, 240, 340], [660, 760, 860]];
@@ -46,8 +48,10 @@
   var INTRO = [
     '어? 연습생이네! 오늘 내 무대 같이 볼래? 따라와!',
     '객석 위에 하트 게이지가 보이지? 스킬로 팬들의 하트를 가득 채워봐.',
-    '하트가 가득 찬 팬들은 ✨앵콜 폭죽으로 선물을 터뜨려 줘! 화면을 눌러서 움직이고, 아래 스킬을 써봐!'
+    '하트가 가득 찬 팬들은 ✨앵콜 폭죽으로 선물을 터뜨려 줘! 화면을 눌러서 움직이고, 아래 스킬을 써봐!',
+    '자, 같이 무대에 설 포카를 골라봐! 누가 좋을까?'
   ];
+  var PICK_COLORS = { N: '#9ca3af', R: '#60a5fa', SR: '#a78bfa', SSR: '#f472b6', UR: '#fbbf24' };
   var CHEERS = ['좋아, 더 크게!', '팬들 반응 봐!', '그렇지!', '앵콜 타이밍!', '오늘 무대 최고야!', '조금만 더!'];
 
   // ════════ 순수 로직 (화면 없이도 테스트 가능) ════════
@@ -137,6 +141,7 @@
     S = {
       opts: opts, overlay: overlay, canvas: canvas, ctx: canvas.getContext('2d'),
       W: 0, H: 0, dpr: 1, s: 1,
+      charId: opts.charId || null, faceFile: null, charName: '나',
       fans: makeFans(), px: START.x, py: START.y, tx: START.x, ty: START.y, moving: false,
       nx: START.x - 70, ny: START.y + 20,                       // 세연
       camX: START.x, camY: START.y,
@@ -194,12 +199,58 @@
   }
   function setTarget(p) {
     var w = toWorld(p[0], p[1]);
-    S.tx = clamp(w[0], 40, WORLD_W - 40); S.ty = clamp(w[1], STAGE.y1 + 40, WORLD_H - 40);
+    S.tx = clamp(w[0], 40, WORLD_W - 40); S.ty = clamp(w[1], STAGE.y1 + 40, WORLD_H - 260);
     S.moving = true;
   }
   function advanceIntro() {
     S.introIdx++;
-    if (S.introIdx >= INTRO.length) { S.phase = 'play'; showBanner('🎪 무대 시작!', '255,205,90'); sfx('cheer'); }
+    if (S.introIdx >= INTRO.length - 1 && S.charId) { beginPlay(); return; }          // 이미 정해져 있으면 고르기 생략
+    if (S.introIdx >= INTRO.length) openPicker();
+  }
+  function beginPlay() {
+    if (S.charId) {
+      S.faceFile = 'face-' + S.charId + '.png'; loadImg(S.faceFile);
+      S.charName = (typeof CHARS !== 'undefined' && CHARS[S.charId]) ? CHARS[S.charId].name : '나';
+    }
+    S.phase = 'play'; showBanner('🎪 무대 시작!', '255,205,90'); sfx('cheer');
+  }
+
+  // 가지고 있는 카드 중에서 같이 갈 한 장 고르기 (등급 상관 없음, 얼굴은 그 멤버의 얼굴 이미지를 재활용)
+  var FACE_CHARS = ['minjun', 'sion', 'doyun', 'harin', 'yuna', 'ara'];
+  var GRADE_RANK = { N: 0, R: 1, SR: 2, SSR: 3, UR: 4, '레어히든': 5, '에픽히든': 6 };
+  function ownedCardList() {
+    var out = [];
+    try {
+      if (typeof CARDS !== 'undefined' && typeof owned !== 'undefined') CARDS.forEach(function (c) { if (owned.indexOf(c.id) >= 0 && FACE_CHARS.indexOf(c.charId) >= 0) out.push({ id: c.id, charId: c.charId, name: c.name, grade: c.grade, img: c.img }); });
+      if (typeof HIDDEN_CARDS !== 'undefined' && typeof ownedHiddenCards !== 'undefined') HIDDEN_CARDS.forEach(function (h) { if (ownedHiddenCards.indexOf(h.id) >= 0 && FACE_CHARS.indexOf(h.charId) >= 0) out.push({ id: h.id, charId: h.charId, name: h.name, grade: h.grade, img: h.img }); });
+    } catch (e) {}
+    out.sort(function (a, b) { return (GRADE_RANK[b.grade] || 0) - (GRADE_RANK[a.grade] || 0); });
+    return out;
+  }
+  function openPicker() {
+    var list = ownedCardList();
+    if (!list.length) { S.charId = 'yuna'; beginPlay(); return; }                 // 카드가 하나도 없으면 임시로 윤아
+    S.phase = 'pick';
+    var box = document.createElement('div');
+    box.id = 'concert-pick';
+    box.style.cssText = 'position:absolute;inset:0;z-index:5;background:rgba(10,5,20,0.88);overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y;font-family:\'Noto Sans KR\',sans-serif;padding:16px 14px 30px;';
+    box.innerHTML = '<div style="text-align:center;color:#f59e0b;font-weight:900;font-size:16px;margin:6px 0 4px;">🌟 같이 무대에 설 포카를 골라요!</div>' +
+      '<div style="text-align:center;color:#ddd;font-size:12px;margin-bottom:14px;">가지고 있는 카드라면 어떤 등급이든 괜찮아요</div>' +
+      '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;">' + list.map(function (c, i) {
+        var col = PICK_COLORS[c.grade] || '#f59e0b';
+        return '<div data-i="' + i + '" style="cursor:pointer;background:rgba(255,255,255,0.06);border:2px solid ' + col + ';border-radius:12px;overflow:hidden;">' +
+          '<div style="aspect-ratio:3/4;background:#222;"><img src="' + c.img + '" style="width:100%;height:100%;object-fit:cover;display:block;"></div>' +
+          '<div style="padding:5px 4px;text-align:center;font-size:11px;font-weight:900;color:#fff;line-height:1.3;">' + c.name + '</div></div>';
+      }).join('') + '</div>';
+    box.addEventListener('pointerdown', function (e) { e.stopPropagation(); });
+    S.overlay.appendChild(box);
+    Array.prototype.forEach.call(box.querySelectorAll('[data-i]'), function (el) {
+      el.onclick = function () {
+        var c = list[Number(el.getAttribute('data-i'))];
+        if (!c || !S || S.phase !== 'pick') return;
+        S.charId = c.charId; box.remove(); beginPlay();
+      };
+    });
   }
 
   // ── 스킬 ──
@@ -407,7 +458,7 @@
     });
     // 세연 / 플레이어 (아래에 있는 쪽이 앞)
     var toks = [{ y: S.ny, f: function () { drawToken(c, S.nx, S.ny, IMGS[SEYEON_FACE], '🌟', '#f59e0b', '세연'); if (S.bubble) bubble(c, S.nx, S.ny - 48, S.bubble); } },
-                { y: S.py, f: function () { drawToken(c, S.px, S.py, null, '🙋', '#ec4899', '나'); } }].sort(function (a, b) { return a.y - b.y; });
+                { y: S.py, f: function () { drawToken(c, S.px, S.py, S.faceFile ? IMGS[S.faceFile] : null, '🙋', '#ec4899', S.charName); } }].sort(function (a, b) { return a.y - b.y; });
     toks.forEach(function (t) { t.f(); });
     // 파티클
     S.parts.forEach(function (q) {
@@ -432,6 +483,7 @@
       outlined(c, b.text, 0, 0, bs, '#fff', 'rgba(' + b.rgb + ',0.95)'); c.restore();
     }
     if (S.phase === 'intro') drawIntro(c);
+    if (S.phase === 'pick') { c.fillStyle = 'rgba(10,5,20,0.55)'; c.fillRect(0, 0, W, H); }
   }
 
   function bubble(c, x, y, text) {
@@ -479,7 +531,7 @@
     c.fillStyle = '#fff'; c.font = '700 15px "Noto Sans KR",sans-serif';
     wrap(c, INTRO[S.introIdx], bx + 20, by + 44, bw - 40, 22);
     c.fillStyle = 'rgba(255,255,255,' + (0.5 + Math.sin(S.t * 5) * 0.3).toFixed(2) + ')'; c.font = '700 12px "Noto Sans KR",sans-serif'; c.textAlign = 'right';
-    c.fillText('눌러서 계속 ▶ ' + (S.introIdx + 1) + '/' + INTRO.length, bx + bw - 16, by + bh - 22);
+    c.fillText('눌러서 계속 ▶ ' + (S.introIdx + 1) + '/' + (S.charId ? INTRO.length - 1 : INTRO.length), bx + bw - 16, by + bh - 22);
   }
   function wrap(c, text, x, y, maxW, lh) {
     var line = '', ly = y; c.textAlign = 'left';
