@@ -323,7 +323,7 @@ function openSpecialCardSelect(locationId) {
         const eq = getEquippedGearFor(cid);
         return '<div style="position:relative;">' +
           '<button onclick="startSpecialExplore(\'' + locationId + '\',\'' + cid + '\')" style="width:100%;display:flex;flex-direction:column;align-items:center;gap:6px;padding:14px 8px;background:rgba(255,255,255,0.06);border:1.5px solid ' + ch.gradeColor + ';border-radius:14px;color:#fff;cursor:pointer;font-family:\'Noto Sans KR\',sans-serif;">' +
-          '<span style="font-size:28px;">' + ch.emoji + '</span><span style="font-size:13px;font-weight:900;">' + ch.name + '</span></button>' +
+          (cid === 'seyeon_trial' ? '<img src="face-seyeon.png" style="width:44px;height:44px;border-radius:50%;object-fit:cover;background:#fff;" onerror="this.outerHTML=\'<span style=font-size:28px>🌟</span>\'">' : '<span style="font-size:28px;">' + ch.emoji + '</span>') + '<span style="font-size:13px;font-weight:900;">' + ch.name + '</span></button>' +
           '<button onclick="event.stopPropagation();openGearEquipScreen(\'' + cid + '\')" style="position:absolute;top:-6px;right:-6px;width:24px;height:24px;border-radius:50%;background:' + (eq ? '#FFD700' : '#444') + ';border:1.5px solid #1a1a2e;font-size:12px;cursor:pointer;">' + (eq ? eq.emoji : '🎽') + '</button>' +
           '</div>';
       }).join('') +

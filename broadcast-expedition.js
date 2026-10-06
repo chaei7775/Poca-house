@@ -77,7 +77,8 @@
   var BUST = '?v=' + Date.now();   // 이미지를 올리기 전에 한 번 404가 났어도 옛 결과가 캐시에서 안 나오게
   var FACE_FILES = {      // 걸어다니는 얼굴 이미지 (repo 맨 위 폴더에 올리면 자동 적용)
     minjun: 'face-minjun.png', sion: 'face-sion.png', doyun: 'face-doyun.png',
-    harin: 'face-harin.png', yuna: 'face-yuna.png', ara: 'face-ara.png'
+    harin: 'face-harin.png', yuna: 'face-yuna.png', ara: 'face-ara.png',
+    seyeon: 'face-seyeon.png'     // 🎟️ 세연(체험용 히든카드)
   };
   var FACE_POS = '50% 14%', FACE_ZOOM = '250%';           // 얼굴 동그라미에 카드 이미지를 어떻게 잘라 보여줄지
 
@@ -530,6 +531,11 @@
     var el = $('bc-stam');
     var ef = $('bc-eff');
     if (ef && S) {
+      var gearLine = '';
+      try {
+        var gq = (typeof getEquippedGearFor === 'function') ? getEquippedGearFor(S.charId) : null;
+        if (gq) gearLine = gq.emoji + ' ' + gq.baseName + (gq.value ? ' +' + gq.value + (gq.effect === 'retry' ? '회' : '%') : '');
+      } catch (e) {}
       var pb = (typeof window.getPremiumBonus === 'function') ? (window.getEquippedPremiumBonus ? window.getEquippedPremiumBonus() : null) : null;
       if (MAP.encore) {
         var hasEng = Object.keys(engAll()).some(function (k) { return k !== 'cheer' && Number(engAll()[k]); });
@@ -537,7 +543,10 @@
         ef.textContent = '🎤 ' + Math.min(S.done || 0, ENCORE_N) + '/' + ENCORE_N + (hasEng ? ' · ✨현상 효과' : '');
       } else if (pb && MAP.pieces) {
         ef.style.display = 'block';
-        ef.innerHTML = '💎 Lv.' + pb.lv + ' · 📸 +' + (pb.skill * 100).toFixed(1).replace('.0', '') + '%p · 🎬 ' + Math.round(pb.extra * 100) + '%' + (window.getPremiumEquipLines ? window.getPremiumEquipLines().map(function (t) { return '<br>' + t; }).join('') : '');
+        ef.innerHTML = '💎 Lv.' + pb.lv + ' · 📸 +' + (pb.skill * 100).toFixed(1).replace('.0', '') + '%p · 🎬 ' + Math.round(pb.extra * 100) + '%' + (window.getPremiumEquipLines ? window.getPremiumEquipLines().map(function (t) { return '<br>' + t; }).join('') : '') + (gearLine ? '<br>' + gearLine : '');
+      } else if (gearLine) {
+        ef.style.display = 'block';
+        ef.innerHTML = gearLine;
       } else ef.style.display = 'none';
     }
     if (el && typeof stamina !== 'undefined') el.textContent = '⚡ ' + stamina + '/' + (typeof STAMINA_MAX !== 'undefined' ? STAMINA_MAX : '') + ' · 이벤트 ⚡' + staminaCost();
@@ -1202,6 +1211,7 @@
     var overlay = $('special-overlay');
     if (!overlay) return;
     var ch = (typeof CHARS !== 'undefined' && CHARS[charId]) ? CHARS[charId] : { name: '', img: '', gradeColor: '#fff', emoji: '🎬' };
+    if (charId === 'seyeon_trial') ch = { id: 'seyeon', name: '세연', img: IMG_BASE + 'hidden-seyeon-trial.jpg' + BUST, gradeColor: '#F59E0B', emoji: '🌟' };
     try { specialExploreState = { locationId: MAP.id, charId: charId, creature: null, foodChosen: null }; } catch (e) {}
     if (S && S.raf) cancelAnimationFrame(S.raf);
     injectStyle();
