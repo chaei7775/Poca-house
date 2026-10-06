@@ -92,7 +92,19 @@
   var API = function () { return window.__fanSkillsAPI || null; };
   function skillOpen(s) { var a = API(); return a ? plv() >= (a.SKILLS.filter(function (x) { return x.id === s.id; })[0] || { useLv: s.unlock }).useLv : plv() >= s.unlock; }
   function skillOwned(s) { var a = API(); return !a || !G || a.hasSkill(G.charId, s.id); }
-  function loadoutIds() { var a = API(); return a ? a.loadout() : ['sign', 'photo', null, null, null]; }
+  // 한 판 동안만: 장착한 단일 스킬이 3개 미만이면, 빈 슬롯에 배운 기본 스킬(사인·사진·악수·하트)을 자동으로 채워서 팬들이 다양한 걸 요구하게 함 (저장된 장착 상태는 안 바뀜)
+  function loadoutIds() {
+    var a = API(), base = a ? a.loadout() : ['sign', 'photo', null, null, null];
+    if (!G || !a) return base;
+    var lo = base.slice(), singles = 0, have = {};
+    lo.forEach(function (id) { if (id) { have[id] = 1; var k = skillById(id); if (k && k.kind !== 'aoe' && skillOpen(k) && skillOwned(k)) singles++; } });
+    ['sign', 'photo', 'shake', 'heart'].forEach(function (id) {
+      if (singles >= 3 || have[id]) return;
+      var k = skillById(id), idx = -1; for (var i = 0; i < lo.length; i++) if (!lo[i]) { idx = i; break; }
+      if (k && idx >= 0 && skillOpen(k) && skillOwned(k)) { lo[idx] = id; have[id] = 1; singles++; }
+    });
+    return lo;
+  }
   // 스킬은 멤버별로 배우는 거라, 다른 멤버가 산 스킬은 이 멤버가 못 써요 → 누가 배웠는지 알려줌
   function whoHas(sid) {
     var a = API(), out = [];
@@ -208,6 +220,8 @@
     G.coins += coin; G.exp += f.T.boss ? 0 : EXP_PER_FAN;
     if (coin) addDn(f.x, f.y - 20, '+' + coin, '#ffd76a', false);
     addFx({ k: 'hearts', x: f.x, y: f.y, t: 0.9, max: 0.9 });
+    burstAt(f.x, f.y - 6, f.T.boss ? 40 : 14, ['#ff6fb1', '#ffd76a', '#ffffff', '#9fd8ff'], f.T.boss ? 230 : 130, 0, !!f.T.boss);
+    if (f.T.boss) { var Xb = xfs(); Xb.flash = 0.6; Xb.flashMax = 0.6; Xb.flashRgb = '255,230,150'; Xb.zoom = 0.1; Xb.slowT = 0.5; Xb.slowS = 0.3; G.shake = 14; confetti(80, CONF_COLS); }
     if (Math.random() < BOOK_FAN) { var pool0 = loadoutIds().filter(Boolean); if (pool0.length) { G.books.push(pool0[Math.floor(Math.random() * pool0.length)]); addDn(f.x, f.y - 34, '📘', '#9fd8ff', true); } }
     if (Math.random() < HEART_DROP) G.pick.push({ x: f.x, y: f.y, v: 10, t: 14 });
     if (f.T.boss) { G.bossDown = true; G.banner = { text: '👑 팬클럽장이 만족했어요!', t: 2.5 }; sfx('reward'); }
@@ -309,6 +323,8 @@
       if (H.t <= 0) G.pick.splice(hi, 1);
     }
     // 효과·숫자
+    if (G.xf) { var X0 = G.xf; X0.flash = Math.max(0, X0.flash - dt); X0.zoom *= Math.exp(-dt * 7); if (X0.zoom < 0.001) X0.zoom = 0; if (X0.cut) { X0.cut.t -= dt; if (X0.cut.t <= 0) X0.cut = null; }
+      for (var ci = X0.conf.length - 1; ci >= 0; ci--) { var q = X0.conf[ci]; q.x += q.vx * dt; q.y += q.vy * dt; q.rot += q.vr * dt; q.vx += Math.sin(q.rot) * 30 * dt; if (q.y > G.vh + 20) X0.conf.splice(ci, 1); } }
     for (var xi = G.fx.length - 1; xi >= 0; xi--) { G.fx[xi].t -= dt; if (G.fx[xi].t <= 0) G.fx.splice(xi, 1); }
     for (var ni = G.dn.length - 1; ni >= 0; ni--) { var N = G.dn[ni]; N.t -= dt; N.y -= 26 * dt; if (N.t <= 0) G.dn.splice(ni, 1); }
     // 장착을 바꿔서 못 쓰는 스킬이 팬의 남은 순서에 있으면 남은 칸만 새로 뽑음
@@ -338,6 +354,40 @@
   }
 
   // ════════ 스킬 ════════
+  // ════════ 🎆 화려한 연출 (콘서트 스킬처럼: 화면 번쩍 + 흔들림 + 줌 + 슬로모 + 컷인 + 폭죽/꽃가루) ════════
+  var CONF_COLS = ['#ff6fb1', '#ffd76a', '#9fd8ff', '#c084fc', '#7ee8a5', '#ff9a5a', '#ffffff'];
+  function xfs() { if (!G.xf) G.xf = { flash: 0, flashMax: 0.5, flashRgb: '255,255,255', zoom: 0, slowT: 0, slowS: 1, cut: null, conf: [] }; return G.xf; }
+  function burstAt(x, y, n, cols, spd, delay, big) {
+    var pts = [], i;
+    for (i = 0; i < n; i++) { var a = Math.random() * 6.283, v = spd * (0.35 + Math.random() * 0.75); pts.push({ vx: Math.cos(a) * v, vy: Math.sin(a) * v - spd * 0.15, c: cols[i % cols.length], sz: (big ? 4.5 : 3) + Math.random() * 3, star: Math.random() < 0.4 }); }
+    var m = big ? 1.1 : 0.8;
+    addFx({ k: 'burst', x: x, y: y, pts: pts, t: m + (delay || 0), max: m });
+  }
+  function confetti(n, cols) { var X = xfs(); for (var i = 0; i < n; i++) X.conf.push({ x: rnd(0, G.vw), y: rnd(-G.vh * 0.6, -10), vx: rnd(-40, 40), vy: rnd(110, 260), rot: rnd(0, 6.28), vr: rnd(-8, 8), col: cols[Math.floor(Math.random() * cols.length)], sz: rnd(6, 12), w: rnd(0.4, 1) }); }
+  var SKILL_CINE = {
+    highlight: { rgb: '255,225,120', zoom: 0.05, shake: 9,  flash: 0.5, slow: [0.18, 0.4], name: '하이라이트 부르기', cols: ['#ffe27a', '#ffffff', '#ffb04a'], bursts: 1, conf: 0 },
+    wink:      { rgb: '255,120,190', zoom: 0.06, shake: 9,  flash: 0.55, slow: [0.2, 0.4], name: '윙크 샤워',       cols: ['#ff6fb1', '#ffd1e8', '#ffffff'], bursts: 2, conf: 25 },
+    encore:    { rgb: '190,140,255', zoom: 0.09, shake: 13, flash: 0.75, slow: [0.35, 0.35], name: '앵콜 폭죽',     cols: ['#c084fc', '#ffd76a', '#ff6fb1', '#9fd8ff'], bursts: 4, conf: 70 },
+    rose:      { rgb: '255,90,130',  zoom: 0.07, shake: 10, flash: 0.6, slow: [0.3, 0.4],  name: '장미 세례',       cols: ['#ff3d6e', '#ff8aa8', '#ffd1da'], bursts: 3, conf: 60 },
+    finale:    { rgb: '255,235,170', zoom: 0.13, shake: 17, flash: 0.9, slow: [0.55, 0.3], name: '피날레 불꽃쇼',   cols: ['#ffd76a', '#ff6fb1', '#9fd8ff', '#7ee8a5', '#c084fc', '#ffffff'], bursts: 8, conf: 110 }
+  };
+  function cinematic(id, sk, inR) {
+    var C = SKILL_CINE[id]; if (!C) return;
+    var X = xfs(), i;
+    X.flash = C.flash; X.flashMax = C.flash; X.flashRgb = C.rgb;
+    X.zoom = C.zoom; X.slowT = C.slow[0]; X.slowS = C.slow[1];
+    X.cut = { t: 0.95, max: 0.95, icon: sk.icon, name: C.name, rgb: C.rgb };
+    G.shake = Math.max(G.shake, C.shake);
+    for (i = 0; i < C.bursts; i++) {
+      var a = Math.random() * 6.283, d = i === 0 ? 0 : sk.range * (0.35 + Math.random() * 0.5);
+      burstAt(G.px + Math.cos(a) * d, G.py + Math.sin(a) * d, id === 'finale' ? 44 : 30, C.cols, id === 'finale' ? 260 : 200, i * (id === 'finale' ? 0.12 : 0.1), id === 'finale' || id === 'encore');
+    }
+    inR.forEach(function (f, k) { if (k < 14) burstAt(f.x, f.y - 6, 10, C.cols, 120, 0.05 + k * 0.03, false); });   // 맞은 팬마다 반짝
+    if (C.conf) confetti(C.conf, id === 'rose' ? ['#ff3d6e', '#ff8aa8', '#ffd1da', '#ffffff'] : CONF_COLS);
+    addFx({ k: 'ring', x: G.px, y: G.py, r: sk.range * 0.7, t: 0.8, max: 0.8, c: 'gold' });
+    addDn(G.px, G.py - 56, sk.icon + ' ' + inR.length + '명 두근!', '#fff1b8', true);
+  }
+
   function useSkill(id) {
     if (!G || G.over || G.paused) return false;
     var s = SKILLS.filter(function (x) { return x.id === id; })[0];
@@ -385,6 +435,7 @@
       var DUR = { highlight: 0.95, wink: 0.95, encore: 1.15, rose: 1.5, finale: 1.7 }[id] || 0.9;
       addFx({ k: 'skill', id: id, x: G.px, y: G.py, r: s.range, t: DUR, max: DUR });
       addFx({ k: (id === 'encore' || id === 'finale') ? 'bigring' : 'ring', x: G.px, y: G.py, r: s.range, t: 0.7, max: 0.7, c: (id === 'wink' || id === 'rose') ? 'gold' : '' });
+      cinematic(id, s, inR);
       if (id === 'encore') { G.shield = 1.5; G.shake = 10; }
       if (id === 'finale') { G.shield = 2.2; G.shake = 14; }
       used = true;
@@ -677,9 +728,23 @@
     }
     c.restore();
   }
+  function starPath(c, x, y, r) { c.beginPath(); for (var i = 0; i < 8; i++) { var a = i * Math.PI / 4, rr = i % 2 ? r * 0.38 : r; c.lineTo(x + Math.cos(a) * rr, y + Math.sin(a) * rr); } c.closePath(); }
+  function drawBurst(c, e, p) {
+    var tt = p * e.max, i, q, x, y;
+    c.globalCompositeOperation = 'lighter';
+    for (i = 0; i < e.pts.length; i++) {
+      q = e.pts[i]; x = e.x + q.vx * tt; y = e.y + q.vy * tt + 120 * tt * tt;
+      c.globalAlpha = Math.max(0, 1 - p * p); c.fillStyle = q.c; c.shadowColor = q.c; c.shadowBlur = 8;
+      if (q.star) starPath(c, x, y, q.sz * (1.6 - p * 0.8)); else { c.beginPath(); c.arc(x, y, q.sz * (1 - p * 0.5), 0, 7); }
+      c.fill();
+    }
+    c.shadowBlur = 0; c.globalAlpha = 1; c.globalCompositeOperation = 'source-over';
+  }
   function drawFx(c) {
     G.fx.forEach(function (e) {
+      if (e.t > e.max) return;   // 아직 시작 전(딜레이)
       var p = 1 - e.t / e.max;
+      if (e.k === 'burst') { drawBurst(c, e, p); return; }
       if (e.k === 'beam') { c.strokeStyle = e.c; c.globalAlpha = 1 - p; c.lineWidth = 6 * (1 - p) + 2; c.shadowColor = e.c; c.shadowBlur = 14; c.beginPath(); c.moveTo(e.x, e.y); c.lineTo(e.x2, e.y2); c.stroke(); c.shadowBlur = 0; c.globalAlpha = 1; }
       else if (e.k === 'flash') { c.strokeStyle = '#fff'; c.globalAlpha = (1 - p) * 0.85; c.lineWidth = 46 * (1 - p) + 6; c.lineCap = 'round'; c.beginPath(); c.moveTo(e.x, e.y); c.lineTo(e.x2, e.y2); c.stroke(); c.lineCap = 'butt'; c.globalAlpha = 1; }
       else if (e.k === 'ring' || e.k === 'bigring') {
@@ -709,10 +774,33 @@
     else { c.fillStyle = '#222'; c.fill(); c.restore(); c.font = '18px sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('🕶️', x, y + 1); }
     c.strokeStyle = g.flash > 0 ? '#ffd76a' : '#9aa0b5'; c.lineWidth = 3; c.beginPath(); c.arc(x, y, R, 0, 7); c.stroke();
   }
+  function drawScreenFx(c) {
+    var X = G.xf, i;
+    if (X.flash > 0) {   // 화면 번쩍 (가운데가 더 밝게)
+      var fa = X.flash / X.flashMax, g = c.createRadialGradient(G.vw / 2, G.vh / 2, 20, G.vw / 2, G.vh / 2, Math.max(G.vw, G.vh) * 0.75);
+      g.addColorStop(0, 'rgba(255,255,255,' + (0.55 * fa) + ')'); g.addColorStop(0.5, 'rgba(' + X.flashRgb + ',' + (0.4 * fa) + ')'); g.addColorStop(1, 'rgba(' + X.flashRgb + ',' + (0.2 * fa) + ')');
+      c.fillStyle = g; c.fillRect(0, 0, G.vw, G.vh);
+    }
+    for (i = 0; i < X.conf.length; i++) { var q = X.conf[i]; c.save(); c.translate(q.x, q.y); c.rotate(q.rot); c.scale(1, q.w); c.fillStyle = q.col; c.fillRect(-q.sz / 2, -q.sz / 4, q.sz, q.sz / 2); c.restore(); }
+    if (X.cut) {         // 스킬 컷인: 띠가 휙 들어왔다가 나감
+      var k = X.cut, u = 1 - k.t / k.max, off = u < 0.16 ? -(1 - u / 0.16) * G.vw : (u > 0.8 ? ((u - 0.8) / 0.2) * G.vw : 0);
+      var by = G.vh * 0.3, bh = 78, al = u > 0.8 ? 1 - (u - 0.8) / 0.2 : 1;
+      c.save(); c.translate(off, 0); c.globalAlpha = al;
+      c.beginPath(); c.moveTo(-30, by); c.lineTo(G.vw + 30, by); c.lineTo(G.vw, by + bh); c.lineTo(-60, by + bh); c.closePath();
+      var gg = c.createLinearGradient(0, 0, G.vw, 0); gg.addColorStop(0, 'rgba(10,5,25,.9)'); gg.addColorStop(0.5, 'rgba(' + k.rgb + ',.55)'); gg.addColorStop(1, 'rgba(10,5,25,.9)');
+      c.fillStyle = gg; c.fill(); c.strokeStyle = 'rgba(' + k.rgb + ',1)'; c.lineWidth = 3; c.stroke();
+      c.strokeStyle = 'rgba(255,255,255,.55)'; c.lineWidth = 2;
+      for (i = 0; i < 4; i++) { var lx = ((u * 900 + i * 170) % (G.vw + 200)) - 100; c.beginPath(); c.moveTo(lx, by + 8 + i * 17); c.lineTo(lx + 60, by + 8 + i * 17); c.stroke(); }
+      c.font = '44px sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.shadowColor = 'rgba(' + k.rgb + ',1)'; c.shadowBlur = 16; c.fillText(k.icon, G.vw * 0.17, by + bh / 2 + 2); c.shadowBlur = 0;
+      c.font = '900 27px sans-serif'; c.textAlign = 'left'; c.lineWidth = 6; c.strokeStyle = 'rgba(20,8,40,.95)'; c.strokeText(k.name + '!', G.vw * 0.27, by + bh / 2 + 2); c.fillStyle = '#fff'; c.fillText(k.name + '!', G.vw * 0.27, by + bh / 2 + 2);
+      c.restore();
+    }
+  }
   function render(c) {
     var sx = G.shake > 0 ? rnd(-G.shake, G.shake) * 0.5 : 0, sy = G.shake > 0 ? rnd(-G.shake, G.shake) * 0.5 : 0;
     c.save();
     c.fillStyle = '#0c0719'; c.fillRect(0, 0, G.vw, G.vh);
+    if (G.xf && G.xf.zoom > 0) { var zz = 1 + G.xf.zoom; c.translate(G.vw / 2, G.vh / 2); c.scale(zz, zz); c.translate(-G.vw / 2, -G.vh / 2); }
     c.translate(-Math.round(G.cam.x) + sx, -Math.round(G.cam.y) + sy);
     drawFloor(c);
     // 하트 아이템
@@ -731,6 +819,7 @@
       c.lineWidth = 3; c.strokeStyle = 'rgba(0,0,0,.7)'; c.strokeText(n.text, n.x, n.y); c.fillStyle = n.color; c.fillText(n.text, n.x, n.y); c.globalAlpha = 1;
     });
     c.restore();
+    if (G.xf) drawScreenFx(c);
     // 화면 좌표 요소: 맞았을 때 붉은 테두리 / 조이스틱 / 배너 / 보스 방향 표시
     if (G.flashRed > 0) { var gr = c.createRadialGradient(G.vw / 2, G.vh / 2, Math.min(G.vw, G.vh) * 0.35, G.vw / 2, G.vh / 2, Math.max(G.vw, G.vh) * 0.7); gr.addColorStop(0, 'rgba(255,0,60,0)'); gr.addColorStop(1, 'rgba(255,0,60,' + (G.flashRed * 2.2) + ')'); c.fillStyle = gr; c.fillRect(0, 0, G.vw, G.vh); }
     if (G.hp / G.maxhp < 0.3 && !G.over) { c.fillStyle = 'rgba(255,0,60,' + (0.06 + 0.06 * Math.sin(G.time * 8)) + ')'; c.fillRect(0, 0, G.vw, G.vh); }
@@ -871,7 +960,8 @@
     if (!cv || !G) { raf = 0; return; }
     var dt = Math.min(0.05, (ts - lastT) / 1000 || 0.016); lastT = ts;
     if (G && !G.over) G.paused = document.hidden || !!$('fs-editor');
-    update(dt);
+    var dtU = dt; if (G && G.xf && G.xf.slowT > 0) { G.xf.slowT -= dt; dtU = dt * G.xf.slowS; }
+    update(dtU);
     render(cv.getContext('2d'));
     updateHud();
     raf = requestAnimationFrame(loop);
