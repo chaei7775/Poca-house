@@ -23,7 +23,7 @@
   var BG_FILE = 'map-studio.png';
   var IMG_W = 1536, IMG_H = 1024;
 
-  // 재료 14종 (이름은 album-studio.js 와 같아야 함). weight = 구슬로 나올 비중, cat = 분류
+  // 재료 20종 (이름은 album-studio.js 와 같아야 함). weight = 구슬로 나올 비중, cat = 분류
   var KINDS = [
     { id: 'n1',  cat: 'note',  emoji: '⚪', name: '온음표',   weight: 5 },
     { id: 'n2',  cat: 'note',  emoji: '♩',  name: '2분음표',  weight: 7 },
@@ -38,7 +38,14 @@
     { id: 'str', cat: 'inst',  emoji: '🎻', name: '스트링',   weight: 5 },
     { id: 'scr', cat: 'score', emoji: '🎼', name: '악보용지', weight: 14 },
     { id: 'lyr', cat: 'lyric', emoji: '📝', name: '가사조각', weight: 10 },
-    { id: 'spk', cat: 'spark', emoji: '💡', name: '영감의불꽃', weight: 4, rare: true }
+    { id: 'spk', cat: 'spark', emoji: '💡', name: '영감의불꽃', weight: 4, rare: true },
+    // ── 새 재료 6종 (새 장르 R&B·스윙·시티팝·펑크·트로트 전용. 처음엔 잘 안 나와서 모으는 맛이 있음)
+    { id: 'mic', cat: 'inst',  emoji: '🎤', name: '마이크',     weight: 4 },
+    { id: 'sax', cat: 'inst',  emoji: '🎷', name: '색소폰',     weight: 4 },
+    { id: 'tpt', cat: 'inst',  emoji: '🎺', name: '트럼펫',     weight: 4 },
+    { id: 'trp', cat: 'note',  emoji: '🎶', name: '셋잇단음표', weight: 5 },
+    { id: 'cho', cat: 'lyric', emoji: '🗣️', name: '코러스',     weight: 4 },
+    { id: 'mix', cat: 'gear',  emoji: '🎚️', name: '믹싱콘솔',   weight: 3 }
   ];
   var MATS = {};
   KINDS.forEach(function (k) { k.desc = '앨범 제작 재료 · 🎼 작곡 테이블에서 곡을 만들어요'; MATS[k.id] = k; });

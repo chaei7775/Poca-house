@@ -1,10 +1,10 @@
 // ════════════════════════════════
 // 🎼 작곡 테이블 + 📒 작곡노트 (album-studio.js)
-// 🎹 작곡 스튜디오(studio-explore.js)에서 모은 재료 14종으로 직접 곡을 만들어 앨범으로 낸다.
+// 🎹 작곡 스튜디오(studio-explore.js)에서 모은 재료 20종으로 직접 곡을 만들어 앨범으로 낸다.
 // 들어가는 곳: 작곡 스튜디오 장소 화면의 "🎼 작곡 테이블" 버튼 / 더보기 > 🎼 작곡 테이블
 //
 // 규칙
-//  · 재료 종류를 최대 12종까지 골라 "작곡하기". 30칸(장르 10 × 등급 3)마다 정해진 레시피(재료 조합)가 있고,
+//  · 재료 종류를 최대 12종까지 골라 "작곡하기". 45칸(장르 15 × 등급 3)마다 정해진 레시피(재료 조합)가 있고,
 //    고른 조합이 레시피와 정확히 같을 때만 곡이 된다. 아무렇게나 많이 넣는다고 되지 않는다.
 //    안 맞으면 "그냥 실패했어요". 실패해도 재료는 하나도 안 사라지고, 얼마나 비슷한지와 재료 하나("○○이 들어가요")를 알려준다.
 //  · 레시피는 노트에서 스스로 찾는다. 한 칸을 찾으면 같은 장르의 다음 등급 레시피에 대한 단서(재료 분류 모양)가 노트에 적힌다.
@@ -42,9 +42,14 @@
     { id: 'jazz',  name: '재즈',       need: ['pno', 'bas'] },
     { id: 'acou',  name: '어쿠스틱',   need: ['gtr', 'str'] },
     { id: 'orch',  name: '오케스트라', need: ['str', 'drm', 'pno'] },
-    { id: 'fusion',name: '퓨전',       need: [], fusion: true }
+    { id: 'fusion',name: '퓨전',       need: [], fusion: true },
+    { id: 'rnb',   name: 'R&B',        need: ['mic', 'pno'] },
+    { id: 'swing', name: '스윙',       need: ['sax', 'tpt'] },
+    { id: 'city',  name: '시티팝',     need: ['syn', 'sax'] },
+    { id: 'funk',  name: '펑크',       need: ['bas', 'tpt'] },
+    { id: 'trot',  name: '트로트',     need: ['mic', 'syn'] }
   ];
-  // ★ 레시피 30개 (장르 × 등급). 재료 id: n1 온음표 n2 2분 n4 4분 n8 8분 n16 16분 / gtr 기타 bas 베이스 drm 드럼 pno 피아노 syn 신스 str 스트링 / scr 악보용지 lyr 가사조각 spk 영감의불꽃
+  // ★ 레시피 45개 (장르 15 × 등급 3). 재료 id: n1 온음표 n2 2분 n4 4분 n8 8분 n16 16분 / gtr 기타 bas 베이스 drm 드럼 pno 피아노 syn 신스 str 스트링 / scr 악보용지 lyr 가사조각 spk 영감의불꽃
   //   값을 바꿔도 됨 (같은 조합이 두 칸에 겹치면 안 됨 — 겹치면 앞에 있는 칸이 이김)
   var RECIPES = {
     rock:   { demo: ['scr', 'n8', 'gtr', 'drm'],  mini: ['scr', 'n8', 'n16', 'gtr', 'drm', 'bas'],  full: ['scr', 'n4', 'n8', 'n16', 'gtr', 'drm', 'bas', 'lyr', 'spk'] },
@@ -56,7 +61,13 @@
     jazz:   { demo: ['scr', 'n2', 'pno', 'bas'],  mini: ['scr', 'n2', 'n8', 'pno', 'bas', 'drm'],  full: ['scr', 'n2', 'n4', 'n8', 'pno', 'bas', 'drm', 'gtr', 'spk'] },
     acou:   { demo: ['scr', 'n2', 'gtr', 'str'],  mini: ['scr', 'n2', 'n4', 'gtr', 'str', 'lyr'],  full: ['scr', 'n2', 'n4', 'n8', 'gtr', 'str', 'bas', 'lyr', 'spk'] },
     orch:   { demo: ['scr', 'n1', 'str', 'pno'],  mini: ['scr', 'n1', 'n2', 'str', 'pno', 'drm'],  full: ['scr', 'n1', 'n2', 'n4', 'n8', 'str', 'pno', 'drm', 'gtr', 'spk'] },
-    fusion: { demo: ['scr', 'n4', 'gtr', 'syn'],  mini: ['scr', 'n4', 'n16', 'gtr', 'syn', 'str'], full: ['scr', 'n1', 'n2', 'n4', 'n8', 'n16', 'gtr', 'bas', 'drm', 'pno', 'syn', 'str'] }
+    fusion: { demo: ['scr', 'n4', 'gtr', 'syn'],  mini: ['scr', 'n4', 'n16', 'gtr', 'syn', 'str'], full: ['scr', 'n1', 'n2', 'n4', 'n8', 'n16', 'gtr', 'bas', 'drm', 'pno', 'syn', 'str'] },
+    // ── 새 장르 5개 (새 재료 6종이 들어감): 마이크·색소폰·트럼펫·셋잇단음표·코러스·믹싱콘솔
+    rnb:    { demo: ['scr', 'n2', 'mic', 'pno'],  mini: ['scr', 'n2', 'n8', 'mic', 'pno', 'cho'],  full: ['scr', 'n2', 'n4', 'n8', 'mic', 'pno', 'bas', 'cho', 'spk'] },
+    swing:  { demo: ['scr', 'trp', 'sax', 'drm'], mini: ['scr', 'trp', 'n4', 'sax', 'tpt', 'drm'], full: ['scr', 'trp', 'n4', 'n8', 'sax', 'tpt', 'drm', 'bas', 'pno', 'spk'] },
+    city:   { demo: ['scr', 'n8', 'syn', 'sax'],  mini: ['scr', 'n8', 'n16', 'syn', 'sax', 'bas'], full: ['scr', 'n4', 'n8', 'n16', 'syn', 'sax', 'bas', 'gtr', 'mix'] },
+    funk:   { demo: ['scr', 'n16', 'bas', 'mix'], mini: ['scr', 'n8', 'n16', 'bas', 'tpt', 'mix'], full: ['scr', 'n4', 'n8', 'n16', 'bas', 'gtr', 'drm', 'tpt', 'mix', 'spk'] },
+    trot:   { demo: ['scr', 'n4', 'mic', 'syn'],  mini: ['scr', 'n4', 'trp', 'mic', 'syn', 'cho'], full: ['scr', 'n2', 'n4', 'trp', 'mic', 'syn', 'drm', 'cho', 'lyr', 'mix'] }
   };
   var TITLES_A = ['달빛', '새벽', '반짝이는', '첫눈', '마지막', '푸른', '비밀', '여름밤', '별빛', '두근두근', '노을', '봄날'];
   var TITLES_B = ['세레나데', '러브레터', '멜로디', '플레이리스트', '노래', '약속', '왈츠', '기억', '엔딩', '인사', '고백', '랩소디'];
@@ -232,7 +243,7 @@
   function render() {
     var body = document.getElementById('compose-body'); if (!body || !ST) return;
     var note = loadNote();
-    var tabs = [['make', '🎼 작곡'], ['note', '📒 작곡노트 ' + noteCount(note) + '/30'], ['sell', '💿 판매'], ['roy', '📜 저작권']];
+    var tabs = [['make', '🎼 작곡'], ['note', '📒 작곡노트 ' + noteCount(note) + '/' + (GENRES.length * TIERS.length)], ['sell', '💿 판매'], ['roy', '📜 저작권']];
     var head = '<div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px 6px;"><div style="font-size:17px;font-weight:900;color:#fff;">🎼 작곡 테이블</div>' +
       '<div style="display:flex;align-items:center;gap:10px;"><div style="font-size:12px;font-weight:900;color:#FFD700;">🍔 ' + (typeof coins !== 'undefined' ? coins.toLocaleString() : 0) + '</div><button id="cp-x" style="background:none;border:none;color:#ddd;font-size:22px;cursor:pointer;">✕</button></div></div>' +
       '<div style="display:flex;gap:6px;padding:0 12px 8px;">' + tabs.map(function (t) {
@@ -250,7 +261,7 @@
   function selIds() { return Object.keys(ST.sel).filter(function (k) { return ST.sel[k]; }); }
   function makeHtml() {
     var ids = selIds(), n = ids.length, tier = null;
-    var cats = [['note', '🎵 음표'], ['inst', '🎸 악기'], ['score', '🎼 악보'], ['lyric', '📝 가사 · 💡 영감']];
+    var cats = [['note', '🎵 음표'], ['inst', '🎸 악기'], ['score', '🎼 악보'], ['gear', '🎚️ 장비'], ['lyric', '📝 가사 · 💡 영감']];
     var h = '<div style="font-size:12px;color:#e6d6c4;line-height:1.55;margin-bottom:10px;">재료 종류를 골라 곡을 만들어요 (최대 ' + MAX_KINDS + '종류). 곡마다 <b>정해진 조합</b>이 있어요. 📒 작곡노트의 단서를 보고 찾아봐요. 실패해도 재료는 안 사라져요!<br><span style="color:#8fd3ff;font-size:11px;">📍 재료는 🎹 작곡 스튜디오 탐험에서 모아요</span></div>';
     cats.forEach(function (c) {
       var list = kinds().filter(function (k) { return c[0] === 'lyric' ? (k.cat === 'lyric' || k.cat === 'spark') : k.cat === c[0]; });
@@ -307,7 +318,7 @@
         var e = note[g.id + '_' + t.id];
         var prev = ti > 0 ? TIERS.slice().reverse()[ti - 1] : null, hint = '';
         if (!e && prev && note[g.id + '_' + prev.id]) {          // 앞 등급을 찾았으면 이 등급 재료의 분류 모양만 알려준다
-          var CI = { score: '🎼', note: '🎵', inst: '🎸', lyric: '📝', spark: '💡' };
+          var CI = { score: '🎼', note: '🎵', inst: '🎸', lyric: '📝', spark: '💡', gear: '🎚️' };
           hint = RECIPES[g.id][t.id].map(function (id) { var k = kindById(id); return k ? (CI[k.cat] || '❔') : '❔'; }).sort().join('');
         }
         h += e ? '<div data-n="' + g.id + '_' + t.id + '" style="cursor:pointer;background:rgba(255,184,107,.28);border:1.5px solid ' + ACC + ';border-radius:9px;padding:6px 2px;text-align:center;font-size:10px;font-weight:900;color:#fff;line-height:1.3;">✔<br>' + esc(e.title) + '</div>'
