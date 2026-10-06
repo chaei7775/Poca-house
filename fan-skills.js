@@ -712,12 +712,15 @@
   function openShop() {
     if (!$('fs-toast-fix')) { var tf = document.createElement('style'); tf.id = 'fs-toast-fix'; tf.textContent = '#bag-toast{z-index:3000 !important}'; document.head.appendChild(tf); }   // 상점(z955) 위에도 안내 메시지가 보이게
     var old = $('fs-shop'); if (old) old.remove();
+    shopNote = '';
     var ov = document.createElement('div');
     ov.id = 'fs-shop';
     ov.style.cssText = 'position:fixed;inset:0;z-index:955;background:linear-gradient(180deg,#1a0a2e,#0a0515);overflow-y:auto;' + FONT;
     document.body.appendChild(ov);
     renderShop(ov);
   }
+  var shopNote = '';
+  function shopSay(ov, m) { shopNote = m; toast(m); renderShop(ov); }   // 상점 안에서도 결과를 눈에 띄게 보여줌 (토스트가 가려져도 보이게)
   function renderShop(ov) {
     ov = ov || $('fs-shop'); if (!ov) return;
     var ids = charIds();
@@ -741,6 +744,7 @@
         '<div style="color:#fff;font-size:17px;font-weight:900;">💖 팬 스킬 상점</div>' +
         '<button id="fs-shop-close" style="border:none;border-radius:12px;background:rgba(255,255,255,.12);color:#fff;padding:7px 12px;font-weight:900;cursor:pointer;' + FONT + '">닫기</button></div>' +
       '<div style="padding:0 16px 40px;">' +
+        (shopNote ? '<div style="background:rgba(255,215,0,.16);border:1.5px solid #FFD700;border-radius:12px;padding:10px 12px;margin-bottom:10px;font-size:13px;font-weight:900;color:#fff;text-align:center;">' + shopNote + '</div>' : '') +
         '<div style="background:rgba(255,255,255,.07);border:1px solid #FFD70066;border-radius:12px;padding:8px 12px;margin-bottom:12px;display:flex;justify-content:space-between;font-size:13px;color:#fff;"><span>🍔 보유 코인</span><b style="color:#FFD700;">' + fmt(coinsNow()) + '</b></div>' +
         potionHtml() +
         '<button id="fs-open-ed" style="width:100%;margin-bottom:12px;padding:12px;border:none;border-radius:13px;background:linear-gradient(135deg,#C084FC,#7c3aed);color:#fff;font-size:14px;font-weight:900;cursor:pointer;' + FONT + '">⚔️ 스킬 장착하기 (' + loadLoadout().filter(Boolean).length + '/' + SLOTS + ')</button>' +
@@ -749,11 +753,11 @@
         rows + '</div>';
     Array.prototype.forEach.call(ov.querySelectorAll('[data-pbuy]'), function (b) {
       b.onclick = function () {
-        var hk = bcHook(); if (!hk || !hk.potions) return;
-        var r = hk.potions.buy(b.getAttribute('data-pbuy'));
-        if (!r.ok) { toast(r.why === 'coins' ? '코인이 부족해요!' : r.why === 'bag' ? '가방이 가득 찼어요!' : '살 수 없어요'); return; }
-        toast('🧪 회복약을 샀어요!');
-        renderShop(ov);
+        var hk = bcHook(); if (!hk || !hk.potions) { shopSay(ov, '⚠️ 회복약 상점을 아직 못 불러왔어요. 잠깐 뒤에 다시 눌러봐요'); return; }
+        var r;
+        try { r = hk.potions.buy(b.getAttribute('data-pbuy')); } catch (e) { shopSay(ov, '⚠️ 구매 중 오류가 났어요: ' + (e && e.message || e)); return; }
+        if (!r.ok) { shopSay(ov, r.why === 'coins' ? '🍔 코인이 부족해요!' : r.why === 'bag' ? '🎒 가방이 가득 찼어요! 가방을 비우거나 넓혀봐요' : '살 수 없어요'); return; }
+        shopSay(ov, '🧪 회복약을 샀어요!');
       };
     });
     ov.querySelector('#fs-shop-close').onclick = function () { ov.remove(); };
@@ -763,9 +767,8 @@
       b.onclick = function () {
         var sk = skillById(b.getAttribute('data-buy'));
         var r = buySkill(shopChar, sk.id);
-        if (!r.ok) { toast(r.why === 'coins' ? '코인이 부족해요!' : '이미 배운 스킬이에요'); return; }
-        toast('🎉 ' + (charName(shopChar) || '멤버') + '이(가) ' + sk.icon + ' ' + sk.name + ' 스킬을 배웠어요!');
-        renderShop(ov);
+        if (!r.ok) { shopSay(ov, r.why === 'coins' ? '🍔 코인이 부족해요!' : '이미 배운 스킬이에요'); return; }
+        shopSay(ov, '🎉 ' + (charName(shopChar) || '멤버') + '이(가) ' + sk.icon + ' ' + sk.name + ' 스킬을 배웠어요!');
       };
     });
   }
