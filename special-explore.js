@@ -139,6 +139,11 @@ function parseGearBagName(bagName) {
   if (!base) return null;
   return { name: bagName, baseName: base.name, emoji: base.emoji, effect: base.effect, value: gearScaledValue(base, grade), grade: grade };
 }
+// 🎟️ 세연(체험용 히든카드) — 아이돌 목록(CHARS)에는 없지만 체험 기간 동안은 출전할 수 있다
+const SEYEON_TRIAL_CHAR = { name: '세연', emoji: '🌟', gradeColor: '#F59E0B' };
+function exChar(cid) { return (cid === 'seyeon_trial') ? SEYEON_TRIAL_CHAR : CHARS[cid]; }
+function trialActiveNow() { try { return !!(window.__trialTest && window.__trialTest.isActive()); } catch (e) { return false; } }
+
 function getEquippedGearFor(charId) {
   const map = getEquippedGearMap();
   const name = map[charId];
@@ -174,7 +179,7 @@ function openGearEquipScreen(charId) {
 
   const owned = (typeof bagItems !== 'undefined' ? bagItems : []).filter(function(i) { return i.type === 'gear'; });
   const equipped = getEquippedGearFor(charId);
-  const ch = CHARS[charId];
+  const ch = exChar(charId);
 
   let listHtml;
   if (owned.length === 0) {
@@ -271,7 +276,11 @@ function openSpecialCardSelect(locationId) {
   // 입장은 아이돌의 진짜 히든카드(EH)가 있어야 한다. (체험용 히든카드는 세연 전용이라 여기선 쓰이지 않음)
   const hasRealHidden = function(cid) { return hiddenOwned.some(function(hid) { return hid.indexOf('hidden_' + cid + '_') === 0; }); };
   const eligibleChars = Object.keys(CHARS).filter(function(cid) { return hasRealHidden(cid); });
-  const trialNote = '';
+  // 체험용 히든카드(세연)가 켜져 있는 동안은 세연으로 입장할 수 있다
+  if (trialActiveNow()) eligibleChars.push('seyeon_trial');
+  const trialNote = trialActiveNow()
+    ? '<div style="font-size:11px;color:#F59E0B;background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.4);border-radius:10px;padding:8px 10px;margin-bottom:12px;line-height:1.5;">🎟️ 체험용 히든카드 <b>세연</b>으로 입장할 수 있어요 (남은 시간 ' + window.__trialTest.remainText() + ')<br><span style="color:#bbb;">체험이 끝나면 아이돌의 히든카드를 직접 얻어야 입장할 수 있어요.</span></div>'
+    : '';
 
   let bodyHtml;
   if (eligibleChars.length === 0) {
@@ -279,7 +288,7 @@ function openSpecialCardSelect(locationId) {
       '<div style="text-align:center;padding:10px 0 20px;">' +
       '<div style="font-size:32px;margin-bottom:8px;">🔒</div>' +
       '<div style="font-size:14px;font-weight:900;color:#fff;margin-bottom:4px;">팬덤 원정 입장 조건</div>' +
-      '<div style="font-size:12px;color:#aaa;margin-bottom:6px;">아이돌의 히든(EH) 카드를 직접 얻어야 입장할 수 있어요 (체험용 히든카드는 세연 전용이라 입장 불가)</div>' +
+      '<div style="font-size:12px;color:#aaa;margin-bottom:6px;">히든(EH) 카드를 보유해야 입장할 수 있어요</div>' +
       '<div style="font-size:12px;color:#FFD700;margin-bottom:16px;">현재 보유: ' + hiddenOwned.length + '장</div>' +
       '<button onclick="document.getElementById(\'special-overlay\').remove();if(typeof openRecombine===\'function\')openRecombine();" style="padding:12px 24px;background:linear-gradient(135deg,#C084FC,#7c3aed);border:none;border-radius:14px;color:#fff;font-size:13px;font-weight:900;cursor:pointer;font-family:\'Noto Sans KR\',sans-serif;">🔮 재조합기로 이동</button>' +
       '</div>' +
@@ -298,7 +307,7 @@ function openSpecialCardSelect(locationId) {
       '<div style="font-size:13px;color:#ccc;margin-bottom:12px;">출전할 포카를 선택해주세요 (탐험 경험치를 획득해요)</div>' +
       '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">' +
       eligibleChars.map(function(cid) {
-        const ch = CHARS[cid];
+        const ch = exChar(cid);
         const eq = getEquippedGearFor(cid);
         return '<div style="position:relative;">' +
           '<button onclick="startSpecialExplore(\'' + locationId + '\',\'' + cid + '\')" style="width:100%;display:flex;flex-direction:column;align-items:center;gap:6px;padding:14px 8px;background:rgba(255,255,255,0.06);border:1.5px solid ' + ch.gradeColor + ';border-radius:14px;color:#fff;cursor:pointer;font-family:\'Noto Sans KR\',sans-serif;">' +
@@ -324,7 +333,7 @@ function startSpecialExplore(locationId, charId) {
 
 function renderSpecialExploreScreen() {
   const loc = SPECIAL_LOCATIONS.find(function(l) { return l.id === specialExploreState.locationId; });
-  const ch = CHARS[specialExploreState.charId];
+  const ch = exChar(specialExploreState.charId);
   const overlay = document.getElementById('special-overlay');
   overlay.innerHTML = '<div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:rgba(0,0,0,0.45);position:relative;z-index:2;">' +
     '<div style="color:#fff;font-size:15px;font-weight:900;text-shadow:0 2px 6px rgba(0,0,0,0.8);">' + loc.emoji + ' ' + loc.name + '</div>' +
@@ -587,7 +596,9 @@ function resolveSpecialCapture(success) {
   // 보상 계산
   const expGain = (creature.isVariant ? 200 : 100) + Math.floor(Math.random() * 100);
   const charId = specialExploreState.charId;
-  if (typeof addCardExp === 'function') {
+  if (charId === 'seyeon_trial') {
+    // 세연(체험)은 키우는 카드가 아니라 경험치 없이 보상만 받는다
+  } else if (typeof addCardExp === 'function') {
     addCardExp(charId, expGain);
   } else {
     try {
@@ -655,7 +666,7 @@ function resolveSpecialCapture(success) {
   const isFirstCapture = addDexCaptured(creature.id);
 
   const rewardItems = [];
-  rewardItems.push({ icon:'⭐', text: CHARS[charId].name + ' +' + expGain + ' EXP', color:'#FFD700' });
+  if (charId !== 'seyeon_trial') rewardItems.push({ icon:'⭐', text: exChar(charId).name + ' +' + expGain + ' EXP', color:'#FFD700' });
   if (gotJaptem) rewardItems.push({ icon: japtemItem.emoji, text: japtemItem.name + ' x1', color:'#fff' });
   if (gotGear) rewardItems.push({ icon: gearItem.emoji, text: '[' + SPECIAL_GEAR_GRADES[gearGrade] + '] ' + gearItem.name + ' (' + gearEffectText(gearItem.effect, gearScaledValue(gearItem, gearGrade)) + ')', color:'#C084FC' });
   if (gotTicket) rewardItems.push({ icon:'🎫', text: '등교권 +1', color:'#60A5FA' });
