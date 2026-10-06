@@ -117,7 +117,13 @@
       return;
     }
     if (typeof closePlace === 'function') closePlace();
-    renderAgency();
+    // 앱을 껐다 켠 직후 첫 클릭에서만 안 열리는 문제 대비: 오류가 나도 조용히 넘기지 말고 한 번 더 시도하고, 그래도 안 되면 화면에 이유를 보여줌
+    try { renderAgency(); } catch (e) { console.error('[agency] 1st render failed', e); }
+    if (!document.getElementById('agency-overlay')) {
+      setTimeout(function () {
+        try { renderAgency(); } catch (e) { console.error('[agency] retry failed', e); toast('기획사를 여는 중 오류: ' + (e && e.message ? e.message : e)); }
+      }, 300);
+    }
   }
 
   function renderAgency() {
