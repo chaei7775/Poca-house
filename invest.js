@@ -37,7 +37,7 @@
   var MAX_STEPS = 7;                   // 며칠을 한꺼번에 넘겨도 최대 이만큼만 진행
   var HIST_MAX = 12;
   // 🌟 투자 한정 포카 (능력치 없음, 수집용). 이름·확률은 여기서만 바꾸면 됨
-  var LIMITED = [ { id: 'ace', name: '한정판 챔피언', real: '서하준', sub: '코트 위의 에이스', img: 'limited-ace.jpg', minRatio: 1.45, chance: 0.12 } ];
+  var LIMITED = [ { id: 'ace', name: '한정판 챔피언', real: '지민', sub: '코트 위의 에이스', img: 'limited-ace.jpg', minRatio: 1.45, chance: 0.12 } ];
   var LIM_KEY = 'ph_invest_limited';
   function limLoad() { try { var d = JSON.parse(localStorage.getItem(LIM_KEY) || '{}'); return d && typeof d === 'object' ? d : {}; } catch (e) { return {}; } }
   function limSave(d) { try { localStorage.setItem(LIM_KEY, JSON.stringify(d)); } catch (e) {} }
