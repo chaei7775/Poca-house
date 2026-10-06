@@ -57,6 +57,23 @@
     boss:    { emoji: '👑', name: '고인물 팬클럽장', hp: 1100, sp: 52, dmg: 12, r: 36, boss: true }
   };
 
+  // ── 보디가드(용병): 출전 전에 코인으로 고용 (한 판마다). 최대 BG_MAX명 ──
+  var BG_MAX = 2;
+  var BODYGUARDS = [
+    { id: 'wall',  img: 'guard-1.png', name: '강도현', role: '철벽 경호', cost: 2000, desc: '내가 팬한테 맞는 피해를 35% 줄여줘요' },
+    { id: 'medic', img: 'guard-2.png', name: '하윤',   role: '응급 케어', cost: 2000, desc: '8초마다 내 HP를 15 회복시켜줘요' },
+    { id: 'rush',  img: 'guard-3.png', name: '마석',   role: '돌격 경호', cost: 2500, desc: '가까운 팬을 알아서 밀치며 응대해요 (1.1초마다 공격)' }
+  ];
+  function bgById(id) { return BODYGUARDS.filter(function (b) { return b.id === id; })[0] || null; }
+  var guardImgs = {};
+  function guardImg(def) {
+    if (guardImgs[def.id]) return guardImgs[def.id];
+    var im = new Image(); im.crossOrigin = 'anonymous';
+    im.onload = function () { im._ok = true; };
+    im.src = IMG_BASE + def.img;
+    guardImgs[def.id] = im; return im;
+  }
+
   var G = null;      // 지금 하고 있는 판
   var $ = function (id) { return document.getElementById(id); };
   function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
@@ -96,7 +113,7 @@
       time: 0, coins: 0, exp: 0, kills: 0, cd: {}, inv: 0, shield: 0, flashRed: 0,
       over: false, won: false, shake: 0, input: { x: 0, y: 0 },
       cam: { x: WORLD / 2 - vw / 2, y: WORLD / 2 - vh / 2 }, vw: vw, vh: vh,
-      banner: { text: '', t: 0 }, nextId: 1, paused: false
+      banner: { text: '', t: 0 }, nextId: 1, paused: false, guards: []
     };
     SKILLS.forEach(function (s) { g.cd[s.id] = 0; });
     return g;
@@ -132,8 +149,10 @@
   }
 
   // ════════ 한 프레임 ════════
+  function hasGuard(id) { return !!G && G.guards.some(function (g) { return g.def.id === id; }); }
   function hurt(d) {
     if (G.over || G.inv > 0 || G.shield > 0) return;
+    if (hasGuard('wall')) d = Math.max(1, d * 0.65);
     G.hp -= d; G.inv = HIT_COOLDOWN; G.shake = 7; G.flashRed = 0.25;
     addDn(G.px, G.py - 24, '-' + Math.round(d), '#ff6b6b', false);
     sfx('concertDrop');
@@ -242,6 +261,19 @@
     // 효과·숫자
     for (var xi = G.fx.length - 1; xi >= 0; xi--) { G.fx[xi].t -= dt; if (G.fx[xi].t <= 0) G.fx.splice(xi, 1); }
     for (var ni = G.dn.length - 1; ni >= 0; ni--) { var N = G.dn[ni]; N.t -= dt; N.y -= 26 * dt; if (N.t <= 0) G.dn.splice(ni, 1); }
+    // 보디가드: 졸졸 따라다니며 각자 역할 수행
+    G.guards.forEach(function (g, gi) {
+      var ang = G.time * 0.8 + gi * Math.PI, gx = G.px + Math.cos(ang) * 46, gy = G.py + Math.sin(ang) * 46;
+      g.x += (gx - g.x) * Math.min(1, dt * 6); g.y += (gy - g.y) * Math.min(1, dt * 6);
+      g.t += dt; g.flash = Math.max(0, (g.flash || 0) - dt);
+      if (g.def.id === 'medic' && g.t >= 8) { g.t = 0; g.flash = 0.6; heal(15); addFx({ k: 'hearts', x: G.px, y: G.py, t: 0.9, max: 0.9 }); }
+      if (g.def.id === 'rush' && g.t >= 1.1) {
+        var tf = null, bd = 190;
+        G.fans.forEach(function (f) { var dd = dist(f.x, f.y, g.x, g.y) - f.T.r; if (dd < bd) { bd = dd; tf = f; } });
+        if (tf) { g.t = 0; g.flash = 0.25; g.x += (tf.x - g.x) * 0.5; g.y += (tf.y - g.y) * 0.5; fanHit(tf, 40 * dmgMult(), 70, g.x, g.y); }
+        else g.t = 1.1;
+      }
+    });
     // 카메라
     var tx = G.px - G.vw / 2, ty = G.py - G.vh / 2;
     G.cam.x += (tx - G.cam.x) * Math.min(1, dt * 8); G.cam.y += (ty - G.cam.y) * Math.min(1, dt * 8);
@@ -417,6 +449,14 @@
     });
   }
 
+  function drawGuard(c, g) {
+    var R = 15, x = g.x, y = g.y, im = guardImg(g.def);
+    c.fillStyle = 'rgba(0,0,0,.35)'; c.beginPath(); c.ellipse(x, y + R * 0.85, R, R * 0.38, 0, 0, 7); c.fill();
+    c.save(); c.beginPath(); c.arc(x, y, R, 0, 7); c.closePath();
+    if (im && im._ok) { c.clip(); c.drawImage(im, x - R * 1.15, y - R * 1.15, R * 2.3, R * 2.3 * (im.naturalHeight / im.naturalWidth || 1)); c.restore(); }
+    else { c.fillStyle = '#222'; c.fill(); c.restore(); c.font = '18px sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('🕶️', x, y + 1); }
+    c.strokeStyle = g.flash > 0 ? '#ffd76a' : '#9aa0b5'; c.lineWidth = 3; c.beginPath(); c.arc(x, y, R, 0, 7); c.stroke();
+  }
   function render(c) {
     var sx = G.shake > 0 ? rnd(-G.shake, G.shake) * 0.5 : 0, sy = G.shake > 0 ? rnd(-G.shake, G.shake) * 0.5 : 0;
     c.save();
@@ -431,6 +471,7 @@
     var order = G.fans.slice().sort(function (a, b) { return a.y - b.y; }), drawnP = false;
     order.forEach(function (f) { if (!drawnP && f.y > G.py) { drawPlayer(c); drawnP = true; } drawFan(c, f); });
     if (!drawnP) drawPlayer(c);
+    G.guards.forEach(function (g) { drawGuard(c, g); });
     drawFx(c);
     // 숫자
     G.dn.forEach(function (n) {
@@ -602,7 +643,7 @@
       '<button id="fr-out" style="width:100%;padding:11px;border:none;border-radius:12px;background:rgba(255,255,255,.1);color:#ccc;font-size:14px;cursor:pointer;font-family:inherit;">나가기</button></div>';
     ov.appendChild(el);
     $('fr-out').onclick = function () { ov.remove(); G = null; };
-    $('fr-again').onclick = function () { if (enter(curChar, true)) { /* 새 판 */ } };
+    $('fr-again').onclick = function () { enter(curChar, true); };
   }
 
   // ════════ 입장 ════════
@@ -610,14 +651,69 @@
     if (plv() < NEED_LEVEL) { toast('✈️ 공항 입국장은 플레이어 Lv.' + NEED_LEVEL + '부터 열려요 (지금 Lv.' + plv() + ')'); return false; }
     var ov = $('special-overlay'); if (!ov) return false;
     if (typeof stamina === 'undefined' || stamina < ENTRY_STAMINA) { toast('스태미나가 부족해요! ⚡ 음료를 마셔봐요 (입장 ' + ENTRY_STAMINA + ')'); return false; }
+    openHire(charId, ov);
+    return true;
+  }
+
+  // ── 보디가드 고용 화면 ──
+  function openHire(charId, ov) {
+    styleOnce();
+    var old = $('fr-hire'); if (old) old.remove();
+    var sel = [];
+    var el = document.createElement('div'); el.id = 'fr-hire';
+    el.style.cssText = 'position:absolute;inset:0;z-index:95;background:rgba(8,4,18,.93);display:flex;align-items:center;justify-content:center;padding:14px;font-family:\'Noto Sans KR\',sans-serif;overflow:auto;';
+    ov.appendChild(el);
+    function total() { return sel.reduce(function (t, id) { return t + bgById(id).cost; }, 0); }
+    function draw() {
+      var rows = BODYGUARDS.map(function (b) {
+        var on = sel.indexOf(b.id) >= 0;
+        return '<div data-bg="' + b.id + '" style="display:flex;align-items:center;gap:10px;padding:9px;margin-bottom:8px;border-radius:14px;cursor:pointer;background:' + (on ? 'rgba(251,113,133,.22)' : 'rgba(255,255,255,.07)') + ';border:2px solid ' + (on ? '#FB7185' : 'rgba(255,255,255,.14)') + ';">' +
+          '<img src="' + IMG_BASE + b.img + '" style="width:62px;height:62px;object-fit:contain;flex:none;">' +
+          '<div style="flex:1;text-align:left;"><div style="font-size:14px;font-weight:900;color:#fff;">' + b.name + ' <span style="font-size:11px;color:#ffd1da;">' + b.role + '</span></div>' +
+          '<div style="font-size:11px;color:#ccc;line-height:1.4;margin-top:2px;">' + b.desc + '</div></div>' +
+          '<div style="font-size:12px;font-weight:900;color:' + (on ? '#ffd76a' : '#ddd') + ';white-space:nowrap;">' + (on ? '✔ 고용' : '🍔 ' + fmt(b.cost)) + '</div></div>';
+      }).join('');
+      var t = total(), have = (typeof coins !== 'undefined') ? coins : 0, lack = t > have;
+      el.innerHTML = '<div style="width:100%;max-width:340px;text-align:center;">' +
+        '<div style="font-size:20px;font-weight:900;color:#fff;">🕶️ 보디가드 고용</div>' +
+        '<div style="font-size:12px;color:#ccc;margin:4px 0 12px;">공항 입국장은 고렙 지역이라 팬들이 거세요!<br>최대 ' + BG_MAX + '명까지 고용할 수 있어요 (한 판 동안)</div>' + rows +
+        '<button id="fr-hire-go" style="width:100%;padding:13px;margin-top:4px;border:none;border-radius:12px;background:' + (lack ? '#555' : 'linear-gradient(135deg,#FB7185,#C084FC)') + ';color:#fff;font-size:15px;font-weight:900;cursor:pointer;font-family:inherit;">' +
+        (lack ? '코인이 모자라요 (🍔 ' + fmt(t) + ')' : (t ? '고용하고 출동! (🍔 ' + fmt(t) + ')' : '혼자 출동!')) + '</button>' +
+        '<button id="fr-hire-no" style="width:100%;padding:10px;margin-top:8px;border:none;border-radius:12px;background:rgba(255,255,255,.1);color:#ccc;font-size:13px;cursor:pointer;font-family:inherit;">취소</button></div>';
+      Array.prototype.forEach.call(el.querySelectorAll('[data-bg]'), function (d) {
+        d.onclick = function () {
+          var id = d.getAttribute('data-bg'), i = sel.indexOf(id);
+          if (i >= 0) sel.splice(i, 1);
+          else if (sel.length >= BG_MAX) toast('보디가드는 최대 ' + BG_MAX + '명까지예요');
+          else sel.push(id);
+          draw();
+        };
+      });
+      $('fr-hire-no').onclick = function () { el.remove(); if (!G) ov.remove(); };
+      $('fr-hire-go').onclick = function () {
+        var t2 = total();
+        if (typeof stamina === 'undefined' || stamina < ENTRY_STAMINA) { toast('스태미나가 부족해요! ⚡ 음료를 마셔봐요 (입장 ' + ENTRY_STAMINA + ')'); return; }
+        if (t2 > ((typeof coins !== 'undefined') ? coins : 0)) { toast('코인이 모자라요!'); return; }
+        if (t2 > 0) { coins -= t2; try { if (typeof updateCoinsDisplay === 'function') updateCoinsDisplay(); } catch (e) {} }
+        el.remove();
+        startRun(charId, sel.slice(), ov);
+      };
+    }
+    draw();
+  }
+
+  function startRun(charId, hiredIds, ov) {
     stamina -= ENTRY_STAMINA;
     try { if (typeof saveStamina === 'function') saveStamina(); } catch (e) {}
+    try { if (typeof saveAll === 'function') saveAll(); } catch (e) {}
     curChar = charId; styleOnce();
     if (raf) { cancelAnimationFrame(raf); raf = 0; }
     stick = null; keys = {};
     buildUi(ov, charId);
     var cv = $('fr-cv');
     G = newGame(charId, 390, 600);
+    G.guards = hiredIds.map(function (id, i) { var d = bgById(id); return { def: d, x: G.px + (i ? -46 : 46), y: G.py, t: 0, flash: 0 }; });
+    if (G.guards.length) G.banner = { text: '🕶️ 보디가드 ' + G.guards.map(function (g) { return g.def.name; }).join('·') + ' 출동!', t: 2.2 };
     resize(); bindInput(cv);
     $('fr-exit').onclick = function () {
       if (G && !G.over) {
@@ -627,7 +723,6 @@
     };
     window.addEventListener('resize', resize);
     lastT = performance.now(); raf = requestAnimationFrame(loop);
-    return true;
   }
 
   // ════════ 팬덤 원정 칸에 끼워 넣기 ════════
