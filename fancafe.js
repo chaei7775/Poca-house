@@ -814,6 +814,7 @@
   setInterval(live, 5000);
 
   window.openFanCafe = openFanCafe;
+  window.__fancafeCurrentCid = function () { return ui.cid; };   // 지금 열려 있는 팬카페의 아이돌 (live.js 가 라이브 버튼을 붙일 때 씀)
   window.__fancafeTest = {
     ROSTER: ROSTER, TONES: TONES, STORAGE_KEY: STORAGE_KEY, loadAll: loadAll, saveAllState: saveAllState, getIdol: getIdol,
     sync: sync, processCF: processCF, handleCF: handleCF, members: members, heartPost: heartPost, replyPost: replyPost,

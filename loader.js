@@ -29,6 +29,7 @@ const NEW_CONTENT_FILES = [
   'quest-guide.js',
   'ticket-popup.js',
   'fancafe.js',
+  'live.js',
   'enhance.js',
   'fan-skills.js',
   'cloud-extra.js',
