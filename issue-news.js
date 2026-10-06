@@ -13,6 +13,8 @@
   var KEY = 'ph_issue';
   var CHANCE = 0.35;
   var POLL_MS = 1500;
+  var STAT_MULT = 2;      // 기사 효과 배율: 비주얼·체력·기분 (아래 기사 숫자 × 이 값)
+  var COIN_MULT = 4;      // 기사 효과 배율: 코인
   var FONT = "font-family:'Noto Sans KR',sans-serif;";
 
   // ── 기사 ──
@@ -133,6 +135,12 @@
       try { coins = Math.max(0, coins + fx.c); if (typeof saveAll === 'function') saveAll(); if (typeof updateCoinsDisplay === 'function') updateCoinsDisplay(); } catch (e) {}
     }
   }
+  function scaled(fx) {
+    if (!fx) return fx; var o = {};
+    ['v', 's', 'm'].forEach(function (k) { if (fx[k]) o[k] = Math.round(fx[k] * STAT_MULT); });
+    if (fx.c) o.c = Math.round(fx.c * COIN_MULT / 500) * 500;
+    return o;
+  }
   function chips(fx) {
     var out = [];
     if (fx.v) out.push('✨ 비주얼 ' + (fx.v > 0 ? '+' : '') + fx.v);
@@ -165,6 +173,7 @@
     function choose(i) {
       var c = tpl.ch[i], res = c.r, fx = c.fx, twist = false;
       if (c.risk && Math.random() < c.risk.p) { res = c.risk.r; fx = c.risk.fx; twist = true; }
+      fx = scaled(fx);
       applyFx(cid, fx);
       var s = load(); (s.log = s.log || []).unshift({ t: Date.now(), cid: cid, id: tpl.id, c: i, twist: twist }); s.log = s.log.slice(0, 30); s.count = (s.count || 0) + 1; save(s);
       var cs = chips(fx || {});
