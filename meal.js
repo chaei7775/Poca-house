@@ -645,7 +645,7 @@
         body.innerHTML = '<div id="meal-eat-result" style="margin-top:12px;background:rgba(255,255,255,0.06);border-radius:14px;padding:8px 12px;">' + rows + '</div>' + caughtNote +
           '<button id="meal-eat-ok" style="' + BTN + 'width:100%;margin-top:12px;padding:12px;background:linear-gradient(135deg,#FFD700,#F59E0B);color:#3a2600;font-size:14px;">확인</button>';
         busy = false;
-        body.querySelector('#meal-eat-ok').onclick = function () { closeEat(); refresh(res.before); };
+        body.querySelector('#meal-eat-ok').onclick = function () { closeEat(); refresh(res.before); if (res.caught) { try { window.dispatchEvent(new CustomEvent('ph-sneak-caught', { detail: { cid: cid } })); } catch (e) {} } };
       }, 2300);
     };
   }
