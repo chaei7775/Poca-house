@@ -748,7 +748,7 @@
     var b = document.createElement('button');
     b.id = 'btn-invest-map';
     b.innerHTML = '💼 포카<br>인베스트';
-    b.style.cssText = 'position:absolute;left:89%;top:68%;transform:translate(-50%,-50%);background:rgba(30,22,14,0.92);border:2px solid #e8c27a;border-radius:14px;padding:4px 8px;color:#f6dca4;font-size:10.5px;line-height:1.2;font-weight:700;cursor:pointer;text-align:center;' + FONT;
+    b.style.cssText = 'position:absolute;left:86%;top:68%;transform:translate(-50%,-50%);white-space:nowrap;background:rgba(30,22,14,0.92);border:2px solid #e8c27a;border-radius:14px;padding:4px 8px;color:#f6dca4;font-size:10.5px;line-height:1.2;font-weight:700;cursor:pointer;text-align:center;' + FONT;
     b.onclick = openInvest;
     ref.parentNode.appendChild(b);
     refreshBadge();
