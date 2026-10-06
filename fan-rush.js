@@ -173,7 +173,7 @@
     var out = [];
     loadoutIds().forEach(function (id) {
       var k = id && skillById(id);
-      if (k && k.kind !== 'aoe' && skillOpen(k) && skillOwned(k) && out.indexOf(id) < 0) out.push(id);
+      if (k && skillOpen(k) && skillOwned(k) && out.indexOf(id) < 0) out.push(id);   // 광역 스킬도 요구 대상 (광역은 어떤 칸이든 채움)
     });
     return out;
   }
@@ -236,6 +236,12 @@
     if (f.step >= f.seq.length) { satisfy(f); return true; }
     addDn(f.x, f.y - f.T.r - 14, '💗 ' + f.step + '/' + f.seq.length, '#ff9ec7', false);
     return false;
+  }
+  function aoeStep(f) { var k = skillById(f.seq[f.step]); return !!k && k.kind === 'aoe'; }
+  // 단일 스킬을 눌렀는데 그 칸이 광역 스킬을 원하면: 화나진 않고 "광역으로!" 안내만
+  function missPress(f) {
+    if (aoeStep(f)) { addDn(f.x, f.y - f.T.r - 14, skillById(f.seq[f.step]).icon + ' 광역 스킬로!', '#ffd76a', true); return; }
+    wrongPress(f);
   }
   function wrongPress(f) {
     if (hasGuard('luck') && Math.random() < 0.4) { addDn(f.x, f.y - f.T.r - 14, '🛡️ 하윤이 막아줬어요', '#9fd8ff', false); return; }
@@ -406,13 +412,13 @@
       var tg1 = cand.filter(needs)[0] || cand[0];
       addFx({ k: 'beam', x: G.px, y: G.py, x2: tg1.x, y2: tg1.y, t: 0.25, max: 0.25, c: id === 'sign' ? '#ffe27a' : '#ff9ad0' });
       addFx({ k: 'pop', id: id, x: tg1.x, y: tg1.y, t: 0.6, max: 0.6 });
-      if (needs(tg1)) { knock(tg1, 25, G.px, G.py); advance(tg1); if (id === 'shake') heal(6); } else wrongPress(tg1);
+      if (needs(tg1)) { knock(tg1, 25, G.px, G.py); advance(tg1); if (id === 'shake') heal(6); } else missPress(tg1);
       used = true;
     } else if (s.kind === 'multi') {
       var cm = near.filter(function (f) { return inRange(f, s.range); });
       if (!cm.length) return false;
       var hit3 = cm.filter(needs).slice(0, 3);
-      if (!hit3.length) { addFx({ k: 'beam', x: G.px, y: G.py, x2: cm[0].x, y2: cm[0].y, t: 0.3, max: 0.3, c: '#ff6fb1' }); wrongPress(cm[0]); }
+      if (!hit3.length) { addFx({ k: 'beam', x: G.px, y: G.py, x2: cm[0].x, y2: cm[0].y, t: 0.3, max: 0.3, c: '#ff6fb1' }); missPress(cm[0]); }
       else hit3.forEach(function (f6) { addFx({ k: 'beam', x: G.px, y: G.py, x2: f6.x, y2: f6.y, t: 0.3, max: 0.3, c: '#ff6fb1' }); knock(f6, 25, G.px, G.py); advance(f6); });
       used = true;
     } else if (s.kind === 'line') {
@@ -425,7 +431,7 @@
       });
       addFx({ k: 'flash', x: G.px, y: G.py, x2: G.px + dx * s.range, y2: G.py + dy * s.range, t: 0.3, max: 0.3 });
       var ok2 = inLine.filter(needs);
-      if (!ok2.length) wrongPress(inLine[0] || tgt);
+      if (!ok2.length) missPress(inLine[0] || tgt);
       else ok2.slice().forEach(function (f7) { knock(f7, 20, G.px, G.py); advance(f7); });
       used = true;
     } else if (s.kind === 'aoe') {
@@ -1010,7 +1016,7 @@
       '팬들이 <b>몰려와요!</b> 닿으면 HP가 깎여요. 화면을 누른 채 끌어서 도망치면서 응대해요.',
       '팬 머리 위에 <b>스킬 아이콘</b>이 떠요. 그 스킬 버튼을 눌러 하트 게이지를 채우면 만족해서 돌아가요.',
       '일반 팬은 <b>2개</b>, 덕후는 <b>3개</b>, 👑 보스는 <b>5개</b>! 순서가 틀리면 팬이 <b>화나서</b> 더 빨라지고 처음부터예요.',
-      '몰려올 땐 <b>광역 스킬</b>! 범위 안 팬 전부의 칸을 한꺼번에 채워요.',
+      '광역 스킬(🎤✨🌹…)은 아이콘으로도 떠요! 광역 스킬은 <b>어떤 칸이든</b> 채우고, 광역 칸에는 광역 스킬 아무거나 쓰면 돼요. 범위 안 팬 전부를 한꺼번에!',
       '🕶️ 출동 전에 <b>보디가드</b>를 고용할 수 있어요 (최대 2명, 한 판 동안).',
       '8웨이브 + 보스를 모두 응대하면 성공! 코인·경험치·프리미엄 조각·📘 스킬북을 받아요.'
     ], go); else go();
