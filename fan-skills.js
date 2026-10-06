@@ -52,6 +52,9 @@
   ];
   var FAV_IDS = ['sign', 'photo', 'shake', 'heart'];   // 팬이 좋아하는 스킬은 기본 4종 중에서만 (광역 스킬은 누구에게나 50% 확률로 대만족)
   var AOE_LOVE = 0.5;
+  var SEQ_LEN = 4;               // 팬 머리 위에 뜨는 스킬 순서 길이
+  var STEP_GAIN = 25;            // 단타 스킬 하나가 채우는 하트 게이지(%)
+  var AOE_GAIN = 50;             // 광역 스킬이 채우는 하트 게이지(%) — 순서 중 2칸을 건너뜀
   var FANS = [
     { name: '매일 오는 팬', emoji: '🙋‍♀️' },
     { name: '금손 팬',      emoji: '🎨' },
@@ -221,20 +224,74 @@
       ';border-radius:999px;padding:3px 9px;margin:2px;font-size:11px;font-weight:900;color:#fff;">' + icon + ' ' + text + '</div>';
   }
 
+  // ════════ 하트 게이지 + 스킬 순서 ════════
+  function usablePool() {
+    var L = loadLoadout(), out = [];
+    L.forEach(function (id, i) {
+      var k = id && skillById(id);
+      if (k && !k.aoe && levelOk(k) && hasSkill(F.cid, k) && L.indexOf(id) === i) out.push(id);
+    });
+    return out;
+  }
+  function makeSeq(n) {
+    var pool = usablePool(); if (!pool.length) pool = ['sign', 'photo'];
+    var seq = [];
+    for (var i = 0; i < n; i++) {
+      var c = pool.filter(function (x) { return pool.length < 2 || x !== seq[i - 1]; });
+      seq.push(c[Math.floor(Math.random() * c.length)]);
+    }
+    return seq;
+  }
+  function ensureSeq(o) {
+    if (!o.fsSeq) { o.fsSeq = makeSeq(SEQ_LEN); o.fsStep = 0; o.fsGauge = 0; o.fsDirty = true; return; }
+    var pool = usablePool();
+    if (!pool.length) return;
+    var bad = false;
+    for (var i = o.fsStep; i < o.fsSeq.length; i++) if (pool.indexOf(o.fsSeq[i]) === -1) bad = true;
+    if (bad) {                                                       // 장착을 바꿔서 못 쓰는 스킬이 순서에 있으면 남은 칸만 새로 뽑음
+      var left = Math.max(1, Math.ceil((100 - o.fsGauge) / STEP_GAIN));
+      o.fsSeq = o.fsSeq.slice(0, o.fsStep).concat(makeSeq(left)); o.fsDirty = true;
+    }
+  }
+  function applyStep(o, id, sk) {
+    ensureSeq(o);
+    if (sk.aoe) { o.fsGauge += AOE_GAIN; o.fsSeq.splice(o.fsStep, 2); o.fsAoe = true; }
+    else if (o.fsSeq[o.fsStep] === id) { o.fsGauge += STEP_GAIN; o.fsStep++; }
+    else { o.fsDirty = true; return 'fail'; }
+    o.fsDirty = true;
+    return o.fsGauge >= 100 ? 'done' : 'ok';
+  }
+  function seqHtml(o) {
+    var h = '<div style="display:flex;gap:2px;justify-content:center;align-items:center;">';
+    (o.fsSeq || []).forEach(function (id, i) {
+      var k = skillById(id), done = i < o.fsStep, cur = i === o.fsStep;
+      h += '<span style="background:#fff;border:2px solid ' + (cur ? '#FFD700' : '#FF6B9D') + ';border-radius:999px;padding:0 4px;font-size:' + (cur ? 17 : 13) + 'px;line-height:1.35;' +
+        (done ? 'opacity:.3;filter:grayscale(1);' : '') + (cur ? 'animation:fsBob 1s ease-in-out infinite;' : '') + '">' + k.icon + '</span>' +
+        (i < o.fsSeq.length - 1 ? '<span style="font-size:8px;color:#fff;text-shadow:0 1px 3px #000;">▸</span>' : '');
+    });
+    var g = Math.min(100, o.fsGauge || 0);
+    h += '</div><div style="margin:2px auto 0;width:64px;height:7px;background:rgba(0,0,0,.6);border:1px solid #fff;border-radius:6px;overflow:hidden;"><div style="width:' + g + '%;height:100%;background:linear-gradient(90deg,#FF6B9D,#FF9EC7);transition:width .3s;"></div></div>';
+    return h;
+  }
+  function paintSeq(o, host) {
+    if (!host) return;
+    ensureSeq(o);
+    if (o.fsDirty || host.getAttribute('data-p') !== '1') { host.innerHTML = seqHtml(o); host.setAttribute('data-p', '1'); o.fsDirty = false; }
+  }
+
   // ════════ 팬 ════════
   function buildFanEl(f) {
-    var sk = skillById(f.fav);
     var el = document.createElement('div');
     el.style.cssText = 'position:absolute;left:' + (f.x * 100) + '%;top:' + (f.y * 100) + '%;transform:translate(-50%,-50%);z-index:12;pointer-events:none;text-align:center;';
     el.innerHTML =
       '<div style="position:relative;animation:fsIn .45s ease-out;">' +
-        '<div style="position:absolute;left:-20px;right:-20px;top:-34px;display:flex;justify-content:center;">' +
-          '<div class="fs-bubble" style="animation:fsBob 1s ease-in-out infinite;background:#fff;border:2px solid #FF6B9D;border-radius:999px;padding:1px 9px;font-size:18px;box-shadow:0 2px 8px rgba(0,0,0,.4);">' + sk.icon + (hasSkill(F.cid, sk) ? '' : '<span style="font-size:11px;">🔒</span>') + '</div></div>' +
+        '<div style="position:absolute;left:-40px;right:-40px;top:-50px;text-align:center;"><div class="fs-bubble"></div></div>' +
         '<div class="fs-face" style="width:40px;height:40px;border-radius:50%;background:#fff;border:3px solid #fff;display:flex;align-items:center;justify-content:center;font-size:22px;box-shadow:0 3px 10px rgba(0,0,0,.5);margin:0 auto;">' + f.emoji + '</div>' +
         '<div style="margin-top:2px;font-size:9px;font-weight:900;color:#fff;text-shadow:0 1px 4px #000;white-space:nowrap;">' + f.name + '</div>' +
       '</div>';
     var layer = $('bc-layer');
     if (layer) layer.appendChild(el);
+    paintSeq(f, el.querySelector('.fs-bubble'));
     return el;
   }
 
@@ -247,13 +304,10 @@
     var x = clamp(me.x + Math.cos(a) * r / ws.w, BOUNDS.x0, BOUNDS.x1);
     var y = clamp(me.y + Math.sin(a) * r / ws.h, BOUNDS.y0, BOUNDS.y1);
     var type = FANS[Math.floor(Math.random() * FANS.length)];
-    var f = { id: ++F.nid, x: x, y: y, name: type.name, emoji: type.emoji, fav: FAV_IDS[Math.floor(Math.random() * FAV_IDS.length)], until: Date.now() + FAN_TTL * 1000, el: null };
+    var f = { id: ++F.nid, x: x, y: y, name: type.name, emoji: type.emoji, until: Date.now() + FAN_TTL * 1000, el: null };
     f.el = buildFanEl(f);
     F.fans.push(f);
-    var fsk = skillById(f.fav);
-    showNote(hasSkill(F.cid, fsk)
-      ? '💬 ' + f.name + '이(가) 찾아왔어요! 가까이 가서 ' + fsk.icon + ' ' + fsk.name + '을(를) 해줘요'
-      : '💬 ' + f.name + '이(가) 찾아왔어요! ' + fsk.icon + ' ' + fsk.name + '을(를) 원하는데 아직 못 배웠어요 🔒 (다른 스킬로도 만족시킬 수 있어요)');
+    showNote('💬 ' + f.name + '이(가) 찾아왔어요! 머리 위 순서대로 스킬을 써서 하트 게이지를 채워요 (순서가 틀리면 실패!)');
     return f;
   }
 
@@ -282,20 +336,22 @@
   var EV_INFO = { shutter: ['📸', '셔터 찬스'], golden: ['🌟', '황금 셔터'], letter: ['💌', '팬레터'], goods: ['🎁', '굿즈'] };
   function evTarget(ev) {
     var info = EV_INFO[ev.type] || ['🚨', (ev.npc && ev.npc.name) || '특별 NPC'];
-    return { ev: ev, x: ev.x, y: ev.y, fav: ev.fsFav, emoji: info[0], name: info[1] };
+    return { ev: ev, x: ev.x, y: ev.y, emoji: info[0], name: info[1] };
   }
   function ensureEventBubbles() {
     var hk = bcHook();
     if (!hk || !F) return;
     hk.events().forEach(function (ev) {
-      if (!ev.fsFav) ev.fsFav = FAV_IDS[Math.floor(Math.random() * FAV_IDS.length)];
-      if (!ev.el || ev.el.querySelector('.fs-evb')) return;
-      var sk = skillById(ev.fsFav);
-      var b = document.createElement('div');
-      b.className = 'fs-evb';
-      b.style.cssText = 'position:absolute;left:50%;top:-30px;transform:translateX(-50%);animation:fsBob 1s ease-in-out infinite;background:#fff;border:2px solid #FF6B9D;border-radius:999px;padding:0 8px;font-size:16px;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,.4);';
-      b.innerHTML = sk.icon + (hasSkill(F.cid, sk) ? '' : '<span style="font-size:10px;">🔒</span>');
-      ev.el.appendChild(b);
+      if (!ev.el) return;
+      var b = ev.el.querySelector('.fs-evb');
+      if (!b) {
+        b = document.createElement('div');
+        b.className = 'fs-evb';
+        b.style.cssText = 'position:absolute;left:50%;top:-50px;transform:translateX(-50%);white-space:nowrap;text-align:center;pointer-events:none;';
+        ev.el.appendChild(b);
+      }
+      ev.fsFav = ev.fsFav || 'seq';
+      paintSeq(ev, b);
     });
   }
   function nearestEvent(rng) {
@@ -344,52 +400,62 @@
     var fan = nearestTarget(sk.reach);
     if (!fan) { toast(bcHook() ? '가까이에 이벤트가 없어요! ❗ 쪽으로 걸어가 봐요 (눌러서 닿기 전까지만)' : '가까이에 팬이 없어요! 팬 쪽으로 걸어가 봐요'); return null; }
     var me = playerPos();
-    var love = fan.fav === id || (!!sk.aoe && Math.random() < AOE_LOVE);
-    if (fan.ev) {                                                    // 맵 이벤트에 스킬 사용: 이펙트 → 잠깐 뒤 결과창
-      var hk = bcHook(), evRef = fan.ev;
-      if (!hk.canResolve(evRef)) return null;                         // 스태미나 부족 등
-      F.cd[id] = now + COOLDOWN * 1000;
-      evRef.fsBusy = true;
-      effect(id, fan, me, love);
-      floatText(fan.x, fan.y - 0.03, '<div style="font-size:15px;font-weight:900;color:' + (love ? '#FFD700' : '#fff') + ';text-shadow:0 2px 6px #000;">' + (love ? '😍 대만족!' : '😊 만족') + '</div>');
-      sfx(love ? 'rarePick' : 'pick');
-      var cidNow = F.cid;
-      setTimeout(function () {
-        var ok = false;
-        try { ok = hk.resolve(evRef, love); } catch (e) {}
-        if (ok) addServe(cidNow); else evRef.fsBusy = false;
-      }, 900);
-      refreshBar();
-      return { love: love, event: true };
-    }
-    var fanRef = fan;
-    if (sk.aoe) {                                                    // 광역: 범위 안의 다른 팬들도 한꺼번에 응대
-      var me2 = playerPos();
-      F.fans.slice().forEach(function (o) {
-        if (o === fan || !me2 || pxDist(o.x, o.y, me2.x, me2.y) > sk.reach) return;
-        F.fans.splice(F.fans.indexOf(o), 1);
-        var lv2 = o.fav === id || Math.random() < AOE_LOVE;
-        effect(id, o, me2, lv2); grant(lv2); addServe(F.cid);
-        floatText(o.x, o.y - 0.03, '<div style="font-size:15px;font-weight:900;color:' + (lv2 ? '#FFD700' : '#fff') + ';text-shadow:0 2px 6px #000;">' + (lv2 ? '😍 대만족!' : '😊 만족') + '</div>');
-        setTimeout(function () { removeFan(o, true); }, 900);
+    var hk = bcHook();
+    if (fan.ev && !hk.canResolve(fan.ev)) return null;                // 스태미나 부족 등
+    F.cd[id] = now + COOLDOWN * 1000;
+    // 대상 모으기: 가장 가까운 대상 + (광역이면) 범위 안의 다른 팬들
+    var list = [fan.ev || fan];
+    if (sk.aoe) {
+      F.fans.forEach(function (o) {
+        if (o === fan || o.fsBusy || !me || pxDist(o.x, o.y, me.x, me.y) > sk.reach) return;
+        list.push(o);
       });
     }
-    F.fans.splice(F.fans.indexOf(fan), 1);                           // 응대 중인 팬은 다른 스킬 대상에서 빠짐
-    effect(id, fanRef, me, love);
-    var r = grant(love);
-    var total = addServe(F.cid);
-    var fc = fanRef.el && fanRef.el.querySelector('.fs-face');
-    if (fc) fc.textContent = love ? '😍' : '😊';
-    floatText(fanRef.x, fanRef.y - 0.03,
-      '<div style="font-size:15px;font-weight:900;color:' + (love ? '#FFD700' : '#fff') + ';text-shadow:0 2px 6px #000;text-align:center;">' + (love ? '😍 대만족!' : '😊 만족') + '</div>' +
-      '<div style="text-align:center;">' + r.lines.join('') + '</div>');
-    sfx(love ? 'rarePick' : 'pick');
-    setTimeout(function () { removeFan(fanRef, true); }, 900);
+    var res = { done: 0, fail: 0, ok: 0 };
+    list.forEach(function (o) {
+      var st = applyStep(o, id, sk);
+      var isEv = !!o.type && !!o.el && !o.emoji;                       // 맵 이벤트인지
+      var tg = isEv ? evTarget(o) : o;
+      effect(id, tg, me, st === 'done');
+      if (st === 'fail') {
+        res.fail++;
+        o.fsBusy = true;
+        floatText(tg.x, tg.y - 0.03, '<div style="font-size:14px;font-weight:900;color:#ff6b6b;text-shadow:0 2px 6px #000;white-space:nowrap;">😤 순서가 틀렸어요! 실패</div>');
+        sfx('fail');
+        if (isEv) { var evF = o; setTimeout(function () { try { hk.fail(evF); } catch (e) {} }, 800); }
+        else { var i0 = F.fans.indexOf(o); if (i0 !== -1) F.fans.splice(i0, 1); var fc0 = o.el && o.el.querySelector('.fs-face'); if (fc0) fc0.textContent = '😤'; setTimeout(function () { removeFan(o, true); }, 900); }
+        return;
+      }
+      if (st === 'ok') {
+        res.ok++;
+        floatText(tg.x, tg.y - 0.03, '<div style="font-size:13px;font-weight:900;color:#FF9EC7;text-shadow:0 2px 6px #000;white-space:nowrap;">💗 게이지 ' + Math.min(100, o.fsGauge) + '%</div>');
+        sfx('pick');
+        return;
+      }
+      res.done++;                                                    // 게이지 가득 → 응대 성공
+      var love = o.fsAoe ? (Math.random() < AOE_LOVE) : (Math.random() < 0.5);
+      floatText(tg.x, tg.y - 0.03, '<div style="font-size:15px;font-weight:900;color:' + (love ? '#FFD700' : '#fff') + ';text-shadow:0 2px 6px #000;">' + (love ? '😍 대만족!' : '😊 만족') + '</div>');
+      sfx(love ? 'rarePick' : 'pick');
+      o.fsBusy = true;
+      if (isEv) {
+        var evRef = o, cidNow = F.cid;
+        setTimeout(function () {
+          var ok = false;
+          try { ok = hk.resolve(evRef, love); } catch (e) {}
+          if (ok) addServe(cidNow); else evRef.fsBusy = false;
+        }, 900);
+      } else {
+        var i1 = F.fans.indexOf(o); if (i1 !== -1) F.fans.splice(i1, 1);
+        var r = grant(love); addServe(F.cid);
+        var fc = o.el && o.el.querySelector('.fs-face'); if (fc) fc.textContent = love ? '😍' : '😊';
+        floatText(o.x, o.y - 0.09, '<div style="text-align:center;">' + r.lines.join('') + '</div>');
+        setTimeout(function () { removeFan(o, true); }, 900);
+      }
+    });
     refreshBar();
-    return { love: love, reward: r, serves: total };
+    return { done: res.done, fail: res.fail, ok: res.ok };
   }
 
-  // ════════ 화면 (스킬 버튼) ════════
   var noteTimer = null;
   function showNote(text) {
     var n = $('fs-note');
@@ -452,11 +518,12 @@
       lb.textContent = lvLock ? ('Lv.' + s.useLv) : (locked ? ('🍔' + priceLabel(s.price)) : (left > 0 ? left + '초' : s.short));
       var ready = !lvLock && !locked && left === 0 && !!nr;
       b.style.opacity = (lvLock || locked) ? '.55' : ((left > 0 || !nr) ? '.6' : '1');
-      b.style.borderColor = ready ? (nr.fav === s.id ? '#FFD700' : '#FF6B9D') : '#C084FC';
-      b.style.animation = (ready && nr.fav === s.id) ? 'fsReady 1s ease-in-out infinite' : 'none';
+      var tgo = nr && (nr.ev || nr); var want = !!tgo && !!tgo.fsSeq && (s.aoe || tgo.fsSeq[tgo.fsStep] === s.id);
+      b.style.borderColor = ready ? (want ? '#FFD700' : '#FF6B9D') : '#C084FC';
+      b.style.animation = (ready && want) ? 'fsReady 1s ease-in-out infinite' : 'none';
     }
     var t;
-    if (near) t = '💬 ' + near.emoji + ' ' + near.name + ' 바로 앞! ' + skillById(near.fav).icon + ' 를 좋아해요' + (hasSkill(F.cid, skillById(near.fav)) ? '' : ' (아직 못 배움 🔒)');
+    if (near) { var no = near.ev || near, nk = no.fsSeq && skillById(no.fsSeq[no.fsStep]); t = '💬 ' + near.emoji + ' ' + near.name + ' 앞! ' + (nk ? nk.icon + ' 차례 · ' : '') + '게이지 ' + Math.min(100, no.fsGauge || 0) + '% (광역은 순서 건너뛰기)'; }
     else if (bcHook()) t = '❗ 이벤트 가까이 가서 스킬을 써봐요 (닿으면 미니게임이 열려요)';
     else if (F.fans.length) t = '👀 팬이 기다리고 있어요! 가까이 걸어가요';
     else t = '✨ 이벤트가 끝나면 팬이 찾아와요';
@@ -708,6 +775,6 @@
   window.__fanSkillsTest = {
     spawnFan: spawnFan, useSkill: useSkill, serves: serves, unlockedSkills: unlockedSkills,
     buySkill: buySkill, nearestTarget: nearestTarget, hasSkill: hasSkill, openShop: openShop, openBuyModal: openBuyModal, skillById: skillById,
-    state: function () { return F; }, store: loadStore
+    state: function () { return F; }, store: loadStore, playerPos: playerPos, evTarget: evTarget
   };
 })();

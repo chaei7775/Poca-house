@@ -1386,6 +1386,13 @@
       }
     },
     events: function () { return S ? S.events : []; },
+    fail: function (ev) {                                       // 스킬 순서가 틀려서 실패: 이벤트만 사라지고 스태미나는 안 듦
+      if (!S || S.events.indexOf(ev) === -1) return false;
+      removeEvent(ev);
+      banner('😤 순서가 틀려서 실패했어요…');
+      afterEvent();
+      return true;
+    },
     canResolve: function (ev) {
       if (!S || S.paused || S.events.indexOf(ev) === -1) return false;
       var cost = staminaCost();
