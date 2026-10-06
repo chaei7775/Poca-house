@@ -166,7 +166,7 @@
       x = clamp(G.px + Math.cos(a) * d, 30, WORLD - 30); y = clamp(G.py + Math.sin(a) * d, 30, WORLD - 30);
     }
     var wmul = 1 + (G.wave - 1) * 0.04;     // 웨이브가 올라갈수록 조금씩 튼튼해짐
-    var f = { id: G.nextId++, type: type, T: T, x: x, y: y, hp: T.hp * (T.boss ? 1 : wmul), mhp: T.hp * (T.boss ? 1 : wmul), kx: 0, ky: 0, flash: 0, shootT: rnd(0.8, 2), wob: Math.random() * 6, step: 0, angry: 0 };
+    var f = { id: G.nextId++, type: type, T: T, x: x, y: y, hp: T.hp * (T.boss ? 1 : wmul), mhp: T.hp * (T.boss ? 1 : wmul), kx: 0, ky: 0, flash: 0, shootT: rnd(0.8, 2), wob: Math.random() * 6, step: 0, angry: 0, face: 1 + Math.floor(Math.random() * FAN_FACES) };
     f.seq = makeSeq(SEQ_BY[type] || 1);
     G.fans.push(f);
     return f;
@@ -426,9 +426,33 @@
   }
   function heartPath(c, x, y, s) { c.beginPath(); c.moveTo(x, y + s * 0.35); c.bezierCurveTo(x - s, y - s * 0.4, x - s * 0.4, y - s, x, y - s * 0.35); c.bezierCurveTo(x + s * 0.4, y - s, x + s, y - s * 0.4, x, y + s * 0.35); c.fill(); }
 
+  var _floor = null;
+  function floorImg() {
+    if (_floor) return _floor;
+    var im = new Image(); im.crossOrigin = 'anonymous';
+    im.onload = function () { im._ok = true; };
+    im.src = IMG_BASE + 'fanrush-floor.jpg';
+    _floor = im; return im;
+  }
+  // 팬 얼굴 이미지: rfan-1.png ~ rfan-10.png (없으면 이모지로 대체), 보스는 rfan-boss.png
+  var FAN_FACES = 10, fanImgs = {};
+  function fanFace(key) {
+    if (fanImgs[key]) return fanImgs[key];
+    var im = new Image(); im.crossOrigin = 'anonymous';
+    im.onload = function () { im._ok = true; };
+    im.src = IMG_BASE + 'rfan-' + key + '.png';
+    fanImgs[key] = im; return im;
+  }
   function drawFloor(c) {
     var cx = G.cam.x, cy = G.cam.y, vw = G.vw, vh = G.vh;
     c.fillStyle = '#0c0719'; c.fillRect(cx - 40, cy - 40, vw + 80, vh + 80);
+    var fl = floorImg();
+    if (fl && fl._ok) {
+      // 공항 이미지를 월드 전체에 깔기 (높이 기준 꽉 채우고 가운데를 잘라 씀)
+      var sc = WORLD / fl.naturalHeight, sw = WORLD / sc;
+      c.drawImage(fl, (fl.naturalWidth - sw) / 2, 0, sw, fl.naturalHeight, 0, 0, WORLD, WORLD);
+      c.fillStyle = 'rgba(20,10,45,.28)'; c.fillRect(0, 0, WORLD, WORLD);
+    } else {
     // 바닥 (무대 느낌의 체크무늬)
     var T = 100, x0 = Math.max(0, Math.floor(cx / T) * T), y0 = Math.max(0, Math.floor(cy / T) * T);
     for (var x = x0; x < Math.min(WORLD, cx + vw + T); x += T) {
@@ -436,6 +460,7 @@
         c.fillStyle = ((x / T + y / T) % 2 === 0) ? '#241a3d' : '#1d1532';
         c.fillRect(x, y, T, T);
       }
+    }
     }
     // 가운데 무대 원
     var mid = WORLD / 2;
@@ -459,10 +484,21 @@
     var T = f.T, bob = Math.sin(f.wob) * 2;
     c.fillStyle = 'rgba(0,0,0,.35)'; c.beginPath(); c.ellipse(f.x, f.y + T.r * 0.7, T.r * 0.9, T.r * 0.4, 0, 0, 7); c.fill();
     if (f.flash > 0) { c.shadowColor = '#fff'; c.shadowBlur = 18; }
+    var fi = fanFace(T.boss ? 'boss' : f.face);
+    if (T.boss && !fi._ok) fi = fanFace(f.face);
+    if (fi && fi._ok) {
+      var R = T.r * 1.25, ring = f.angry > 0 ? '#ff6b6b' : (T.boss ? '#ffd76a' : f.type === 'tank' ? '#c084fc' : '#ffffff');
+      c.save(); c.beginPath(); c.arc(f.x, f.y + bob, R, 0, 7); c.closePath(); c.clip();
+      c.drawImage(fi, f.x - R, f.y + bob - R, R * 2, R * 2); c.restore();
+      c.strokeStyle = ring; c.lineWidth = T.boss ? 4 : 3; c.beginPath(); c.arc(f.x, f.y + bob, R, 0, 7); c.stroke();
+      if (T.ranged) { c.font = '16px sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('💌', f.x + R * 0.8, f.y + bob + R * 0.7); }
+      if (f.type === 'rusher') { c.font = '14px sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('⚡', f.x + R * 0.8, f.y + bob - R * 0.7); }
+    } else {
     c.font = Math.round(T.r * 2.1) + 'px sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle';
     c.fillText(T.emoji, f.x, f.y + bob);
+    }
     c.shadowBlur = 0;
-    if (T.boss) { c.font = Math.round(T.r * 1.0) + 'px sans-serif'; c.fillText('👑', f.x, f.y - T.r - 6 + bob); }
+    if (T.boss) { c.font = Math.round(T.r * 1.0) + 'px sans-serif'; c.fillText('👑', f.x, f.y - T.r * 1.25 - 8 + bob); }
     // 머리 위: 써야 할 스킬 순서 + 💗 하트 게이지 (순서를 채울수록 차오르고, 가득 차면 만족)
     var n = f.seq.length, iw = 16, tot = n * iw, ix = f.x - tot / 2, iy = f.y - T.r - (T.boss ? 34 : 24);
     for (var i = 0; i < n; i++) {
