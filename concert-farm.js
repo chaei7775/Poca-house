@@ -374,7 +374,7 @@
     c.save(); c.translate(x, y);
     c.fillStyle = 'rgba(0,0,0,0.35)'; c.beginPath(); c.ellipse(0, 26, 24, 9, 0, 0, 6.283); c.fill();
     c.beginPath(); c.arc(0, 0, 28, 0, 6.283); c.fillStyle = color; c.fill();
-    if (rec && rec.ok) { c.save(); c.beginPath(); c.arc(0, 0, 25, 0, 6.283); c.clip(); c.drawImage(rec.im, -25, -25, 50, 50); c.restore(); }
+    if (rec && rec.ok) { c.save(); c.beginPath(); c.arc(0, 0, 25, 0, 6.283); c.clip(); c.drawImage(rec.im, -30, -29, 60, 60); c.restore(); }
     else { c.font = '32px sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(emoji, 0, 2); }
     c.lineWidth = 4; c.strokeStyle = '#fff'; c.beginPath(); c.arc(0, 0, 28, 0, 6.283); c.stroke();
     outlined(c, label, 0, 44, 16, '#fff');
