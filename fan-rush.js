@@ -354,6 +354,7 @@
       if (!cand.length) return false;
       var tg1 = cand.filter(needs)[0] || cand[0];
       addFx({ k: 'beam', x: G.px, y: G.py, x2: tg1.x, y2: tg1.y, t: 0.25, max: 0.25, c: id === 'sign' ? '#ffe27a' : '#ff9ad0' });
+      addFx({ k: 'pop', id: id, x: tg1.x, y: tg1.y, t: 0.6, max: 0.6 });
       if (needs(tg1)) { knock(tg1, 25, G.px, G.py); advance(tg1); if (id === 'shake') heal(6); } else wrongPress(tg1);
       used = true;
     } else if (s.kind === 'multi') {
@@ -381,6 +382,8 @@
       if (!inR.length) return false;
       var kb = id === 'finale' ? 70 : (id === 'encore' ? 55 : (id === 'wink' ? 45 : (id === 'rose' ? 35 : 28)));
       inR.slice().forEach(function (f4) { knock(f4, kb, G.px, G.py); if (id === 'rose') f4.slow = 3; advance(f4); });   // 광역: 어떤 순서 칸이든 하나를 채움
+      var DUR = { highlight: 0.95, wink: 0.95, encore: 1.15, rose: 1.5, finale: 1.7 }[id] || 0.9;
+      addFx({ k: 'skill', id: id, x: G.px, y: G.py, r: s.range, t: DUR, max: DUR });
       addFx({ k: (id === 'encore' || id === 'finale') ? 'bigring' : 'ring', x: G.px, y: G.py, r: s.range, t: 0.7, max: 0.7, c: (id === 'wink' || id === 'rose') ? 'gold' : '' });
       if (id === 'encore') { G.shield = 1.5; G.shake = 10; }
       if (id === 'finale') { G.shield = 2.2; G.shake = 14; }
@@ -581,6 +584,99 @@
     c.globalAlpha = 1;
   }
 
+
+  // ════════ ✨ 스킬 이펙트 (스킬마다 다르게) ════════
+  function hh(i, k) { var x = Math.sin(i * 127.1 + k * 311.7) * 43758.5453; return x - Math.floor(x); }
+  function clamp01(v) { return v < 0 ? 0 : v > 1 ? 1 : v; }
+  function starBurst(c, x, y, rad, p, col, n) {          // 폭죽 한 발: p 0→1
+    if (p <= 0 || p >= 1) return;
+    c.globalAlpha = 1 - p; c.strokeStyle = col; c.lineWidth = 3 * (1 - p) + 1; c.lineCap = 'round';
+    for (var i = 0; i < n; i++) {
+      var a = i / n * 6.2832, r0 = rad * p * 0.55, r1 = rad * (0.25 + p * 0.75);
+      c.beginPath(); c.moveTo(x + Math.cos(a) * r0, y + Math.sin(a) * r0); c.lineTo(x + Math.cos(a) * r1, y + Math.sin(a) * r1); c.stroke();
+    }
+    c.fillStyle = '#fff'; c.beginPath(); c.arc(x, y, 5 * (1 - p) + 1, 0, 7); c.fill();
+    c.globalAlpha = 1; c.lineCap = 'butt';
+  }
+  function drawSkillFx(c, e, p) {
+    var x = e.x, y = e.y, R = e.r, id = e.id, i, a, pp;
+    c.save();
+    if (id === 'highlight') {                              // 🎤 마이크 소리 파동 + 음표
+      var g = c.createRadialGradient(x, y, 10, x, y, R); g.addColorStop(0, 'rgba(255,255,255,' + (0.35 * (1 - p)) + ')'); g.addColorStop(1, 'rgba(255,255,255,0)');
+      c.fillStyle = g; c.beginPath(); c.arc(x, y, R, 0, 7); c.fill();
+      for (i = 0; i < 3; i++) {
+        pp = clamp01((p - i * 0.16) / 0.7); if (pp <= 0 || pp >= 1) continue;
+        c.globalAlpha = 1 - pp; c.strokeStyle = i % 2 ? '#7fe9ff' : '#ff6fd8'; c.lineWidth = 7 * (1 - pp) + 1.5;
+        c.shadowColor = c.strokeStyle; c.shadowBlur = 12; c.beginPath(); c.arc(x, y, R * pp, 0, 7); c.stroke();
+      }
+      c.shadowBlur = 0; c.globalAlpha = 1 - p; c.textAlign = 'center'; c.textBaseline = 'middle';
+      var notes = ['♪', '♫', '♬', '♩'];
+      for (i = 0; i < 12; i++) {
+        a = i / 12 * 6.2832 + hh(i, 1) * 0.5; var d = R * (0.2 + p * 0.85) * (0.8 + hh(i, 2) * 0.3);
+        c.fillStyle = ['#ffe27a', '#7fe9ff', '#ff9ad0', '#fff'][i % 4]; c.font = 'bold ' + (20 + hh(i, 3) * 12) + 'px sans-serif';
+        c.fillText(notes[i % 4], x + Math.cos(a) * d, y + Math.sin(a) * d - p * 18);
+      }
+      c.globalAlpha = Math.min(1, (1 - p) * 1.6); c.font = Math.round(44 + 18 * Math.sin(Math.min(1, p * 3) * 3.14)) + 'px sans-serif';
+      c.fillText('🎤', x, y - 34 - p * 26);
+    } else if (id === 'wink') {                            // 💖 윙크 + 하트 폭발
+      var g2 = c.createRadialGradient(x, y, 10, x, y, R); g2.addColorStop(0, 'rgba(255,120,190,' + (0.32 * (1 - p)) + ')'); g2.addColorStop(1, 'rgba(255,120,190,0)');
+      c.fillStyle = g2; c.beginPath(); c.arc(x, y, R, 0, 7); c.fill();
+      c.globalAlpha = 1 - p;
+      for (i = 0; i < 18; i++) {
+        a = i / 18 * 6.2832 + hh(i, 4) * 0.4; var dd = R * p * (0.45 + hh(i, 5) * 0.6);
+        c.fillStyle = i % 3 === 0 ? '#ffd1e8' : (i % 3 === 1 ? '#ff6fb1' : '#ff3d8b'); heartPath(c, x + Math.cos(a) * dd, y + Math.sin(a) * dd - p * 14, 7 + hh(i, 6) * 8);
+      }
+      c.textAlign = 'center'; c.textBaseline = 'middle'; c.globalAlpha = Math.min(1, (1 - p) * 1.8);
+      c.font = Math.round(52 + 22 * Math.sin(Math.min(1, p * 2.5) * 3.14)) + 'px sans-serif'; c.fillText('😉', x, y - 38 - p * 20);
+      c.font = '22px sans-serif'; c.fillText('✨', x + 34, y - 62 - p * 18); c.fillText('✨', x - 34, y - 50 - p * 14);
+    } else if (id === 'encore') {                          // ✨ 앵콜 폭죽 (여러 발)
+      for (i = 0; i < 6; i++) {
+        pp = clamp01((p - i * 0.1) / 0.55); var ba = i / 6 * 6.2832 + 0.4, bd = R * (0.35 + hh(i, 7) * 0.45);
+        starBurst(c, x + Math.cos(ba) * bd, y + Math.sin(ba) * bd, 70, pp, ['#ffd76a', '#ff6fd8', '#7fe9ff', '#9bff9b', '#fff', '#ffb36b'][i], 12);
+      }
+      c.globalAlpha = 1 - p; c.fillStyle = '#ffd76a';
+      for (i = 0; i < 26; i++) { a = hh(i, 8) * 6.2832; var cd = R * hh(i, 9) * (0.3 + p * 0.7); c.fillRect(x + Math.cos(a) * cd - 2, y + Math.sin(a) * cd + p * 30 * hh(i, 10) - 2, 4, 6); }
+    } else if (id === 'rose') {                            // 🌹 장미꽃잎 비
+      var g3 = c.createRadialGradient(x, y, 10, x, y, R); g3.addColorStop(0, 'rgba(255,70,120,' + (0.22 * (1 - p)) + ')'); g3.addColorStop(1, 'rgba(255,70,120,0)');
+      c.fillStyle = g3; c.beginPath(); c.arc(x, y, R, 0, 7); c.fill();
+      c.globalAlpha = Math.min(1, (1 - p) * 1.5);
+      for (i = 0; i < 34; i++) {
+        var px = x + (hh(i, 11) - 0.5) * 2 * R * 0.95, py = y - R * 0.9 + (p * (0.7 + hh(i, 12) * 0.6) + hh(i, 13) * 0.15) * R * 1.7, sw = Math.sin(p * 9 + i) * 14;
+        c.save(); c.translate(px + sw, py); c.rotate(p * 6 + i); c.fillStyle = i % 3 === 0 ? '#ff2f6d' : (i % 3 === 1 ? '#ff7aa6' : '#c81e4d');
+        c.beginPath(); c.ellipse(0, 0, 9, 5, 0, 0, 7); c.fill(); c.restore();
+      }
+      c.textAlign = 'center'; c.textBaseline = 'middle'; c.font = '30px sans-serif';
+      for (i = 0; i < 7; i++) c.fillText('🌹', x + (hh(i, 14) - 0.5) * R * 1.5, y - R * 0.7 + p * R * (1.1 + hh(i, 15) * 0.5));
+    } else if (id === 'finale') {                          // 🎆 불꽃쇼
+      if (p < 0.18) { c.globalAlpha = 0.55 * (1 - p / 0.18); c.fillStyle = '#fff'; c.beginPath(); c.arc(x, y, R * 1.3, 0, 7); c.fill(); }
+      var cols = ['#ffd76a', '#ff6fd8', '#7fe9ff', '#9bff9b', '#ff9a5a', '#c084fc', '#fff'];
+      for (i = 0; i < 11; i++) {
+        pp = clamp01((p - i * 0.065) / 0.45); a = hh(i, 16) * 6.2832; var fd = R * Math.sqrt(hh(i, 17)) * 0.95;
+        starBurst(c, x + Math.cos(a) * fd, y + Math.sin(a) * fd, 85 + hh(i, 18) * 40, pp, cols[i % cols.length], 16);
+      }
+      c.globalAlpha = 1 - p; c.textAlign = 'center'; c.textBaseline = 'middle'; c.font = '46px sans-serif'; c.fillText('🎆', x, y - 40 - p * 30);
+    }
+    c.restore();
+  }
+  function drawPop(c, e, p) {                              // 기본 스킬: 맞은 팬 위에 작은 효과
+    var x = e.x, y = e.y, id = e.id, i;
+    c.save(); c.textAlign = 'center'; c.textBaseline = 'middle';
+    if (id === 'photo') {
+      c.globalAlpha = (1 - p) * 0.9; var g = c.createRadialGradient(x, y, 2, x, y, 56 * (0.4 + p)); g.addColorStop(0, '#fff'); g.addColorStop(1, 'rgba(255,255,255,0)');
+      c.fillStyle = g; c.beginPath(); c.arc(x, y, 56 * (0.4 + p), 0, 7); c.fill();
+      c.globalAlpha = 1 - p; c.font = '26px sans-serif'; c.fillText('📸', x, y - 30 - p * 14);
+    } else if (id === 'sign') {
+      c.globalAlpha = 1 - p; c.font = '24px sans-serif'; c.fillText('✍️', x, y - 28 - p * 10);
+      c.strokeStyle = '#ffe27a'; c.lineWidth = 3; c.beginPath(); c.moveTo(x - 22, y + 20); c.bezierCurveTo(x - 8, y + 4, x + 8, y + 34, x + 22, y + 16); c.stroke();
+      c.font = '16px sans-serif'; c.fillText('✨', x + 24, y - 10 - p * 12);
+    } else if (id === 'shake') {
+      starBurst(c, x, y, 44, p, '#ffe27a', 8); c.globalAlpha = 1 - p; c.font = '24px sans-serif'; c.fillText('🤝', x, y - 30 - p * 12);
+    } else if (id === 'heart') {
+      c.globalAlpha = 1 - p;
+      for (i = 0; i < 5; i++) { c.fillStyle = i % 2 ? '#ff6fb1' : '#ff3d8b'; heartPath(c, x + (i - 2) * 13, y - 12 - p * (26 + i * 7), 8 - Math.abs(i - 2)); }
+    }
+    c.restore();
+  }
   function drawFx(c) {
     G.fx.forEach(function (e) {
       var p = 1 - e.t / e.max;
@@ -595,6 +691,8 @@
         c.fillStyle = 'rgba(' + col + ',1)'; c.globalAlpha = 1 - p;
         for (var i = 0; i < (big ? 8 : 6); i++) { var a = i / (big ? 8 : 6) * 6.283 + p * 2; heartPath(c, e.x + Math.cos(a) * e.r * p, e.y + Math.sin(a) * e.r * p, 9); }
         c.globalAlpha = 1;
+      } else if (e.k === 'skill') { drawSkillFx(c, e, p);
+      } else if (e.k === 'pop') { drawPop(c, e, p);
       } else if (e.k === 'hearts') {
         c.globalAlpha = 1 - p; c.fillStyle = '#ff6fb1';
         for (var j = 0; j < 4; j++) heartPath(c, e.x + (j - 1.5) * 10, e.y - 8 - p * (26 + j * 6), 7 - j);
