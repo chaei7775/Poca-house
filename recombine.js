@@ -166,6 +166,7 @@ function renderRcMaterialSlots() {
     if (slot1) slot1.innerHTML = '<div class="rc-mat-empty">아이템을<br>등록해주세요</div>';
     if (slot2) slot2.innerHTML = '<div class="rc-mat-empty">아이템을<br>등록해주세요</div>';
     if (slot3) slot3.innerHTML = '<div class="rc-mat-empty">아이템을<br>등록해주세요</div>';
+    renderRcMaterialWhere(null);
     return;
   }
 
@@ -175,22 +176,46 @@ function renderRcMaterialSlots() {
   const haveWish = wishFragments;
 
   if (slot1) slot1.innerHTML = rcMaterialSlotHtml('🔹', '재조합석', haveNormal, need.normal);
+  renderRcMaterialWhere(need);
   if (slot2) {
     if (need.epic > 0) slot2.innerHTML = rcMaterialSlotHtml('💠', '에픽 재조합석', haveEpic, need.epic);
     else slot2.innerHTML = '<div class="rc-mat-empty" style="opacity:0.4;">필요 없음</div>';
   }
   if (slot3) {
-    if (rcNeedsWish(recipe)) slot3.innerHTML = rcMaterialSlotHtml('🧩', '소원의조각', haveWish, 10);
+    if (rcNeedsWish(recipe)) slot3.innerHTML = rcMaterialSlotHtml('🧩', '소원의조각', haveWish, 10, '소원의 조각');
     else slot3.innerHTML = '<div class="rc-mat-empty" style="opacity:0.4;">필요 없음</div>';
   }
 }
 
-function rcMaterialSlotHtml(emoji, name, have, need) {
+function rcMaterialSlotHtml(emoji, name, have, need, iconName) {
   const ok = have >= need;
+  // 그림(mat-icons.js)이 있으면 그림, 없으면 이모지 (공방의 원석 등 다른 재료와 같은 방식)
+  const icon = window.matIcon ? window.matIcon(iconName || name, 40, emoji) : emoji;
   return '<div class="rc-mat-filled" style="border-color:' + (ok ? '#C084FC' : '#FF6B9D') + ';">' +
-    '<div style="font-size:28px;">' + emoji + '</div>' +
+    '<div style="font-size:28px;line-height:1;">' + icon + '</div>' +
     '<div style="font-size:11px;font-weight:900;color:#fff;margin-top:2px;">' + name + '</div>' +
     '<div style="font-size:12px;font-weight:900;color:' + (ok ? '#4ade80' : '#FF6B9D') + ';">' + have + ' / ' + need + '</div></div>';
+}
+
+// 재료 칸 아래에 "📍 어디서 나오는지" 한 줄 (굿즈 공방의 공방의 원석 안내와 같은 방식: mat-where.js)
+function renderRcMaterialWhere(need) {
+  const row = document.getElementById('rc-material-slot-1') && document.getElementById('rc-material-slot-1').parentNode;
+  if (!row || !row.parentNode) return;
+  let box = document.getElementById('rc-mat-where');
+  if (!box) {
+    box = document.createElement('div');
+    box.id = 'rc-mat-where';
+    box.style.cssText = 'margin:6px 8px 0;font-size:10.5px;line-height:1.6;color:#8fd3ff;text-align:center;';
+    row.parentNode.insertBefore(box, row.nextSibling);
+  }
+  const names = [];
+  if (need && need.normal > 0) names.push('재조합석');
+  if (need && need.epic > 0) names.push('에픽 재조합석');
+  const lines = names.map(function(n) {
+    const w = window.matWhere ? window.matWhere(n) : '';
+    return w ? '📍 ' + n + ': ' + w : '';
+  }).filter(Boolean);
+  box.innerHTML = lines.join('<br>');
 }
 
 function getMaterialQty(name) {

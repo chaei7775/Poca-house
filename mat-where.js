@@ -5,7 +5,7 @@
   // EXPLORE_MATERIALS 에 없는 맵의 재료 (각 맵 파일이 자체 목록을 쓰는 경우)
   var EXTRA = { housing: ['빛나는돌', '별빛모래', '네잎클로버', '고급원목', '행운의잎', '달의눈물'] };
   // 일반 탐험 맵이 아닌 곳에서만 나오는 재료
-  var SPECIAL = { '공방의 원석': '탐험 맵 어디서나 재료를 주울 때 가끔', '재조합석': '탐험 중 가끔 (재료를 주울 때)' };
+  var SPECIAL = { '공방의 원석': '탐험 맵 어디서나 재료를 주울 때 가끔', '재조합석': '탐험 중 가끔 (재료를 주울 때)', '에픽 재조합석': '신비의 섬 탐험 중 아주 가끔' };
   function titles() { try { if (typeof PLACE_TITLES !== 'undefined') return PLACE_TITLES; } catch (e) {} return {}; }
   function list(name) {
     var out = [], t = titles();
