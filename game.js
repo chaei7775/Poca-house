@@ -411,7 +411,7 @@ function showGachaResultMulti(cards) {
   overlay.innerHTML = `${fireworks}<div style="position:relative;z-index:2;width:100%;max-width:390px;text-align:center;">
     <div style="border:2px solid ${glow.border};border-radius:24px;padding:14px 12px 16px;background:rgba(255,255,255,.08);box-shadow:0 0 34px ${glow.glow}, inset 0 0 24px rgba(255,255,255,.05);">
       <div style="font-size:28px;font-weight:1000;color:${glow.border};font-family:'Nunito',sans-serif;letter-spacing:1.5px;text-shadow:0 0 18px ${glow.glow};">${bestRank === 'UR' ? 'CONGRATULATIONS!' : bestRank === 'SSR' ? 'CONGRATULATIONS!' : 'CARD DRAW RESULT'}</div>
-      <div style="font-size:13px;color:#fff;margin-top:3px;font-weight:900;">🎉 3 DRAW RESULT 🎉</div>
+      <div style="font-size:13px;color:#fff;margin-top:3px;font-weight:900;">🎉 ${cards.length} DRAW RESULT 🎉</div>
       <div style="display:flex;justify-content:center;gap:8px;margin-top:18px;">${cardsHtml}</div>
     </div>
     <button onclick="document.getElementById('gacha-multi-overlay').remove();renderHomeIdols();renderHomeSpeech();" style="margin-top:14px;padding:14px 44px;background:linear-gradient(135deg,#FF6B9D,#C084FC);border:none;border-radius:16px;color:#fff;font-size:16px;font-weight:1000;cursor:pointer;font-family:'Noto Sans KR',sans-serif;box-shadow:0 0 22px #FF6B9D77;">획득 완료! 💜</button>

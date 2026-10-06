@@ -38,6 +38,7 @@ const NEW_CONTENT_FILES = [
   'fan-rush.js',
   'mat-where.js',
   'goods-gear.js',
+  'premium-gacha.js',
   'broadcast-fix.js',
   'premium-cards.js',
   'guide-finger.js',
