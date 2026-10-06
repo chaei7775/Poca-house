@@ -268,6 +268,7 @@
     G.shake = Math.max(0, G.shake - dt * 30);
     SKILLS.forEach(function (s) { G.cd[s.id] = Math.max(0, G.cd[s.id] - dt); });
     G.fat = Math.max(0, (G.fat || 0) - FAT_REGEN * dt);
+    autoPots(dt);
     if (G.banner.t > 0) G.banner.t -= dt;
 
     // 웨이브 진행
@@ -883,6 +884,19 @@
     heal(p.heal); sfx('pick');
   }
 
+  // 🤖 자동 물약: 켜져 있으면 HP가 낮을 때 회복약, 피로도가 높을 때 드링크를 알아서 마심 (설정은 저장됨)
+  function autoOn() { try { return localStorage.getItem('ph_fr_auto') !== '0'; } catch (e) { return true; } }
+  function setAuto(v) { try { localStorage.setItem('ph_fr_auto', v ? '1' : '0'); } catch (e) {} }
+  function autoPots(dt) {
+    if (!G || G.over || !autoOn()) return;
+    G.autoT = (G.autoT || 0) - dt; if (G.autoT > 0) return;
+    var hpR = G.hp / G.maxhp, big = POTS[1], small = POTS[0], dr = POTS[2];
+    if (hpR <= 0.25 && potQty(big.name) > 0) { usePot(big); G.autoT = 1.2; return; }
+    if (hpR <= 0.45 && potQty(small.name) > 0) { usePot(small); G.autoT = 1.2; return; }
+    if (hpR <= 0.3 && potQty(big.name) > 0) { usePot(big); G.autoT = 1.2; return; }
+    if ((G.fat || 0) >= 80 && potQty(dr.name) > 0) { usePot(dr); G.autoT = 1.2; return; }
+  }
+
   function styleOnce() {
     if ($('fr-css')) return;
     var s = document.createElement('style'); s.id = 'fr-css';
@@ -927,6 +941,11 @@
       b.addEventListener('pointerdown', function (e) { e.stopPropagation(); });
       pw.appendChild(b);
     });
+    var ab = document.createElement('button'); ab.className = 'fr-pot'; ab.id = 'fr-auto';
+    var paintAuto = function () { ab.textContent = autoOn() ? '🤖 자동 ON' : '🤖 자동 OFF'; ab.style.opacity = autoOn() ? '1' : '.55'; ab.style.fontSize = '11px'; };
+    ab.onclick = function (e) { e.stopPropagation(); setAuto(!autoOn()); paintAuto(); };
+    ab.addEventListener('pointerdown', function (e) { e.stopPropagation(); });
+    paintAuto(); pw.appendChild(ab);
   }
 
   function updateHud() {
@@ -1033,7 +1052,7 @@
       '팬 머리 위에 <b>스킬 아이콘</b>이 떠요. 그 스킬 버튼을 눌러 하트 게이지를 채우면 만족해서 돌아가요.',
       '일반 팬은 <b>2개</b>, 덕후는 <b>3개</b>, 👑 보스는 <b>5개</b>! 순서가 틀리면 팬이 <b>화나서</b> 더 빨라지고 처음부터예요.',
       '광역 스킬(🎤✨🌹…)은 아이콘으로도 떠요! 광역 스킬은 <b>어떤 칸이든</b> 채우고, 광역 칸에는 광역 스킬 아무거나 쓰면 돼요. 범위 안 팬 전부를 한꺼번에!',
-      '😮‍💨 스킬을 쓸 때마다 <b>피로도</b>가 차요. 가득 차면 스킬을 못 써요! 시간이 지나면 내려가고, 🥤 <b>피로회복 드링크</b>를 마시면 확 내려가요.',
+      '😮‍💨 스킬을 쓸 때마다 <b>피로도</b>가 차요. 가득 차면 스킬을 못 써요! 시간이 지나면 내려가고, 🥤 <b>피로회복 드링크</b>를 마시면 확 내려가요. <b>🤖 자동</b>을 켜두면 HP·피로도가 위험할 때 물약을 알아서 마셔요.',
       '🕶️ 출동 전에 <b>보디가드</b>를 고용할 수 있어요 (최대 2명, 한 판 동안).',
       '8웨이브 + 보스를 모두 응대하면 성공! 코인·경험치·프리미엄 조각·📘 스킬북을 받아요.'
     ], go); else go();
