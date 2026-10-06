@@ -21,12 +21,15 @@
   var NOTE_KEY = 'ph_composeNote';               // ph_ 로 시작 → 클라우드 저장 자동
   var MAX_KINDS = 12;
   var TIERS = [                                  // 종류 수 → 등급. per = 고른 종류 하나당 드는 개수
-    { id: 'full', min: 10, emoji: '📀', name: '정규 앨범', per: 11, price: 240000 },
-    { id: 'mini', min: 7,  emoji: '💽', name: '미니 앨범', per: 7,  price: 90000 },
-    { id: 'demo', min: 4,  emoji: '💿', name: '데모 앨범', per: 4,  price: 30000 }
+    { id: 'full', min: 10, emoji: '📀', name: '정규 앨범', per: 11, price: 600000 },
+    { id: 'mini', min: 7,  emoji: '💽', name: '미니 앨범', per: 7,  price: 180000 },
+    { id: 'demo', min: 4,  emoji: '💿', name: '데모 앨범', per: 4,  price: 40000 }
   ];
   var HINT_MIN_J = 0.3;                          // 비슷한 정도가 이 이상이면 실패할 때마다 재료 하나를 알려준다 (0이면 항상, 2면 끔)
   var SPARK_DIV = 3;                             // 💡 영감의불꽃은 다른 재료의 1/3개만 든다
+  // 📜 저작권(정규앨범): 계약금(직판가) + 30일 동안 매일 저작권료. 직판의 약 4배 (히트 포함)
+  var ROY_KEY = 'ph_royalty';
+  var ROY_DAYS = 30, ROY_DAILY = 0.08, ROY_CAP_DAYS = 3, ROY_HIT = 0.15, ROY_HIT_MULT = 3, DAY_MS = 86400000;
   var BONUS_PER_ENTRY = 0.01, BONUS_PER_GENRE = 0.02;
   // 장르: 필요한 악기 조합 (더 많이 맞는 장르가 우선). 퓨전 = 악기 4종 이상
   var GENRES = [
@@ -229,18 +232,18 @@
   function render() {
     var body = document.getElementById('compose-body'); if (!body || !ST) return;
     var note = loadNote();
-    var tabs = [['make', '🎼 작곡'], ['note', '📒 작곡노트 ' + noteCount(note) + '/30'], ['sell', '💿 판매']];
+    var tabs = [['make', '🎼 작곡'], ['note', '📒 작곡노트 ' + noteCount(note) + '/30'], ['sell', '💿 판매'], ['roy', '📜 저작권']];
     var head = '<div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px 6px;"><div style="font-size:17px;font-weight:900;color:#fff;">🎼 작곡 테이블</div>' +
       '<div style="display:flex;align-items:center;gap:10px;"><div style="font-size:12px;font-weight:900;color:#FFD700;">🍔 ' + (typeof coins !== 'undefined' ? coins.toLocaleString() : 0) + '</div><button id="cp-x" style="background:none;border:none;color:#ddd;font-size:22px;cursor:pointer;">✕</button></div></div>' +
       '<div style="display:flex;gap:6px;padding:0 12px 8px;">' + tabs.map(function (t) {
         var on = ST.tab === t[0];
         return '<button data-tab="' + t[0] + '" style="flex:1;padding:9px 4px;border:none;border-radius:10px;font-size:12px;font-weight:900;font-family:inherit;cursor:pointer;color:#fff;background:' + (on ? 'linear-gradient(135deg,#ffb86b,#ff6fb1)' : 'rgba(255,255,255,.12)') + ';">' + t[1] + '</button>';
       }).join('') + '</div>';
-    var main = ST.tab === 'make' ? makeHtml() : ST.tab === 'note' ? noteHtml(note) : sellHtml(note);
+    var main = ST.tab === 'make' ? makeHtml() : ST.tab === 'note' ? noteHtml(note) : ST.tab === 'roy' ? royHtml(note) : sellHtml(note);
     body.innerHTML = head + '<div id="cp-main" style="flex:1;overflow-y:auto;padding:0 12px 18px;-webkit-overflow-scrolling:touch;">' + (ST.msg ? '<div style="background:rgba(255,184,107,.2);border:1px solid rgba(255,184,107,.5);border-radius:10px;padding:9px 11px;font-size:12px;font-weight:900;color:#ffe2bd;margin-bottom:10px;line-height:1.5;">' + ST.msg + '</div>' : '') + main + '</div>';
     document.getElementById('cp-x').onclick = close;
     Array.prototype.forEach.call(body.querySelectorAll('[data-tab]'), function (b) { b.onclick = function () { ST.tab = b.getAttribute('data-tab'); ST.msg = ''; render(); }; });
-    bindMake(); bindSell(); bindNote();
+    bindMake(); bindSell(); bindNote(); bindRoy();
   }
 
   // 🎼 작곡 탭
@@ -347,9 +350,111 @@
     });
   }
 
+  // ════════ 📜 저작권 ════════
+  function loadRoy() { try { var d = JSON.parse(localStorage.getItem(ROY_KEY) || '{}'); if (!d || typeof d !== 'object') d = {}; if (!Array.isArray(d.slots)) d.slots = []; return d; } catch (e) { return { slots: [] }; } }
+  function saveRoy(d) { try { localStorage.setItem(ROY_KEY, JSON.stringify(d)); } catch (e) {} try { if (typeof saveAll === 'function') saveAll(); } catch (e) {} }
+  function roySlots() { var lv = 1; try { lv = Number(playerLevel) || 1; } catch (e) {} return 3 + (lv >= 30 ? 1 : 0) + (lv >= 50 ? 1 : 0); }
+  function ownedIdols() {
+    try { return Object.keys(CHARS).filter(function (cid) { return CARDS.some(function (c) { return c.charId === cid && owned.indexOf(c.id) >= 0; }); }); } catch (e) { return []; }
+  }
+  function cardMult(cid) { var lv = 1; try { lv = getCardLevel(cid); } catch (e) {} return 1 + 0.02 * (lv - 1); }   // 카드 Lv.50 이면 약 2배
+  function royPending(sl, now) {
+    var endT = sl.start + ROY_DAYS * DAY_MS, t = Math.min(now, endT), el = Math.max(0, t - sl.last);
+    return { el: el, ended: now >= endT, amt: Math.round(sl.daily * Math.min(el, ROY_CAP_DAYS * DAY_MS) / DAY_MS) };
+  }
+  function royRegister(cid) {
+    var t = TIERS[0], have = qtyOf(t.name, bag());
+    var d = loadRoy();
+    if (have < 1) return { ok: false, why: '정규 앨범이 없어요' };
+    if (d.slots.length >= roySlots()) return { ok: false, why: '등록 칸이 가득 찼어요' };
+    var fee = priceOf(t, loadNote());
+    useFromBag(t.name, 1);
+    coins += fee;
+    var now = Date.now();
+    d.slots.push({ title: albumTitle(), cid: cid, start: now, last: now, daily: Math.round(fee * ROY_DAILY * cardMult(cid)) });
+    saveRoy(d);
+    try { updateCoinsDisplay(); } catch (e) {}
+    return { ok: true, fee: fee };
+  }
+  function royClaim(idx) {
+    var d = loadRoy(), now = Date.now(), list = (idx === undefined) ? d.slots.slice() : [d.slots[idx]], total = 0, hits = 0;
+    list.forEach(function (sl) {
+      if (!sl) return;
+      var r = royPending(sl, now);
+      var days = Math.min(ROY_CAP_DAYS, Math.floor(r.el / DAY_MS));
+      var extra = 0;
+      for (var i = 0; i < days; i++) if (Math.random() < ROY_HIT) { extra += sl.daily * (ROY_HIT_MULT - 1); hits++; }
+      total += r.amt + Math.round(extra);
+      sl.last = Math.min(now, sl.start + ROY_DAYS * DAY_MS);
+    });
+    d.slots = d.slots.filter(function (sl) { return now < sl.start + ROY_DAYS * DAY_MS || royPending(sl, now).el > 0; });
+    if (total > 0) { coins += total; try { updateCoinsDisplay(); } catch (e) {} }
+    saveRoy(d);
+    return { total: total, hits: hits };
+  }
+  function royHtml(note) {
+    var d = loadRoy(), now = Date.now(), full = TIERS[0], own = qtyOf(full.name, bag()), fee = priceOf(full, note), cap = roySlots();
+    var h = '<div style="font-size:12px;color:#e6d6c4;line-height:1.6;margin-bottom:10px;">📀 <b>정규 앨범</b>을 아이돌에게 타이틀곡으로 줘요. 등록하면 <b style="color:#FFD700;">계약금 🍔 ' + fee.toLocaleString() + '</b>을 바로 받고, ' + ROY_DAYS + '일 동안 <b>매일 저작권료</b>가 쌓여요. 접속해서 수령하세요! (최대 ' + ROY_CAP_DAYS + '일치까지만 쌓여요 · 가끔 🔥 차트 진입으로 그날 ' + ROY_HIT_MULT + '배)</div>';
+    h += '<div style="font-size:11px;color:#ffd9a8;margin-bottom:6px;">등록 ' + d.slots.length + ' / ' + cap + '칸</div>';
+    d.slots.forEach(function (sl, i) {
+      var r = royPending(sl, now), left = Math.max(0, Math.ceil((sl.start + ROY_DAYS * DAY_MS - now) / DAY_MS));
+      var nm = (typeof CHARS !== 'undefined' && CHARS[sl.cid]) ? CHARS[sl.cid].name : '아이돌';
+      h += '<div style="display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.08);border:1.5px solid rgba(255,255,255,.15);border-radius:14px;padding:11px;margin-bottom:9px;">' +
+        '<div style="font-size:28px;">📀</div><div style="flex:1;min-width:0;"><div style="font-size:13px;font-weight:900;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + esc(sl.title) + '</div>' +
+        '<div style="font-size:11px;color:#c9d6ff;">' + esc(nm) + ' · 하루 🍔 ' + sl.daily.toLocaleString() + ' · 남은 ' + left + '일</div>' +
+        '<div style="font-size:12px;font-weight:900;color:#FFD700;">쌓인 저작권료 🍔 ' + r.amt.toLocaleString() + '</div></div>' +
+        '<button data-roy-claim="' + i + '" style="padding:11px 12px;border:none;border-radius:10px;font-size:13px;font-weight:900;font-family:inherit;cursor:pointer;color:#fff;background:' + (r.amt > 0 ? 'linear-gradient(135deg,#4ade80,#22c55e)' : '#555') + ';">💰 수령</button></div>';
+    });
+    if (d.slots.length > 1) h += '<button data-roy-all="1" style="width:100%;padding:11px;margin-bottom:10px;border:none;border-radius:10px;font-size:13px;font-weight:900;font-family:inherit;cursor:pointer;color:#fff;background:linear-gradient(135deg,#f59e0b,#ef4444);">💰 전부 수령</button>';
+    if (ST.pick) {
+      var ids = ownedIdols();
+      h += '<div style="background:rgba(0,0,0,.45);border:1.5px solid #FFB86B;border-radius:14px;padding:11px;margin-bottom:10px;"><div style="font-size:13px;font-weight:900;color:#fff;margin-bottom:8px;">🎤 누구에게 타이틀곡을 줄까요? <span style="font-size:10px;color:#ffd9a8;">(카드 레벨이 높을수록 저작권료 ↑)</span></div><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:7px;">';
+      ids.forEach(function (cid) {
+        var lv = 1; try { lv = getCardLevel(cid); } catch (e) {}
+        h += '<button data-roy-pick="' + cid + '" style="padding:9px 4px;border:1.5px solid rgba(255,255,255,.2);border-radius:10px;background:rgba(255,255,255,.08);color:#fff;font-size:12px;font-weight:900;font-family:inherit;cursor:pointer;">' + esc(CHARS[cid].name) + '<br><span style="font-size:10px;color:#9fd8ff;">Lv.' + lv + ' · ×' + cardMult(cid).toFixed(2) + '</span></button>';
+      });
+      h += '</div><button data-roy-cancel="1" style="width:100%;margin-top:8px;padding:8px;border:none;border-radius:8px;background:rgba(255,255,255,.1);color:#ccc;font-size:12px;font-family:inherit;cursor:pointer;">취소</button></div>';
+    }
+    var can = own > 0 && d.slots.length < cap;
+    h += '<button data-roy-new="1" style="width:100%;padding:13px;border:none;border-radius:12px;font-size:14px;font-weight:900;font-family:inherit;cursor:pointer;color:#fff;background:' + (can ? 'linear-gradient(135deg,#FFB86B,#ef4444)' : '#555') + ';">📜 정규 앨범 등록하기 (보유 ' + own + '장)</button>';
+    return h;
+  }
+  function bindRoy() {
+    Array.prototype.forEach.call(document.querySelectorAll('[data-roy-claim]'), function (b) {
+      b.onclick = function () {
+        var r = royClaim(parseInt(b.getAttribute('data-roy-claim'), 10));
+        if (r.total > 0) { sfx('coin'); ST.msg = '💰 저작권료 🍔 +' + r.total.toLocaleString() + (r.hits ? ' · 🔥 차트 진입 ' + r.hits + '일!' : ''); } else toast('아직 쌓인 저작권료가 없어요');
+        render();
+      };
+    });
+    var all = document.querySelector('[data-roy-all]');
+    if (all) all.onclick = function () {
+      var r = royClaim();
+      if (r.total > 0) { sfx('coin'); ST.msg = '💰 저작권료 🍔 +' + r.total.toLocaleString() + (r.hits ? ' · 🔥 차트 진입 ' + r.hits + '일!' : ''); } else toast('아직 쌓인 저작권료가 없어요');
+      render();
+    };
+    var nw = document.querySelector('[data-roy-new]');
+    if (nw) nw.onclick = function () {
+      var d = loadRoy();
+      if (qtyOf(TIERS[0].name, bag()) < 1) { toast('정규 앨범이 없어요 (종류 10개 이상으로 작곡해요)'); return; }
+      if (d.slots.length >= roySlots()) { toast('등록 칸이 가득 찼어요'); return; }
+      if (!ownedIdols().length) { toast('타이틀곡을 줄 아이돌이 없어요'); return; }
+      ST.pick = true; render();
+    };
+    var cn = document.querySelector('[data-roy-cancel]'); if (cn) cn.onclick = function () { ST.pick = false; render(); };
+    Array.prototype.forEach.call(document.querySelectorAll('[data-roy-pick]'), function (b) {
+      b.onclick = function () {
+        var r = royRegister(b.getAttribute('data-roy-pick'));
+        ST.pick = false;
+        if (r.ok) { sfx('rarePick'); ST.msg = '📜 저작권 등록! 계약금 🍔 +' + r.fee.toLocaleString() + ' · 이제 매일 저작권료가 쌓여요'; } else toast(r.why);
+        render();
+      };
+    });
+  }
+
   window.openAlbumStudio = function () { open('make'); };
   window.openComposeTable = open;
-  window.__albumTest = { TIERS: TIERS, GENRES: GENRES, evaluate: evaluate, findRecipe: findRecipe, RECIPES: RECIPES, nearest: nearest, needFor: needFor, compose: compose, releasePopup: releasePopup, sell: sell, sellBonus: sellBonus, priceOf: priceOf, loadNote: loadNote, qtyOf: qtyOf };
+  window.__albumTest = { royRegister: royRegister, royClaim: royClaim, loadRoy: loadRoy, royPending: royPending, TIERS: TIERS, GENRES: GENRES, evaluate: evaluate, findRecipe: findRecipe, RECIPES: RECIPES, nearest: nearest, needFor: needFor, compose: compose, releasePopup: releasePopup, sell: sell, sellBonus: sellBonus, priceOf: priceOf, loadNote: loadNote, qtyOf: qtyOf };
 
   // ════════ 더보기 메뉴 타일 ════════
   (function wait() {
