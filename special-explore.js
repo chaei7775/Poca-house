@@ -142,6 +142,18 @@ function parseGearBagName(bagName) {
 // 🎟️ 세연(체험용 히든카드) — 아이돌 목록(CHARS)에는 없지만 체험 기간 동안은 출전할 수 있다
 const SEYEON_TRIAL_CHAR = { name: '세연', emoji: '🌟', gradeColor: '#F59E0B' };
 function exChar(cid) { return (cid === 'seyeon_trial') ? SEYEON_TRIAL_CHAR : CHARS[cid]; }
+function pickGrowingIdol() {
+  try {
+    let best = null, bestLv = -1;
+    Object.keys(CHARS).forEach(function(cid) {
+      const has = CARDS.some(function(c) { return c.charId === cid && owned.indexOf(c.id) !== -1; });
+      if (!has) return;
+      const lv = (typeof getCardLevel === 'function') ? getCardLevel(cid) : 1;
+      if (lv > bestLv) { best = cid; bestLv = lv; }
+    });
+    return best;
+  } catch (e) { return null; }
+}
 function trialActiveNow() { try { return !!(window.__trialTest && window.__trialTest.isActive()); } catch (e) { return false; } }
 
 function getEquippedGearFor(charId) {
@@ -596,14 +608,16 @@ function resolveSpecialCapture(success) {
   // 보상 계산
   const expGain = (creature.isVariant ? 200 : 100) + Math.floor(Math.random() * 100);
   const charId = specialExploreState.charId;
-  if (charId === 'seyeon_trial') {
-    // 세연(체험)은 키우는 카드가 아니라 경험치 없이 보상만 받는다
+  // 세연(체험)은 레벨이 없으니 경험치는 내가 키우는 아이돌(가진 카드 중 레벨이 가장 높은 아이돌)이 받는다
+  const expCharId = (charId === 'seyeon_trial') ? pickGrowingIdol() : charId;
+  if (!expCharId) {
+    // 받을 아이돌이 없으면 경험치 없이 보상만
   } else if (typeof addCardExp === 'function') {
-    addCardExp(charId, expGain);
+    addCardExp(expCharId, expGain);
   } else {
     try {
       const cardExpData = JSON.parse(localStorage.getItem('ph_cardExp') || '{}');
-      cardExpData[charId] = (cardExpData[charId] || 0) + expGain;
+      cardExpData[expCharId] = (cardExpData[expCharId] || 0) + expGain;
       localStorage.setItem('ph_cardExp', JSON.stringify(cardExpData));
     } catch (e) {}
   }
@@ -666,7 +680,7 @@ function resolveSpecialCapture(success) {
   const isFirstCapture = addDexCaptured(creature.id);
 
   const rewardItems = [];
-  if (charId !== 'seyeon_trial') rewardItems.push({ icon:'⭐', text: exChar(charId).name + ' +' + expGain + ' EXP', color:'#FFD700' });
+  if (expCharId) rewardItems.push({ icon:'⭐', text: CHARS[expCharId].name + ' +' + expGain + ' EXP' + (charId === 'seyeon_trial' ? ' (세연 출전)' : ''), color:'#FFD700' });
   if (gotJaptem) rewardItems.push({ icon: japtemItem.emoji, text: japtemItem.name + ' x1', color:'#fff' });
   if (gotGear) rewardItems.push({ icon: gearItem.emoji, text: '[' + SPECIAL_GEAR_GRADES[gearGrade] + '] ' + gearItem.name + ' (' + gearEffectText(gearItem.effect, gearScaledValue(gearItem, gearGrade)) + ')', color:'#C084FC' });
   if (gotTicket) rewardItems.push({ icon:'🎫', text: '등교권 +1', color:'#60A5FA' });
