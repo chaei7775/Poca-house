@@ -23,13 +23,26 @@
   var BG_FILE = 'map-studio.png';
   var IMG_W = 1536, IMG_H = 1024;
 
-  // 재료 (이름은 album-studio.js 의 레시피와 같아야 함)
-  var MATS = {
-    note:   { emoji: '🎵', name: '음표조각',     desc: '앨범 제작 재료 · 곡의 기본이 되는 음표',  weight: 58 },
-    score:  { emoji: '🎼', name: '악보용지',     desc: '앨범 제작 재료 · 멜로디를 적는 악보',     weight: 22 },
-    lyric:  { emoji: '📝', name: '가사조각',     desc: '앨범 제작 재료 · 마음을 담은 가사',       weight: 14 },
-    spark:  { emoji: '💡', name: '영감의불꽃',   desc: '앨범 제작 재료 · 아주 가끔 떠오르는 영감', weight: 6, rare: true }
-  };
+  // 재료 14종 (이름은 album-studio.js 와 같아야 함). weight = 구슬로 나올 비중, cat = 분류
+  var KINDS = [
+    { id: 'n1',  cat: 'note',  emoji: '⚪', name: '온음표',   weight: 5 },
+    { id: 'n2',  cat: 'note',  emoji: '♩',  name: '2분음표',  weight: 7 },
+    { id: 'n4',  cat: 'note',  emoji: '♪',  name: '4분음표',  weight: 9 },
+    { id: 'n8',  cat: 'note',  emoji: '♫',  name: '8분음표',  weight: 8 },
+    { id: 'n16', cat: 'note',  emoji: '♬',  name: '16분음표', weight: 6 },
+    { id: 'gtr', cat: 'inst',  emoji: '🎸', name: '기타',     weight: 7 },
+    { id: 'bas', cat: 'inst',  emoji: '🪕', name: '베이스',   weight: 6 },
+    { id: 'drm', cat: 'inst',  emoji: '🥁', name: '드럼',     weight: 7 },
+    { id: 'pno', cat: 'inst',  emoji: '🎹', name: '피아노',   weight: 7 },
+    { id: 'syn', cat: 'inst',  emoji: '🎛️', name: '신스',     weight: 5 },
+    { id: 'str', cat: 'inst',  emoji: '🎻', name: '스트링',   weight: 5 },
+    { id: 'scr', cat: 'score', emoji: '🎼', name: '악보용지', weight: 14 },
+    { id: 'lyr', cat: 'lyric', emoji: '📝', name: '가사조각', weight: 10 },
+    { id: 'spk', cat: 'spark', emoji: '💡', name: '영감의불꽃', weight: 4, rare: true }
+  ];
+  var MATS = {};
+  KINDS.forEach(function (k) { k.desc = '앨범 제작 재료 · 🎼 작곡 테이블에서 곡을 만들어요'; MATS[k.id] = k; });
+  window.STUDIO_KINDS = KINDS;
 
   // 구슬이 켜지는 자리 (이미지 비율 0~1)
   var SPOTS = [
@@ -47,13 +60,10 @@
   // ════════ 순수 로직 (화면 없이도 테스트 가능) ════════
   function rollMaterial(luck, rng) {
     rng = rng || Math.random;
-    var w = {};
-    Object.keys(MATS).forEach(function (k) { w[k] = MATS[k].weight; });
-    w.spark = MATS.spark.weight * (1 + (luck || 0) / 100);          // 행운이 높을수록 영감이 잘 나옴
-    var total = 0; Object.keys(w).forEach(function (k) { total += w[k]; });
+    var total = 0, w = KINDS.map(function (k) { var x = k.weight * (k.rare ? 1 + (luck || 0) / 100 : 1); total += x; return x; });
     var r = rng() * total;
-    for (var k in w) { if (r < w[k]) return k; r -= w[k]; }
-    return 'note';
+    for (var i = 0; i < KINDS.length; i++) { if (r < w[i]) return KINDS[i].id; r -= w[i]; }
+    return 'n4';
   }
   // 아직 안 쓰인 자리 중에서 하나 고르기
   function pickSpot(orbs, rng) {
@@ -208,7 +218,7 @@
     // 구슬
     S.orbs.forEach(function (o) {
       var pos = spotPos(o.spot), m = MATS[o.kind], k = o.t / o.life, appear = clamp(o.t / 0.18, 0, 1);
-      var rare = !!m.rare, rgb = rare ? '255,215,90' : (o.kind === 'note' ? '255,150,210' : o.kind === 'score' ? '150,200,255' : '190,255,200');
+      var rare = !!m.rare, rgb = rare ? '255,215,90' : (m.cat === 'note' ? '255,150,210' : m.cat === 'inst' ? '255,190,110' : m.cat === 'score' ? '150,200,255' : '190,255,200');
       var pulse = 1 + Math.sin(S.t * 8 + o.spot) * 0.06, r = orbR() * appear * pulse;
       c.save(); c.translate(pos[0], pos[1]);
       c.globalCompositeOperation = 'lighter';
@@ -219,8 +229,9 @@
       c.lineWidth = 4; c.strokeStyle = 'rgb(' + rgb + ')'; c.beginPath(); c.arc(0, 0, r, 0, 6.283); c.stroke();
       // 남은 시간 링
       c.lineWidth = 5; c.strokeStyle = k > 0.65 ? '#ff7a7a' : '#fff'; c.beginPath(); c.arc(0, 0, r + 7, -Math.PI / 2, -Math.PI / 2 + (1 - k) * 6.283); c.stroke();
-      c.font = Math.round(r * 0.95) + 'px sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(m.emoji, 0, 2);
+      c.font = Math.round(r * 0.95) + 'px sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillStyle = '#fff'; c.fillText(m.emoji, 0, 2);
       c.restore();
+      outlined(c, m.name, pos[0], pos[1] + r + 20, 12, '#fff');
     });
     // 터지는 효과
     c.save(); c.globalCompositeOperation = 'lighter';
@@ -292,8 +303,8 @@
         !document.getElementById('btn-explore-mystery') || !document.querySelector('#screen-map button')) { setTimeout(register, 100); return; }
     if (window.__studioRegistered) return;
     window.__studioRegistered = true;
-    PLACE_BUTTONS[PLACE_ID] = [BTN_ID];
-    ALL_PLACE_BTNS.push(BTN_ID);
+    PLACE_BUTTONS[PLACE_ID] = [BTN_ID, 'btn-compose'];
+    ALL_PLACE_BTNS.push(BTN_ID, 'btn-compose');
     PLACE_IMGS[PLACE_ID] = BG_FILE;
     PLACE_TITLES[PLACE_ID] = '🎹 작곡 스튜디오';
 
@@ -306,6 +317,13 @@
     eb.textContent = lockText();
     eb.onclick = function () { startStudio(); };
     mb.parentNode.insertBefore(eb, mb.nextSibling);
+    var cb = document.createElement('button');                 // 🎼 작곡 테이블로 이동
+    cb.id = 'btn-compose';
+    cb.setAttribute('style', eb.getAttribute('style'));
+    cb.style.display = 'none';
+    cb.textContent = '🎼 작곡 테이블로 이동';
+    cb.onclick = function () { if (typeof window.openComposeTable === 'function') window.openComposeTable('make'); };
+    eb.parentNode.insertBefore(cb, eb.nextSibling);
 
     // 포카마을 지도 위 버튼
     var mapBtn = document.querySelector('#screen-map button');
