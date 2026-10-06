@@ -22,6 +22,14 @@
     if (!u) return fb || '';
     return '<img data-mi="1" src="' + u + '" alt="" draggable="false" style="width:' + px + 'px;height:' + px + 'px;object-fit:contain;vertical-align:-' + Math.round(px * 0.2) + 'px;pointer-events:none;"' + (fb ? ' onerror="this.outerHTML=\'' + String(fb).replace(/'/g, '') + '\'"' : '') + '>';
   }
+  // 보상 칩(팬덤 원정 · 팬 교류)용: '강화석 +1' 같은 글자에서 아이템 이름을 뽑아 그림이 있으면 그림, 없으면 원래 이모지를 돌려준다
+  window.rewardIcon = function (emoji, text, px) {
+    try {
+      var name = String(text || '').replace(/\s*\(.*$/, '').replace(/\s*[+x×]\s*\d.*$/, '').trim();
+      if (name && url(name)) return icon(name, px || 22, emoji);
+    } catch (e) {}
+    return emoji;
+  };
   var imgCache = {};
   function image(name) {
     var u = url(name); if (!u) return null;

@@ -886,7 +886,7 @@
     if (S && dmg > 0) lines.push({ icon: '💔', text: 'HP -' + dmg + ' (' + Math.ceil(S.hp) + '/' + S.maxhp + ')', color: '#f87171' });
     var chips = lines.map(function (l, i) {
       return '<div style="opacity:0;animation:bcPop .45s ease-out forwards;animation-delay:' + (i * 0.18) + 's;display:inline-flex;align-items:center;gap:7px;background:rgba(255,255,255,.1);border:1.5px solid ' + l.color +
-        ';border-radius:999px;padding:7px 14px;font-size:13px;font-weight:900;margin:3px;"><span style="font-size:16px;">' + l.icon + '</span>' + l.text + '</div>';
+        ';border-radius:999px;padding:7px 14px;font-size:13px;font-weight:900;margin:3px;"><span style="font-size:16px;">' + (window.rewardIcon ? window.rewardIcon(l.icon, l.text, 22) : l.icon) + '</span>' + l.text + '</div>';
     }).join('');
     // 🔊 아이템 얻을 때 효과음 — 칩이 뜨는 타이밍(0.18초 간격)에 맞춰 하나씩 (sfx.js 가 있을 때만)
     lines.slice(0, 7).forEach(function (l, i) {

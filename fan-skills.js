@@ -343,7 +343,7 @@
   }
   function chipHtml(icon, text, color) {
     return '<div style="display:inline-flex;align-items:center;gap:5px;background:rgba(20,10,40,.88);border:1.5px solid ' + color +
-      ';border-radius:999px;padding:3px 9px;margin:2px;font-size:11px;font-weight:900;color:#fff;">' + icon + ' ' + text + '</div>';
+      ';border-radius:999px;padding:3px 9px;margin:2px;font-size:11px;font-weight:900;color:#fff;">' + (window.rewardIcon ? window.rewardIcon(icon, text, 16) : icon) + ' ' + text + '</div>';
   }
 
   // ════════ 하트 게이지 + 스킬 순서 ════════
