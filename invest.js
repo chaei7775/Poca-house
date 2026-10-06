@@ -37,10 +37,22 @@
   var MAX_STEPS = 7;                   // 며칠을 한꺼번에 넘겨도 최대 이만큼만 진행
   var HIST_MAX = 12;
   // 🌟 투자 한정 포카 (능력치 없음, 수집용). 이름·확률은 여기서만 바꾸면 됨
-  var LIMITED = [ { id: 'ace', name: '한정판 챔피언', real: '지민', sub: '코트 위의 에이스', img: 'limited-ace.jpg', minRatio: 1.45, chance: 0.12 } ];
+  // aud: 오디션 후원에 나오는 연습생. 새 연습생은 여기에 한 줄 추가 + 그림 파일(img)만 넣으면 끝. 그림이 없으면 실루엣으로 보여요.
+  // chance: 일반 투자 대박(minRatio 이상)일 때 나올 확률 (0 이면 오디션에서만)
+  var LIMITED = [
+    { id: 'ace',  name: '한정판 챔피언', real: '지민', sub: '코트 위의 에이스', img: 'limited-ace.jpg', minRatio: 1.45, chance: 0.12, aud: true },
+    { id: 'star', name: '한정판 스타',   real: '이안', sub: '무대 위의 천재',   img: 'limited-b.jpg',   minRatio: 99,   chance: 0,    aud: true },
+    { id: 'song', name: '한정판 보컬',   real: '서율', sub: '노래하는 별',     img: 'limited-c.jpg',   minRatio: 99,   chance: 0,    aud: true }
+  ];
   var LIM_KEY = 'ph_invest_limited';
   function limLoad() { try { var d = JSON.parse(localStorage.getItem(LIM_KEY) || '{}'); return d && typeof d === 'object' ? d : {}; } catch (e) { return {}; } }
   function limSave(d) { try { localStorage.setItem(LIM_KEY, JSON.stringify(d)); } catch (e) {} }
+  function limOf(id) { for (var i = 0; i < LIMITED.length; i++) if (LIMITED[i].id === id) return LIMITED[i]; return null; }
+  function grantLimited(id) {
+    var d = limLoad(); var e = d[id] || { n: 0, first: Date.now() }; e.n += 1; d[id] = e; limSave(d);
+    try { if (typeof checkTitles === 'function') checkTitles(); } catch (er) {}
+  }
+  function limOwnedN() { var d = limLoad(); return LIMITED.filter(function (c) { return d[c.id] && d[c.id].n > 0; }).length; }
   var EV_UP_SCALE = 0.5;   // 사건 상승폭 보정 (경제 보호)
   var FONT = "font-family:'Noto Sans KR',sans-serif;";
 
@@ -58,7 +70,11 @@
                w: { dr: 0.2, cf: 0.5, fans: 1.0, ev: 1.0, alb: 0.2, deb: 0.3 } },
     album:   { id: 'album',   emoji: '💿', name: '앨범 제작', risk: 2, m: 0.030, sd: 0.050, floor: 0.60, actCap: 0.08, piece: 2, minDebut: 1, minGrade: 1, needAlbum: 1,
                tag: '중저위험 · 작곡 연동', desc: '앨범 제작에 투자해요. 작곡 테이블에서 만든 앨범·작곡노트가 영향을 줘요. (주요 투자자 등급부터)',
-               w: { dr: 0.2, cf: 0.2, fans: 0.3, ev: 0.2, alb: 1.0, deb: 0.3 } }
+               w: { dr: 0.2, cf: 0.2, fans: 0.3, ev: 0.2, alb: 1.0, deb: 0.3 } },
+    // 🎤 히든: 오디션 후원. 평소엔 안 보이다가 조건을 채우면 "비공개 투자 제안"으로 도착해요 (SECTOR_ORDER 에는 없음)
+    audition: { id: 'audition', emoji: '🎤', name: '오디션 후원', risk: 5, m: 0, sd: 0, floor: 0, actCap: 0, piece: 3, minDebut: 0, minGrade: 3, hidden: true,
+               tag: '히든 · 고위험 · 한정 포카', desc: '아직 아무도 모르는 연습생 3명의 서바이벌. 한 명을 후원해서 7일 뒤 1등이 되면 큰 수익과 한정 포카!',
+               w: { dr: 0.5, cf: 0.8, fans: 1.0, ev: 1.0, alb: 1.0, deb: 0.5 } }
   };
   var SECTOR_ORDER = ['goods', 'drama', 'concert', 'album'];
 
@@ -218,6 +234,7 @@
     if (!s.led) s.led = { dr: [], ok: 0, cf: 0, fans: 0, ev: 0, alb: 0, deb: 0 };
     if (!s.snap) s.snap = null;
     if (!s.lastDay) s.lastDay = mealDay();
+    if (!s.audSeen) s.audSeen = false;
     return s;
   }
   var S = load();
@@ -381,6 +398,7 @@
 
   // ───────── 하루가 지날 때 ─────────
   function tickPosition(pos, newDay) {
+    if (pos.kind === 'aud') { tickAud(pos, newDay); return; }
     var sec = SECTORS[pos.sec];
     if (pos.mature) return;
     if (pos.pending) resolveEvent(pos, 0, true);
@@ -424,6 +442,82 @@
     return steps;
   }
 
+  // ───────── 🎤 오디션 후원 (히든) ─────────
+  // 연습생 3명이 7일 동안 득표 경쟁. 한 명을 후원하고, 내 활동(CF·팬·공연장·앨범…)이 그 연습생의 득표를 올려줘요.
+  // 1등이면 투자금 × WIN_MULT + 그 연습생의 한정 포카, 1등이 아니면 투자금의 LOSE_BACK 만 돌려받아요.
+  var AUD = { MIN: 500000, MAX: 5000000, NEED_GRADE: 3, NEED_LIMIT: 1000000, WIN_MULT: 1.8, LOSE_BACK: 0.2,
+              START: 100000, SD: 0.06, TALENT_SD: 0.012, CAP: 0.025, K: 0.0012, HOT: 0.03, BAD: 0.03, PIECES: 3 };
+  function audUnlocked() { return gradeOf().id >= AUD.NEED_GRADE && limitNow() >= AUD.NEED_LIMIT; }
+  function audMaxAmt() { return Math.min(limitNow(), AUD.MAX, coinsNow()); }
+  function audAct() { return Math.min(AUD.CAP, ledScore(SECTORS.audition) * AUD.K); }
+  function audNews(pid, cid, day) {
+    var r = hash('aud' + pid + cid + day), lm = limOf(cid), nm = lm ? lm.real : cid;
+    if (r < 0.20) return { kind: 'hot', mod: AUD.HOT, text: nm + ' 연습생 무대 영상 조회수가 급상승 중이에요' };
+    if (r < 0.34) return { kind: 'bad', mod: -AUD.BAD, text: nm + ' 연습생 컨디션 난조 소문이 돌아요' };
+    return null;
+  }
+  function audRanking(pos) { return pos.c.slice().sort(function (a, b) { return b.s - a.s; }); }
+  function audRankOf(pos, cid) { var r = audRanking(pos); for (var i = 0; i < r.length; i++) if (r[i].id === cid) return i + 1; return 0; }
+  function audMakeContestants() {
+    var pool = LIMITED.filter(function (c) { return c.aud; }).slice();
+    for (var i = pool.length - 1; i > 0; i--) { var j = Math.floor(rnd() * (i + 1)), t = pool[i]; pool[i] = pool[j]; pool[j] = t; }
+    return pool.slice(0, 3).map(function (c) {
+      var t = gauss() * AUD.TALENT_SD;
+      var st = Math.max(1, Math.min(5, Math.round(3 + (t / AUD.TALENT_SD) * 0.9 + gauss() * 0.9)));   // 스카우트 추정 (살짝 틀릴 수 있어요)
+      return { id: c.id, s: AUD.START, t: t, st: st };
+    });
+  }
+  function startAud(amount, pickId, cs) {
+    if (!audUnlocked()) return { err: '아직 제안이 도착하지 않았어요' };
+    if (posOf('audition')) return { err: '이미 오디션을 후원 중이에요' };
+    if (S.pos.length >= gradeOf().slots) return { err: '투자 슬롯이 가득 찼어요 (' + gradeOf().slots + '칸)' };
+    amount = Math.floor(amount);
+    if (amount < AUD.MIN) return { err: '최소 ' + fmt(AUD.MIN) + ' 코인부터 후원할 수 있어요' };
+    if (amount > Math.min(limitNow(), AUD.MAX)) return { err: '후원 한도는 ' + fmt(Math.min(limitNow(), AUD.MAX)) + ' 코인이에요' };
+    if (!cs || !cs.some(function (c) { return c.id === pickId; })) return { err: '후원할 연습생을 골라주세요' };
+    if (!spendCoins(amount)) return { err: '코인이 부족해요' };
+    var pos = { id: S.nextId++, kind: 'aud', sec: 'audition', cast: null, principal: amount, invested: amount, value: amount, day: 1, start: mealDay(),
+                hist: [amount], n: { dr: 0, cf: 0, fans: 0, ev: 0, alb: 0 }, pending: null, used: [], log: [], mature: false, last: null,
+                pick: pickId, c: cs.map(function (c) { return { id: c.id, s: c.s, t: c.t, st: c.st, h: [c.s] }; }) };
+    S.pos.push(pos); save();
+    return { ok: true, pos: pos };
+  }
+  function tickAud(pos, newDay) {
+    if (pos.mature) return;
+    pos.day += 1;
+    var act = audAct(), news = {};
+    pos.c.forEach(function (c) {
+      var nw = audNews(pos.id, c.id, newDay - 1); if (nw) news[c.id] = nw.kind;
+      var g = c.t + AUD.SD * gauss() + (nw ? nw.mod : 0) + (c.id === pos.pick ? act : 0);
+      g = Math.max(-0.2, Math.min(0.25, g));
+      c.s = Math.max(1000, Math.round(c.s * (1 + g)));
+      c.h.push(c.s);
+    });
+    pos.last = { act: act, news: news };
+    if (pos.day >= DAYS) { pos.day = DAYS; pos.mature = true; }
+    pos.hist.push(pos.invested);
+  }
+  function settleAud(pos) {
+    if (S.pos.indexOf(pos) === -1) return { err: '이미 정산된 투자예요' };
+    if (!pos.mature) return { err: '아직 결과 발표 전이에요' };
+    var board = audRanking(pos).map(function (c) { return { id: c.id, s: c.s }; });
+    var rank = audRankOf(pos, pos.pick), win = rank === 1;
+    var payout = Math.floor(pos.invested * (win ? AUD.WIN_MULT : AUD.LOSE_BACK));
+    var idx = S.pos.indexOf(pos); S.pos.splice(idx, 1);
+    addCoins(payout);
+    var lines = [], lm = limOf(pos.pick);
+    if (win) {
+      grantLimited(pos.pick); lines.push('🌟 한정 포카 〈' + (lm ? lm.real : pos.pick) + '〉 획득!');
+      try { if (typeof addToBag === 'function' && addToBag('🖼️', '프리미엄 조각', 'piece', AUD.PIECES, '프리미엄 카드 조각 · 100개를 모으면 더보기 > 프리미엄 카드에서 교환')) lines.push('🖼️ 프리미엄 조각 ×' + AUD.PIECES); } catch (e) {}
+    }
+    var profit = payout - pos.invested;
+    S.done += 1; if (profit > 0) S.wins += 1;
+    S.hist.unshift({ sec: 'audition', inv: pos.invested, pay: payout, profit: profit, mature: true, day: pos.day, at: Date.now(), div: lines });
+    if (S.hist.length > HIST_MAX) S.hist.length = HIST_MAX;
+    save(); refreshBadge();
+    return { ok: true, win: win, rank: rank, payout: payout, profit: profit, ratio: payout / pos.invested, lines: lines, board: board, pick: pos.pick };
+  }
+
   // ───────── 매각 / 정산 ─────────
   function giveDividend(pos, ratio) {
     var sec = SECTORS[pos.sec], lines = [];
@@ -441,7 +535,7 @@
     try {
       LIMITED.forEach(function (c) {
         if (ratio >= c.minRatio && rnd() < c.chance) {
-          var d = limLoad(); var e = d[c.id] || { n: 0, first: Date.now() }; e.n += 1; d[c.id] = e; limSave(d);
+          grantLimited(c.id);
           lines.push('🌟 한정 포카 〈' + c.real + '〉 획득!');
         }
       });
@@ -500,6 +594,7 @@
   }
 
   function posCard(pos) {
+    if (pos.kind === 'aud') return audCard(pos);
     var sec = SECTORS[pos.sec], profit = pos.value - pos.invested, pct = profit / pos.invested * 100;
     var penalty = pos.mature ? 0 : SELL_PENALTY, sellNow = Math.floor(pos.value * (1 - penalty));
     var lastLine = '';
@@ -555,19 +650,48 @@
       '<div style="font-size:11px;color:' + C.mute + ';margin-bottom:10px;">최저 회수 ' + Math.round(floorFrac(sec) * 100) + '% · 특별 배당: 🖼️ 프리미엄 조각</div>' + action + '</div>';
   }
 
+  // 한정 포카 그림: 그림 파일이 없으면 실루엣으로 보여요
+  function artBox(c, css, owned) {
+    var sil = 'background:linear-gradient(160deg,#3a2c1c,#1c140c);display:flex;align-items:center;justify-content:center;color:#6d5a40;font-size:28px;';
+    return '<div style="position:relative;overflow:hidden;aspect-ratio:2/3;' + sil + css + '">' + (owned === false ? '❓' : '🎤') +
+      (owned === false ? '' : '<img src="' + c.img + '" onerror="this.remove()" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;">') + '</div>';
+  }
   function limHtml() {
     var d = limLoad();
     return '<div style="display:flex;gap:10px;overflow-x:auto;padding-bottom:4px;">' + LIMITED.map(function (c) {
       var e = d[c.id];
-      if (!e) return '<div style="flex:0 0 96px;aspect-ratio:2/3;border-radius:10px;border:1.5px dashed ' + C.line + ';background:' + C.card + ';display:flex;align-items:center;justify-content:center;font-size:30px;color:' + C.mute + ';">❓</div>';
-      return '<div data-act="lim" data-c="' + c.id + '" style="flex:0 0 96px;cursor:pointer;position:relative;"><img src="' + c.img + '" style="width:96px;aspect-ratio:2/3;object-fit:cover;border-radius:10px;border:1.5px solid ' + C.gold + ';display:block;box-shadow:0 0 14px rgba(232,194,122,.45);">' +
+      if (!e) return '<div style="flex:0 0 96px;">' + artBox(c, 'border-radius:10px;border:1.5px dashed ' + C.line + ';', false) + '</div>';
+      return '<div data-act="lim" data-c="' + c.id + '" style="flex:0 0 96px;cursor:pointer;position:relative;">' + artBox(c, 'border-radius:10px;border:1.5px solid ' + C.gold + ';box-shadow:0 0 14px rgba(232,194,122,.45);', true) +
         (e.n > 1 ? '<span style="position:absolute;right:4px;bottom:4px;background:rgba(0,0,0,.75);color:#fff;font-size:11px;font-weight:900;border-radius:8px;padding:1px 6px;">×' + e.n + '</span>' : '') + '</div>';
     }).join('') + '</div>';
+  }
+  // 🌟 한정판 도감 (수집만 · 전부 모으면 칭호)
+  function openLimitedDex() {
+    var old = document.getElementById('lim-dex'); if (old) old.remove();
+    var d = limLoad(), have = limOwnedN(), all = LIMITED.length;
+    var ov = document.createElement('div'); ov.id = 'lim-dex';
+    ov.style.cssText = 'position:fixed;inset:0;z-index:770;overflow-y:auto;background:linear-gradient(180deg,#1a130c,#0e0a06);color:' + C.text + ';' + FONT;
+    ov.innerHTML = '<div style="max-width:430px;margin:0 auto;padding:16px 14px 70px;">' +
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;"><button data-dex="close" style="' + btn('padding:8px 12px;background:rgba(255,255,255,0.1);color:#fff;font-size:13px;') + '">← 닫기</button>' +
+      '<div style="font-size:16px;font-weight:900;color:' + C.gold + ';">🌟 한정판 도감</div><div style="width:64px;"></div></div>' +
+      '<div style="text-align:center;font-size:12px;color:' + C.mute + ';margin:6px 0 14px;">' + have + ' / ' + all + ' 수집' + (have >= all ? ' · <b style="color:' + C.gold + ';">🏷️ 칭호 [한정판 수집왕] 획득!</b>' : ' · 전부 모으면 칭호 🏷️ [한정판 수집왕]') + '</div>' +
+      '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;">' + LIMITED.map(function (c) {
+        var e = d[c.id];
+        return '<div ' + (e ? 'data-dex="lim" data-c="' + c.id + '" style="cursor:pointer;"' : '') + '>' + artBox(c, 'border-radius:10px;border:1.5px ' + (e ? 'solid ' + C.gold + ';box-shadow:0 0 12px rgba(232,194,122,.4);' : 'dashed ' + C.line + ';'), !!e) +
+          '<div style="font-size:11px;text-align:center;margin-top:5px;color:' + (e ? C.text : C.mute) + ';font-weight:700;">' + (e ? esc(c.real) : '???') + (e && e.n > 1 ? ' ×' + e.n : '') + '</div></div>';
+      }).join('') + '</div>' +
+      '<div style="font-size:11px;color:' + C.mute + ';text-align:center;margin-top:18px;line-height:1.7;">한정 포카는 능력치가 없는 수집용 카드예요.<br>💼 포카 인베스트의 투자 대박이나 히든 오디션에서 만날 수 있어요.</div></div>';
+    document.body.appendChild(ov);
+    ov.addEventListener('click', function (e) {
+      var t = e.target.closest ? e.target.closest('[data-dex]') : null; if (!t) return;
+      if (t.getAttribute('data-dex') === 'close') ov.remove();
+      else showLimited(t.getAttribute('data-c'));
+    });
   }
   function showLimited(id) {
     var c = LIMITED.filter(function (x) { return x.id === id; })[0], e = limLoad()[id]; if (!c || !e) return;
     var dt = new Date(e.first);
-    popup('<div style="text-align:center;"><img src="' + c.img + '" style="width:100%;max-width:290px;border-radius:12px;border:2px solid ' + C.gold + ';box-shadow:0 0 28px rgba(232,194,122,.5);">' +
+    popup('<div style="text-align:center;"><div style="width:100%;max-width:290px;margin:0 auto;">' + artBox(c, 'border-radius:12px;border:2px solid ' + C.gold + ';box-shadow:0 0 28px rgba(232,194,122,.5);', true) + '</div>' +
       '<div style="font-size:17px;font-weight:900;color:' + C.gold + ';margin-top:12px;">' + esc(c.real) + '</div><div style="font-size:12px;color:' + C.mute + ';">' + esc(c.sub) + '</div>' +
       '<div style="font-size:11px;color:' + C.mute + ';margin-top:6px;">LIMITED EDITION · 보유 ' + e.n + '장 · ' + dt.getFullYear() + '.' + (dt.getMonth() + 1) + '.' + dt.getDate() + ' 획득</div></div>' +
       '<button data-act="ok" style="' + btn('width:100%;margin-top:14px;padding:12px;background:linear-gradient(135deg,' + C.gold + ',#d4a24a);color:#2a1d08;font-size:14px;') + '">닫기</button>');
@@ -603,8 +727,9 @@
         gradeLine + '<br><span style="color:' + C.mute + ';">📅 게임 속 DAY ' + mealDay() + ' · 한 판 한도 <b style="color:' + C.text + ';">' + fmt(limitNow()) + '</b> · 슬롯 ' + S.pos.length + '/' + g.slots + '</span></div>' +
       sectionTitle('📰 오늘의 정보', '소문은 내일로 넘어갈 때 가치에 반영돼요') + secs.map(infoRow).join('') +
       sectionTitle('💼 내 투자', S.pos.length + ' / ' + g.slots) + (S.pos.length ? S.pos.map(posCard).join('') : '<div style="font-size:12px;color:' + C.mute + ';text-align:center;padding:18px;background:' + C.card + ';border-radius:14px;">진행 중인 투자가 없어요. 아래에서 시작해 보세요!</div>') +
-      sectionTitle('🆕 새 투자', '한 투자처에 하나씩') + secs.map(newCard).join('') +
-      sectionTitle('🌟 한정 포카', '투자 대박 때만 나와요') + limHtml() +
+      sectionTitle('🆕 새 투자', '한 투자처에 하나씩') + (audUnlocked() && !posOf('audition') ? audOffer() : '') + secs.map(newCard).join('') +
+      sectionTitle('🌟 한정 포카 ' + limOwnedN() + '/' + LIMITED.length, '투자 대박·오디션 우승 때 나와요') + limHtml() +
+      '<button data-act="dex" style="' + btn('width:100%;margin-top:8px;padding:9px;background:rgba(255,255,255,0.07);color:' + C.mute + ';font-size:12px;') + '">🌟 한정판 도감 보기</button>' +
       sectionTitle('🧾 최근 기록') + '<div style="background:' + C.card + ';border:1px solid ' + C.line + ';border-radius:14px;padding:6px 10px;">' + histRows() + '</div>' +
       '<button data-act="schedule" style="' + btn('width:100%;margin-top:16px;padding:14px;background:rgba(255,207,74,0.15);border:1.5px solid #ffcf4a;color:#ffe08a;font-size:14px;') + '">📅 스케줄 · 하루 보내기</button>' +
       '<div style="font-size:11px;color:' + C.mute + ';text-align:center;margin-top:8px;line-height:1.6;">투자는 아이돌 활동을 돕는 보조 콘텐츠예요.<br>드라마 촬영·CF·팬 모으기·공연장·작곡을 많이 할수록 가치가 더 올라가요!</div>' +
@@ -687,6 +812,89 @@
       '<button data-act="ok" style="' + btn('width:100%;margin-top:8px;padding:10px;background:none;color:' + C.mute + ';font-size:12px;') + '">취소</button>');
   }
 
+  // ───────── 🎤 오디션 후원 화면 ─────────
+  var MEDAL = ['🥇', '🥈', '🥉'];
+  function starsTxt(n) { var t = ''; for (var i = 0; i < 5; i++) t += i < n ? '★' : '☆'; return t; }
+  function audOffer() {
+    return '<div style="background:linear-gradient(135deg,#2a1c2e,#1a1224);border:1.5px solid #c084fc;border-radius:16px;padding:14px;margin-bottom:10px;box-shadow:0 0 18px rgba(192,132,252,.25);">' +
+      '<div style="display:flex;justify-content:space-between;align-items:center;"><div style="font-size:15px;font-weight:900;color:#e9d5ff;">📩 비공개 투자 제안</div><div style="font-size:12px;color:' + C.gold + ';letter-spacing:1px;">' + stars(5) + '</div></div>' +
+      '<div style="font-size:12px;color:#d8c8f0;line-height:1.6;margin:8px 0;">아직 아무도 모르는 연습생에게 투자하시겠습니까?<br>성공 여부 ??? · 예상 수익 ??? · 계약 기간 7일</div>' +
+      '<div style="font-size:11px;color:' + C.mute + ';margin-bottom:10px;">1등 후원 시 투자금 ×' + AUD.WIN_MULT + ' + 한정 포카 · 아니면 투자금의 ' + Math.round(AUD.LOSE_BACK * 100) + '%만 돌려받아요</div>' +
+      '<button data-act="aud-new" style="' + btn('width:100%;padding:12px;background:linear-gradient(135deg,#c084fc,#8b5cf6);color:#fff;font-size:14px;') + '">🎤 오디션 보러 가기</button></div>';
+  }
+  function audThumb(cid, w) { var c = limOf(cid); return c ? '<div style="width:' + w + 'px;flex-shrink:0;">' + artBox(c, 'border-radius:8px;border:1px solid ' + C.line + ';', true) + '</div>' : ''; }
+  function audCard(pos) {
+    var rk = audRanking(pos), myRank = audRankOf(pos, pos.pick), lm = limOf(pos.pick), max = rk[0].s;
+    var rows = rk.map(function (c, i) {
+      var l = limOf(c.id), mine = c.id === pos.pick, nw = audNews(pos.id, c.id, mealDay());
+      return '<div style="display:flex;gap:10px;align-items:center;padding:7px 8px;margin-bottom:5px;border-radius:12px;background:' + (mine ? 'rgba(232,194,122,.14)' : 'rgba(255,255,255,.04)') + ';border:1px solid ' + (mine ? C.gold : C.line) + ';">' +
+        '<div style="font-size:20px;width:26px;text-align:center;">' + (MEDAL[i] || (i + 1)) + '</div>' + audThumb(c.id, 34) +
+        '<div style="flex:1;min-width:0;"><div style="font-size:13px;font-weight:900;color:' + C.text + ';">' + esc(l ? l.real : c.id) + (mine ? ' <span style="font-size:10px;color:' + C.gold + ';">· 내 후원</span>' : '') +
+        (nw ? ' <span style="font-size:10px;color:' + (nw.kind === 'hot' ? C.up : C.down) + ';">' + (nw.kind === 'hot' ? '📈 호재' : '📉 악재') + '</span>' : '') + '</div>' +
+        '<div style="height:6px;border-radius:4px;background:rgba(255,255,255,.08);margin:5px 0 3px;"><div style="height:6px;border-radius:4px;width:' + Math.max(8, Math.round(c.s / max * 100)) + '%;background:' + (mine ? C.gold : '#7a6a54') + ';"></div></div>' +
+        '<div style="font-size:11px;color:' + C.mute + ';">' + fmt(c.s) + ' 표' + (nw ? ' · ' + esc(nw.text) : '') + '</div></div></div>';
+    }).join('');
+    var act = audAct();
+    var main = pos.mature
+      ? '<button data-act="aud-settle" data-id="' + pos.id + '" style="' + btn('width:100%;padding:13px;background:linear-gradient(135deg,#c084fc,#8b5cf6);color:#fff;font-size:14px;') + '">🏆 최종 결과 발표 보기</button>'
+      : '<div style="font-size:12px;color:' + C.mute + ';text-align:center;padding:8px 0;">📅 <b style="color:' + C.gold + ';">하루 보내기</b>를 하면 득표가 바뀌어요 · 7일 계약, 중도 해지 불가</div>';
+    return '<div style="background:' + C.card + ';border:1.5px solid ' + (pos.mature ? '#c084fc' : C.line) + ';border-radius:16px;padding:14px;margin-bottom:10px;">' +
+      '<div style="display:flex;align-items:center;justify-content:space-between;"><div style="font-size:15px;font-weight:900;color:' + C.text + ';">🎤 오디션 후원 <span style="font-size:11px;color:' + C.gold + ';">· ' + esc(lm ? lm.real : pos.pick) + '</span></div>' +
+      '<div style="font-size:11px;color:' + C.mute + ';">DAY ' + pos.day + ' / ' + DAYS + (pos.mature ? ' · 종료' : '') + '</div></div>' +
+      '<div style="margin:8px 0 8px;">' + dots(pos.day) + '</div>' + rows +
+      '<div style="font-size:11px;color:' + C.mute + ';margin:4px 0 0;">후원금 🍔 ' + fmt(pos.invested) + ' · 현재 <b style="color:#fff;">' + myRank + '위</b> · ⚡ 오늘 활동 보너스 <b style="color:' + (act > 0 ? C.up : C.mute) + ';">+' + (Math.round(act * 1000) / 10) + '%</b> <span style="opacity:.8;">(내일 득표에 반영)</span></div>' +
+      '<div style="margin-top:10px;">' + main + '</div></div>';
+  }
+  var audDraft = null;
+  function openAud() {
+    var lim = audMaxAmt();
+    if (lim < AUD.MIN) { toast('코인이 부족해요 (최소 ' + fmt(AUD.MIN) + ')'); return; }
+    var cs = audMakeContestants();
+    audDraft = { cs: cs, pick: null, amt: Math.max(AUD.MIN, Math.floor(lim * 0.5 / 10000) * 10000) };
+    drawAud();
+  }
+  function drawAud() {
+    var d = audDraft, lim = audMaxAmt();
+    var cards = d.cs.map(function (c) {
+      var l = limOf(c.id), on = d.pick === c.id;
+      return '<div data-act="aud-pick" data-c="' + c.id + '" style="flex:1;min-width:0;cursor:pointer;text-align:center;padding:6px 4px 8px;border-radius:12px;border:2px solid ' + (on ? C.gold : C.line) + ';background:' + (on ? 'rgba(232,194,122,.16)' : 'rgba(255,255,255,.04)') + ';">' +
+        artBox(l, 'border-radius:8px;', true) +
+        '<div style="font-size:12px;font-weight:900;color:' + C.text + ';margin-top:5px;">' + esc(l.real) + '</div><div style="font-size:10px;color:' + C.mute + ';">' + esc(l.sub) + '</div>' +
+        '<div style="font-size:10px;color:' + C.gold + ';margin-top:3px;letter-spacing:1px;">' + starsTxt(c.st) + '</div></div>';
+    }).join('');
+    var presets = [0.25, 0.5, 0.75, 1].map(function (p) {
+      var v = Math.max(AUD.MIN, Math.floor(lim * p / 10000) * 10000), on = d.amt === v;
+      return '<button data-act="aud-amt" data-v="' + v + '" style="' + btn('flex:1;padding:9px 0;background:' + (on ? C.gold : 'rgba(255,255,255,0.08)') + ';color:' + (on ? '#2a1d08' : C.text) + ';font-size:12px;') + '">' + Math.round(p * 100) + '%</button>';
+    }).join('');
+    popup('<div style="text-align:center;"><div style="font-size:34px;">🎤</div><div style="font-size:17px;font-weight:900;color:#e9d5ff;">비공개 오디션</div><div style="font-size:11px;color:' + C.mute + ';margin-top:2px;">후원할 연습생을 한 명 고르세요 · ★은 스카우트의 추정이라 틀릴 수 있어요</div></div>' +
+      '<div style="display:flex;gap:7px;margin:12px 0;">' + cards + '</div>' +
+      '<div style="font-size:12px;color:' + C.mute + ';margin:6px 0;">💰 후원금 (한도 ' + fmt(Math.min(limitNow(), AUD.MAX)) + ')</div>' +
+      '<div style="font-size:24px;font-weight:900;color:#fff;text-align:center;margin-bottom:8px;">🍔 ' + fmt(d.amt) + '</div><div style="display:flex;gap:6px;">' + presets + '</div>' +
+      '<div style="font-size:11px;color:' + C.mute + ';margin-top:12px;line-height:1.6;">• 7일 뒤 득표 1위 → 후원금 ×' + AUD.WIN_MULT + ' + 한정 포카 + 프리미엄 조각<br>• 1위가 아니면 후원금의 ' + Math.round(AUD.LOSE_BACK * 100) + '%만 돌려받아요<br>• 내 아이돌 활동(CF·팬·공연장·앨범)이 후원한 연습생의 득표를 올려줘요</div>' +
+      '<button data-act="aud-start" style="' + btn('width:100%;margin-top:14px;padding:13px;background:' + (d.pick ? 'linear-gradient(135deg,#c084fc,#8b5cf6)' : 'rgba(255,255,255,.1)') + ';color:' + (d.pick ? '#fff' : '#888') + ';font-size:14px;') + '">' + (d.pick ? '후원 시작!' : '연습생을 골라주세요') + '</button>' +
+      '<button data-act="ok" style="' + btn('width:100%;margin-top:8px;padding:10px;background:none;color:' + C.mute + ';font-size:12px;') + '">나중에 할게요</button>');
+  }
+  function showAudResult(r) {
+    var l = limOf(r.pick);
+    var board = r.board.map(function (c, i) {
+      var cl = limOf(c.id), mine = c.id === r.pick;
+      return '<div style="display:flex;align-items:center;gap:8px;padding:5px 6px;border-radius:10px;background:' + (mine ? 'rgba(232,194,122,.14)' : 'transparent') + ';font-size:13px;"><span style="width:22px;">' + (MEDAL[i] || (i + 1)) + '</span><span style="flex:1;font-weight:' + (mine ? 900 : 400) + ';">' + esc(cl ? cl.real : c.id) + (mine ? ' <span style="font-size:10px;color:' + C.gold + ';">내 후원</span>' : '') + '</span><span style="color:' + C.mute + ';">' + fmt(c.s) + ' 표</span></div>';
+    }).join('');
+    popup('<div style="text-align:center;"><div style="font-size:40px;">' + (r.win ? '🏆' : '😢') + '</div>' +
+      '<div style="font-size:17px;font-weight:900;color:' + (r.win ? C.gold : C.text) + ';margin:4px 0;">' + (r.win ? '1위 데뷔! ' + esc(l ? l.real : '') + ' 연습생이 우승했어요' : '아쉽게도 ' + r.rank + '위였어요') + '</div></div>' +
+      '<div style="margin:10px 0;background:rgba(255,255,255,.04);border-radius:12px;padding:6px;">' + board + '</div>' +
+      '<div style="text-align:center;"><div style="font-size:12px;color:' + C.mute + ';">받은 코인</div><div style="font-size:26px;font-weight:900;color:#fff;">🍔 ' + fmt(r.payout) + '</div>' +
+      '<div style="font-size:15px;font-weight:900;color:' + colorOf(r.profit) + ';margin-top:2px;">' + (r.profit >= 0 ? '+' : '') + fmt(r.profit) + ' (' + pctText((r.ratio - 1) * 100) + ')</div></div>' +
+      (r.lines.length ? '<div style="margin-top:12px;padding:10px;background:rgba(232,194,122,0.14);border:1px solid ' + C.gold + ';border-radius:12px;text-align:center;font-size:14px;color:#fff;line-height:1.7;">' + r.lines.join('<br>') + '</div>' : '') +
+      '<button data-act="ok" style="' + btn('width:100%;margin-top:16px;padding:13px;background:linear-gradient(135deg,' + C.gold + ',#d4a24a);color:#2a1d08;font-size:14px;') + '">확인</button>');
+  }
+  function showAudReveal() {
+    popup('<div style="text-align:center;"><div style="font-size:42px;">📩</div><div style="font-size:11px;letter-spacing:2px;color:#c084fc;margin-top:4px;">PRIVATE OFFER</div>' +
+      '<div style="font-size:18px;font-weight:900;color:#e9d5ff;margin:6px 0 10px;">비공개 투자 제안이 도착했습니다</div>' +
+      '<div style="font-size:13px;line-height:1.8;color:' + C.text + ';">대주주만 받을 수 있는 제안이에요.<br>아직 아무도 모르는 연습생에게 투자하시겠습니까?<br><span style="color:' + C.mute + ';">성공 여부 ??? · 예상 수익 ??? · 계약 기간 7일</span></div></div>' +
+      '<button data-act="aud-reveal" style="' + btn('width:100%;margin-top:16px;padding:13px;background:linear-gradient(135deg,#c084fc,#8b5cf6);color:#fff;font-size:14px;') + '">🎤 제안 확인하기</button>');
+  }
+
   // ───────── 클릭 처리 ─────────
   function posById(id) { id = Number(id); for (var i = 0; i < S.pos.length; i++) if (S.pos[i].id === id) return S.pos[i]; return null; }
   function onClick(e) {
@@ -695,7 +903,22 @@
     e.stopPropagation();
     var act = t.getAttribute('data-act'), id = t.getAttribute('data-id'), pos = id ? posById(id) : null;
     if (act === 'close') { closeInvest(); return; }
-    if (act === 'ok' || act === 'later') { closePop(); render(); return; }
+    if (act === 'ok' || act === 'later') { closePop(); if (document.getElementById('invest-overlay')) render(); return; }
+    if (act === 'dex') { openLimitedDex(); return; }
+    if (act === 'aud-new') { openAud(); return; }
+    if (act === 'aud-reveal') { S.audSeen = true; save(); closePop(); render(); openAud(); return; }
+    if (act === 'aud-pick' && audDraft) { audDraft.pick = t.getAttribute('data-c'); drawAud(); return; }
+    if (act === 'aud-amt' && audDraft) { audDraft.amt = Number(t.getAttribute('data-v')); drawAud(); return; }
+    if (act === 'aud-start' && audDraft) {
+      var ra = startAud(audDraft.amt, audDraft.pick, audDraft.cs);
+      if (ra.err) { toast(ra.err); return; }
+      audDraft = null; closePop(); render(); toast('🎤 오디션 후원을 시작했어요! DAY 1'); return;
+    }
+    if (act === 'aud-settle' && pos) {
+      var rr = settleAud(pos);
+      if (rr.err) { toast(rr.err); render(); return; }
+      showAudResult(rr); render(); return;
+    }
     if (act === 'schedule') {
       if (typeof window.openMealSchedule === 'function') { closeInvest(); window.openMealSchedule(); }
       else toast('📅 스케줄·식사 관리는 🎤 기획사 안에 있어요');
@@ -729,6 +952,7 @@
     if (plv() < NEED_LEVEL) { toast('💼 포카 인베스트는 플레이어 Lv.' + NEED_LEVEL + '부터 열려요 (지금 Lv.' + plv() + ')'); return; }
     try { if (typeof closePlace === 'function') closePlace(); } catch (e) {}
     syncDays(); pollActivity(); render();
+    if (audUnlocked() && !S.audSeen && !posOf('audition')) setTimeout(showAudReveal, 350);
   }
   function closeInvest() { var o = document.getElementById('invest-overlay'); if (o) o.remove(); closePop(); refreshBadge(); }
 
@@ -761,10 +985,34 @@
   pollActivity();
 
   window.openInvest = openInvest;
+  window.openLimitedDex = openLimitedDex;
+  // 🏷️ 한정판을 전부 모으면 칭호
+  (function addTitle(n) {
+    try {
+      if (typeof TITLES !== 'undefined' && Array.isArray(TITLES)) {
+        if (!TITLES.some(function (t) { return t.id === 'limited_all'; })) TITLES.push({ id: 'limited_all', cat: '🌟 한정판', name: '한정판 도감 완성', title: '한정판 수집왕', cond: function () { return limOwnedN() >= LIMITED.length; } });
+        return;
+      }
+    } catch (e) {}
+    if (n < 100) setTimeout(function () { addTitle(n + 1); }, 200);
+  })(0);
+  // 컬렉션 화면에 한정판 도감 버튼
+  (function addDexBtn(n) {
+    var h = document.querySelector('#screen-collection .collection-header');
+    if (!h) { if (n < 100) setTimeout(function () { addDexBtn(n + 1); }, 200); return; }
+    if (document.getElementById('btn-lim-dex')) return;
+    var b = document.createElement('button'); b.id = 'btn-lim-dex';
+    b.style.cssText = 'margin-top:8px;padding:8px 14px;border-radius:12px;border:1.5px solid #e8c27a;background:rgba(232,194,122,.12);color:#e8c27a;font-size:12px;font-weight:900;cursor:pointer;' + FONT;
+    function lbl() { b.textContent = '🌟 한정판 도감 ' + limOwnedN() + '/' + LIMITED.length; }
+    lbl(); b.onclick = function () { lbl(); openLimitedDex(); };
+    h.appendChild(b);
+    setInterval(lbl, 3000);
+  })(0);
   window.__investTest = {
     get S() { return S; }, set S(v) { S = v; }, SECTORS: SECTORS, EVENTS: EVENTS, GRADES: GRADES, LIMITS: LIMITS,
     startPosition: startPosition, tickPosition: tickPosition, resolveEvent: resolveEvent, sellPosition: sellPosition, syncDays: syncDays,
     limitNow: limitNow, gradeOf: gradeOf, infoCard: infoCard, strengths: strengths, actBonus: actBonus, ledScore: ledScore, lockReason: lockReason,
+    AUD: AUD, startAud: startAud, tickAud: tickAud, settleAud: settleAud, audMakeContestants: audMakeContestants, audUnlocked: audUnlocked, audRanking: audRanking, audAct: audAct, openAud: openAud, openLimitedDex: openLimitedDex, limOwnedN: limOwnedN, grantLimited: grantLimited,
     LIMITED: LIMITED, limLoad: limLoad, giveDividend: giveDividend, showLimited: showLimited, pickEvent: pickEvent, needMet: needMet, resetLedger: resetLedger, load: load, save: save, floorFrac: floorFrac, render: render
   };
 })();
