@@ -44,7 +44,8 @@
   var HP_SKILL_MULT = { ok: 0.5, love: 0.3 };                                  // 💖 스킬로 처리하면 덜 깎임 (만족 / 대만족)
   var POTIONS = [                                                              // 상점에서 코인으로 산다 (더보기 > 💖 팬 스킬 상점)
     { id: 'hp_s', emoji: '🧪', name: '작은 회복약', heal: 40,  price: 2000, desc: '원정 중 HP +40 · 맵 오른쪽 위 버튼으로 써요' },
-    { id: 'hp_l', emoji: '💊', name: '큰 회복약',   heal: 100, price: 6000, desc: '원정 중 HP 전부 회복 · 맵 오른쪽 위 버튼으로 써요' }
+    { id: 'hp_l', emoji: '💊', name: '큰 회복약',   heal: 100, price: 6000, desc: '원정 중 HP 전부 회복 · 맵 오른쪽 위 버튼으로 써요' },
+    { id: 'fat_d', emoji: '🥤', name: '피로회복 드링크', heal: 0, kind: 'fatigue', price: 1500, desc: '콘서트 무대 중 피로도 -60 · 무대 오른쪽 아래 버튼으로 써요' }
   ];
   var WEIGHTS = { shutter: 45, letter: 25, goods: 30 };   // 일반 이벤트가 나올 비율
   var HIDE_OLD_SPECIAL = true;        // true: 기존 특별 탐험(배너·3곳·도감 버튼)을 맵 화면에서 숨김. 되돌리려면 false
@@ -371,7 +372,7 @@
     var bar = '<div style="width:130px;height:18px;border-radius:9px;background:rgba(0,0,0,.65);border:1.5px solid #f87171;position:relative;overflow:hidden;">' +
       '<div id="bc-hpfill" style="height:100%;width:100%;background:linear-gradient(90deg,#ef4444,#f97316);transition:width .3s;"></div>' +
       '<div id="bc-hptxt" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;color:#fff;text-shadow:0 1px 3px #000;"></div></div>';
-    var btns = POTIONS.map(function (po) {
+    var btns = POTIONS.filter(function (po) { return po.kind !== 'fatigue'; }).map(function (po) {
       return '<div class="bc-potion" data-p="' + po.id + '" style="display:flex;align-items:center;gap:5px;background:rgba(26,26,46,.9);border:1.5px solid #4ade80;border-radius:999px;padding:3px 10px;font-size:12px;font-weight:900;color:#fff;cursor:pointer;user-select:none;-webkit-user-select:none;">' +
         po.emoji + '<span class="bc-pq"></span></div>';
     }).join('');
