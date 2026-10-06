@@ -106,6 +106,74 @@
     var after = masteryLv(cid, id);
     if (after > before) { var k = skillById(id); toast('⭐ ' + (k ? k.icon + ' ' + k.name : '스킬') + ' 숙련도 Lv.' + after + '! 더 강해졌어요'); }
   }
+  // ════════ 📘 스킬북: 드랍되면 가방에 쌓이고, 쓰면 그 스킬의 숙련도가 오른다 ════════
+  var BOOK_USES = 50;                                           // 스킬북 1권 = 사용 횟수 +50 (숙련 Lv.5 = 300)
+  var BOOK_DROP = { fan: 0.03, shutter: 0.04, letter: 0.04, goods: 0.04, golden: 0.15, legend: 0.35 };   // 응대 성공 때 스킬북이 나올 확률
+  function bookName(sk) { return sk.short + ' 스킬북'; }
+  function bookSkill(name) { return SKILLS.filter(function (k) { return bookName(k) === name; })[0] || null; }
+  function giveBook(id) {
+    var sk = skillById(id); if (!sk || typeof addToBag !== 'function') return false;
+    var ok = false;
+    try { ok = !!addToBag('📘', bookName(sk), 'skillbook', 1, sk.icon + ' ' + sk.name + ' 숙련도 +' + BOOK_USES + ' · 가방에서 열어 멤버를 골라 올려줘요'); } catch (e) {}
+    if (ok) { try { if (typeof saveAll === 'function') saveAll(); } catch (e) {} toast('📘 ' + bookName(sk) + '을(를) 얻었어요!'); }
+    return ok;
+  }
+  function maybeBook(kind, usedId) {
+    if (Math.random() >= (BOOK_DROP[kind] || BOOK_DROP.fan)) return false;
+    var sk = skillById(usedId);
+    if (!sk || sk.aoe) {                                         // 광역으로 끝냈으면 장착 중인 스킬 중 하나
+      var L = loadLoadout().filter(function (x) { return x && skillById(x); });
+      if (!L.length) return false; sk = skillById(L[Math.floor(Math.random() * L.length)]);
+    }
+    return giveBook(sk.id);
+  }
+  function feedBook(cid, id) {
+    var sk = skillById(id); if (!sk) return { ok: false, why: '스킬을 못 찾았어요' };
+    if (!hasSkill(cid, sk)) return { ok: false, why: (charName(cid) || '이 멤버') + '은(는) 아직 ' + sk.name + '을(를) 못 배웠어요' };
+    var maxUses = MASTERY[MASTERY.length - 1];
+    if (useCount(cid, id) >= maxUses) return { ok: false, why: '이미 최대 숙련이에요!' };
+    if (!useFromBag(bookName(sk), 1)) return { ok: false, why: '스킬북이 없어요' };
+    var st = loadStore();
+    if (!st[cid] || typeof st[cid] !== 'object') st[cid] = { serves: 0 };
+    if (!st[cid].uses || typeof st[cid].uses !== 'object') st[cid].uses = {};
+    var before = masteryLv(cid, id);
+    st[cid].uses[id] = Math.min(maxUses, useCount(cid, id) + BOOK_USES);
+    saveStore(st);
+    try { if (typeof saveAll === 'function') saveAll(); } catch (e) {}
+    return { ok: true, before: before, after: masteryLv(cid, id), uses: useCount(cid, id) };
+  }
+  function openBookPicker(sk) {
+    var old = $('fs-book'); if (old) old.remove();
+    var ov = document.createElement('div'); ov.id = 'fs-book';
+    ov.style.cssText = 'position:fixed;inset:0;z-index:2100;background:rgba(0,0,0,.78);display:flex;align-items:center;justify-content:center;padding:18px;' + FONT;
+    ov.onclick = function (e) { if (e.target === ov) ov.remove(); };
+    function draw(msg) {
+      var maxUses = MASTERY[MASTERY.length - 1];
+      var rows = charIds().map(function (cid) {
+        var has = hasSkill(cid, sk), n = useCount(cid, sk.id), lv = masteryLv(cid, sk.id), full = n >= maxUses;
+        return '<button data-bc="' + cid + '" style="width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 12px;margin-bottom:7px;border:1.5px solid ' + (has ? 'rgba(255,255,255,.25)' : 'rgba(255,255,255,.08)') + ';border-radius:12px;background:rgba(255,255,255,' + (has ? '.09' : '.03') + ');color:' + (has ? '#fff' : '#777') + ';font-size:13px;font-weight:900;cursor:pointer;' + FONT + '">' +
+          '<span>' + (charName(cid) || cid) + '</span><span style="font-size:11px;color:' + (has ? '#ffd76a' : '#777') + ';">' + (!has ? '🔒 못 배움' : (full ? '최대 숙련 ✨' : '숙련 Lv.' + lv + ' (' + n + '/' + maxUses + ')')) + '</span></button>';
+      }).join('');
+      var q = (function () { try { var it = bagItems.find(function (i) { return i.name === bookName(sk); }); return it ? it.qty : 0; } catch (e) { return 0; } })();
+      ov.innerHTML = '<div style="width:100%;max-width:330px;max-height:86vh;overflow-y:auto;background:linear-gradient(135deg,#1a1a2e,#2d1b4e);border:2px solid #C084FC;border-radius:20px;padding:20px 16px;text-align:center;">' +
+        '<div style="font-size:40px;">📘</div><div style="font-size:16px;font-weight:900;color:#fff;">' + bookName(sk) + ' <span style="font-size:12px;color:#aaa;">×' + q + '</span></div>' +
+        '<div style="font-size:12px;color:#c9d6ff;margin:4px 0 12px;">누구의 ' + sk.icon + ' ' + sk.name + ' 숙련도를 올릴까요? (+' + BOOK_USES + ')</div>' +
+        (msg ? '<div style="background:rgba(255,215,0,.16);border:1.5px solid #FFD700;border-radius:10px;padding:8px;margin-bottom:10px;font-size:12px;font-weight:900;color:#fff;">' + msg + '</div>' : '') + rows +
+        '<button id="fs-book-x" style="width:100%;margin-top:4px;padding:10px;border:none;border-radius:10px;background:rgba(255,255,255,.1);color:#ccc;font-size:13px;cursor:pointer;' + FONT + '">닫기</button></div>';
+      Array.prototype.forEach.call(ov.querySelectorAll('[data-bc]'), function (b) {
+        b.onclick = function () {
+          var r = feedBook(b.getAttribute('data-bc'), sk.id);
+          if (!r.ok) { draw('⚠️ ' + r.why); return; }
+          sfx('rarePick');
+          draw('📘 숙련도 +' + BOOK_USES + '!' + (r.after > r.before ? ' ⭐ 숙련 Lv.' + r.after + ' 달성!' : ''));
+          try { if (typeof renderBag === 'function') renderBag(); } catch (e) {}
+        };
+      });
+      ov.querySelector('#fs-book-x').onclick = function () { ov.remove(); };
+    }
+    document.body.appendChild(ov);
+    draw('');
+  }
   function mLv(id) { return F ? masteryLv(F.cid, id) : 0; }
   function ownedMap(cid) { var s = loadStore(); return (s[cid] && s[cid].owned && typeof s[cid].owned === 'object') ? s[cid].owned : {}; }
   function hasSkill(cid, sk) { return !!sk && (sk.price === 0 || !!ownedMap(cid)[sk.id]); }
@@ -467,11 +535,11 @@
         setTimeout(function () {
           var ok = false;
           try { ok = hk.resolve(evRef, love, 1 + 0.04 * mlv); } catch (e) {}
-          if (ok) addServe(cidNow); else evRef.fsBusy = false;
+          if (ok) { addServe(cidNow); maybeBook(evRef.type, id); } else evRef.fsBusy = false;
         }, 900);
       } else {
         var i1 = F.fans.indexOf(o); if (i1 !== -1) F.fans.splice(i1, 1);
-        var r = grant(love, 1 + 0.04 * mlv); addServe(F.cid);
+        var r = grant(love, 1 + 0.04 * mlv); addServe(F.cid); maybeBook('fan', id);
         var fc = o.el && o.el.querySelector('.fs-face'); if (fc) fc.textContent = love ? '😍' : '😊';
         floatText(o.x, o.y - 0.09, '<div style="text-align:center;">' + r.lines.join('') + '</div>');
         setTimeout(function () { removeFan(o, true); }, 900);
@@ -807,7 +875,28 @@
 
   setInterval(tick, 200);
 
-  window.__fanSkillsAPI = { SKILLS: SKILLS, SLOTS: SLOTS, loadout: loadLoadout, equip: equip, levelOk: levelOk, hasSkill: function (cid, id) { var sk = skillById(id); return !!sk && hasSkill(cid, sk); }, openEditor: openEditor, openShop: openShop };
+  (function hookBagBook() {
+    if (typeof window.showBagItemDetail !== 'function') { setTimeout(hookBagBook, 100); return; }
+    if (window.__fsBookHooked) return;
+    window.__fsBookHooked = true;
+    var orig = window.showBagItemDetail;
+    window.showBagItemDetail = function (idx) {
+      var r = orig.apply(this, arguments);
+      try {
+        var item = bagItems[idx], ov = $('bag-detail-overlay'), sk = item && item.type === 'skillbook' ? bookSkill(item.name) : null;
+        if (sk && ov && !ov.querySelector('#fs-book-use')) {
+          var b = document.createElement('button');
+          b.id = 'fs-book-use'; b.textContent = '📘 숙련도 올리기';
+          b.style.cssText = 'width:100%;padding:12px;margin-bottom:8px;background:linear-gradient(135deg,#C084FC,#7c3aed);border:none;border-radius:12px;color:#fff;font-size:14px;font-weight:900;cursor:pointer;font-family:inherit;';
+          b.onclick = function () { openBookPicker(sk); };
+          var close = ov.querySelector('button');
+          if (close) close.parentNode.insertBefore(b, close); else ov.firstChild.appendChild(b);
+        }
+      } catch (e) {}
+      return r;
+    };
+  })();
+  window.__fanSkillsAPI = { giveBook: giveBook, bookName: function (id) { var k = skillById(id); return k ? bookName(k) : ''; }, feedBook: feedBook, SKILLS: SKILLS, SLOTS: SLOTS, loadout: loadLoadout, equip: equip, levelOk: levelOk, hasSkill: function (cid, id) { var sk = skillById(id); return !!sk && hasSkill(cid, sk); }, openEditor: openEditor, openShop: openShop };
 
   window.__fanSkillsTest = {
     spawnFan: spawnFan, useSkill: useSkill, serves: serves, masteryLv: masteryLv, useCount: useCount, unlockedSkills: unlockedSkills,

@@ -33,6 +33,8 @@
   var BOSS_PIECE_BONUS = 0.25;     // 거기에 한 번 더(+1) 줄 확률
   var BOSS_STONE_CHANCE = 0.15;    // 보스 응대 시 강화석 +1 확률
   var DEFEAT_RATE = 0.5;           // 쫓겨났을 때 코인·경험치를 받는 비율
+  var BOOK_FAN = 0.012;            // 팬 한 명 응대할 때 📘 스킬북(장착 스킬 중 하나)이 나올 확률
+  var BOOK_BOSS = 2;               // 보스까지 깨면 보장되는 스킬북 개수
   var HEART_DROP = 0.05;           // 팬이 만족했을 때 하트(HP +10)를 떨어뜨릴 확률
   var PIECE_NAME = '프리미엄 조각', PIECE_EMOJI = '🖼️', PIECE_GOAL = 100;
   var IMG_BASE = 'https://raw.githubusercontent.com/chaei7775/Poca-house/main/';
@@ -115,7 +117,7 @@
       time: 0, coins: 0, exp: 0, kills: 0, cd: {}, inv: 0, shield: 0, flashRed: 0,
       over: false, won: false, shake: 0, input: { x: 0, y: 0 },
       cam: { x: WORLD / 2 - vw / 2, y: WORLD / 2 - vh / 2 }, vw: vw, vh: vh,
-      banner: { text: '', t: 0 }, nextId: 1, paused: false, guards: []
+      banner: { text: '', t: 0 }, nextId: 1, paused: false, guards: [], books: []
     };
     SKILLS.forEach(function (s) { g.cd[s.id] = 0; });
     return g;
@@ -191,6 +193,7 @@
     G.coins += coin; G.exp += f.T.boss ? 0 : EXP_PER_FAN;
     if (coin) addDn(f.x, f.y - 20, '+' + coin, '#ffd76a', false);
     addFx({ k: 'hearts', x: f.x, y: f.y, t: 0.9, max: 0.9 });
+    if (Math.random() < BOOK_FAN) { var pool0 = loadoutIds().filter(Boolean); if (pool0.length) { G.books.push(pool0[Math.floor(Math.random() * pool0.length)]); addDn(f.x, f.y - 34, '📘', '#9fd8ff', true); } }
     if (Math.random() < HEART_DROP) G.pick.push({ x: f.x, y: f.y, v: 10, t: 14 });
     if (f.T.boss) { G.bossDown = true; G.banner = { text: '👑 팬클럽장이 만족했어요!', t: 2.5 }; sfx('reward'); }
   }
@@ -387,7 +390,14 @@
       if (Math.random() < Math.min(1, BOSS_PIECE_CHANCE + (bounty ? 0.2 : 0))) { pieces = 1; if (Math.random() < BOSS_PIECE_BONUS) pieces = 2; }
       if (Math.random() < BOSS_STONE_CHANCE) stones = 1;
     } else { coin = Math.floor(coin * DEFEAT_RATE); exp = Math.floor(exp * DEFEAT_RATE); }
-    G.result = { won: !!won, coin: coin, exp: exp, pieces: pieces, stones: stones, kills: G.kills, wave: G.wave, time: Math.round(G.time) };
+    var gotBooks = [];
+    try {
+      var bk = G.books.slice();
+      if (won) { var pl = loadoutIds().filter(Boolean); for (var bi = 0; bi < BOOK_BOSS && pl.length; bi++) bk.push(pl[Math.floor(Math.random() * pl.length)]); }
+      var A = API();
+      bk.forEach(function (sid) { if (A && A.giveBook && A.giveBook(sid)) gotBooks.push(sid); });
+    } catch (e) {}
+    G.result = { books: gotBooks, won: !!won, coin: coin, exp: exp, pieces: pieces, stones: stones, kills: G.kills, wave: G.wave, time: Math.round(G.time) };
     try {
       if (coin > 0 && typeof coins !== 'undefined') coins += coin;
       giveCardExp(G.charId, exp);
@@ -688,6 +698,7 @@
     var lines = '<div>🍔 코인 <b style="color:#ffd76a;">+' + fmt(r.coin) + '</b></div><div>⭐ 카드 경험치 <b style="color:#9fd8ff;">+' + fmt(r.exp) + '</b></div>';
     if (r.pieces) lines += '<div>' + PIECE_EMOJI + ' 프리미엄 조각 <b style="color:#ffe27a;">+' + r.pieces + '</b></div>';
     if (r.stones) lines += '<div>🔨 강화석 <b style="color:#ffe27a;">+' + r.stones + '</b></div>';
+    if (r.books && r.books.length) { var bl = {}; r.books.forEach(function (x) { bl[x] = (bl[x] || 0) + 1; }); lines += '<div>📘 스킬북 <b style="color:#9fd8ff;">' + Object.keys(bl).map(function (x) { var k = skillById(x); return (k ? k.icon + k.name : x) + ' ×' + bl[x]; }).join(', ') + '</b></div>'; }
     if (r.bagFull) lines += '<div style="color:#ff9a9a;font-size:12px;">가방이 가득 차서 조각을 못 받았어요</div>';
     el.innerHTML = '<div style="width:100%;max-width:330px;text-align:center;background:linear-gradient(160deg,#2a1a4a,#150b2a);border:2px solid ' + (r.won ? '#ffd76a' : '#ff8aa8') + ';border-radius:20px;padding:22px 18px;color:#fff;">' +
       '<div style="font-size:42px;">' + (r.won ? '🎉' : '😵') + '</div>' +
