@@ -380,6 +380,7 @@
     Array.prototype.forEach.call(box.querySelectorAll('.bc-potion'), function (b) {
       b.onpointerdown = function (e) { e.stopPropagation(); e.preventDefault(); usePotion(b.getAttribute('data-p')); };
     });
+    buildAutoUi(box);
     view.appendChild(box);
   }
   function hpRefresh() {
@@ -394,18 +395,87 @@
       b.style.opacity = q > 0 ? '1' : '.5';
     });
   }
-  function usePotion(id) {
+  function usePotion(id, auto) {
     var po = potionById(id);
-    if (!S || !po) return;
-    if (S.fainted) return;
-    if (potionQty(id) <= 0) { toast(po.emoji + ' ' + po.name + '이(가) 없어요! 더보기 > 💖 팬 스킬 상점에서 살 수 있어요'); return; }
-    if (S.hp >= S.maxhp) { toast('HP가 이미 가득 차 있어요!'); return; }
+    if (!S || !po) return false;
+    if (S.fainted) return false;
+    if (potionQty(id) <= 0) { if (!auto) toast(po.emoji + ' ' + po.name + '이(가) 없어요! 더보기 > 💖 팬 스킬 상점에서 살 수 있어요'); return false; }
+    if (S.hp >= S.maxhp) { if (!auto) toast('HP가 이미 가득 차 있어요!'); return false; }
     try { if (typeof useFromBag === 'function') useFromBag(po.name, 1); } catch (e) {}
     S.hp = Math.min(S.maxhp, S.hp + po.heal);
     if (typeof saveAll === 'function') { try { saveAll(); } catch (e) {} }
     hpRefresh();
-    banner('💚 ' + po.name + '! HP ' + Math.ceil(S.hp) + '/' + S.maxhp);
+    banner('💚 ' + (auto ? '자동 ' : '') + po.name + '! HP ' + Math.ceil(S.hp) + '/' + S.maxhp);
     try { if (window.pocaSfx && pocaSfx.play) pocaSfx.play('pick'); } catch (e) {}
+    return true;
+  }
+
+  // 🔄 자동 회복: 켜 두면 HP가 정한 % 이하로 내려갈 때 회복약을 알아서 마신다 (작은 약부터, 없으면 큰 약)
+  //   저장해 두기 때문에 다음 원정에도 그대로. 약이 하나도 없으면 안내만 하고 쓰지 않는다.
+  var AUTO_KEY = 'poca_bc_autopotion';
+  var AUTO_STEP = 5;                 // 바를 5% 단위로 조절
+  function readAuto() {
+    try {
+      var a = JSON.parse(localStorage.getItem(AUTO_KEY) || 'null');
+      if (a && typeof a.pct === 'number') return { on: !!a.on, pct: Math.max(0, Math.min(100, Math.round(a.pct))) };
+    } catch (e) {}
+    return { on: false, pct: 30 };
+  }
+  function writeAuto(a) { try { localStorage.setItem(AUTO_KEY, JSON.stringify(a)); } catch (e) {} }
+  function autoPotion() {
+    if (!S || S.fainted) return;
+    var a = readAuto();
+    if (!a.on) return;
+    for (var n = 0; n < 6; n++) {
+      if (S.hp / S.maxhp * 100 > a.pct || S.hp >= S.maxhp) return;
+      var order = ['hp_s', 'hp_l'], used = false;
+      for (var i = 0; i < order.length && !used; i++) used = usePotion(order[i], true);
+      if (!used) {
+        if (!S.autoWarned) { S.autoWarned = true; toast('🔄 자동 회복: 회복약이 없어요! 더보기 > 💖 팬 스킬 상점에서 살 수 있어요'); }
+        return;
+      }
+    }
+  }
+  function autoUiRefresh() {
+    var a = readAuto(), t = $('bc-autotog'), f = $('bc-autofill'), l = $('bc-autolbl');
+    if (t) { t.textContent = a.on ? '🔄 자동 회복 ON' : '🔄 자동 회복 OFF'; t.style.borderColor = a.on ? '#4ade80' : '#888'; t.style.color = a.on ? '#4ade80' : '#bbb'; }
+    if (f) f.style.width = a.pct + '%';
+    if (l) l.textContent = 'HP ' + a.pct + '% 이하일 때';
+    var bar = $('bc-autobar'); if (bar) bar.style.opacity = a.on ? '1' : '.55';
+  }
+  function buildAutoUi(box) {
+    var wrap = document.createElement('div');
+    wrap.style.cssText = 'display:flex;flex-direction:column;align-items:flex-end;gap:4px;';
+    wrap.innerHTML =
+      '<div id="bc-autotog" style="background:rgba(26,26,46,.9);border:1.5px solid #888;border-radius:999px;padding:3px 10px;font-size:12px;font-weight:900;color:#bbb;cursor:pointer;"></div>' +
+      '<div id="bc-autobar" style="width:130px;"><div id="bc-autolbl" style="font-size:10px;font-weight:700;color:#fff;text-shadow:0 1px 3px #000;text-align:right;margin-bottom:2px;"></div>' +
+      '<div id="bc-autotrack" style="width:130px;height:16px;border-radius:8px;background:rgba(0,0,0,.65);border:1.5px solid #4ade80;position:relative;overflow:hidden;touch-action:none;cursor:pointer;">' +
+      '<div id="bc-autofill" style="height:100%;width:0;background:linear-gradient(90deg,#16a34a,#4ade80);pointer-events:none;"></div></div></div>';
+    box.appendChild(wrap);
+    var tog = wrap.querySelector('#bc-autotog'), track = wrap.querySelector('#bc-autotrack');
+    tog.onpointerdown = function (e) {
+      e.stopPropagation(); e.preventDefault();
+      var a = readAuto(); a.on = !a.on; writeAuto(a); autoUiRefresh();
+      if (a.on) { if (S) S.autoWarned = false; autoPotion(); }
+    };
+    function setFromEvent(e) {
+      var r = track.getBoundingClientRect();
+      var pct = Math.round((e.clientX - r.left) / Math.max(1, r.width) * 100 / AUTO_STEP) * AUTO_STEP;
+      var a = readAuto(); a.pct = Math.max(0, Math.min(100, pct)); writeAuto(a); autoUiRefresh();
+    }
+    var dragging = false;
+    track.onpointerdown = function (e) {
+      e.stopPropagation(); e.preventDefault(); dragging = true;
+      try { track.setPointerCapture(e.pointerId); } catch (er) {}
+      setFromEvent(e);
+    };
+    track.onpointermove = function (e) { if (dragging) { e.stopPropagation(); setFromEvent(e); } };
+    track.onpointerup = track.onpointercancel = function (e) {
+      dragging = false;
+      try { track.releasePointerCapture(e.pointerId); } catch (er) {}
+      if (S) { S.autoWarned = false; autoPotion(); }
+    };
+    autoUiRefresh();
   }
   function hurt(type, viaSkill, love) {
     var base = HP_DMG[type] || 8;
@@ -413,6 +483,7 @@
     var dmg = Math.max(1, Math.round(base * m));
     S.hp = Math.max(0, S.hp - dmg);
     hpRefresh();
+    autoPotion();            // 🔄 자동 회복이 켜져 있으면 여기서 약을 마신다 (HP 0이 돼도 쓰러지기 전에 막을 수 있음)
     return dmg;
   }
   // 쓰러지면 이번 원정에서 얻은 코인 · 아이템 · 등교권을 전부 잃고 맵에서 쫓겨난다 (카드 EXP는 되돌릴 수 없어 그대로)
