@@ -36,6 +36,11 @@
   var DIV_START = 1.20;                // 이 배율(원금 대비 최종 가치) 이상이면 특별 배당 가능
   var MAX_STEPS = 7;                   // 며칠을 한꺼번에 넘겨도 최대 이만큼만 진행
   var HIST_MAX = 12;
+  // 🌟 투자 한정 포카 (능력치 없음, 수집용). 이름·확률은 여기서만 바꾸면 됨
+  var LIMITED = [ { id: 'ace', name: '한정판 챔피언', real: '서하준', sub: '코트 위의 에이스', img: 'limited-ace.jpg', minRatio: 1.45, chance: 0.12 } ];
+  var LIM_KEY = 'ph_invest_limited';
+  function limLoad() { try { var d = JSON.parse(localStorage.getItem(LIM_KEY) || '{}'); return d && typeof d === 'object' ? d : {}; } catch (e) { return {}; } }
+  function limSave(d) { try { localStorage.setItem(LIM_KEY, JSON.stringify(d)); } catch (e) {} }
   var EV_UP_SCALE = 0.5;   // 사건 상승폭 보정 (경제 보호)
   var FONT = "font-family:'Noto Sans KR',sans-serif;";
 
@@ -433,6 +438,14 @@
       var m = 1 + Math.floor(rnd() * 3);
       try { if (typeof addToBag === 'function' && addToBag('🔨', '강화석', 'enhance', m, '히든카드 강화 재료 · 더보기 > 트레이닝룸에서 사용해요')) lines.push('🔨 강화석 ×' + m); } catch (e) {}
     }
+    try {
+      LIMITED.forEach(function (c) {
+        if (ratio >= c.minRatio && rnd() < c.chance) {
+          var d = limLoad(); var e = d[c.id] || { n: 0, first: Date.now() }; e.n += 1; d[c.id] = e; limSave(d);
+          lines.push('🌟 한정 포카 〈' + c.real + '〉 획득!');
+        }
+      });
+    } catch (e) {}
     return lines;
   }
   function finalize(pos, payout) {
@@ -542,6 +555,23 @@
       '<div style="font-size:11px;color:' + C.mute + ';margin-bottom:10px;">최저 회수 ' + Math.round(floorFrac(sec) * 100) + '% · 특별 배당: 🖼️ 프리미엄 조각</div>' + action + '</div>';
   }
 
+  function limHtml() {
+    var d = limLoad();
+    return '<div style="display:flex;gap:10px;overflow-x:auto;padding-bottom:4px;">' + LIMITED.map(function (c) {
+      var e = d[c.id];
+      if (!e) return '<div style="flex:0 0 96px;aspect-ratio:2/3;border-radius:10px;border:1.5px dashed ' + C.line + ';background:' + C.card + ';display:flex;align-items:center;justify-content:center;font-size:30px;color:' + C.mute + ';">❓</div>';
+      return '<div data-act="lim" data-c="' + c.id + '" style="flex:0 0 96px;cursor:pointer;position:relative;"><img src="' + c.img + '" style="width:96px;aspect-ratio:2/3;object-fit:cover;border-radius:10px;border:1.5px solid ' + C.gold + ';display:block;box-shadow:0 0 14px rgba(232,194,122,.45);">' +
+        (e.n > 1 ? '<span style="position:absolute;right:4px;bottom:4px;background:rgba(0,0,0,.75);color:#fff;font-size:11px;font-weight:900;border-radius:8px;padding:1px 6px;">×' + e.n + '</span>' : '') + '</div>';
+    }).join('') + '</div>';
+  }
+  function showLimited(id) {
+    var c = LIMITED.filter(function (x) { return x.id === id; })[0], e = limLoad()[id]; if (!c || !e) return;
+    var dt = new Date(e.first);
+    popup('<div style="text-align:center;"><img src="' + c.img + '" style="width:100%;max-width:290px;border-radius:12px;border:2px solid ' + C.gold + ';box-shadow:0 0 28px rgba(232,194,122,.5);">' +
+      '<div style="font-size:17px;font-weight:900;color:' + C.gold + ';margin-top:12px;">' + esc(c.real) + '</div><div style="font-size:12px;color:' + C.mute + ';">' + esc(c.sub) + '</div>' +
+      '<div style="font-size:11px;color:' + C.mute + ';margin-top:6px;">LIMITED EDITION · 보유 ' + e.n + '장 · ' + dt.getFullYear() + '.' + (dt.getMonth() + 1) + '.' + dt.getDate() + ' 획득</div></div>' +
+      '<button data-act="ok" style="' + btn('width:100%;margin-top:14px;padding:12px;background:linear-gradient(135deg,' + C.gold + ',#d4a24a);color:#2a1d08;font-size:14px;') + '">닫기</button>');
+  }
   function histRows() {
     if (!S.hist.length) return '<div style="font-size:12px;color:' + C.mute + ';text-align:center;padding:12px;">아직 기록이 없어요</div>';
     return S.hist.slice(0, 6).map(function (h) {
@@ -574,6 +604,7 @@
       sectionTitle('📰 오늘의 정보', '소문은 내일로 넘어갈 때 가치에 반영돼요') + secs.map(infoRow).join('') +
       sectionTitle('💼 내 투자', S.pos.length + ' / ' + g.slots) + (S.pos.length ? S.pos.map(posCard).join('') : '<div style="font-size:12px;color:' + C.mute + ';text-align:center;padding:18px;background:' + C.card + ';border-radius:14px;">진행 중인 투자가 없어요. 아래에서 시작해 보세요!</div>') +
       sectionTitle('🆕 새 투자', '한 투자처에 하나씩') + secs.map(newCard).join('') +
+      sectionTitle('🌟 한정 포카', '투자 대박 때만 나와요') + limHtml() +
       sectionTitle('🧾 최근 기록') + '<div style="background:' + C.card + ';border:1px solid ' + C.line + ';border-radius:14px;padding:6px 10px;">' + histRows() + '</div>' +
       '<button data-act="schedule" style="' + btn('width:100%;margin-top:16px;padding:14px;background:rgba(255,207,74,0.15);border:1.5px solid #ffcf4a;color:#ffe08a;font-size:14px;') + '">📅 스케줄 · 하루 보내기</button>' +
       '<div style="font-size:11px;color:' + C.mute + ';text-align:center;margin-top:8px;line-height:1.6;">투자는 아이돌 활동을 돕는 보조 콘텐츠예요.<br>드라마 촬영·CF·팬 모으기·공연장·작곡을 많이 할수록 가치가 더 올라가요!</div>' +
@@ -683,6 +714,7 @@
       if (res.err) { toast(res.err); render(); return; }
       showSettle(res, pos); render(); return;
     }
+    if (act === 'lim') { showLimited(t.getAttribute('data-c')); return; }
     if (act === 'new') { openNew(t.getAttribute('data-sec')); return; }
     if (act === 'amt' && draft) { draft.amt = Number(t.getAttribute('data-v')); drawNew(); return; }
     if (act === 'cast' && draft) { draft.cast = t.getAttribute('data-c'); drawNew(); return; }
@@ -733,6 +765,6 @@
     get S() { return S; }, set S(v) { S = v; }, SECTORS: SECTORS, EVENTS: EVENTS, GRADES: GRADES, LIMITS: LIMITS,
     startPosition: startPosition, tickPosition: tickPosition, resolveEvent: resolveEvent, sellPosition: sellPosition, syncDays: syncDays,
     limitNow: limitNow, gradeOf: gradeOf, infoCard: infoCard, strengths: strengths, actBonus: actBonus, ledScore: ledScore, lockReason: lockReason,
-    pickEvent: pickEvent, needMet: needMet, resetLedger: resetLedger, load: load, save: save, floorFrac: floorFrac, render: render
+    LIMITED: LIMITED, limLoad: limLoad, giveDividend: giveDividend, showLimited: showLimited, pickEvent: pickEvent, needMet: needMet, resetLedger: resetLedger, load: load, save: save, floorFrac: floorFrac, render: render
   };
 })();
