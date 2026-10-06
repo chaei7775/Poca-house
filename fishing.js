@@ -545,7 +545,9 @@
     c.fillStyle = '#fff'; c.beginPath(); c.arc(kx, ky, 17, 0, 6.2832); c.fill();
     c.fillStyle = '#1e293b'; c.beginPath(); c.arc(kx, ky, 8, 0, 6.2832); c.fill();
     c.font = '30px sans-serif'; c.fillStyle = '#fff';
-    c.fillText(g.sp.emoji, bx - 32, ky); c.fillText('🎣', bx + bw + 32, ky);
+    var fim = window.matImage ? window.matImage(g.sp.name) : null;
+    if (fim && fim._ok) c.drawImage(fim, bx - 32 - 20, ky - 20, 40, 40); else c.fillText(g.sp.emoji, bx - 32, ky);
+    c.fillText('🎣', bx + bw + 32, ky);
     c.font = '700 12px sans-serif'; c.fillStyle = '#ddd';
     c.fillText('물고기', bx - 32, ky + 30); c.fillText('나', bx + bw + 32, ky + 30);
   }
@@ -571,7 +573,7 @@
     }
     var counts = {}, order = [];
     catches.forEach(function (n) { if (!(n in counts)) { counts[n] = 0; order.push(n); } counts[n]++; });
-    var list = order.length ? order.map(function (n) { return n + (counts[n] > 1 ? ' ×' + counts[n] : ''); }).join('<br>') : '아무것도 못 잡았어요 😢';
+    var list = order.length ? order.map(function (n) { var ic = (window.matIcon && !/^[\u2600-\u27BF\u{1F000}-\u{1FAFF}]/u.test(n)) ? window.matIcon(n, 24, '') + ' ' : ''; return ic + n + (counts[n] > 1 ? ' ×' + counts[n] : ''); }).join('<br>') : '아무것도 못 잡았어요 😢';
     var left = (typeof stamina !== 'undefined') ? stamina : '?';
 
     S = null;
