@@ -34,7 +34,7 @@
   var CARD_TITLE = '체험 히든카드 · 7일 한정';
   var CARD_IMG = 'hidden-seyeon-trial.jpg';   // 카드 그림 (이름·효과 글씨가 그림 안에 들어 있음)
   var CARD_RATIO = '1054/1492';
-  var ACQUIRE_TEXT = '정식 카드를 얻는 방법은 곧 공개돼요!';
+  var ACQUIRE_TEXT = '🧩 소원의 조각 50개를 모으면 첫 1회에 한해 레어히든 카드로 바로 바꿔드려요!';
   var EFFECTS = [
     { label: '스태미나 소모', value: '-10%' },
     { label: '희귀재료 획득', value: '+1%' }
