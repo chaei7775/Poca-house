@@ -602,8 +602,8 @@
       if (T.ranged) { c.font = '16px sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('💌', f.x + R * 0.8, f.y + bob + R * 0.7); }
       if (f.type === 'rusher') { c.font = '14px sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('⚡', f.x + R * 0.8, f.y + bob - R * 0.7); }
     } else {
-    c.font = Math.round(T.r * 2.1) + 'px sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle';
-    c.fillText(T.emoji, f.x, f.y + bob);
+    // 얼굴 그림이 하나도 아직 안 불러와졌을 때만: 작은 이모지 대신 동그란 자리표시 (곧 그림으로 바뀜)
+    c.fillStyle = 'rgba(255,214,235,.85)'; c.beginPath(); c.arc(f.x, f.y + bob, T.r * 1.15, 0, 7); c.fill();
     }
     c.shadowBlur = 0;
     if (T.boss) { c.font = Math.round(T.r * 1.0) + 'px sans-serif'; c.fillText('👑', f.x, f.y - T.r * 1.25 - 8 + bob); }
