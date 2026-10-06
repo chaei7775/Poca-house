@@ -450,7 +450,7 @@
     _floor = im; return im;
   }
   // 팬 얼굴 이미지: rfan-1.png ~ rfan-10.png (없으면 이모지로 대체), 보스는 rfan-boss.png
-  var FAN_FACES = 5, fanImgs = {};
+  var FAN_FACES = 10, fanImgs = {};
   function fanFace(key) {
     if (fanImgs[key]) return fanImgs[key];
     var im = new Image(); im.crossOrigin = 'anonymous';
