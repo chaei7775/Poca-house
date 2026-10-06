@@ -24,6 +24,8 @@
   'use strict';
 
   // ── 설정 ──
+  var BEAT = 0.75;             // 박자 간격(초) — 박자에 맞춰 스킬을 누르면 PERFECT
+  var DECAY_AFTER = 2.5, DECAY_RATE = 7;   // 팬은 2.5초 동안 아무 반응이 없으면 초당 7씩 식음 (가득 찬 팬은 유지)
   var SESSION_SEC = 75;        // 무대 시간
   var FAN_DROP_P = 0.33;       // 앵콜 때 하트 가득 찬 팬 한 명이 재료를 떨어뜨릴 확률 (팬 30명 기준 봇 시뮬레이션 평균 약 10개)
   var EXTRA_DROP = 0.0;        // (예비) 재료가 2개 나올 확률
@@ -92,9 +94,9 @@
     fans.forEach(function (f, i) { if (!f.done && Math.hypot(f.x - x, f.y - y) <= r) out.push(i); });
     return out;
   }
-  function applyGain(fans, x, y, skill) {
-    var hit = inRange(fans, x, y, skill.radius);
-    hit.forEach(function (i) { fans[i].g = Math.min(100, fans[i].g + skill.gain); });
+  function applyGain(fans, x, y, skill, mult) {
+    var hit = inRange(fans, x, y, skill.radius), add = Math.round(skill.gain * (mult || 1));
+    hit.forEach(function (i) { fans[i].g = Math.min(100, fans[i].g + add); fans[i].idle = 0; });
     return hit;
   }
   // 앵콜: 하트 가득 찬 팬을 끝내고, 재료를 떨어뜨리는 팬 번호와 재료를 돌려줌
@@ -152,7 +154,7 @@
       cd: [0, 0, 0], phase: 'intro', introIdx: 0, timeLeft: SESSION_SEC, t: 0,
       rings: [], parts: [], floats: [], sparks: [], confetti: [], petals: [], fly: [], pops: [],
       banner: null, flash: 0, flashRgb: '255,255,255', shake: 0, zoomP: 0, ts: 1, slowT: 0, slowScale: 1,
-      cut: null, nJump: 0, giftBump: 0, trailT: 0, tapRip: 0, hintT: 7,
+      cut: null, combo: 0, maxCombo: 0, judge: null, nJump: 0, giftBump: 0, trailT: 0, tapRip: 0, hintT: 9,
       collected: [], drops: 0, finaleT: 0, bubble: null, bubbleT: 4, dragging: false, exitDown: false,
       last: performance.now(), raf: 0, ended: false
     };
@@ -311,13 +313,19 @@
       if (!any) { floatText(S.px, S.py - 60, '하트가 가득 찬 팬이 없어요', '#ffb4c8'); return; }
     }
     S.cd[i] = k.cd;
-    startCut(k, i);
+    var jd = Math.abs(((S.t % BEAT) + BEAT / 2) % BEAT - BEAT / 2), mult = 1, jt;
+    if (k.finale) { jt = null; }
+    else if (jd <= 0.13) { S.combo++; jt = 'PERFECT!'; mult = 1.5 + Math.min(S.combo - 1, 5) * 0.1; }
+    else if (jd <= 0.24) { jt = 'GOOD'; mult = 1.0; }
+    else { S.combo = 0; jt = 'MISS'; mult = 0.6; }
+    if (jt) { S.maxCombo = Math.max(S.maxCombo, S.combo); S.judge = { text: jt, t: 0, combo: S.combo, col: jt === 'PERFECT!' ? '#ffe27a' : jt === 'GOOD' ? '#9fe8ff' : '#ff9aa8' }; }
+    startCut(k, i, mult);
   }
   // 스킬 컷인: 화면이 어두워지고 멤버 얼굴이 크게 튀어나오며 스킬 이름이 날아온다 → 그 순간에 효과가 터짐
-  function startCut(k, i) {
+  function startCut(k, i, mult) {
     var dur = k.finale ? 1.25 : 0.95;
     var lines = []; for (var n = 0; n < 26; n++) lines.push({ a: Math.random() * 6.283, l: rnd(0.4, 1), w: rnd(1, 3.5) });
-    S.cut = { k: k, i: i, t: 0, dur: dur, fireAt: dur * 0.46, fired: false, lines: lines };
+    S.cut = { mult: mult || 1, k: k, i: i, t: 0, dur: dur, fireAt: dur * 0.46, fired: false, lines: lines };
     slowmo(dur * 0.9, 0.12);
     sfx('concertCut');
     S.nJump = 1;
@@ -328,7 +336,7 @@
     var k = S.cut.k, i = S.cut.i;
     S.cut.fired = true;
     if (k.finale) { doEncore(k); return; }
-    var hit = applyGain(S.fans, S.px, S.py, k);
+    var hit = applyGain(S.fans, S.px, S.py, k, S.cut.mult), added = Math.round(k.gain * S.cut.mult);
     ringAt(S.px, S.py, k.radius, k.rgb, 0, 0.7);
     ringAt(S.px, S.py, k.radius * 0.72, '255,255,255', 0.08, 0.6);
     ringAt(S.px, S.py, k.radius * 0.45, k.rgb, 0.16, 0.55);
@@ -336,7 +344,7 @@
     hit.forEach(function (n, idx) {
       var f = S.fans[n];
       f.hop = 1; f.vis = Math.max(0, f.vis - 0);
-      f.pop = { t: 0, text: '+' + k.gain };
+      f.pop = { t: 0, text: '+' + added };
       for (var q = 0; q < 4; q++) S.parts.push({ x: S.px, y: S.py, tx: f.x, ty: f.y - 14, t: -q * 0.07 - idx * 0.012, dur: 0.6, ch: k.id === 'wink' ? '💖' : '✨', sz: 22 + (q === 0 ? 6 : 0), rgb: k.rgb });
     });
     S.flash = 0.55; S.flashRgb = k.rgb; S.shake = 0.45; S.zoomP = 1;
@@ -414,6 +422,9 @@
       if (!S.cut.fired && S.cut.t >= S.cut.fireAt) fireCut();
       if (S.cut && S.cut.t >= S.cut.dur) S.cut = null;
     }
+    if (S.judge) { S.judge.t += dt; if (S.judge.t > 1.1) S.judge = null; }
+    if (S.phase === 'play') { var bp = Math.floor(S.t / BEAT); if (bp !== S.lastBeat) { S.lastBeat = bp; S.beatPulse = 1; if (!S.cut) sfx('concertTick'); } }
+    if (S.beatPulse > 0) S.beatPulse = Math.max(0, S.beatPulse - dt * 4);
     S.rings = S.rings.filter(function (r) { r.t += g; return r.t < r.dur; });
     S.parts = S.parts.filter(function (q) { q.t += g; return q.t < q.dur; });
     S.floats = S.floats.filter(function (f) { f.t += dt; return f.t < f.dur; });
@@ -440,6 +451,7 @@
     if (born.length && S.sparks.length < 1400) S.sparks = S.sparks.concat(born);
 
     S.fans.forEach(function (f) {
+      if (S.phase === 'play' && !S.cut && !f.done && f.g < 100 && f.g > 0) { f.idle = (f.idle || 0) + g; if (f.idle > DECAY_AFTER) f.g = Math.max(0, f.g - DECAY_RATE * g); }
       f.vis += (f.g - f.vis) * Math.min(1, dt * 8);
       if (f.hop > 0) f.hop = Math.max(0, f.hop - dt * 2.8);
       if (f.pop) { f.pop.t += dt; if (f.pop.t > 0.9) f.pop = null; }
@@ -721,7 +733,7 @@
       var ha = Math.min(1, S.hintT / 1.2);
       c.save(); c.globalAlpha = ha; var hy = H * 0.5 + Math.sin(S.t * 5) * 6;
       outlined(c, '👆 눌러서 객석으로 이동!', W / 2, hy, 20, '#fff', 'rgba(120,20,100,0.95)');
-      outlined(c, '그다음 아래 스킬 💖', W / 2, hy + 30, 16, '#ffe3f0', 'rgba(120,20,100,0.95)'); c.restore();
+      outlined(c, '박자 링에 맞춰 스킬! 안 건드린 팬은 식어요', W / 2, hy + 30, 16, '#ffe3f0', 'rgba(120,20,100,0.95)'); c.restore();
     }
   }
 
@@ -786,6 +798,17 @@
     c.save(); c.translate(W / 2 + 46, 29); var gb = 1 + S.giftBump * 0.5; c.scale(gb, gb); c.fillStyle = S.giftBump > 0 ? '#fff6c0' : '#ffd700'; c.fillText('🎁 ' + S.drops, 0, 0); c.restore();
     c.fillStyle = 'rgba(20,10,36,0.72)'; roundRect(c, W - 126, 10, 116, 36, 18); c.fill();
     c.fillStyle = '#ff9ccf'; c.font = '900 16px "Noto Sans KR",sans-serif'; c.fillText('💖 ' + full + ' · 😍 ' + done, W - 68, 29);
+    if (S.phase === 'play') {
+      var bx = W / 2, by = H - 150, ph = (S.t % BEAT) / BEAT, near = Math.min(ph, 1 - ph) * BEAT <= 0.13;
+      c.save(); c.lineWidth = 4;
+      c.strokeStyle = 'rgba(255,255,255,' + (0.45 + S.beatPulse * 0.5).toFixed(2) + ')'; c.beginPath(); c.arc(bx, by, 24 + S.beatPulse * 3, 0, 6.283); c.stroke();
+      c.strokeStyle = near ? '#ffe27a' : 'rgba(255,170,215,0.85)'; c.lineWidth = near ? 5 : 3;
+      c.beginPath(); c.arc(bx, by, 24 + (1 - ph) * 46, 0, 6.283); c.stroke();
+      c.font = '900 11px "Noto Sans KR",sans-serif'; c.textAlign = 'center'; c.fillStyle = 'rgba(255,255,255,0.8)'; c.fillText('박자에 맞춰!', bx, by + 40);
+      if (S.combo >= 2) outlined(c, S.combo + ' COMBO', bx, by - 52, 16, '#ffe27a', 'rgba(120,50,0,0.95)');
+      c.restore();
+    }
+    if (S.judge) { var jp = S.judge.t / 1.1; c.save(); c.globalAlpha = 1 - Math.pow(jp, 3); var js = 1 + (1 - Math.min(1, jp * 6)) * 0.5; c.translate(W / 2, H * 0.52 - jp * 30); c.scale(js, js); outlined(c, S.judge.text, 0, 0, 34, S.judge.col, 'rgba(40,0,60,0.95)'); c.restore(); }
     for (var i = 0; i < 3; i++) {
       var k = SKILLS[i], b = btnRect(i), cd = S.cd[i], ready = cd <= 0;
       var canEncore = !k.finale || full > 0, lit = ready && canEncore;
