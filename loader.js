@@ -47,6 +47,7 @@ const NEW_CONTENT_FILES = [
   'ticket-fragment-fix.js',
   'photolab.js',
   'premium-equip.js',
+  'trial-card.js',
   'room-themes.js',
   'mystery-unlock.js',
   'quest-concert.js',
