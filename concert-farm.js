@@ -45,9 +45,9 @@
   var ROW_Y = [535, 640, 830, 940, 1040];     // 위 블록 2줄 + 아래 블록 3줄 (map-concert.jpg 그림의 객석 위치에 맞춤)
   var FAN_R = 28;              // 팬 크기(반지름)
   var SKILLS = [
-    { id: 'highlight', name: '하이라이트 부르기', short: '하이라이트', desc: '주변 팬 하트 +50', icon: '🎤', radius: 250, gain: 50, fat: 30, cd: 5,  rgb: '255,120,170', sfx: 'concertHigh' },
-    { id: 'wink',      name: '윙크 샤워',         short: '윙크 샤워', desc: '넓은 범위 하트 +30', icon: '💖', radius: 430, gain: 30, fat: 40, cd: 8,  rgb: '255,205,90',  sfx: 'concertWink' },
-    { id: 'encore',    name: '앵콜 폭죽',         short: '앵콜 폭죽', desc: '하트 가득 찬 팬 전원 선물!', icon: '✨', radius: 0,   gain: 0,  cd: 14, rgb: '190,140,255', sfx: 'concertEncore', finale: true }
+    { id: 'highlight', name: '하이라이트 부르기', short: '하이라이트', desc: '주변 팬 하트 +50', icon: '🎤', radius: 250, gain: 50, fat: 30, cd: 3.5,  rgb: '255,120,170', sfx: 'concertHigh' },
+    { id: 'wink',      name: '윙크 샤워',         short: '윙크 샤워', desc: '넓은 범위 하트 +30', icon: '💖', radius: 430, gain: 30, fat: 40, cd: 5.5,  rgb: '255,205,90',  sfx: 'concertWink' },
+    { id: 'encore',    name: '앵콜 폭죽',         short: '앵콜 폭죽', desc: '하트 가득 찬 팬 전원 선물!', icon: '✨', radius: 0,   gain: 0,  cd: 10, rgb: '190,140,255', sfx: 'concertEncore', finale: true }
   ];
   var INTRO = [
     '어? 연습생이네! 오늘 내 무대 같이 볼래? 따라와!',
@@ -519,7 +519,7 @@
     S.phase = 'finale';
     var any = S.fans.some(function (f) { return !f.done && f.g >= 100; });
     if (any) { S.finaleT = 4.2; startCut(SKILLS[2], 2); }
-    else { showBanner('⏰ 무대 끝!', '255,205,90'); S.finaleT = 1.3; }
+    else { showBanner('🎉 공연 완료!', '255,205,90'); S.finaleT = 1.3; }
   }
 
   // ── 그리기 ──
