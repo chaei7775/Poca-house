@@ -49,6 +49,8 @@ const NEW_CONTENT_FILES = [
   'premium-equip.js',
   'trial-card.js',
   'concert-farm.js',
+  'studio-explore.js',
+  'album-studio.js',
   'room-themes.js',
   'mystery-unlock.js',
   'quest-concert.js',
