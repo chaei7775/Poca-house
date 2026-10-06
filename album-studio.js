@@ -140,6 +140,41 @@
   function sfx(n) { try { if (window.pocaSfx) window.pocaSfx.play(n); } catch (e) {} }
   function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
 
+  // 🎉 앨범 발매 팝업
+  function releasePopup(r) {
+    var old = document.getElementById('cp-release'); if (old) old.remove();
+    if (!document.getElementById('cp-release-css')) {
+      var st = document.createElement('style'); st.id = 'cp-release-css';
+      st.textContent = '@keyframes cpSpin{to{transform:rotate(360deg)}}@keyframes cpPop{0%{transform:scale(.6);opacity:0}60%{transform:scale(1.06);opacity:1}100%{transform:scale(1)}}' +
+        '@keyframes cpRise{0%{transform:translateY(0) scale(.6);opacity:0}15%{opacity:1}100%{transform:translateY(-340px) scale(1.2);opacity:0}}@keyframes cpGlow{0%,100%{box-shadow:0 0 30px rgba(255,184,107,.5)}50%{box-shadow:0 0 70px rgba(255,111,177,.8)}}' +
+        '@keyframes cpShine{0%{left:-60%}100%{left:130%}}';
+      document.head.appendChild(st);
+    }
+    var note = loadNote(), cnt = noteCount(note), price = priceOf(r.tier, note);
+    var p = document.createElement('div'); p.id = 'cp-release';
+    p.style.cssText = 'position:fixed;inset:0;z-index:1200;background:radial-gradient(circle at 50% 38%,rgb(70,32,58),rgb(8,4,12));display:flex;align-items:center;justify-content:center;padding:18px;font-family:\'Noto Sans KR\',sans-serif;overflow:hidden;';
+    var sp = '';
+    for (var i = 0; i < 22; i++) {
+      var em = ['✨', '🎵', '🎶', '⭐', '💖'][i % 5];
+      sp += '<span style="position:absolute;bottom:' + (Math.random() * 30) + '%;left:' + (Math.random() * 96) + '%;font-size:' + (14 + Math.random() * 16) + 'px;opacity:0;animation:cpRise ' + (2.4 + Math.random() * 2.2) + 's ease-out ' + (Math.random() * 2.4) + 's infinite;">' + em + '</span>';
+    }
+    var isFull = r.tier.id === 'full', accent = isFull ? '#ffd76a' : (r.tier.id === 'mini' ? '#ff9ad0' : '#9fd8ff');
+    p.innerHTML = sp +
+      '<div style="position:relative;width:100%;max-width:340px;text-align:center;animation:cpPop .55s ease-out;">' +
+        '<div style="font-size:12px;font-weight:900;letter-spacing:4px;color:' + accent + ';">NEW RELEASE</div>' +
+        '<div style="position:relative;width:190px;height:190px;margin:16px auto 14px;border-radius:50%;background:conic-gradient(from 30deg,#1a1a22,#3b2c4a,#1a1a22,#4a2c3a,#1a1a22);animation:cpSpin 5s linear infinite,cpGlow 2.2s ease-in-out infinite;border:3px solid ' + accent + ';">' +
+          '<div style="position:absolute;inset:34px;border-radius:50%;background:radial-gradient(circle,#ffe6b8,#ff8fc0);display:flex;align-items:center;justify-content:center;font-size:44px;">' + r.tier.emoji + '</div>' +
+          '<div style="position:absolute;inset:88px;border-radius:50%;background:#140c10;"></div></div>' +
+        '<div style="font-size:23px;font-weight:900;color:#fff;line-height:1.35;text-shadow:0 0 18px ' + accent + ';">〈' + esc(r.title) + '〉</div>' +
+        '<div style="margin-top:8px;display:inline-block;padding:5px 14px;border-radius:20px;background:rgba(255,255,255,.12);border:1px solid ' + accent + ';font-size:13px;font-weight:900;color:' + accent + ';">' + r.tier.name + ' · ' + esc(r.genre.name) + '</div>' +
+        (r.isNew ? '<div style="margin-top:14px;font-size:14px;font-weight:900;color:#ffe2bd;">✨ 작곡노트에 새로 등록!</div><div style="font-size:12px;color:#d9c3ae;margin-top:2px;">📒 ' + cnt + ' / 30칸 완성</div>' : '<div style="margin-top:14px;font-size:12px;color:#d9c3ae;">이미 노트에 있는 곡이에요 · 앨범만 가방에 들어왔어요</div>') +
+        '<div style="margin-top:10px;font-size:12px;color:#d9c3ae;">💰 판매가 🍔 ' + price.toLocaleString() + '</div>' +
+        '<button id="cp-release-ok" style="margin-top:20px;width:100%;padding:14px;border:none;border-radius:14px;font-size:15px;font-weight:900;font-family:inherit;color:#2a1208;cursor:pointer;background:linear-gradient(135deg,#ffd9a0,#ff9ec4);">좋아요!</button>' +
+      '</div>';
+    document.body.appendChild(p);
+    document.getElementById('cp-release-ok').onclick = function () { p.remove(); };
+  }
+
   // 작곡: 성공하면 재료를 쓰고 앨범을 가방에 넣고 노트에 등록. 돌려주는 값 = 결과 객체
   function compose(ids) {
     var r = evaluate(ids, bag());
@@ -249,7 +284,7 @@
       if (!ids.length) { toast('재료 종류를 먼저 골라주세요'); return; }
       var r = compose(ids);
       if (r.ok) {
-        sfx('reward'); ST.sel = {};
+        sfx('reward'); ST.sel = {}; try { releasePopup(r); } catch (e) {}
         ST.msg = '🎶 〈' + esc(r.title) + '〉 발매! ' + r.tier.emoji + ' ' + r.tier.name + ' · 장르 <b>' + r.genre.name + '</b>' + (r.isNew ? '<br>✨ 작곡노트에 새로 등록됐어요!' : '<br>이미 노트에 있는 곡이에요 (앨범은 가방에 들어왔어요)');
       } else { sfx('concertDrop'); ST.msg = '❌ ' + r.reason; }
       render();
@@ -314,7 +349,7 @@
 
   window.openAlbumStudio = function () { open('make'); };
   window.openComposeTable = open;
-  window.__albumTest = { TIERS: TIERS, GENRES: GENRES, evaluate: evaluate, findRecipe: findRecipe, RECIPES: RECIPES, nearest: nearest, needFor: needFor, compose: compose, sell: sell, sellBonus: sellBonus, priceOf: priceOf, loadNote: loadNote, qtyOf: qtyOf };
+  window.__albumTest = { TIERS: TIERS, GENRES: GENRES, evaluate: evaluate, findRecipe: findRecipe, RECIPES: RECIPES, nearest: nearest, needFor: needFor, compose: compose, releasePopup: releasePopup, sell: sell, sellBonus: sellBonus, priceOf: priceOf, loadNote: loadNote, qtyOf: qtyOf };
 
   // ════════ 더보기 메뉴 타일 ════════
   (function wait() {
