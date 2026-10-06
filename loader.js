@@ -91,6 +91,7 @@ const NEW_CONTENT_FILES = [
   'first-hidden.js',
   'unlock-gate.js',
   'manager.js',
+  'mobile-fit.js',
 ];
 NEW_CONTENT_FILES.forEach(function(filename) {
   const s = document.createElement('script');

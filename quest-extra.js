@@ -62,7 +62,7 @@
     tut_room: { title:'내 방 꾸미기', desc:'🛍️ 상점거리 → 방 테마 구매 → 🏠 내 집에서 적용. 방을 바꾸면 기분이 달라져.',
       condition:'q2_room', rewardCoins:500, rewardExp:80, type:'tutorial',
       detect:function () { try { return typeof ownedRooms !== 'undefined' && ownedRooms.length > 0; } catch (e) { return false; } } },
-    tut_goods: { title:'굿즈 만들기', desc:'🛍️ 상점거리 → 🎁 굿즈 공방에서 굿즈를 만들어봐. 재료 + 코인으로 만들면 능력치가 랜덤으로 붙어. (실패할 수도 있어!)',
+    tut_goods: { title:'굿즈 만들기', desc:'(Lv.15~) 🛍️ 상점거리 → 🎁 굿즈 공방에서 굿즈를 만들어봐. 재료 + 코인으로 만들면 능력치가 랜덤으로 붙어. (실패할 수도 있어!)',
       condition:'q2_goods_craft', rewardCoins:500, rewardExp:80, type:'tutorial', detect:function () { return goodsFlag('crafted'); } },
 
     // ───── 메인: 데뷔·활동 ─────
@@ -70,22 +70,22 @@
       condition:'q2_hidden', rewardCoins:1000, rewardExp:150, type:'main', detect:function () { return hiddenCount() >= 1; } },
     main_debut: { title:'첫 데뷔', desc:'맵 → 광장 → 🎤 기획사. 촬영 세트장·뷰티 살롱·공원 재료와 코인으로 아이돌을 데뷔시켜!',
       condition:'q2_debut', rewardCoins:1500, rewardExp:200, type:'main', detect:function () { return debutCount() >= 1; } },
-    main_cf: { title:'CF 촬영', desc:'맵 → 광장 → 🎬 CF 촬영. 매일 새 의뢰가 올라와. 포스터가 쌓이면 팬들이 반응해.',
+    main_cf: { title:'CF 촬영', desc:'(Lv.10~) 맵 → 광장 → 🎬 CF 촬영. 매일 새 의뢰가 올라와. 포스터가 쌓이면 팬들이 반응해.',
       condition:'q2_cf', rewardCoins:1000, rewardExp:150, type:'main', detect:function () { return posterCount() >= 1; } },
-    main_fancafe: { title:'팬카페 오픈', desc:'맵 → 🏘️ 연습생 숙소촌 → ☕ 팬카페. 처음엔 회원이 나 혼자뿐이야. 활동하면 팬이 들어와.',
+    main_fancafe: { title:'팬카페 오픈', desc:'(Lv.12~) 맵 → 🏘️ 연습생 숙소촌 → ☕ 팬카페. 처음엔 회원이 나 혼자뿐이야. 활동하면 팬이 들어와.',
       condition:'q2_fancafe', rewardCoins:1000, rewardExp:150, type:'main',
       detect:function () { return keys((J('ph_fancafe', {}) || {}).idols).length > 0; } },
-    main_fan5: { title:'팬 다섯 명', desc:'☕ 팬카페에 팬 5명 모으기. CF를 찍고 팬카페를 자주 들여다보면 늘어나.',
+    main_fan5: { title:'팬 다섯 명', desc:'(Lv.12~) ☕ 팬카페에 팬 5명 모으기. CF를 찍고 팬카페를 자주 들여다보면 늘어나.',
       condition:'q2_fan5', rewardCoins:2000, rewardExp:250, type:'main', detect:function () { return fanCount() >= 5; } },
     main_expedition: { title:'팬덤 원정 출발', desc:'🚐 스케줄 가기 → 🎬 팬덤 원정 → 방송국 앞. 프리미엄 조각과 강화석이 나와.',
       condition:'q2_expedition', rewardCoins:1000, rewardExp:150, type:'main', detect:function () { return !!F.expedition; } },
     main_crystal: { title:'소원의 결정', desc:'🧩 소원의 조각 100개를 모으면 💎 소원의 결정! 신비의 섬 소원의 샘이 제일 빨라.',
       condition:'q2_crystal', rewardCoins:2000, rewardExp:300, type:'main', detect:function () { return !!F.crystal; } },
-    main_goods_equip: { title:'굿즈 장착', desc:'🎁 굿즈 공방 → 🎒 장착 탭. 캐릭터 카드 옆 네모 칸을 눌러 굿즈를 달아줘. 그 캐릭터 팬덤 원정이 강해져!',
+    main_goods_equip: { title:'굿즈 장착', desc:'(Lv.15~) 🎁 굿즈 공방 → 🎒 장착 탭. 캐릭터 카드 옆 네모 칸을 눌러 굿즈를 달아줘. 그 캐릭터 팬덤 원정이 강해져!',
       condition:'q2_goods_equip', rewardCoins:1000, rewardExp:150, type:'main', detect:function () { return goodsFlag('equipped'); } },
-    main_goods_full: { title:'풀세팅', desc:'🎁 한 캐릭터의 머리·손·액세서리 3칸을 굿즈로 전부 채우기!',
+    main_goods_full: { title:'풀세팅', desc:'(Lv.15~) 🎁 한 캐릭터의 머리·손·액세서리 3칸을 굿즈로 전부 채우기!',
       condition:'q2_goods_full', rewardCoins:2000, rewardExp:300, type:'main', detect:function () { return goodsFlag('full'); } },
-    main_goods_rare: { title:'레어 굿즈 획득', desc:'🎁 굿즈 공방에서 제작하면 낮은 확률(약 4%)로 ✨ 레어 굿즈가 나와. 능력치가 2개 붙어!',
+    main_goods_rare: { title:'레어 굿즈 획득', desc:'(Lv.15~) 🎁 굿즈 공방에서 제작하면 낮은 확률(약 4%)로 ✨ 레어 굿즈가 나와. 능력치가 2개 붙어!',
       condition:'q2_goods_rare', rewardCoins:3000, rewardExp:500, type:'main', detect:function () { return goodsFlag('rare'); } },
 
     // ───── 메인: 강화 ─────
@@ -99,11 +99,11 @@
       condition:'q2_trans', rewardCoins:8000, rewardExp:1000, type:'main', detect:function () { return anyTrans() || !!F.trans; } },
 
     // ───── 드라마 촬영 ─────
-    tut_drama: { title:'드라마 촬영 첫 촬영', desc:'맵 → 광장 → 🎥 드라마 촬영. 데뷔한 아이돌 카드로 대본을 골라 촬영해봐. 연기 스킬이 드랍돼!',
+    tut_drama: { title:'드라마 촬영 첫 촬영', desc:'(Lv.8~) 맵 → 광장 → 🎥 드라마 촬영. 데뷔한 아이돌 카드로 대본을 골라 촬영해봐. 연기 스킬이 드랍돼!',
       condition:'q2_drama', rewardCoins:500, rewardExp:80, type:'tutorial', detect:function () { return (J('ph_drama', {}) || {}).shoots > 0; } },
-    main_drama_ok: { title:'퍼펙트 OK 컷', desc:'🎥 드라마 촬영에서 감독 OK(조기 퍼펙트)를 받아봐. 스킬을 장착하고 타이밍을 노려!',
+    main_drama_ok: { title:'퍼펙트 OK 컷', desc:'(Lv.8~) 🎥 드라마 촬영에서 감독 OK(조기 퍼펙트)를 받아봐. 스킬을 장착하고 타이밍을 노려!',
       condition:'q2_drama_ok', rewardCoins:3000, rewardExp:400, type:'main', detect:function () { return (J('ph_drama', {}) || {}).oks > 0; } },
-    main_drama_10: { title:'드라마 촬영 10회', desc:'🎥 드라마 촬영을 10번 해보자. 시청률이 쌓이면 탑스타가 될 수 있어.',
+    main_drama_10: { title:'드라마 촬영 10회', desc:'(Lv.8~) 🎥 드라마 촬영을 10번 해보자. 시청률이 쌓이면 탑스타가 될 수 있어.',
       condition:'q2_drama_10', rewardCoins:3000, rewardExp:400, type:'main', detect:function () { return (J('ph_drama', {}) || {}).shoots >= 10; } },
 
     // ───── 메인: 프리미엄·수집 ─────

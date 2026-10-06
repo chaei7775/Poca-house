@@ -242,6 +242,15 @@
       go: function () { if (typeof openEnhance === 'function') openEnhance(); else goTo('home'); }, target: '#nav-shop' },
   ];
 
+
+  // 🔒 unlock-gate.js 의 해금 레벨과 맞춤: 레벨이 모자란 단계는 길잡이가 건너뛴다 (잠긴 곳으로 보내지 않게)
+  var STEP_LV = { studio: 15, album: 15, royalty: 15, goods: 15, goods_equip: 15, drama: 8, cf: 10, fancafe: 12, invest: 20, invest_done: 20, invest_grade: 20 };
+  STEPS.forEach(function (st) {
+    var need = STEP_LV[st.id]; if (!need) return;
+    var prev = st.when;
+    st.when = function () { try { if (Number(playerLevel) < need) return false; } catch (e) { return false; } return prev ? prev() : true; };
+  });
+
   STEPS.forEach(function (st) { if (st.reward) st.reward = st.reward * REWARD_MULT; });   // 길잡이 보상 배율 (코인)
 
   function currentIndex() {
