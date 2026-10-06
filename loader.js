@@ -39,6 +39,7 @@ const NEW_CONTENT_FILES = [
   'mat-where.js',
   'goods-gear.js',
   'premium-gacha.js',
+  'home-clean.js',
   'broadcast-fix.js',
   'premium-cards.js',
   'guide-finger.js',
