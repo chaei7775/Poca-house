@@ -111,7 +111,10 @@
 
   // ════════ 기획사 메인 화면 ════════
   function openAgency() {
-    if (typeof isPocaHouseFeatureUnlocked === 'function' && !isPocaHouseFeatureUnlocked('agency')) {
+    // 해금 판정은 agency-unlock.js 가 늦게 로드돼도 흔들리지 않게 여기서 직접 계산: 플레이어 레벨 10 이상이면 무조건 열림
+    var lvOk = false;
+    try { lvOk = Number(playerLevel) >= 10; } catch (e) {}
+    if (!lvOk && typeof isPocaHouseFeatureUnlocked === 'function' && !isPocaHouseFeatureUnlocked('agency')) {
       if (typeof closePlace === 'function') closePlace();
       showPocaHouseLockedPopup(POCAHOUSE_UNLOCK.agency, '기획사');
       return;
