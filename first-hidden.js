@@ -50,7 +50,7 @@
   function showOffer() {
     if (!eligible() || document.getElementById('first-hidden-pop')) return;
     var n = frag(), ok = n >= NEED;
-    var p = overlay('<div style="font-size:44px;margin-bottom:6px;">🧩➜🌟</div>' +
+    var p = overlay('<div style="font-size:44px;margin-bottom:6px;">' + (window.matIcon ? window.matIcon('소원의 조각', 52, '🧩') : '🧩') + '➜🌟</div>' +
       '<div style="font-size:18px;font-weight:900;margin-bottom:6px;">첫 히든카드 특별 교환</div>' +
       '<div style="font-size:12px;color:#ddd;line-height:1.6;margin-bottom:12px;">소원의 조각 <b style="color:#FFD700;">' + NEED + '개</b>로<br>레어히든 카드를 <b style="color:#FFD700;">딱 1번</b> 바로 바꿔드려요!<br><span style="color:#aaa;">(원래는 조각 100개 → 소원의 결정)</span></div>' +
       '<div style="font-size:13px;margin-bottom:14px;">내 조각: <b style="color:' + (ok ? '#6ee7a0' : '#ff9ec7') + ';">' + n + ' / ' + NEED + '</b></div>' +

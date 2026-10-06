@@ -601,7 +601,7 @@ function showWishFragment() {
   }
   const popup = document.createElement('div');
   popup.className = 'wish-popup';
-  popup.innerHTML = `<div class="wish-inner"><div style="font-size:48px;margin-bottom:12px;">🧩</div><div style="font-size:20px;font-weight:900;color:#FFD700;margin-bottom:8px;">소원의 조각 발견!</div><div style="font-size:14px;color:#aaa;margin-bottom:16px;">보유: 🧩 ${wishFragments}개 / 100개</div><button onclick="resumeExploreAfterWishPopup(this)" style="padding:10px 28px;background:linear-gradient(135deg,#FFD700,#F59E0B);border:none;border-radius:12px;color:#1a1a2e;font-size:14px;font-weight:900;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">확인</button></div>`;
+  popup.innerHTML = `<div class="wish-inner"><div style="font-size:48px;margin-bottom:12px;">${window.matIcon ? window.matIcon('소원의 조각', 64, '🧩') : '🧩'}</div><div style="font-size:20px;font-weight:900;color:#FFD700;margin-bottom:8px;">소원의 조각 발견!</div><div style="font-size:14px;color:#aaa;margin-bottom:16px;">보유: ${window.matIcon ? window.matIcon('소원의 조각', 18, '🧩') : '🧩'} ${wishFragments}개 / 100개</div><button onclick="resumeExploreAfterWishPopup(this)" style="padding:10px 28px;background:linear-gradient(135deg,#FFD700,#F59E0B);border:none;border-radius:12px;color:#1a1a2e;font-size:14px;font-weight:900;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">확인</button></div>`;
   document.body.appendChild(popup);
   setTimeout(() => { if (popup.parentNode) { popup.remove(); resumeExploreTimer(); } }, 3000);
 }
