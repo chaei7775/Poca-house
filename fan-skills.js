@@ -423,7 +423,7 @@
     var me = playerPos();
     var hk = bcHook();
     if (fan.ev && !hk.canResolve(fan.ev)) return null;                // 스태미나 부족 등
-    F.cd[id] = now + Math.max(1, COOLDOWN - 0.4 * mlv) * 1000;   // 숙련 Lv마다 쿨타임 -0.4초 (최소 1초)
+    F.cd[id] = now + (sk.aoe ? Math.max(1, COOLDOWN - 0.4 * mlv) : 0) * 1000;   // 단타 스킬은 쿨타임 없음, 광역만 쿨타임(숙련 Lv마다 -0.4초)   // 숙련 Lv마다 쿨타임 -0.4초 (최소 1초)
     // 대상 모으기: 가장 가까운 대상 + (광역이면) 범위 안의 다른 팬들
     var list = [fan.ev || fan];
     if (sk.aoe) {
