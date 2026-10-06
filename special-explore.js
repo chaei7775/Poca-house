@@ -268,18 +268,10 @@ function openSpecialCardSelect(locationId) {
 
   const loc = SPECIAL_LOCATIONS.find(function(l) { return l.id === locationId; });
   const hiddenOwned = typeof ownedHiddenCards !== 'undefined' ? ownedHiddenCards : [];
-  // 🎟️ 체험용 히든카드(7일 한정)를 갖고 있는 동안은 히든카드가 없어도, 카드를 가진 아이돌로 입장할 수 있다
-  const trialOn = !!(window.__trialTest && typeof window.__trialTest.isActive === 'function' && window.__trialTest.isActive());
+  // 입장은 아이돌의 진짜 히든카드(EH)가 있어야 한다. (체험용 히든카드는 세연 전용이라 여기선 쓰이지 않음)
   const hasRealHidden = function(cid) { return hiddenOwned.some(function(hid) { return hid.indexOf('hidden_' + cid + '_') === 0; }); };
-  const hasAnyCard = function(cid) {
-    try { return CARDS.some(function(c) { return c.charId === cid && owned.indexOf(c.id) !== -1; }); } catch (e) { return false; }
-  };
-  const eligibleChars = Object.keys(CHARS).filter(function(cid) {
-    return hasRealHidden(cid) || (trialOn && hasAnyCard(cid));
-  });
-  const trialNote = (trialOn && eligibleChars.some(function(cid) { return !hasRealHidden(cid); }) && window.__trialTest.remainText)
-    ? '<div style="font-size:11px;color:#F59E0B;background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.4);border-radius:10px;padding:8px 10px;margin-bottom:12px;line-height:1.5;">🎟️ 체험 히든카드로 입장 중이에요 (남은 시간 ' + window.__trialTest.remainText() + ')<br><span style="color:#bbb;">체험이 끝나면 히든카드를 직접 얻어야 입장할 수 있어요.</span></div>'
-    : '';
+  const eligibleChars = Object.keys(CHARS).filter(function(cid) { return hasRealHidden(cid); });
+  const trialNote = '';
 
   let bodyHtml;
   if (eligibleChars.length === 0) {
@@ -287,7 +279,7 @@ function openSpecialCardSelect(locationId) {
       '<div style="text-align:center;padding:10px 0 20px;">' +
       '<div style="font-size:32px;margin-bottom:8px;">🔒</div>' +
       '<div style="font-size:14px;font-weight:900;color:#fff;margin-bottom:4px;">팬덤 원정 입장 조건</div>' +
-      '<div style="font-size:12px;color:#aaa;margin-bottom:6px;">히든(EH) 카드를 보유해야 입장할 수 있어요</div>' +
+      '<div style="font-size:12px;color:#aaa;margin-bottom:6px;">아이돌의 히든(EH) 카드를 직접 얻어야 입장할 수 있어요 (체험용 히든카드는 세연 전용이라 입장 불가)</div>' +
       '<div style="font-size:12px;color:#FFD700;margin-bottom:16px;">현재 보유: ' + hiddenOwned.length + '장</div>' +
       '<button onclick="document.getElementById(\'special-overlay\').remove();if(typeof openRecombine===\'function\')openRecombine();" style="padding:12px 24px;background:linear-gradient(135deg,#C084FC,#7c3aed);border:none;border-radius:14px;color:#fff;font-size:13px;font-weight:900;cursor:pointer;font-family:\'Noto Sans KR\',sans-serif;">🔮 재조합기로 이동</button>' +
       '</div>' +
