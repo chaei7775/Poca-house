@@ -16,6 +16,7 @@ const NEW_CONTENT_FILES = [
   'housing-explore.js',
   'set-explore.js',
   'beach-explore.js',
+  'beauty-explore.js',
   'park-explore.js',
   'mystery-explore.js',
   'agency.js',

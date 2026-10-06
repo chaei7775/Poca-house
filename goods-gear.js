@@ -379,7 +379,7 @@
         '필요: 🍔 ' + fmt(CRAFT_COIN) + ' (보유 ' + fmt(coins) + ')<br>' + S.mats.map(function (m) { var h = matQty(m[0]); return m[0] + ' x' + m[1] + ' (보유 <b style="color:' + (h >= m[1] ? '#4ade80' : '#ff8a8a') + ';">' + h + '</b>)'; }).join(' · ') + '<br>' +
         '<span style="color:#9ab;">능력치는 만들 때마다 랜덤! · 실패 ' + Math.round(P_FAIL * 100) + '% · 고급 ' + Math.round(P_GOOD * 100) + '% · 레어 ' + Math.round(P_RARE * 100) + '% (능력치 2개)</span></div>' +
       '<button id="gg-craft" style="' + BTN + 'width:100%;padding:15px;font-size:16px;background:linear-gradient(135deg,#FFD700,#F59E0B);color:#1a1a2e;">🔨 ' + S.label + ' 굿즈 제작</button>' +
-      '<div style="font-size:10.5px;color:#789;margin-top:10px;line-height:1.6;">재료는 일반 탐험(촬영 세트장·공원·광장·해변)으로 모아요. 🔶 공방의 원석은 탐험 중 재료를 주울 때 가끔 같이 나와요. 만든 굿즈는 가방에 들어가고, 🎒 장착 탭에서 캐릭터에게 달아줘요.</div>';
+      '<div style="font-size:10.5px;color:#789;margin-top:10px;line-height:1.6;">재료는 일반 탐험(촬영 세트장·공원·광장·뷰티 살롱)으로 모아요. 🔶 공방의 원석은 탐험 중 재료를 주울 때 가끔 같이 나와요. 만든 굿즈는 가방에 들어가고, 🎒 장착 탭에서 캐릭터에게 달아줘요.</div>';
     body.querySelectorAll('[data-slot]').forEach(function (b) { b.onclick = function () { craftSlot = b.getAttribute('data-slot'); lastResult = null; draw(); }; });
     $('gg-craft').onclick = function () {
       if (busy) return; busy = true;

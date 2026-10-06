@@ -283,6 +283,15 @@
   };
   GAPS.setGrab = 50;
 
+  // 뷰티 살롱 (beauty-explore.js): 드라이기 바람 / 퍼프 톡 / 스프레이 치익 / 변신 완료
+  SYNTH.beautyDry = function () { noise(0, 0.22, 0.28, 'bandpass', 1400); noise(0.04, 0.16, 0.14, 'highpass', 3600); tone(420, 0, 0.18, 'sawtooth', 0.04, 640); };
+  SYNTH.beautyPuff = function () { noise(0, 0.07, 0.3, 'lowpass', 1100); tone(880, 0.02, 0.06, 'sine', 0.16, 1175); tone(1568, 0.07, 0.12, 'triangle', 0.16); };
+  SYNTH.beautySpray = function () { noise(0, 0.2, 0.26, 'highpass', 4200); noise(0, 0.16, 0.14, 'bandpass', 6200); };
+  SYNTH.beautyDone = function () {
+    noise(0, 0.3, 0.16, 'highpass', 5000); sparkle([784, 988, 1319, 1568, 2093], 0.05); tone(2637, 0.4, 0.25, 'sine', 0.12);
+  };
+  GAPS.beautyDry = 140; GAPS.beautySpray = 120; GAPS.beautyPuff = 60;
+
   window.pocaSfx.has = function (n) { return !!SYNTH[n]; };
 
   // 버튼/카드를 누르면 아주 작은 '톡' 소리 (이미 다른 효과음이 날 곳이라면 겹치지 않게 짧고 작음)

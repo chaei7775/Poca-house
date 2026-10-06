@@ -28,7 +28,7 @@
   var DEBUT_COIN = 2000;        // 도전할 때 내는 코인
   var DEBUT_NEED = [            // 도전할 때 내는 재료
     { name: '고급원목', qty: 6, where: '🎬 촬영 세트장' },
-    { name: '반짝이는조개', qty: 6, where: '🏖️ 해변' },
+    { name: '반짝이는조개', qty: 6, where: '💄 뷰티 살롱' },
     { name: '장미꽃', qty: 6, where: '🌸 공원' }
   ];
   var REFUND_RATE = 0.5;        // 실패했을 때 돌려받는 재료 비율

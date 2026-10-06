@@ -27,7 +27,7 @@
   var POSTER_MAX = 30;           // 보관함에 저장하는 최대 포스터 수
   var PROPS = [                  // 촬영 소품 (agency와 같은 탐험 재료)
     { name: '고급원목', where: '🎬 촬영 세트장' },
-    { name: '반짝이는조개', where: '🏖️ 해변' },
+    { name: '반짝이는조개', where: '💄 뷰티 살롱' },
     { name: '장미꽃', where: '🌸 공원' }
   ];
 
