@@ -26,6 +26,7 @@ const FOODS = [
   { name: '고구마', emoji: '🍠', price: 500, desc: '아기돼지가 좋아하는 간식' },
   { name: '곡식',   emoji: '🌾', price: 500, desc: '새가 좋아하는 간식' }
 ];
+const foodIcon = (f, px) => (window.matIcon ? window.matIcon(f.name, px, f.emoji) : f.emoji);   // 먹이 그림(mat-icons.js), 없으면 이모지
 const CFG = { RIGHT_RATE: 0.65, ARRIVE_DELAY: 1.2, SPEED: 80, ZONE: 0.34, METER_SPEED: 1.5 };
 const KEY = 'ph_kennel';
 const IMG = 'https://raw.githubusercontent.com/chaei7775/Poca-house/main/kennel/';
@@ -125,7 +126,7 @@ function coinText() { $('#kn-coin').textContent = '🍔 ' + coinsNow().toLocaleS
 function renderFoods() {
   $('#kn-foods').innerHTML = FOODS.map(f => {
     const q = bagQty(f.name);
-    return '<button data-f="' + f.name + '" class="' + (S.food === f.name ? 'on ' : '') + (q < 1 ? 'no' : '') + '"><span class="e">' + f.emoji + '</span>' + f.name + ' ×' + q + '</button>';
+    return '<button data-f="' + f.name + '" class="' + (S.food === f.name ? 'on ' : '') + (q < 1 ? 'no' : '') + '"><span class="e">' + foodIcon(f, 26) + '</span>' + f.name + ' ×' + q + '</button>';
   }).join('');
   coinText();
 }
@@ -153,7 +154,8 @@ function draw(ts) {
   if (food) {
     cx.font = '34px serif'; cx.textAlign = 'center'; cx.textBaseline = 'middle';
     cx.fillStyle = 'rgba(0,0,0,.25)'; cx.beginPath(); cx.ellipse(food.x, food.y + 16, 16, 6, 0, 0, 7); cx.fill();
-    cx.fillStyle = '#fff'; cx.fillText(foodOf(food.name).emoji, food.x, food.y);
+    const fim = window.matImage ? window.matImage(food.name) : null;
+    cx.fillStyle = '#fff'; if (fim && fim._ok) cx.drawImage(fim, food.x - 22, food.y - 22, 44, 44); else cx.fillText(foodOf(food.name).emoji, food.x, food.y);
   }
 
   // 동물
@@ -212,7 +214,7 @@ function openClose() {
   busy = true;
   const a = byId(ani.id), right = a.food === food.name;
   const box = $('#kn-close'); box.hidden = false;
-  box.innerHTML = '<div class="face">' + faceHtml(a) + '</div><div class="food">' + foodOf(food.name).emoji + '</div><div class="t" id="kn-t">킁킁… 킁킁…</div>' +
+  box.innerHTML = '<div class="face">' + faceHtml(a) + '</div><div class="food">' + foodIcon(foodOf(food.name), 56) + '</div><div class="t" id="kn-t">킁킁… 킁킁…</div>' +
     (right ? '<div id="kn-meter"><div id="kn-zone"></div><div id="kn-mk"></div></div><button id="kn-grab">지금이다!</button>' : '');
   if (!right) {
     setTimeout(() => finish(false, a, '냄새를 맡더니 고개를 저으며 가버렸어요…'), 2300);
@@ -262,7 +264,7 @@ function endClose(leave) {
 function renderShop() {
   const sh = $('#kn-shop');
   sh.innerHTML = '<h3>🛒 먹이 가게 <span style="font-size:12px;color:#ffd54a;float:right">🍔 ' + coinsNow().toLocaleString() + '</span></h3>' +
-    FOODS.map(f => '<div class="kn-row"><div class="e">' + f.emoji + '</div><div class="i">' + f.name + ' <small>' + f.desc + ' · 보유 ' + bagQty(f.name) + '</small></div>' +
+    FOODS.map(f => '<div class="kn-row"><div class="e">' + foodIcon(f, 36) + '</div><div class="i">' + f.name + ' <small>' + f.desc + ' · 보유 ' + bagQty(f.name) + '</small></div>' +
       '<button data-buy="' + f.name + '"' + (coinsNow() < f.price ? ' disabled' : '') + '>🍔' + f.price + '</button></div>').join('') +
     '<button class="kn-back" id="kn-shop-x">닫기</button>';
   $('#kn-shop-x').onclick = () => { sh.hidden = true; renderFoods(); };
