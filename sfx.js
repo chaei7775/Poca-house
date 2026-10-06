@@ -292,19 +292,29 @@
   };
   GAPS.beautyDry = 140; GAPS.beautySpray = 120; GAPS.beautyPuff = 60;
   // 콘서트 파밍 (concert-farm.js): 스킬 3종 + 하트 가득 + 앵콜 드롭
-  SYNTH.concertHigh = function () {      // 🎤 하이라이트 부르기: 올라가는 멜로디 + 반짝
-    arp([523, 659, 784, 1047, 1319], 0.06, 0.22, 'triangle', 0.22); tone(262, 0, 0.35, 'sawtooth', 0.08, 392); sparkle([1568, 2093], 0.3);
+  // 맑은 종소리(뮤직박스/글로켄슈필 느낌): 부드러운 사인 + 위 배음, 길게 울리고 살짝 메아리. 음은 펜타토닉이라 어떻게 겹쳐도 어울림
+  function bell(freq, t0, dur, vol) {
+    tone(freq, t0, dur, 'sine', vol);
+    tone(freq * 2, t0, dur * 0.55, 'sine', vol * 0.35);
+    tone(freq * 3.01, t0, dur * 0.25, 'sine', vol * 0.12);
+    tone(freq, t0 + 0.16, dur * 0.8, 'sine', vol * 0.22);        // 메아리
+  }
+  function chime(notes, step, dur, vol) { notes.forEach(function (f, i) { bell(f, i * step, dur, vol); }); }
+  SYNTH.concertHigh = function () {      // 🎤 하이라이트 부르기: 맑게 올라가는 멜로디
+    chime([523, 659, 784, 1047], 0.11, 0.75, 0.2); bell(1568, 0.5, 1.0, 0.18); tone(262, 0, 0.5, 'sine', 0.1, 330);
   };
-  SYNTH.concertWink = function () {      // 💖 윙크 샤워: 통통 튀는 반짝임
-    sparkle([1047, 1319, 1568, 1976, 2349], 0); noise(0, 0.25, 0.12, 'highpass', 5200);
+  SYNTH.concertWink = function () {      // 💖 윙크 샤워: 반짝이며 흩어지는 종소리
+    chime([1047, 1319, 1568, 1319, 1976], 0.1, 0.6, 0.15); noise(0, 0.2, 0.06, 'highpass', 6000);
   };
-  SYNTH.concertEncore = function () {    // ✨ 앵콜 폭죽: 쾅 + 폭죽 + 환호
-    tone(90, 0, 0.35, 'sine', 0.5, 40); noise(0, 0.5, 0.3, 'lowpass', 1800); noise(0.05, 0.4, 0.22, 'highpass', 4000);
-    sparkle([784, 988, 1319, 1568, 1976, 2637], 0.12); noise(0.2, 0.6, 0.14, 'bandpass', 2400);
+  SYNTH.concertEncore = function () {    // ✨ 앵콜 폭죽: 쿵 + 팡 + 화려한 종소리 화음
+    tone(90, 0, 0.35, 'sine', 0.45, 40); noise(0, 0.45, 0.25, 'lowpass', 1800); noise(0.05, 0.35, 0.16, 'highpass', 4000);
+    chime([523, 659, 784, 1047, 1319, 1568, 2093], 0.07, 1.1, 0.17); bell(784, 0.2, 1.4, 0.2); bell(1047, 0.2, 1.4, 0.16);
   };
-  SYNTH.concertFull = function () { tone(1568, 0, 0.1, 'sine', 0.14); tone(2093, 0.07, 0.14, 'sine', 0.14); };   // 하트 가득 찬 순간
-  SYNTH.concertDrop = function () { tone(988, 0, 0.07, 'triangle', 0.16); tone(1319, 0.05, 0.1, 'triangle', 0.16); };
-  SYNTH.concertCut = function () { noise(0, 0.35, 0.28, 'bandpass', 1200); tone(220, 0, 0.3, 'sawtooth', 0.12, 880); tone(1760, 0.18, 0.12, 'triangle', 0.14); };   // 컷인 슈웅
+  SYNTH.concertFull = function () { bell(1568, 0, 0.7, 0.14); bell(2349, 0.09, 0.8, 0.12); };   // 하트 가득 찬 순간: 딩-딩~
+  SYNTH.concertDrop = function () { bell(1175, 0, 0.45, 0.13); bell(1568, 0.07, 0.55, 0.12); };
+  SYNTH.concertCut = function () { noise(0, 0.3, 0.2, 'bandpass', 1500); tone(260, 0, 0.3, 'sine', 0.13, 780); bell(1319, 0.2, 0.8, 0.16); bell(1976, 0.28, 0.9, 0.12); };   // 컷인 슈웅~딩
+  SYNTH.concertTick = function () { bell(1568, 0, 0.18, 0.05); };
+  GAPS.concertTick = 300;
   GAPS.concertCut = 200;
   GAPS.concertFull = 70; GAPS.concertDrop = 45; GAPS.concertWink = 150;
 
