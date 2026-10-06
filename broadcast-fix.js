@@ -10,7 +10,8 @@
       '-webkit-user-select:none!important;user-select:none!important;' +
       '-webkit-touch-callout:none!important;-webkit-tap-highlight-color:transparent!important;' +
       'touch-action:manipulation!important;}' +
-    '#special-overlay img{-webkit-user-drag:none;user-drag:none;}';
+    '#special-overlay img{-webkit-user-drag:none;user-drag:none;}' +
+    '#special-overlay #fr-cv, #special-overlay #fr-view{touch-action:none!important;}';
   document.head.appendChild(st);
 
   function inside(e) {
