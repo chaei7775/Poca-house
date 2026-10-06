@@ -1169,7 +1169,7 @@
         var dist = pxDist(ev.x, ev.y, me.px, me.py);
         if (dist < HIT_R + (ev.kind === 'special' ? 10 : 0)) {
           if (!ev.skip) {
-            if (ev.kind === 'special' && SKILL_ONLY[curLoc]) { ev.skip = true; toast('✨ 이 이벤트는 스킬로만 응대할 수 있어요! 머리 위 순서대로 스킬 2개를 써요'); }
+            if (ev.kind === 'special' && SKILL_ONLY[curLoc]) { ev.skip = true; toast('✨ 이 이벤트는 스킬로만 응대할 수 있어요! 머리 위 순서대로 스킬 2개를 써요 (스킬은 더보기 → 💖 팬 스킬 상점에서 살 수 있어요)'); }
             else { tryStart(ev); break; }
           }
         } else if (dist > HIT_R * 2) {

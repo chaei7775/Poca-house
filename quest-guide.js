@@ -113,7 +113,7 @@
       go: function () { goTo('map'); }, target: '#nav-map' },
     { id: 'studio', icon: '🎹', title: '작곡 스튜디오에서 재료 모으기',
       hint: '맵 → 🎹 작곡 스튜디오 탐험. 음표·악기·악보 재료가 20초 동안 튀어나와요! 이게 앨범의 재료예요.',
-      done: function () { return !!S.flags.first_studio; }, reward: 300,
+      done: function () { var v = false; try { v = localStorage.getItem('ph_studio_visited') === '1'; } catch (e) {} return !!S.flags.first_studio || v; }, reward: 300,
       go: function () { goTo('map'); }, target: '#nav-map' },
     { id: 'album', icon: '💿', title: '첫 앨범 만들기',
       hint: '스튜디오 → 🎼 작곡 테이블. 재료를 조합해 곡을 만들어요. 실패해도 재료는 안 사라지고 힌트를 줘요! 만든 앨범은 팔 수 있어요.',

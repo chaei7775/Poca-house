@@ -89,6 +89,7 @@
     if (typeof stamina !== 'undefined' && stamina < STAMINA_COST) { showBagToast('스태미나가 부족해요! ⚡ 음료를 마셔봐요 (작곡 스튜디오 ' + STAMINA_COST + ')'); return; }
     stamina -= STAMINA_COST;
     saveStamina();
+    try { localStorage.setItem('ph_studio_visited', '1'); } catch (e) {}   // 길잡이 퀘스트 완료 표시용
     exploreCollected = [];
 
     var overlay = document.createElement('div');
@@ -286,7 +287,7 @@
       '<button id="studio-close" style="width:100%;padding:12px;background:rgba(255,255,255,0.1);border:none;border-radius:12px;color:#ccc;font-size:14px;cursor:pointer;font-family:\'Noto Sans KR\',sans-serif;">확인</button>' +
       '</div></div>';
     document.getElementById('studio-close').onclick = function () { ov.remove(); };
-    document.getElementById('studio-again').onclick = function () { ov.remove(); startStudio(); };
+    document.getElementById('studio-again').onclick = function () { ov.remove(); window.startStudio(); };
   }
 
   window.startStudio = startStudio;
@@ -315,7 +316,7 @@
     eb.setAttribute('style', mb.getAttribute('style').replace(/background:[^;]+;/, 'background:rgba(255,184,107,0.2);').replace(/border:[^;]+;/, 'border:1.5px solid rgba(255,184,107,0.6);'));
     eb.style.display = 'none';
     eb.textContent = lockText();
-    eb.onclick = function () { startStudio(); };
+    eb.onclick = function () { window.startStudio(); };
     mb.parentNode.insertBefore(eb, mb.nextSibling);
     var cb = document.createElement('button');                 // 🎼 작곡 테이블로 이동
     cb.id = 'btn-compose';
