@@ -56,6 +56,11 @@
     return keys(e).some(function (id) { return e[id] && (e[id].slots || []).some(function (x) { return x && x.lv >= 1; }); });
   }
   function goodsFlagG(n) { return !!(J('ph_goods_flags', {}) || {})[n]; }
+  function hasGift() {   // 가방/인벤토리에 줄 수 있는 선물이 있는지 (game.js showGiftMenu 와 같은 기준)
+    try { if (bagItems.some(function (i) { return i && i.type === 'gift' && (i.qty == null || i.qty > 0); })) return true; } catch (e) {}
+    try { if (Object.keys(inventory || {}).some(function (k) { return inventory[k] > 0; })) return true; } catch (e) {}
+    return false;
+  }
   function mysterySeen() { try { return localStorage.getItem('ph_mystery_seen') === '1'; } catch (e) { return false; } }
 
   // ── 단계 정의 (순서대로 진행) ──
@@ -71,9 +76,11 @@
       done: function () { return quest('tut_meet') || story('story_06'); }, reward: 200,
       go: function () { goTo('bond'); }, target: '#nav-bond' },
     { id: 'gift', icon: '💝', title: '선물로 마음 얻기',
-      hint: '💞 인연 → 아이돌을 눌러 → 💝 선물하기! 가방의 선물을 주면 호감도가 올라요. 호감도가 오르면 이야기와 새 기능이 열려요.',
+      hint: '💞 인연 → 아이돌을 눌러 → 💝 호감작하기! 가방의 선물을 주면 호감도가 올라요. 호감도가 오르면 이야기와 새 기능이 열려요.',
+      noGiftHint: '🎁 가방에 선물이 없어요! 아래 ⋯ 더보기 → 🛍️ 잡화점에서 선물을 먼저 사요. 그다음 💞 인연 → 아이돌 → 💝 호감작하기에서 선물을 주면 호감도가 올라요.',
       done: function () { return quest('tut_gift'); }, reward: 200,
-      go: function () { goTo('bond'); }, target: '#nav-bond' },
+      go: function () { if (!hasGift() && typeof window.openShop === 'function') window.openShop('gift'); else goTo('bond'); },
+      target: '#nav-bond', noGiftTarget: '#nav-shop' },
     { id: 'alba', icon: '🍔', title: '알바로 첫 코인 벌기',
       hint: '선물과 뽑기에 쓸 코인을 벌어봐요. 🍔 알바하기 → 포카버거나 카페에서 게이지가 가운데 구간에 올 때 화면을 탭!',
       done: function () { try { return albaDone > 0 || quest('tut_alba') || story('story_04'); } catch (e) { return false; } }, reward: 200,
@@ -258,6 +265,9 @@
     return -1;
   }
 
+  function hintOf(st) { return (st.noGiftHint && !hasGift()) ? st.noGiftHint : st.hint; }
+  function targetOf(st) { return (st.noGiftTarget && !hasGift()) ? st.noGiftTarget : st.target; }
+
   // ── 새 기능 첫 사용 감지용 후킹 (원래 함수는 그대로 실행) ──
   function hookLater(name, wrapperFactory) {
     (function tryHook() {
@@ -357,7 +367,7 @@
     return '<div class="qg-top"><span class="qg-label">🧭 다음 할 일</span><span class="qg-prog">' + idx + ' / ' + STEPS.length + '</span></div>' +
       '<div class="qg-bar"><div style="width:' + pct + '%"></div></div>' +
       '<div class="qg-title">' + st.icon + ' ' + st.title + (st.reward ? ' <span style="font-size:11px;color:#F59E0B;">🍔+' + st.reward + '</span>' : '') + '</div>' +
-      '<div class="qg-hint">' + st.hint + '</div>' +
+      '<div class="qg-hint">' + hintOf(st) + '</div>' +
       '<button class="qg-go" data-qg-go="1">가기 👉</button>';
   }
 
@@ -381,7 +391,10 @@
     var f = document.getElementById('qg-finger');
     if (!f) { f = document.createElement('div'); f.id = 'qg-finger'; document.body.appendChild(f); }
     var t = curTarget && document.body.contains(curTarget) ? curTarget : null;
-    if (!t || !t.offsetParent) { f.style.display = 'none'; return; }
+    var home = document.getElementById('screen-home');
+    var onHome = !!(home && home.classList.contains('active'));
+    if (t) t.classList.toggle('qg-pulse', onHome);          // 홈이 아닌 화면(인연·가방 등)에선 깜빡임도 끔 → 홈으로 돌아오면 다시 켜짐
+    if (!t || !onHome || !t.offsetParent) { f.style.display = 'none'; return; }
     var r = t.getBoundingClientRect(), vh = window.innerHeight;
     if (r.width === 0 || r.height === 0) { f.style.display = 'none'; return; }
     f.style.display = 'block';
@@ -417,9 +430,15 @@
         bindGo(old);
         curTarget = null;
         if (idx < FINGER_STEPS) {
-          var t = document.querySelector(STEPS[idx].target);
-          if (t && (home.classList.contains('active') || /^#nav-/.test(STEPS[idx].target))) { t.classList.add('qg-pulse'); curTarget = t;
-            if (lastScrolled !== STEPS[idx].id && home.classList.contains('active')) { lastScrolled = STEPS[idx].id; try { t.scrollIntoView({ block: 'center', behavior: 'smooth' }); } catch (e) {} } }
+          var t = document.querySelector(targetOf(STEPS[idx]));
+          if (t) {
+            curTarget = t;                                    // 손가락·깜빡임은 placeFinger 가 '홈 화면일 때만' 보여줌
+            if (home.classList.contains('active')) {
+              t.classList.add('qg-pulse');
+              var key = STEPS[idx].id + (STEPS[idx].noGiftTarget && !hasGift() ? ':ng' : '');
+              if (lastScrolled !== key) { lastScrolled = key; try { t.scrollIntoView({ block: 'center', behavior: 'smooth' }); } catch (e) {} }
+            }
+          }
         }
       }
     }
@@ -461,10 +480,10 @@
   });
 
   // 진행 상황(코인 벌기·레벨업 등) 자동 감지 — 가벼운 주기 체크
-  var lastIdx = -2;
+  var lastIdx = -2, lastGift = null;
   setInterval(function () {
-    var i = currentIndex();
-    if (i !== lastIdx) { lastIdx = i; render(); }
+    var i = currentIndex(), g = hasGift();
+    if (i !== lastIdx || g !== lastGift) { lastIdx = i; lastGift = g; render(); }
   }, 1500);
 
   window.__guideTest = { STEPS: STEPS, currentIndex: currentIndex };

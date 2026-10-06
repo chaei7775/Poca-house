@@ -20,7 +20,7 @@
     { id: 'login',   icon: '👋', title: '오늘도 출석!',      desc: '접속하면 자동 완료',          need: 1, w: 0.10, coins: 1000 },
     { id: 'alba',    icon: '🍔', title: '알바 2판 하기',      desc: '🍔 알바하기에서 2번 완료',     need: 2, w: 0.15, coins: 1500 },
     { id: 'explore', icon: '🚐', title: '스케줄 2번 나가기',  desc: '🚐 스케줄 가기 / 낚시 2번',    need: 2, w: 0.15, coins: 1000 },
-    { id: 'gift',    icon: '💝', title: '선물 1번 하기',      desc: '💞 인연에서 아이돌에게 선물',  need: 1, w: 0.15, coins: 1000 },
+    { id: 'gift',    icon: '💝', title: '선물 1번 하기',      desc: '🛍️ 잡화점에서 사서 💞 인연에서 선물',  need: 1, w: 0.15, coins: 1000 },
     { id: 'school',  icon: '🏫', title: '학교 1번 가기',      desc: '맵 → 연성고등학교 미니게임',   need: 1, w: 0.15, coins: 1000 },
     { id: 'drama',   icon: '🎥', title: '드라마 촬영 1번',    desc: '맵 → 광장 → 🎥 드라마 촬영 (데뷔한 아이돌이 있어야 해요)', need: 1, w: 0.10, coins: 1500, needDebut: true },
   ];

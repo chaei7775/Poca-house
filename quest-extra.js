@@ -51,7 +51,7 @@
       condition:'q2_explore', rewardCoins:300, rewardExp:50, type:'tutorial', detect:function () { return !!F.explore; } },
     tut_fishing: { title:'캠프에서 낚시', desc:'🏕️ 워크숍 캠프 → 낚시하기. 물고기가 다가오면 탭해서 낚싯대를 던져봐.',
       condition:'q2_fishing', rewardCoins:300, rewardExp:50, type:'tutorial', detect:function () { return !!F.fishing; } },
-    tut_gift: { title:'선물로 마음 얻기', desc:'💞 인연 → 아이돌 선택 → 선물하기. 가방의 선물을 주면 인연 경험치가 올라.',
+    tut_gift: { title:'선물로 마음 얻기', desc:'🛍️ ⋯ 더보기 → 잡화점에서 선물을 사서 → 💞 인연 → 아이돌 선택 → 💝 호감작하기에서 줘. 인연 경험치가 올라.',
       condition:'q2_gift', rewardCoins:300, rewardExp:50, type:'tutorial', detect:function () { return !!F.gift; } },
     tut_recombine: { title:'카드 재조합 해보기', desc:'⋯ 더보기 → 🔮 카드 재조합기. 겹치는 카드 2장 + 재료로 더 높은 등급을 노려봐.',
       condition:'q2_recombine', rewardCoins:300, rewardExp:50, type:'tutorial', detect:function () { return !!F.recombine; } },

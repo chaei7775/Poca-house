@@ -16,7 +16,7 @@
   var CHANCE = 0.4;          // 하루 보내기 때 (하루 1번 슬롯을 쓸 확률)
   var EXTRA_CHANCE = 0.3;    // 드라마 촬영 끝 / 기획사 정산 / 탐험 끝 때 (슬롯이 비어 있을 때만)
   var EXTRA_GAP_MS = 90000;  // 추가 발생 최소 간격
-  var SNEAK_BYPASS_CAP = false; // true 면 야식 들킴 기사는 하루 1번 제한을 무시하고 항상 뜸
+  var SNEAK_BYPASS_CAP = true;  // true 면 야식 들킴 기사는 하루 1번 제한을 무시하고 항상 뜸
   var POLL_MS = 1500;
   var STAT_MULT = 2;      // 기사 효과 배율: 비주얼·체력·기분 (아래 기사 숫자 × 이 값)
   var COIN_MULT = 2;      // 기사 효과 배율: 코인 (기존 4 → 2)
