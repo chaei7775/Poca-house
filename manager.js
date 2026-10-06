@@ -16,7 +16,7 @@
   var BONUS = 30;                       // 데뷔 확률 증가 (%p)
   var NAME = '한지우';
   var TITLE = '신입 전담 매니저';
-  var IMG = 'https://raw.githubusercontent.com/chaei7775/Poca-house/main/manager-rookie.png';
+  var IMG = 'manager-rookie.png?v=2';
   var LOCKED = [
     { icon: '🎭', title: '배우 전담 매니저',   when: '드라마 촬영이 익숙해지면 만나요' },
     { icon: '🎤', title: '아이돌 전담 매니저', when: '컴백 무대를 준비할 때 만나요' },
@@ -41,7 +41,7 @@
 
   function avatar(px) {
     return '<span style="position:relative;display:inline-flex;align-items:center;justify-content:center;width:' + px + 'px;height:' + px + 'px;border-radius:50%;background:linear-gradient(135deg,#60a5fa,#C084FC);overflow:hidden;font-size:' + Math.round(px * 0.55) + 'px;flex:none;">🧑‍💼' +
-      '<img src="' + IMG + '" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;" onerror="this.remove()"></span>';
+      '<img src="' + IMG + '" style="position:absolute;inset:0;width:100%;height:100%;object-fit:contain;" onload="this.parentNode.style.fontSize=\'0\'" onerror="this.remove()"></span>';
   }
 
   // ════════ 첫 만남 스토리 ════════
