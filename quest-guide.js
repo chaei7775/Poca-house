@@ -46,6 +46,16 @@
     return keys(d).filter(function (k) { return d[k] && d[k].lv >= 1; }).length;
   }
   function goodsCrafted() { return !!(J('ph_goods_flags', {}) || {}).crafted; }
+  function premEquipped() {
+    var d = J('ph_premiumEquip', {}) || {};
+    return keys(d).some(function (h) { return Array.isArray(d[h]) && d[h].some(Boolean); });
+  }
+  function q3(n) { return !!(J('ph_quest3', {}) || {})[n]; }          // quest-concert.js 가 기록
+  function labEnhanced() {
+    var e = J('ph_engrave', {}) || {};
+    return keys(e).some(function (id) { return e[id] && (e[id].slots || []).some(function (x) { return x && x.lv >= 1; }); });
+  }
+  function goodsFlagG(n) { return !!(J('ph_goods_flags', {}) || {})[n]; }
   function mysterySeen() { try { return localStorage.getItem('ph_mystery_seen') === '1'; } catch (e) { return false; } }
 
   // ── 단계 정의 (순서대로 진행) ──
@@ -145,6 +155,10 @@
       hint: '맵 → 🛍️ 상점거리 → 🎁 굿즈 공방. 재료 + 코인으로 굿즈를 만들면 능력치가 랜덤으로 붙어요(실패할 수도!). 만든 굿즈를 캐릭터 카드 옆 칸에 장착해 보세요.',
       done: function () { return goodsCrafted(); }, reward: 500,
       go: function () { goTo('map'); }, target: '#nav-map' },
+    { id: 'goods_equip', icon: '🎒', title: '굿즈 캐릭터에게 장착하기',
+      hint: '🎁 굿즈 공방 → 🎒 장착 탭에서 만든 굿즈를 캐릭터 카드 옆 칸(머리·손·액세서리 3칸)에 달아요. 그 캐릭터의 팬덤 원정이 강해져요!',
+      done: function () { return goodsFlagG('equipped'); }, reward: 300,
+      go: function () { goTo('map'); }, target: '#nav-map' },
     { id: 'enhance', icon: '⚒️', title: '히든카드 강화하기',
       hint: '더보기 → 🎤 트레이닝룸. 히든카드 + 강화석 + 코인으로 강화하면 데뷔 수익이 확 올라요. 높은 단계는 실패하면 카드가 사라질 수 있으니 방지권을 챙기세요!',
       done: function () { return anyEnhanced() || !!S.flags.first_enhance; }, reward: 800,
@@ -152,6 +166,26 @@
     { id: 'premium', icon: '💎', title: '프리미엄 카드 받기',
       hint: '팬덤 원정에서 🖼️ 프리미엄 조각 100개를 모아 더보기 → 💎 프리미엄 카드에서 교환! 연예인 활동을 도와주는 능력치 카드예요.',
       done: function () { return premiumOwned() >= 1; }, reward: 1000,
+      go: function () { goTo('map'); }, target: '.btn-collection' },
+    { id: 'prem_equip', icon: '💎', title: '프리미엄 카드 장착하기',
+      hint: '⋯ 더보기 → 🎤 트레이닝룸 → 💎 프리미엄 카드 탭 맨 아래 <b>히든카드에 장착</b> 칸! 히든카드 1장에 2칸, 종류가 다른 카드만 끼울 수 있어요. 끼울 때 코인이 들고, 장착한 히든카드를 갖고 있어야 효과가 켜져요.',
+      done: function () { return premEquipped(); }, reward: 400,
+      go: function () { if (typeof openEnhance === 'function') openEnhance(); else goTo('home'); }, target: '#nav-shop' },
+    { id: 'equip_view', icon: '🎽', title: '장착 현황 한눈에 보기',
+      hint: '🎒 가방을 열면 오른쪽에 <b>🎽 장착 현황</b> 탭이 있어요. 내 의상·프리미엄 카드·굿즈가 누구에게 뭐가 장착돼 있는지 한눈에 보여요!',
+      done: function () { try { return !!S.flags.equip_view || localStorage.getItem('ph_equip_viewed') === '1'; } catch (e) { return false; } }, reward: 100,
+      go: function () { goTo('bag'); }, target: '#nav-bag' },
+    { id: 'concert_hall', icon: '🎪', title: '공연장 입장하기',
+      hint: '🚐 스케줄 가기 → 🎬 팬덤 원정 → 🎪 공연장. 입장엔 🌟우등생별 1개가 들어요 (학교 미니게임으로 등교권 → 우등생 조각 100개 = 별 1개). 이벤트 20번을 채우면 앵콜 스테이지가 열려요!',
+      done: function () { return q3('concert'); }, reward: 500,
+      go: function () { goTo('map'); }, target: '.btn-collection' },
+    { id: 'develop', icon: '📷', title: '시크릿 포토랩 첫 현상',
+      hint: '앵콜 스테이지에서 📷 시크릿 포토랩으로! 프리미엄 카드를 골라 <b>현상</b>하면 슬롯 3칸에 랜덤 효과가 붙어요. 필름 🎞️ + 코인이 필요해요 (필름은 공연장에서 나와요).',
+      done: function () { return q3('develop'); }, reward: 600,
+      go: function () { goTo('map'); }, target: '.btn-collection' },
+    { id: 'devsol', icon: '🧪', title: '현상액으로 옵션 강화하기',
+      hint: '📷 포토랩에서 <b>센터·컴백·연습생</b> 칸을 눌러 🧪 현상액 + 코인으로 강화해요 (최대 +5강, 1강마다 효과 +10%). 현상액은 공연장에서만 나와요. 다시 현상하면 그 칸 강화는 사라지니 마음에 드는 칸은 🔒 잠그세요!',
+      done: function () { return labEnhanced(); }, reward: 800,
       go: function () { goTo('map'); }, target: '.btn-collection' },
     { id: 'alldebut', icon: '👑', title: '멤버 6명 모두 데뷔시키기',
       hint: '민준·시온·도윤·하린·윤아·아라 전원 데뷔! 멤버가 늘수록 정산 수익도 늘어요. 맵 → 광장 → 🎤 기획사.',
@@ -201,6 +235,9 @@
   });
   hookLater('startStudio', function (orig) {
     return function () { var r = orig.apply(this, arguments); flag('first_studio'); return r; };
+  });
+  hookLater('openEquipPanel', function (orig) {
+    return function () { var r = orig.apply(this, arguments); flag('equip_view'); return r; };
   });
   hookLater('startFishing', function (orig) {
     return function () {
@@ -376,6 +413,7 @@
     if (i !== lastIdx) { lastIdx = i; render(); }
   }, 1500);
 
+  window.__guideTest = { STEPS: STEPS, currentIndex: currentIndex };
   setTimeout(render, 900);
   setTimeout(render, 1800);
 })();

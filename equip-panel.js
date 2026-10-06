@@ -121,6 +121,7 @@
   }
 
   function open() {
+    try { localStorage.setItem('ph_equip_viewed', '1'); } catch (e) {}   // 길잡이가 '장착 현황 열어봤는지' 확인용
     close();
     var wrap = document.createElement('div');
     wrap.id = ROOT;
