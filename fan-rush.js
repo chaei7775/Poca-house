@@ -181,7 +181,7 @@
       x = clamp(G.px + Math.cos(a) * d, 30, WORLD - 30); y = clamp(G.py + Math.sin(a) * d, 30, WORLD - 30);
     }
     var wmul = 1 + (G.wave - 1) * 0.04;     // 웨이브가 올라갈수록 조금씩 튼튼해짐
-    var f = { id: G.nextId++, type: type, T: T, x: x, y: y, hp: T.hp * (T.boss ? 1 : wmul), mhp: T.hp * (T.boss ? 1 : wmul), kx: 0, ky: 0, flash: 0, shootT: rnd(0.8, 2), wob: Math.random() * 6, step: 0, angry: 0, face: 1 + Math.floor(Math.random() * FAN_FACES) };
+    var f = { id: G.nextId++, type: type, T: T, x: x, y: y, hp: T.hp * (T.boss ? 1 : wmul), mhp: T.hp * (T.boss ? 1 : wmul), kx: 0, ky: 0, flash: 0, shootT: rnd(0.8, 2), wob: Math.random() * 6, step: 0, angry: 0, face: 1 + Math.floor(Math.random() * FAN_FACES), acc: pickAcc(type), lc: ['#ff4d9d', '#4dd2ff', '#ffd23f', '#9b6bff', '#5dff9a'][Math.floor(Math.random() * 5)] };
     f.seq = makeSeq(SEQ_BY[type] || 1);
     G.fans.push(f);
     return f;
@@ -458,6 +458,41 @@
     im.src = IMG_BASE + 'rfan-' + key + '.png';
     fanImgs[key] = im; return im;
   }
+  // 팬 소품 (그림 파일 없이 코드로 얹음): 마스크 / 안경 / 선글라스 / 응원봉
+  function pickAcc(type) {
+    if (type === 'boss') return '';
+    var r = Math.random();
+    return r < 0.38 ? '' : r < 0.55 ? 'mask' : r < 0.70 ? 'glasses' : r < 0.78 ? 'shades' : r < 0.93 ? 'stick' : 'mask+stick';
+  }
+  function drawAcc(c, f, D, bob) {
+    var a = f.acc; if (!a) return;
+    var cx = f.x, cy = f.y + bob, ey = cy + D * 0.07, ex = D * 0.17;
+    c.save(); c.lineJoin = 'round'; c.lineCap = 'round';
+    if (a.indexOf('mask') >= 0) {
+      var my = cy + D * 0.27;
+      c.fillStyle = '#f4f6fb'; c.strokeStyle = '#9aa3b8'; c.lineWidth = Math.max(1, D * 0.015);
+      c.beginPath(); c.moveTo(cx - D * 0.24, my - D * 0.09); c.quadraticCurveTo(cx, my - D * 0.15, cx + D * 0.24, my - D * 0.09);
+      c.quadraticCurveTo(cx + D * 0.22, my + D * 0.15, cx, my + D * 0.19); c.quadraticCurveTo(cx - D * 0.22, my + D * 0.15, cx - D * 0.24, my - D * 0.09);
+      c.closePath(); c.fill(); c.stroke();
+      c.beginPath(); c.moveTo(cx - D * 0.17, my - D * 0.02); c.lineTo(cx + D * 0.17, my - D * 0.02); c.moveTo(cx - D * 0.15, my + D * 0.06); c.lineTo(cx + D * 0.15, my + D * 0.06); c.stroke();
+    }
+    if (a === 'glasses' || a === 'shades') {
+      var rr = D * 0.115;
+      c.lineWidth = Math.max(1.5, D * 0.03); c.strokeStyle = a === 'shades' ? '#1a1a1a' : '#2b2b3a';
+      c.fillStyle = a === 'shades' ? 'rgba(15,15,25,.82)' : 'rgba(190,225,255,.25)';
+      [-1, 1].forEach(function (sg) { c.beginPath(); c.arc(cx + sg * ex, ey, rr, 0, 7); c.fill(); c.stroke(); });
+      c.beginPath(); c.moveTo(cx - ex + rr, ey - 1); c.lineTo(cx + ex - rr, ey - 1); c.stroke();
+    }
+    if (a.indexOf('stick') >= 0) {
+      var ang = -0.55 + Math.sin((G ? G.time : 0) * 5 + f.wob) * 0.35, L = D * 0.6, bx = cx + D * 0.5, by = cy + D * 0.38;
+      var tx = bx + Math.sin(ang) * L, ty = by - Math.cos(ang) * L;
+      c.shadowColor = f.lc; c.shadowBlur = 12;
+      c.strokeStyle = f.lc; c.lineWidth = Math.max(3, D * 0.09); c.beginPath(); c.moveTo(bx + Math.sin(ang) * L * 0.25, by - Math.cos(ang) * L * 0.25); c.lineTo(tx, ty); c.stroke();
+      c.shadowBlur = 0; c.strokeStyle = '#fff'; c.lineWidth = Math.max(1.2, D * 0.03); c.beginPath(); c.moveTo(bx + Math.sin(ang) * L * 0.25, by - Math.cos(ang) * L * 0.25); c.lineTo(tx, ty); c.stroke();
+      c.strokeStyle = '#444'; c.lineWidth = Math.max(3, D * 0.09); c.beginPath(); c.moveTo(bx, by); c.lineTo(bx + Math.sin(ang) * L * 0.25, by - Math.cos(ang) * L * 0.25); c.stroke();
+    }
+    c.restore();
+  }
   function drawFloor(c) {
     var cx = G.cam.x, cy = G.cam.y, vw = G.vw, vh = G.vh;
     c.fillStyle = '#0c0719'; c.fillRect(cx - 40, cy - 40, vw + 80, vh + 80);
@@ -507,6 +542,7 @@
       c.shadowColor = glow; c.shadowBlur = (f.angry > 0 || T.boss) ? 14 : 6;
       c.drawImage(fi, f.x - R * 1.1, f.y + bob - R * 1.1, R * 2.2, R * 2.2);
       c.shadowBlur = 0;
+      drawAcc(c, f, R * 2.2, bob);
       if (T.ranged) { c.font = '16px sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('💌', f.x + R * 0.8, f.y + bob + R * 0.7); }
       if (f.type === 'rusher') { c.font = '14px sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('⚡', f.x + R * 0.8, f.y + bob - R * 0.7); }
     } else {
