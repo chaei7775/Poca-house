@@ -4,12 +4,12 @@
 // 들어가는 곳: 작곡 스튜디오 장소 화면의 "🎼 작곡 테이블" 버튼 / 더보기 > 🎼 작곡 테이블
 //
 // 규칙
-//  · 재료 종류를 최대 12종까지 골라 "작곡하기". 고른 종류마다 같은 개수(등급이 정함)가 든다.
-//  · 반드시 [🎼 악보용지 + 🎵 음표 1종 이상 + 🎸 악기 1종 이상] 이 있어야 하고, 합쳐서 4종류 이상이어야 곡이 된다.
-//    모자라면 "그냥 실패했어요". 실패해도 재료는 하나도 안 사라진다. (무슨 게 모자란지 힌트가 뜸)
-//  · 종류 수가 등급을 정한다: 4~6종 💿 데모 / 7~9종 💽 미니 / 10~12종 📀 정규
-//  · 고른 악기 조합이 장르를 정한다(10가지). 장르 × 등급 = 30칸이 📒 작곡노트(도감). 처음엔 전부 ???
-//    성공하면 무조건 노트에 등록되고, 앨범이 가방에 들어온다. 앨범은 💿판매 탭에서 코인으로 바꾼다.
+//  · 재료 종류를 최대 12종까지 골라 "작곡하기". 30칸(장르 10 × 등급 3)마다 정해진 레시피(재료 조합)가 있고,
+//    고른 조합이 레시피와 정확히 같을 때만 곡이 된다. 아무렇게나 많이 넣는다고 되지 않는다.
+//    안 맞으면 "그냥 실패했어요". 실패해도 재료는 하나도 안 사라지고, 얼마나 비슷한지 힌트만 뜬다.
+//  · 레시피는 노트에서 스스로 찾는다. 한 칸을 찾으면 같은 장르의 다음 등급 레시피에 대한 단서(재료 분류 모양)가 노트에 적힌다.
+//  · 성공하면 노트에 등록되고 앨범이 가방에 들어온다. 앨범은 💿판매 탭에서 코인으로 바꾼다.
+//  · 고른 종류마다 같은 개수가 든다 (등급이 정함: 데모 4 / 미니 7 / 정규 11, 영감은 1/3).
 //  · 도감 칸 하나당 앨범 판매가 +1%, 한 장르의 세 등급을 다 채우면 그 장르마다 +2% 더 (최대 +50%)
 // 값을 바꾸고 싶으면 아래 설정만 고치면 됨.
 // ════════════════════════════════
@@ -19,7 +19,7 @@
   // ── 설정 ──
   var ACC = '#ffb86b';
   var NOTE_KEY = 'ph_composeNote';               // ph_ 로 시작 → 클라우드 저장 자동
-  var MAX_KINDS = 12, MIN_KINDS = 4;
+  var MAX_KINDS = 12;
   var TIERS = [                                  // 종류 수 → 등급. per = 고른 종류 하나당 드는 개수
     { id: 'full', min: 10, emoji: '📀', name: '정규 앨범', per: 11, price: 240000 },
     { id: 'mini', min: 7,  emoji: '💽', name: '미니 앨범', per: 7,  price: 90000 },
@@ -40,7 +40,20 @@
     { id: 'orch',  name: '오케스트라', need: ['str', 'drm', 'pno'] },
     { id: 'fusion',name: '퓨전',       need: [], fusion: true }
   ];
-  var SOLO = { gtr: 'acou', pno: 'ballad', str: 'orch', drm: 'hiphop', bas: 'jazz', syn: 'edm' };   // 조합이 안 맞을 때 첫 악기로 정함
+  // ★ 레시피 30개 (장르 × 등급). 재료 id: n1 온음표 n2 2분 n4 4분 n8 8분 n16 16분 / gtr 기타 bas 베이스 drm 드럼 pno 피아노 syn 신스 str 스트링 / scr 악보용지 lyr 가사조각 spk 영감의불꽃
+  //   값을 바꿔도 됨 (같은 조합이 두 칸에 겹치면 안 됨 — 겹치면 앞에 있는 칸이 이김)
+  var RECIPES = {
+    rock:   { demo: ['scr', 'n8', 'gtr', 'drm'],  mini: ['scr', 'n8', 'n16', 'gtr', 'drm', 'bas'],  full: ['scr', 'n4', 'n8', 'n16', 'gtr', 'drm', 'bas', 'lyr', 'spk'] },
+    pop:    { demo: ['scr', 'n4', 'gtr', 'pno'],  mini: ['scr', 'n4', 'n8', 'gtr', 'pno', 'lyr'],  full: ['scr', 'n2', 'n4', 'n8', 'gtr', 'pno', 'syn', 'lyr', 'spk'] },
+    ballad: { demo: ['scr', 'n2', 'pno', 'str'],  mini: ['scr', 'n1', 'n2', 'pno', 'str', 'lyr'],  full: ['scr', 'n1', 'n2', 'n4', 'pno', 'str', 'gtr', 'lyr', 'spk'] },
+    dance:  { demo: ['scr', 'n8', 'syn', 'drm'],  mini: ['scr', 'n8', 'n16', 'syn', 'drm', 'lyr'], full: ['scr', 'n4', 'n8', 'n16', 'syn', 'drm', 'bas', 'lyr', 'spk'] },
+    edm:    { demo: ['scr', 'n16', 'syn', 'bas'], mini: ['scr', 'n8', 'n16', 'syn', 'bas', 'drm'], full: ['scr', 'n2', 'n8', 'n16', 'syn', 'bas', 'drm', 'pno', 'spk'] },
+    hiphop: { demo: ['scr', 'n4', 'drm', 'bas'],  mini: ['scr', 'n4', 'n8', 'drm', 'bas', 'lyr'],  full: ['scr', 'n2', 'n4', 'n8', 'drm', 'bas', 'syn', 'lyr', 'spk'] },
+    jazz:   { demo: ['scr', 'n2', 'pno', 'bas'],  mini: ['scr', 'n2', 'n8', 'pno', 'bas', 'drm'],  full: ['scr', 'n2', 'n4', 'n8', 'pno', 'bas', 'drm', 'gtr', 'spk'] },
+    acou:   { demo: ['scr', 'n2', 'gtr', 'str'],  mini: ['scr', 'n2', 'n4', 'gtr', 'str', 'lyr'],  full: ['scr', 'n2', 'n4', 'n8', 'gtr', 'str', 'bas', 'lyr', 'spk'] },
+    orch:   { demo: ['scr', 'n1', 'str', 'pno'],  mini: ['scr', 'n1', 'n2', 'str', 'pno', 'drm'],  full: ['scr', 'n1', 'n2', 'n4', 'n8', 'str', 'pno', 'drm', 'gtr', 'spk'] },
+    fusion: { demo: ['scr', 'n4', 'gtr', 'syn'],  mini: ['scr', 'n4', 'n16', 'gtr', 'syn', 'str'], full: ['scr', 'n1', 'n2', 'n4', 'n8', 'n16', 'gtr', 'bas', 'drm', 'pno', 'syn', 'str'] }
+  };
   var TITLES_A = ['달빛', '새벽', '반짝이는', '첫눈', '마지막', '푸른', '비밀', '여름밤', '별빛', '두근두근', '노을', '봄날'];
   var TITLES_B = ['세레나데', '러브레터', '멜로디', '플레이리스트', '노래', '약속', '왈츠', '기억', '엔딩', '인사', '고백', '랩소디'];
 
@@ -51,19 +64,25 @@
     var it = (items || []).filter(function (i) { return i.name === name; })[0];
     return it ? Math.max(0, Math.floor(Number(it.qty) || 0)) : 0;
   }
-  function tierByCount(n) { for (var i = 0; i < TIERS.length; i++) if (n >= TIERS[i].min) return TIERS[i]; return TIERS[TIERS.length - 1]; }
+  function tierById(id) { return TIERS.filter(function (t) { return t.id === id; })[0]; }
   function needFor(kind, tier) { return kind.cat === 'spark' ? Math.max(1, Math.ceil(tier.per / SPARK_DIV)) : tier.per; }
-  function genreOf(instIds) {
-    if (instIds.length >= 4) return GENRES[GENRES.length - 1];
-    var best = null;
-    GENRES.forEach(function (g) {
-      if (g.fusion || !g.need.every(function (x) { return instIds.indexOf(x) !== -1; })) return;
-      if (!best || g.need.length > best.need.length) best = g;
-    });
-    if (best) return best;
-    var order = ['gtr', 'pno', 'str', 'drm', 'bas', 'syn'];
-    for (var i = 0; i < order.length; i++) if (instIds.indexOf(order[i]) !== -1) return GENRES.filter(function (g) { return g.id === SOLO[order[i]]; })[0];
-    return GENRES[0];
+  function sameSet(a, b) { return a.length === b.length && a.every(function (x) { return b.indexOf(x) !== -1; }); }
+  function findRecipe(ids) {
+    for (var gi = 0; gi < GENRES.length; gi++) {
+      var g = GENRES[gi];
+      for (var ti = 0; ti < TIERS.length; ti++) { var t = TIERS[ti]; if (sameSet(ids, RECIPES[g.id][t.id])) return { genre: g, tier: t }; }
+    }
+    return null;
+  }
+  // 가장 비슷한 레시피와 얼마나 겹치는지 (힌트용)
+  function nearest(ids) {
+    var best = { j: 0 };
+    GENRES.forEach(function (g) { TIERS.forEach(function (t) {
+      var rc = RECIPES[g.id][t.id], m = rc.filter(function (x) { return ids.indexOf(x) !== -1; }).length;
+      var jac = m / (rc.length + ids.length - m);                     // 겹침 정도 (1이면 똑같음)
+      if (jac > best.j) best = { j: jac };
+    }); });
+    return best;
   }
   // 고른 재료(id 배열) → 결과. ok=false 면 reason(힌트). items = 가방 목록(부족한 재료 확인용, 없으면 확인 생략)
   function evaluate(ids, items) {
@@ -75,13 +94,18 @@
     if (!has('note')) miss.push('🎵 음표');
     if (!has('inst')) miss.push('🎸 악기');
     if (miss.length) return { ok: false, fail: true, reason: '그냥 실패했어요… ' + miss.join(', ') + '이(가) 없어서 곡이 안 돼요' };
-    if (ks.length < MIN_KINDS) return { ok: false, fail: true, reason: '그냥 실패했어요… 곡이 너무 짧아요 (재료 ' + MIN_KINDS + '종류 이상)' };
-    var tier = tierByCount(ks.length);
-    var insts = ks.filter(function (k) { return k.cat === 'inst'; }).map(function (k) { return k.id; });
-    var genre = genreOf(insts);
+    var hit = findRecipe(ids);
+    if (!hit) {
+      var nr = nearest(ids), msg;
+      if (nr.j >= 0.7) msg = '거의 다 왔어요! 한두 가지만 바꿔보면 곡이 될 것 같아요';
+      else if (nr.j >= 0.5) msg = '어디선가 들어본 멜로디인데… 뭔가 어긋났어요';
+      else msg = '음이 안 맞아요. 다른 조합을 시도해봐요';
+      return { ok: false, fail: true, reason: '그냥 실패했어요… ' + msg };
+    }
+    var tier = hit.tier, genre = hit.genre;
     var needs = ks.map(function (k) { return { kind: k, need: needFor(k, tier) }; });
     var lack = items ? needs.filter(function (n) { return qtyOf(n.kind.name, items) < n.need; }) : [];
-    return { ok: !lack.length, tier: tier, genre: genre, needs: needs, lack: lack, reason: lack.length ? '재료가 부족해요: ' + lack.map(function (n) { return n.kind.emoji + n.kind.name + ' ' + qtyOf(n.kind.name, items) + '/' + n.need; }).join(', ') : '' };
+    return { ok: !lack.length, tier: tier, genre: genre, needs: needs, lack: lack, reason: lack.length ? '곡이 될 것 같아요! 그런데 재료가 모자라요: ' + lack.map(function (n) { return n.kind.emoji + n.kind.name + ' ' + qtyOf(n.kind.name, items) + '/' + n.need; }).join(', ') : '' };
   }
   function albumTitle(rng) {
     rng = rng || Math.random;
@@ -175,9 +199,9 @@
   // 🎼 작곡 탭
   function selIds() { return Object.keys(ST.sel).filter(function (k) { return ST.sel[k]; }); }
   function makeHtml() {
-    var ids = selIds(), n = ids.length, tier = n >= MIN_KINDS ? tierByCount(n) : null;
+    var ids = selIds(), n = ids.length, tier = null;
     var cats = [['note', '🎵 음표'], ['inst', '🎸 악기'], ['score', '🎼 악보'], ['lyric', '📝 가사 · 💡 영감']];
-    var h = '<div style="font-size:12px;color:#e6d6c4;line-height:1.55;margin-bottom:10px;">재료 종류를 골라 곡을 만들어요 (최대 ' + MAX_KINDS + '종류). 🎼 악보 + 🎵 음표 + 🎸 악기가 있어야 곡이 되고, <b>종류가 많을수록 높은 등급</b>이에요. 실패해도 재료는 안 사라져요!</div>';
+    var h = '<div style="font-size:12px;color:#e6d6c4;line-height:1.55;margin-bottom:10px;">재료 종류를 골라 곡을 만들어요 (최대 ' + MAX_KINDS + '종류). 곡마다 <b>정해진 조합</b>이 있어요. 📒 작곡노트의 단서를 보고 찾아봐요. 실패해도 재료는 안 사라져요!</div>';
     cats.forEach(function (c) {
       var list = kinds().filter(function (k) { return c[0] === 'lyric' ? (k.cat === 'lyric' || k.cat === 'spark') : k.cat === c[0]; });
       h += '<div style="font-size:11px;font-weight:900;color:#ffd9a8;margin:8px 0 5px;">' + c[1] + '</div><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:7px;">';
@@ -189,7 +213,7 @@
       });
       h += '</div>';
     });
-    var info = n === 0 ? '재료 종류를 골라보세요' : (tier ? tier.emoji + ' ' + tier.name + ' · 종류당 ' + tier.per + '개' : '아직 ' + n + '종류 (4종류부터 곡이 돼요)');
+    var info = n === 0 ? '재료 종류를 골라보세요' : '이 조합으로 곡이 될까요?';
     h += '<div style="position:sticky;bottom:0;margin:12px -12px -18px;padding:10px 12px 14px;background:linear-gradient(180deg,rgba(20,12,8,0),rgba(20,12,8,.95) 30%);">' +
       '<div style="display:flex;justify-content:space-between;font-size:12px;font-weight:900;color:#fff;margin-bottom:7px;"><span>선택 ' + n + '/' + MAX_KINDS + '종류</span><span style="color:#ffd9a8;">' + info + '</span></div>' +
       '<div style="display:flex;gap:8px;"><button id="cp-clear" style="padding:13px 14px;border:none;border-radius:12px;background:rgba(255,255,255,.14);color:#fff;font-size:13px;font-weight:900;font-family:inherit;cursor:pointer;">비우기</button>' +
@@ -223,16 +247,22 @@
   // 📒 작곡노트 탭
   function noteHtml(note) {
     var b = sellBonus(note);
-    var h = '<div style="font-size:12px;color:#e6d6c4;line-height:1.55;margin-bottom:8px;">곡을 만들면 장르 × 등급 칸이 채워져요. 칸 하나마다 앨범 판매가 <b>+1%</b>, 한 장르의 세 등급을 다 채우면 <b>+2%</b> 더!<br><span style="color:#FFD700;font-weight:900;">현재 판매가 보너스 +' + Math.round(b * 100) + '%</span></div>';
+    var h = '<div style="font-size:12px;color:#e6d6c4;line-height:1.55;margin-bottom:8px;">곡을 만들면 장르 × 등급 칸이 채워지고, 같은 장르의 <b>다음 등급 단서</b>(재료 분류 모양)가 적혀요. 칸 하나마다 앨범 판매가 <b>+1%</b>, 한 장르의 세 등급을 다 채우면 <b>+2%</b> 더!<br><span style="color:#FFD700;font-weight:900;">현재 판매가 보너스 +' + Math.round(b * 100) + '%</span></div>';
     h += '<div style="display:grid;grid-template-columns:1.3fr repeat(3,1fr);gap:5px;align-items:center;font-size:11px;font-weight:900;color:#ffd9a8;margin-bottom:4px;"><div></div>' + TIERS.slice().reverse().map(function (t) { return '<div style="text-align:center;">' + t.emoji + ' ' + t.name.replace(' 앨범', '') + '</div>'; }).join('') + '</div>';
     GENRES.forEach(function (g) {
       var found = TIERS.some(function (t) { return note[g.id + '_' + t.id]; }), done = genreDone(note, g);
       h += '<div style="display:grid;grid-template-columns:1.3fr repeat(3,1fr);gap:5px;align-items:center;margin-bottom:5px;">' +
         '<div style="font-size:12px;font-weight:900;color:' + (done ? '#FFD700' : found ? '#fff' : '#8b7b6a') + ';">' + (found ? esc(g.name) : '???') + (done ? ' ⭐' : '') + '</div>';
-      TIERS.slice().reverse().forEach(function (t) {
+      TIERS.slice().reverse().forEach(function (t, ti) {
         var e = note[g.id + '_' + t.id];
+        var prev = ti > 0 ? TIERS.slice().reverse()[ti - 1] : null, hint = '';
+        if (!e && prev && note[g.id + '_' + prev.id]) {          // 앞 등급을 찾았으면 이 등급 재료의 분류 모양만 알려준다
+          var CI = { score: '🎼', note: '🎵', inst: '🎸', lyric: '📝', spark: '💡' };
+          hint = RECIPES[g.id][t.id].map(function (id) { var k = kindById(id); return k ? (CI[k.cat] || '❔') : '❔'; }).sort().join('');
+        }
         h += e ? '<div data-n="' + g.id + '_' + t.id + '" style="cursor:pointer;background:rgba(255,184,107,.28);border:1.5px solid ' + ACC + ';border-radius:9px;padding:6px 2px;text-align:center;font-size:10px;font-weight:900;color:#fff;line-height:1.3;">✔<br>' + esc(e.title) + '</div>'
-          : '<div style="background:rgba(255,255,255,.06);border:1.5px dashed rgba(255,255,255,.18);border-radius:9px;padding:10px 2px;text-align:center;font-size:12px;color:#8b7b6a;">???</div>';
+          : (hint ? '<div style="background:rgba(255,184,107,.1);border:1.5px dashed ' + ACC + ';border-radius:9px;padding:5px 2px;text-align:center;font-size:10px;line-height:1.3;color:#ffd9a8;">단서<br>' + hint + '</div>'
+          : '<div style="background:rgba(255,255,255,.06);border:1.5px dashed rgba(255,255,255,.18);border-radius:9px;padding:10px 2px;text-align:center;font-size:12px;color:#8b7b6a;">???</div>');
       });
       h += '</div>';
     });
@@ -272,7 +302,7 @@
 
   window.openAlbumStudio = function () { open('make'); };
   window.openComposeTable = open;
-  window.__albumTest = { TIERS: TIERS, GENRES: GENRES, evaluate: evaluate, genreOf: genreOf, tierByCount: tierByCount, needFor: needFor, compose: compose, sell: sell, sellBonus: sellBonus, priceOf: priceOf, loadNote: loadNote, qtyOf: qtyOf };
+  window.__albumTest = { TIERS: TIERS, GENRES: GENRES, evaluate: evaluate, findRecipe: findRecipe, RECIPES: RECIPES, nearest: nearest, needFor: needFor, compose: compose, sell: sell, sellBonus: sellBonus, priceOf: priceOf, loadNote: loadNote, qtyOf: qtyOf };
 
   // ════════ 더보기 메뉴 타일 ════════
   (function wait() {
