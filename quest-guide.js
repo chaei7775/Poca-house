@@ -155,7 +155,7 @@
       done: function () { try { var v = JSON.parse(localStorage.getItem('ph_invest') || 'null'); return !!(v && ((v.pos && v.pos.length) || (v.hist && v.hist.length))); } catch (e) { return false; } }, reward: 500,
       go: function () { goTo('map'); }, target: '#btn-invest-map' },
     { id: 'fancafe', icon: '☕', title: '팬카페 열어보기',
-      hint: '맵 → 🏘️ 연습생 숙소촌 → ☕ 팬카페. 처음엔 회원이 나 혼자뿐이에요. CF가 터지면 팬들이 하나둘 들어와요!',
+      hint: '맵 → 🏘️ 연습생 숙소촌 → ☕ 팬카페. 데뷔시킨 아이돌마다 팬카페 버튼이 생겨요. 처음엔 회원이 나 혼자뿐이에요. CF가 터지면 팬들이 하나둘 들어와요!',
       done: function () { return fancafeOpened(); }, reward: 400,
       go: function () { goTo('map'); }, target: '#nav-map' },
     { id: 'hidden', icon: '🌟', title: '히든카드 얻기',

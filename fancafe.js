@@ -1,8 +1,8 @@
 // ════════════════════════════════
 // ☕ 팬카페 (fancafe.js) — 1단계
-// 주택가 메뉴에 "☕ 시온 팬카페" 버튼을 붙인다. (game.js / index.html / agency.js / cf-shoot.js는 건드리지 않음)
+// 주택가 메뉴에 데뷔한 아이돌마다 "☕ ○○ 팬카페" 버튼을 붙인다. (game.js / index.html / agency.js / cf-shoot.js는 건드리지 않음)
 //
-// - 시온이 기획사에서 "데뷔 완료"해야 열린다. 처음엔 회원이 나 혼자(1명).
+// - 그 아이돌이 기획사에서 "데뷔 완료"해야 열린다 (시온·하린 등 데뷔시킨 멤버 누구나). 처음엔 회원이 나 혼자(1명).
 // - 대표 팬 10명(NPC)이 하나둘 가입한다. 팬마다 유형 · 말투 · 좋아하는 답글 톤 · 애착도가 있다.
 // - 팬들은 3시간마다 글을 쓴다. 접속하지 않은 동안 쌓인 글은 팬카페를 열 때 한꺼번에 보인다 (최대 48시간치).
 // - 내가 하는 일: ♥ 누르기, 답글 톤 고르기(다정 / 장난 / 담백). 팬마다 좋아하는 톤이 달라서 애착도가 다르게 오른다.
@@ -22,7 +22,6 @@
   var STORAGE_KEY = 'ph_fancafe';
   var AGENCY_KEY = 'ph_agency';          // 데뷔 여부를 읽어오는 곳 (agency.js가 저장)
   var CF_KEY = 'ph_cf';                  // CF 결과(포스터)를 읽어오는 곳 (cf-shoot.js가 저장)
-  var IDOLS = ['sion'];                  // 팬카페가 열리는 아이돌 (나중에 멤버를 늘릴 때 여기에 추가)
 
   var HOUR = 3600000, DAY = 24 * HOUR;
   var TICK_MS = 3 * HOUR;                // 팬들이 글을 쓰는 주기
@@ -261,6 +260,12 @@
   }
 
   // ════════ 게임 데이터 읽기 ════════
+  function debutedIdols() {                           // 기획사에서 데뷔 완료한 아이돌 (팬카페가 열리는 아이돌)
+    try {
+      var a = JSON.parse(localStorage.getItem(AGENCY_KEY) || 'null'), d = (a && a.done) || {};
+      return Object.keys(d).filter(function (k) { return d[k] && typeof CHARS !== 'undefined' && CHARS[k]; });
+    } catch (e) { return []; }
+  }
   function isDebuted(cid) {
     try {
       var a = JSON.parse(localStorage.getItem(AGENCY_KEY) || 'null');
@@ -575,7 +580,8 @@
   function signature(ic) { return members(ic) + '|' + ic.posts.length + '|' + (ic.posts[0] ? ic.posts[0].id : ''); }
 
   function openFanCafe(cid) {
-    cid = cid || IDOLS[0];
+    cid = cid || debutedIdols()[0];
+    if (!cid) return;
     if (typeof CHARS === 'undefined' || !CHARS[cid]) return;
     if (!isDebuted(cid)) { toast('먼저 🎤 기획사에서 ' + idolName(cid) + '을(를) 데뷔시켜 주세요!'); return; }
     if (typeof closePlace === 'function') { try { closePlace(); } catch (e) {} }
@@ -678,6 +684,7 @@
 
   function albumHtml(ic, cid) {
     var defs = cardDefs(cid);
+    if (!defs.length) return '<div style="text-align:center;color:#888;font-size:13px;padding:40px 0;line-height:1.7;">🃏 ' + esc(idolName(cid)) + '의 팬 포카는<br>아직 준비 중이에요</div>';
     var have = defs.filter(function (d) { return ic.cards[d.id]; }).length;
     var cells = defs.map(function (d) {
       if (ic.cards[d.id]) {
@@ -750,7 +757,7 @@
       '<button data-act="close" style="' + BTN + 'padding:8px 14px;background:rgba(255,255,255,0.1);color:#fff;font-size:13px;">닫기</button></div>' +
       '<div style="background:linear-gradient(135deg,rgba(255,107,157,0.18),rgba(192,132,252,0.18));border:1.5px solid #C084FC;border-radius:16px;padding:14px;margin-bottom:14px;">' +
       '<div style="font-size:12px;color:#aaa;">회원 수</div><div style="font-size:28px;font-weight:900;color:#FFD700;margin-bottom:6px;">👥 ' + total.toLocaleString() + '명</div>' + summary + '</div>' +
-      '<div style="display:flex;gap:8px;margin-bottom:14px;">' + tabBtn('board', '📋 게시판') + tabBtn('fans', '🧑‍🤝‍🧑 팬 명단') + tabBtn('album', '🃏 포카 ' + cardHave + '/' + cardDefs(cid).length) + '</div>' +
+      '<div style="display:flex;gap:8px;margin-bottom:14px;">' + tabBtn('board', '📋 게시판') + tabBtn('fans', '🧑‍🤝‍🧑 팬 명단') + tabBtn('album', cardDefs(cid).length ? '🃏 포카 ' + cardHave + '/' + cardDefs(cid).length : '🃏 포카') + '</div>' +
       content + '</div>';
   }
 
@@ -786,7 +793,7 @@
   function live() {
     if (typeof document !== 'undefined' && document.hidden) return;
     var s = loadAll(), now = Date.now(), changedAny = false, toastMsg = null;
-    IDOLS.forEach(function (cid) {
+    Object.keys(s.idols).forEach(function (cid) {
       if (!s.idols[cid] || typeof CHARS === 'undefined' || !CHARS[cid]) return;
       var ic = normalize(s.idols[cid], now), sig = signature(ic), hadFans = Object.keys(ic.fans).length > 0, g0 = giftCount(ic);
       sync(ic, cid, now);
@@ -810,29 +817,37 @@
   window.__fancafeTest = {
     ROSTER: ROSTER, TONES: TONES, STORAGE_KEY: STORAGE_KEY, loadAll: loadAll, saveAllState: saveAllState, getIdol: getIdol,
     sync: sync, processCF: processCF, handleCF: handleCF, members: members, heartPost: heartPost, replyPost: replyPost,
-    resolveQuit: resolveQuit, quitChance: quitChance, claimGift: claimGift, checkGifts: checkGifts, FAN_CARDS: FAN_CARDS, GIFT_AFF: GIFT_AFF, showFanCardPopup: showFanCardPopup, live: live, open: openFanCafe, isDebuted: isDebuted,
+    resolveQuit: resolveQuit, quitChance: quitChance, claimGift: claimGift, checkGifts: checkGifts, FAN_CARDS: FAN_CARDS, GIFT_AFF: GIFT_AFF, showFanCardPopup: showFanCardPopup, live: live, open: openFanCafe, isDebuted: isDebuted, debutedIdols: debutedIdols,
     CONST: { TICK_MS: TICK_MS, MAX_TICKS: MAX_TICKS, FIRST_FAN_DELAY: FIRST_FAN_DELAY, QUIT_AFF: QUIT_AFF, QUIT_WAIT: QUIT_WAIT,
              QUIT_GRACE: QUIT_GRACE, DAY: DAY, HOUR: HOUR, POST_MAX: POST_MAX }
   };
 
-  // ── 주택가 메뉴에 버튼 붙이기 ──
-  var hookTries = 0;
-  (function hookHousingMenu() {
-    hookTries++;
+  // ── 주택가 메뉴에 버튼 붙이기: 데뷔한 아이돌마다 "☕ ○○ 팬카페" ──
+  // (첫 버튼의 id 는 예전과 같은 btn-fancafe-housing — kennel.js 가 이 버튼을 기준으로 분양소 버튼을 붙임)
+  var madeBtn = {};
+  function ensureCafeButtons() {
     var anchor = document.getElementById('btn-explore-housing');
-    if (!anchor || typeof PLACE_BUTTONS === 'undefined' || typeof ALL_PLACE_BTNS === 'undefined' || typeof CHARS === 'undefined') {
-      if (hookTries < 400) setTimeout(hookHousingMenu, 50);
-      return;
-    }
-    if (document.getElementById('btn-fancafe-housing')) return;
-    var b = document.createElement('button');
-    b.id = 'btn-fancafe-housing';
-    b.textContent = '☕ ' + idolName(IDOLS[0]) + ' 팬카페';
-    b.style.cssText = 'display:none;width:100%;padding:14px;margin-top:10px;background:rgba(255,179,128,0.18);border:1.5px solid #FFB380;border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;' + FONT;
-    b.onclick = function () { openFanCafe(IDOLS[0]); };
-    anchor.insertAdjacentElement('afterend', b);
-    if (!PLACE_BUTTONS.housing) PLACE_BUTTONS.housing = [];
-    if (PLACE_BUTTONS.housing.indexOf('btn-fancafe-housing') === -1) PLACE_BUTTONS.housing.push('btn-fancafe-housing');
-    if (ALL_PLACE_BTNS.indexOf('btn-fancafe-housing') === -1) ALL_PLACE_BTNS.push('btn-fancafe-housing');
-  })();
+    if (!anchor || typeof PLACE_BUTTONS === 'undefined' || typeof ALL_PLACE_BTNS === 'undefined' || typeof CHARS === 'undefined') return;
+    debutedIdols().forEach(function (cid) {
+      var b = madeBtn[cid];
+      if (b && document.body.contains(b)) { b.textContent = '☕ ' + idolName(cid) + ' 팬카페'; return; }
+      var first = !document.getElementById('btn-fancafe-housing');
+      b = document.createElement('button');
+      b.id = first ? 'btn-fancafe-housing' : 'btn-fancafe-housing-' + cid;
+      b.textContent = '☕ ' + idolName(cid) + ' 팬카페';
+      var shown = false;
+      try { shown = window.getComputedStyle(anchor).display !== 'none'; } catch (e) {}
+      b.style.cssText = 'display:' + (shown ? 'block' : 'none') + ';width:100%;padding:14px;margin-top:10px;background:rgba(255,179,128,0.18);border:1.5px solid #FFB380;border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;' + FONT;
+      b.onclick = function () { openFanCafe(cid); };
+      var prev = null;
+      Object.keys(madeBtn).forEach(function (k) { if (madeBtn[k] && document.body.contains(madeBtn[k])) prev = madeBtn[k]; });
+      (prev || anchor).insertAdjacentElement('afterend', b);
+      madeBtn[cid] = b;
+      if (!PLACE_BUTTONS.housing) PLACE_BUTTONS.housing = [];
+      if (PLACE_BUTTONS.housing.indexOf(b.id) === -1) PLACE_BUTTONS.housing.push(b.id);
+      if (ALL_PLACE_BTNS.indexOf(b.id) === -1) ALL_PLACE_BTNS.push(b.id);
+    });
+  }
+  setInterval(ensureCafeButtons, 1500);
+  setTimeout(ensureCafeButtons, 300);
 })();
