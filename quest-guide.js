@@ -64,6 +64,10 @@
   function fishInBag() {   // 낚시로 잡은 물고기가 가방에 있으면 낚시를 해본 것 (story-quest.js 와 같은 기준)
     try { return bagItems.some(function (i) { return i && i.desc && String(i.desc).indexOf('낚시로 잡은 물고기') !== -1; }); } catch (e) { return false; }
   }
+  function hiddenTried() {   // 히든카드 재조합 시도: 실패하면 천장 카운터(ph_rc_pity)가 오르고, 성공하면 히든카드가 생김
+    try { if (parseInt(localStorage.getItem('ph_rc_pity') || '0', 10) > 0) return true; } catch (e) {}
+    return hiddenCount() >= 1;
+  }
   function mysterySeen() { try { return localStorage.getItem('ph_mystery_seen') === '1'; } catch (e) { return false; } }
 
   // ── 단계 정의 (순서대로 진행) ──
@@ -158,9 +162,9 @@
       hint: '맵 → 🏘️ 연습생 숙소촌 → ☕ 팬카페. 데뷔시킨 아이돌마다 팬카페 버튼이 생겨요. 처음엔 회원이 나 혼자뿐이에요. CF가 터지면 팬들이 하나둘 들어와요!',
       done: function () { return fancafeOpened(); }, reward: 400,
       go: function () { goTo('map'); }, target: '#nav-map' },
-    { id: 'hidden', icon: '🌟', title: '히든카드 얻기',
-      hint: '더보기 → 🔮 카드 재조합기에서 히든카드에 도전! 실패가 쌓일수록 확률이 오르고, 30번째엔 확정이에요.',
-      done: function () { return hiddenCount() >= 1; }, reward: 500,
+    { id: 'hidden', icon: '🌟', title: '히든카드 재조합해보기',
+      hint: '더보기 → 🔮 카드 재조합기에서 카드 2장을 재조합해 보세요. 낮은 확률로 히든카드가 나와요! 실패해도 시도만 하면 완료예요. SR 이상 조합은 실패가 쌓일수록 확률이 오르고 30번째엔 레어히든이 확정이에요.',
+      done: function () { return !!S.flags.hidden_try || hiddenTried(); }, reward: 500,
       go: function () { if (typeof openRecombine === 'function') openRecombine(); else goTo('home'); }, target: '#nav-shop' },
     { id: 'expedition', icon: '🚌', title: '팬덤 원정 떠나기',
       hint: '🚐 스케줄 가기 → 🎬 팬덤 원정 → 방송국 앞. 현장을 돌아다니며 🖼️ 프리미엄 조각과 강화석을 모아요. 스태미나는 드링크로 채워요!',
@@ -288,7 +292,7 @@
       var ok = true;
       try { if (typeof canDoRecombine === 'function') ok = !!canDoRecombine(); } catch (e) {}
       var r = orig.apply(this, arguments);
-      if (ok) flag('first_recombine');
+      if (ok) { flag('first_recombine'); flag('hidden_try'); }
       return r;
     };
   });
