@@ -302,6 +302,8 @@
     var cw = view.clientWidth, ch = view.clientHeight;
     if (!cw || !ch) return;
     var scale = Math.max(cw / IMG_W, ch / IMG_H);
+    // 폴드처럼 화면이 세로로 짧고 넓으면 꽉 채우기(cover)가 지도를 위아래로 많이 잘라서 못 가는 곳이 생긴다 → 지도 전체가 보이게 세로에 맞춘다
+    if (IMG_H * scale > ch * 1.12) scale = ch / IMG_H;
     var w = IMG_W * scale, h = IMG_H * scale;
     world.style.width = w + 'px';
     world.style.height = h + 'px';
@@ -568,7 +570,7 @@
       p = document.createElement('div');
       p.id = 'bc-panel';
       p.style.cssText = 'position:absolute;left:10px;right:10px;bottom:14px;z-index:40;background:linear-gradient(135deg,rgba(26,26,46,.97),rgba(45,27,78,.97));' +
-        'border:2px solid #C084FC;border-radius:20px;padding:16px 14px;text-align:center;color:#fff;box-shadow:0 8px 30px rgba(0,0,0,.65);font-family:\'Noto Sans KR\',sans-serif;';
+        'border:2px solid #C084FC;border-radius:20px;padding:16px 14px;text-align:center;color:#fff;box-shadow:0 8px 30px rgba(0,0,0,.65);font-family:\'Noto Sans KR\',sans-serif;max-height:62%;overflow-y:auto;-webkit-overflow-scrolling:touch;';
       $('bc-view').appendChild(p);
     }
     p.innerHTML = html;
