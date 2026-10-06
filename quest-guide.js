@@ -339,6 +339,12 @@
     if (!S.flags.first_fishing && document.getElementById('fishing-overlay')) { flag('first_fishing'); flag('first_explore'); }
   }, 400);
 
+  // 팬덤 원정(broadcast-expedition.js)은 startSpecialExplore 를 다시 감싸서 맵이면 원래 함수를 부르지 않고 바로 시작하므로,
+  // 위 후킹이 안 걸릴 수 있다 → 원정 맵 화면(#bc-view)이 뜨는 순간을 직접 감지
+  setInterval(function () {
+    if (!S.flags.first_expedition && document.getElementById('bc-view')) flag('first_expedition');
+  }, 400);
+
   // ── 보상 (새 기능 첫 체험 보너스, 1회만) ──
   function giveRewards() {
     STEPS.forEach(function (st) {
