@@ -34,7 +34,7 @@
   var BG_FILE = 'map-concert.jpg';
   var SEYEON_FACE = 'face-seyeon.png';
   var FAN_FILES = ['fan-1.png', 'fan-2.png', 'fan-3.png', 'fan-4.png', 'fan-5.png', 'fan-6.png', 'fan-7.png', 'fan-8.png'];
-  var START = { x: 500, y: 1140 };
+  var START = { x: 500, y: 725 };
   var STAGE = { x0: 100, x1: 900, y0: 30, y1: 430 };
   // 관객석: 왼쪽/오른쪽 블록, 가운데는 통로
   var BLOCK_X = [[150, 250, 350], [650, 750, 850]];
