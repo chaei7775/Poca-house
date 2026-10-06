@@ -18,6 +18,9 @@
   var END_AT = 43;               // 이 채팅 수에 도달하면(마지막 질문 처리 후) 방송 종료
   var COIN_BASE = 300, COIN_PER_HEART = 15, COIN_MAX = 6000;
   var AFF_HIT = 8, AFF_MISS = 3; // 질문한 팬의 애착도 (좋아하는 톤이면 HIT)
+  var VIRAL_BASE = 0.08, VIRAL_PER_HIT = 0.14, VIRAL_MAX = 0.5;   // 2번째 대답 뒤 '라이브 클립 급상승' 확률 (좋아하는 톤으로 대답한 횟수가 많을수록 높음)
+  var VIRAL_MEMBERS = [10, 25];    // 급상승 때 팬카페 신규 회원 수 범위
+  var VIRAL_COIN_MULT = 1.5;
   var MOOD_GAIN = 8;             // 아이돌 기분 (ph_meal)
   var FONT = "font-family:'Noto Sans KR',sans-serif;";
 
@@ -113,6 +116,7 @@
 
   // ── 방송 상태 ──
   var L = null;
+  var VIRAL_LINES = ['??? 지금 이 라이브 트위터에 올라왔대', '클립 조회수 터지는 중 ㄷㄷ', '친구가 보내줘서 왔어요!!', '실검 올라갔다 ㅋㅋㅋ', '이거 지금 커뮤니티 1위임', '와 시청자 수 보소', '다들 {idol} 라이브로 와 🔥'];
 
   function start(cid) {
     if (!cid || typeof CHARS === 'undefined' || !CHARS[cid]) return;
@@ -125,7 +129,7 @@
     var fans = activeFans(cid);
     var askers = fans.slice().sort(function () { return Math.random() - 0.5; }).slice(0, 3);
     while (askers.length < 3) askers.push(null);        // 팬이 모자라면 익명 시청자가 질문
-    L = { cid: cid, tick: 0, hearts: 0, viewers: 0, peak: 0, asked: 0, askers: askers, results: [], timer: 0, pending: false, over: false, fans: fans, base: 0 };
+    L = { viral: false, viralDone: false, cid: cid, tick: 0, hearts: 0, viewers: 0, peak: 0, asked: 0, askers: askers, results: [], timer: 0, pending: false, over: false, fans: fans, base: 0 };
     var m = cafe.t.members ? cafe.t.members(cafe.ic) : (1 + (cafe.ic.anon || 0) + fans.length);
     L.base = Math.max(8, m * 3 + rnd(2, 12));
     L.viewers = L.base;
@@ -248,7 +252,28 @@
     }, 500);
     L.results.push({ fanId: def ? def.id : null, hit: hit });
     L.asked += 1;
+    if (L.asked === 2 && !L.viralDone) {
+      L.viralDone = true;
+      var hitsNow = L.results.filter(function (r) { return r.hit; }).length;
+      if (Math.random() < Math.min(VIRAL_MAX, VIRAL_BASE + VIRAL_PER_HIT * hitsNow)) setTimeout(goViral, 1800);
+    }
     setTimeout(function () { if (L) L.pending = false; }, 900);
+  }
+
+  // 🔥 라이브 클립 급상승: 시청자가 몇 배로 늘고, 끝나면 신규 회원이 한꺼번에 들어온다
+  function goViral() {
+    if (!L || L.over) return;
+    L.viral = true;
+    addLine('🔥', '실시간 급상승', '{idol} 라이브 클립이 커뮤니티에서 터졌어요!'.replace('{idol}', idolName(L.cid)), 'sys');
+    var steps = 6, n = 0, target = Math.max(L.viewers * rnd(3, 5), 120);
+    var iv = setInterval(function () {
+      if (!L || L.over) { clearInterval(iv); return; }
+      n++; setViewers(Math.round(L.viewers + (target - L.viewers) / (steps - n + 1)));
+      for (var h = 0; h < 4; h++) floatHeart(rnd(5, 95));
+      L.hearts += rnd(3, 8); setHearts();
+      if (n % 2 === 0) addLine('💬', pick(ANON_NICK), fill(pick(VIRAL_LINES), L.cid), 'anon');
+      if (n >= steps) clearInterval(iv);
+    }, 600);
   }
 
   function tick() {
@@ -265,8 +290,9 @@
     L.over = true; clearInterval(L.timer);
     var cid = L.cid, hearts = L.hearts, peak = L.peak;
     var asked = L.results.length, hits = L.results.filter(function (r) { return r.hit; }).length;
-    var coinsGot = early && asked === 0 ? 0 : Math.min(COIN_MAX, COIN_BASE + hearts * COIN_PER_HEART + hits * 150);
-    var anonGot = early && asked === 0 ? 0 : Math.min(3, Math.floor(peak / 40));
+    var viral = !!L.viral;
+    var coinsGot = early && asked === 0 ? 0 : Math.min(viral ? COIN_MAX * 2 : COIN_MAX, Math.round((COIN_BASE + hearts * COIN_PER_HEART + hits * 150) * (viral ? VIRAL_COIN_MULT : 1)));
+    var anonGot = early && asked === 0 ? 0 : (viral ? rnd(VIRAL_MEMBERS[0], VIRAL_MEMBERS[1]) : Math.min(3, Math.floor(peak / 40)));
     var fanLines = [];
     var cafe = cafeOf(cid);
     if (cafe) {
@@ -280,6 +306,7 @@
         fanLines.push((def ? def.emoji + ' ' + def.nick : r.fanId) + ' 애착도 +' + d);
       });
       if (anonGot) cafe.ic.anon = (cafe.ic.anon || 0) + anonGot;
+      if (viral && cafe.t.addPost) cafe.t.addPost(cafe.ic, { ts: now + 1000, fanId: null, kind: 'viral', title: '🔥 ' + idolName(cid) + ' 라이브 클립이 커뮤니티에서 터졌어요!', body: '라이브 클립이 퍼지면서 새 회원이 ' + anonGot + '명 들어왔어요. 지금 팬카페 분위기가 뜨거워요!' });
       cafe.ic.lastCare = now;
       cafe.t.saveAllState(cafe.s);
     }
@@ -303,7 +330,7 @@
     var left = PER_DAY - usedToday(cid);
     ov.innerHTML = '<div style="margin:auto;width:calc(100% - 32px);max-width:420px;text-align:center;">' +
       '<div style="font-size:34px;">📺</div>' +
-      '<div style="font-size:19px;font-weight:900;margin:4px 0 4px;">' + (early ? '방송 종료' : '라이브 대성공!') + '</div>' +
+      '<div style="font-size:19px;font-weight:900;margin:4px 0 4px;">' + (early ? '방송 종료' : viral ? '🔥 라이브 클립 대폭발!' : '라이브 대성공!') + '</div>' +
       '<div style="font-size:12px;color:#ccc;margin-bottom:12px;">' + esc(idolName(cid)) + ' · 최고 시청자 ' + peak + '명 · ❤️ ' + hearts + '개</div>' +
       '<div style="margin-bottom:10px;">' +
         (coinsGot ? chip('🍔 +' + coinsGot.toLocaleString() + ' 코인', '#FFD700') : '') +
@@ -348,5 +375,5 @@
   setInterval(ensureButton, 1000);
 
   window.openPocaLive = start;
-  window.__liveTest = { start: start, load: load, usedToday: usedToday, activeFans: activeFans, IDLE: IDLE, ASK: ASK, finish: finish, state: function () { return L; }, CFG: { PER_DAY: PER_DAY, TICK_MS: TICK_MS, ASK_AT: ASK_AT, END_AT: END_AT } };
+  window.__liveTest = { goViral: goViral, start: start, load: load, usedToday: usedToday, activeFans: activeFans, IDLE: IDLE, ASK: ASK, finish: finish, state: function () { return L; }, CFG: { PER_DAY: PER_DAY, TICK_MS: TICK_MS, ASK_AT: ASK_AT, END_AT: END_AT } };
 })();

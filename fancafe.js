@@ -817,7 +817,7 @@
   window.__fancafeCurrentCid = function () { return ui.cid; };   // 지금 열려 있는 팬카페의 아이돌 (live.js 가 라이브 버튼을 붙일 때 씀)
   window.__fancafeTest = {
     ROSTER: ROSTER, TONES: TONES, STORAGE_KEY: STORAGE_KEY, loadAll: loadAll, saveAllState: saveAllState, getIdol: getIdol,
-    sync: sync, processCF: processCF, handleCF: handleCF, members: members, heartPost: heartPost, replyPost: replyPost,
+    addPost: addPost, sync: sync, processCF: processCF, handleCF: handleCF, members: members, heartPost: heartPost, replyPost: replyPost,
     resolveQuit: resolveQuit, quitChance: quitChance, claimGift: claimGift, checkGifts: checkGifts, FAN_CARDS: FAN_CARDS, GIFT_AFF: GIFT_AFF, showFanCardPopup: showFanCardPopup, live: live, open: openFanCafe, isDebuted: isDebuted, debutedIdols: debutedIdols,
     CONST: { TICK_MS: TICK_MS, MAX_TICKS: MAX_TICKS, FIRST_FAN_DELAY: FIRST_FAN_DELAY, QUIT_AFF: QUIT_AFF, QUIT_WAIT: QUIT_WAIT,
              QUIT_GRACE: QUIT_GRACE, DAY: DAY, HOUR: HOUR, POST_MAX: POST_MAX }
