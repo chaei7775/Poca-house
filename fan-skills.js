@@ -710,6 +710,7 @@
       '<div style="height:1px;background:rgba(255,255,255,.15);margin:12px 0;"></div>';
   }
   function openShop() {
+    if (!$('fs-toast-fix')) { var tf = document.createElement('style'); tf.id = 'fs-toast-fix'; tf.textContent = '#bag-toast{z-index:3000 !important}'; document.head.appendChild(tf); }   // 상점(z955) 위에도 안내 메시지가 보이게
     var old = $('fs-shop'); if (old) old.remove();
     var ov = document.createElement('div');
     ov.id = 'fs-shop';
