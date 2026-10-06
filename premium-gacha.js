@@ -40,6 +40,7 @@
     if (count >= 5 && !grades.some(function (g) { return ORDER.indexOf(g) >= 2; })) grades[grades.length - 1] = 'SR';   // SR 이상 보장
     coins -= cost; try { saveAll(); if (typeof updateCoinsDisplay === 'function') updateCoinsDisplay(); } catch (e) {}
     var results = grades.map(drawGrade);
+    try { localStorage.setItem('ph_premgacha_used', '1'); } catch (e) {}   // 길잡이 퀘스트용
     try { if (count === 1) window.showGachaResult(results[0]); else window.showGachaResultMulti(results); } catch (e) {}
     return results;
   }
