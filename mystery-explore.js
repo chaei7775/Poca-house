@@ -246,8 +246,17 @@
     injectStyle();
     var ov = document.createElement('div');
     ov.id = 'mystery-spring-overlay';
-    ov.style.cssText = 'position:fixed;inset:0;z-index:720;background:linear-gradient(rgba(0,0,0,.55),rgba(0,0,0,.8)),url(map-mystery.png) center/cover no-repeat,#000;display:flex;align-items:center;justify-content:center;';
+    ov.style.cssText = 'position:fixed;inset:0;z-index:720;background:linear-gradient(rgba(0,0,0,.3),rgba(0,0,0,.6)),url(map-mystery.png) 68% 50%/cover no-repeat,#000;display:flex;align-items:center;justify-content:center;';
     document.body.appendChild(ov);
+    if (!document.getElementById('spring-fx-css')) {
+      var fx = document.createElement('style'); fx.id = 'spring-fx-css';
+      fx.textContent = '@keyframes spFly{0%{transform:translate(0,0) scale(.6);opacity:0}15%{opacity:1}100%{transform:translate(var(--dx),var(--dy)) scale(1.1);opacity:0}}' +
+        '@keyframes spBurst{0%{transform:translate(-50%,-50%) scale(.1);opacity:.95}100%{transform:translate(-50%,-50%) scale(5);opacity:0}}' +
+        '@keyframes spRipple{0%{transform:translate(-50%,-50%) scale(.2);opacity:.8}100%{transform:translate(-50%,-50%) scale(3);opacity:0}}' +
+        '@keyframes spUp{0%{transform:translate(0,0) scale(.5);opacity:0}20%{opacity:1}100%{transform:translate(var(--dx),-220px) scale(1.3);opacity:0}}' +
+        '@keyframes spCardIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}';
+      document.head.appendChild(fx);
+    }
 
     function render(msg, good) {
       var have = fireflyCount(), fails = getFails();
@@ -279,37 +288,59 @@
       var fails = getFails();
       var success = Math.random() < springChance(fails);
 
-      // 반딧불이 샘으로 날아가는 연출
-      var well = document.getElementById('spring-well');
-      var card = well ? well.parentNode : null;
-      if (card) {
-        card.style.position = 'relative';
-        for (var i = 0; i < 8; i++) {
-          var d = document.createElement('div');
-          var dx = Math.round(Math.cos((i / 8) * 6.283) * 90);
-          d.style.cssText = 'position:absolute;left:calc(50% + ' + dx + 'px);top:190px;width:14px;height:14px;margin:-7px;border-radius:50%;' +
-            'background:radial-gradient(circle,#fffbe0,#ffe27a 60%,rgba(255,226,122,0));' +
-            'animation:myThrow 0.7s ease-in ' + (i * 0.04) + 's forwards;';
-          d.style.setProperty('--tx', (-dx) + 'px');
-          d.style.setProperty('--ty', '-140px');
-          card.appendChild(d);
-        }
+      // 연출: 카드를 잠깐 숨기고 배경 속 샘으로 반딧불이 날아가게 한다
+      var card = ov.firstElementChild;
+      if (card) { card.style.transition = 'opacity .3s'; card.style.opacity = '0'; card.style.pointerEvents = 'none'; }
+      var FX = { x: '50%', y: '47%' };
+      var layer = document.createElement('div');
+      layer.style.cssText = 'position:absolute;inset:0;pointer-events:none;overflow:hidden;';
+      for (var i = 0; i < 14; i++) {
+        var d = document.createElement('div');
+        var sx = Math.round(Math.random() * 100);
+        d.style.cssText = 'position:absolute;left:' + sx + '%;top:' + (88 + Math.random() * 8) + '%;width:14px;height:14px;margin:-7px;border-radius:50%;' +
+          'background:radial-gradient(circle,#fffbe0,#ffe27a 60%,rgba(255,226,122,0));box-shadow:0 0 12px #ffe27a;' +
+          'animation:spFly 1s ease-in ' + (i * 0.05) + 's forwards;';
+        d.style.setProperty('--dx', Math.round((50 - sx) * 3.9) + 'px');
+        d.style.setProperty('--dy', '-' + Math.round(innerHeight * 0.4) + 'px');
+        layer.appendChild(d);
       }
-      var tb = document.getElementById('spring-throw');
-      if (tb) { tb.disabled = true; tb.textContent = '반딧불이 샘으로 날아가요…'; }
+      ov.appendChild(layer);
 
       setTimeout(function () {
         throwing = false;
+        var tmsg, tgood = false;
         if (success) {
           setFails(0);
           giveWishFragment();
-          render('🧩 소원의 조각을 얻었어요!<br><span style="font-size:12px;color:#aaa;">(현재 ' + wishFragments + '/100)</span>', true);
+          tmsg = '🧩 소원의 조각을 얻었어요!<br><span style="font-size:12px;color:#aaa;">(현재 ' + wishFragments + '/100)</span>'; tgood = true;
         } else {
           setFails(fails + 1);
-          render('샘이 반짝이다 잠잠해졌어요…<br><span style="font-size:12px;color:#aaa;">행운이 쌓이고 있어요 (' + Math.min(fails + 1, SPRING_PITY) + '/' + SPRING_PITY + ')</span>');
+          tmsg = '샘이 반짝이다 잠잠해졌어요…<br><span style="font-size:12px;color:#aaa;">행운이 쌓이고 있어요 (' + Math.min(fails + 1, SPRING_PITY) + '/' + SPRING_PITY + ')</span>';
         }
+        // 샘에서 빛이 터지거나(성공) 물결만 번진다(실패)
+        var fl = document.createElement('div');
+        fl.style.cssText = 'position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:2;';
+        var ring = document.createElement('div');
+        ring.style.cssText = 'position:absolute;left:' + FX.x + ';top:' + FX.y + ';width:120px;height:120px;border-radius:50%;' +
+          (success ? 'background:radial-gradient(circle,#fff,rgba(255,226,122,.85) 35%,rgba(255,150,220,0) 70%);animation:spBurst 1.3s ease-out forwards;'
+                   : 'border:3px solid rgba(190,170,255,.8);animation:spRipple 1.2s ease-out forwards;');
+        fl.appendChild(ring);
+        if (success) {
+          for (var j = 0; j < 16; j++) {
+            var st = document.createElement('div');
+            st.textContent = ['✨', '⭐', '💖', '🧩'][j % 4];
+            st.style.cssText = 'position:absolute;left:' + (30 + Math.random() * 40) + '%;top:' + (46 + Math.random() * 6) + '%;font-size:' + (14 + Math.random() * 14) + 'px;opacity:0;animation:spUp ' + (1.2 + Math.random() * 0.8) + 's ease-out ' + (Math.random() * 0.4) + 's forwards;';
+            st.style.setProperty('--dx', Math.round((Math.random() - 0.5) * 160) + 'px');
+            fl.appendChild(st);
+          }
+        }
+        render(tmsg, tgood);
+        var nc = ov.firstElementChild;
+        if (nc) { nc.style.animation = 'spCardIn .5s ease-out .5s both'; }
+        ov.appendChild(fl);
+        setTimeout(function () { if (fl.parentNode) fl.remove(); }, 2300);
         if (typeof saveAll === 'function') saveAll();
-      }, 1100);
+      }, 1250);
     }
 
     render('');
