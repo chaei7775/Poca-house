@@ -6,7 +6,7 @@
 // 규칙
 //  · 재료 종류를 최대 12종까지 골라 "작곡하기". 30칸(장르 10 × 등급 3)마다 정해진 레시피(재료 조합)가 있고,
 //    고른 조합이 레시피와 정확히 같을 때만 곡이 된다. 아무렇게나 많이 넣는다고 되지 않는다.
-//    안 맞으면 "그냥 실패했어요". 실패해도 재료는 하나도 안 사라지고, 얼마나 비슷한지 힌트만 뜬다.
+//    안 맞으면 "그냥 실패했어요". 실패해도 재료는 하나도 안 사라지고, 얼마나 비슷한지와 재료 하나("○○이 들어가요")를 알려준다.
 //  · 레시피는 노트에서 스스로 찾는다. 한 칸을 찾으면 같은 장르의 다음 등급 레시피에 대한 단서(재료 분류 모양)가 노트에 적힌다.
 //  · 성공하면 노트에 등록되고 앨범이 가방에 들어온다. 앨범은 💿판매 탭에서 코인으로 바꾼다.
 //  · 고른 종류마다 같은 개수가 든다 (등급이 정함: 데모 4 / 미니 7 / 정규 11, 영감은 1/3).
@@ -25,6 +25,7 @@
     { id: 'mini', min: 7,  emoji: '💽', name: '미니 앨범', per: 7,  price: 90000 },
     { id: 'demo', min: 4,  emoji: '💿', name: '데모 앨범', per: 4,  price: 30000 }
   ];
+  var HINT_MIN_J = 0.3;                          // 비슷한 정도가 이 이상이면 실패할 때마다 재료 하나를 알려준다 (0이면 항상, 2면 끔)
   var SPARK_DIV = 3;                             // 💡 영감의불꽃은 다른 재료의 1/3개만 든다
   var BONUS_PER_ENTRY = 0.01, BONUS_PER_GENRE = 0.02;
   // 장르: 필요한 악기 조합 (더 많이 맞는 장르가 우선). 퓨전 = 악기 4종 이상
@@ -76,13 +77,23 @@
   }
   // 가장 비슷한 레시피와 얼마나 겹치는지 (힌트용)
   function nearest(ids) {
-    var best = { j: 0 };
+    var best = { j: 0, rc: null };
     GENRES.forEach(function (g) { TIERS.forEach(function (t) {
       var rc = RECIPES[g.id][t.id], m = rc.filter(function (x) { return ids.indexOf(x) !== -1; }).length;
       var jac = m / (rc.length + ids.length - m);                     // 겹침 정도 (1이면 똑같음)
-      if (jac > best.j) best = { j: jac };
+      if (jac > best.j) best = { j: jac, rc: rc };
     }); });
     return best;
+  }
+  // 실패할 때마다 재료 하나를 알려준다: 모자란 재료가 있으면 "○○이(가) 들어가요", 없고 군더더기만 있으면 "○○은(는) 안 들어가요"
+  function josa(w, a, b) { var c = w.charCodeAt(w.length - 1) - 44032; return (c >= 0 && c < 11172 && c % 28 !== 0) ? a : b; }
+  function oneHint(ids, rc, rng) {
+    rng = rng || Math.random;
+    var missing = rc.filter(function (x) { return ids.indexOf(x) === -1; }), extra = ids.filter(function (x) { return rc.indexOf(x) === -1; });
+    var pick = function (arr) { return kindById(arr[Math.floor(rng() * arr.length)]); };
+    if (missing.length) { var k = pick(missing); return '💡 힌트: ' + k.emoji + ' <b>' + k.name + '</b>' + josa(k.name, '이', '가') + ' 들어가요!'; }
+    if (extra.length) { var e = pick(extra); return '💡 힌트: ' + e.emoji + ' <b>' + e.name + '</b>' + josa(e.name, '은', '는') + ' 안 들어가는 것 같아요'; }
+    return '';
   }
   // 고른 재료(id 배열) → 결과. ok=false 면 reason(힌트). items = 가방 목록(부족한 재료 확인용, 없으면 확인 생략)
   function evaluate(ids, items) {
@@ -100,7 +111,8 @@
       if (nr.j >= 0.7) msg = '거의 다 왔어요! 한두 가지만 바꿔보면 곡이 될 것 같아요';
       else if (nr.j >= 0.5) msg = '어디선가 들어본 멜로디인데… 뭔가 어긋났어요';
       else msg = '음이 안 맞아요. 다른 조합을 시도해봐요';
-      return { ok: false, fail: true, reason: '그냥 실패했어요… ' + msg };
+      var hint = (nr.rc && nr.j >= HINT_MIN_J) ? oneHint(ids, nr.rc) : '';
+      return { ok: false, fail: true, reason: '그냥 실패했어요… ' + msg + (hint ? '<br>' + hint : '') };
     }
     var tier = hit.tier, genre = hit.genre;
     var needs = ks.map(function (k) { return { kind: k, need: needFor(k, tier) }; });
