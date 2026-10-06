@@ -39,12 +39,19 @@
   var COIN_MULT = { broadcast_front: 40, fanmeeting: 80, concert: 100 };   // 맵별 코인 배율 (원정 이벤트와 같은 값)
   var PIECE_NAME = '프리미엄 조각', PIECE_EMOJI = '🖼️', PIECE_GOAL = 100;
 
-  var SKILLS = [                 // price = 상점 가격(멤버 1명당 코인). 0이면 처음부터 가지고 있음
-    { id: 'sign',  name: '사인해주기', short: '사인', icon: '✍️', price: 0,       desc: '펜이 반짝! 팬이 제일 좋아하는 기본 스킬' },
-    { id: 'photo', name: '사진촬영',   short: '사진', icon: '📸', price: 0,       desc: '찰칵! 폴라로이드 한 장을 남겨요' },
-    { id: 'shake', name: '악수',       short: '악수', icon: '🤝', price: 300000,  desc: '손을 맞잡고 반짝이를 터뜨려요' },
-    { id: 'heart', name: '손하트',     short: '하트', icon: '💗', price: 1000000, desc: '하트를 날려서 팬 마음을 저격해요' }
+  var SLOTS = 5;                 // 장착 슬롯 수 (모든 팬덤 원정 맵에서 공통)
+  var LOADOUT_KEY = 'ph_skillLoadout';
+  var SKILLS = [                 // price = 상점 가격(멤버 1명당 코인). 0이면 처음부터 가지고 있음 / useLv = 쓸 수 있는 플레이어 레벨 / aoe = 광역(reach = 쓸 수 있는 거리)
+    { id: 'sign',  name: '사인해주기', short: '사인', icon: '✍️', price: 0,       useLv: 1,  desc: '펜이 반짝! 팬이 제일 좋아하는 기본 스킬' },
+    { id: 'photo', name: '사진촬영',   short: '사진', icon: '📸', price: 0,       useLv: 1,  desc: '찰칵! 폴라로이드 한 장을 남겨요' },
+    { id: 'shake', name: '악수',       short: '악수', icon: '🤝', price: 300000,  useLv: 10, desc: '손을 맞잡고 반짝이를 터뜨려요' },
+    { id: 'heart', name: '손하트',     short: '하트', icon: '💗', price: 1000000, useLv: 15, desc: '하트를 날려서 팬 마음을 저격해요' },
+    { id: 'highlight', name: '하이라이트 부르기', short: '하이라이트', icon: '🎤', price: 2000000, useLv: 20, aoe: true, reach: 170, desc: '광역! 주변 팬들을 확 사로잡아요' },
+    { id: 'wink',  name: '윙크 샤워',  short: '윙크샤워', icon: '💖', price: 3000000, useLv: 25, aoe: true, reach: 250, desc: '넓은 광역! 넓은 범위에 윙크 세례' },
+    { id: 'encore', name: '앵콜 폭죽', short: '앵콜폭죽', icon: '✨', price: 5000000, useLv: 30, aoe: true, reach: 320, desc: '대광역! 전방위 대폭발' }
   ];
+  var FAV_IDS = ['sign', 'photo', 'shake', 'heart'];   // 팬이 좋아하는 스킬은 기본 4종 중에서만 (광역 스킬은 누구에게나 50% 확률로 대만족)
+  var AOE_LOVE = 0.5;
   var FANS = [
     { name: '매일 오는 팬', emoji: '🙋‍♀️' },
     { name: '금손 팬',      emoji: '🎨' },
@@ -82,6 +89,29 @@
   function ownedMap(cid) { var s = loadStore(); return (s[cid] && s[cid].owned && typeof s[cid].owned === 'object') ? s[cid].owned : {}; }
   function hasSkill(cid, sk) { return !!sk && (sk.price === 0 || !!ownedMap(cid)[sk.id]); }
   function unlockedSkills(cid) { return SKILLS.filter(function (s) { return hasSkill(cid, s); }); }
+  function plv() { try { return Number(playerLevel) || 1; } catch (e) { return 1; } }
+  function levelOk(sk) { return plv() >= (sk.useLv || 1); }
+  // ── 장착 스킬 (5칸, 모든 팬덤 원정 맵 공통) ──
+  function loadLoadout() {
+    var arr = null;
+    try { arr = JSON.parse(localStorage.getItem(LOADOUT_KEY) || 'null'); } catch (e) {}
+    var out = [], seen = {};
+    if (Array.isArray(arr)) {
+      for (var i = 0; i < SLOTS; i++) { var id = arr[i]; if (id && skillById(id) && !seen[id]) { out.push(id); seen[id] = 1; } else out.push(null); }
+      return out;
+    }
+    SKILLS.forEach(function (s) { if (out.length < SLOTS && s.price === 0) { out.push(s.id); } });   // 처음엔 기본 스킬만
+    while (out.length < SLOTS) out.push(null);
+    return out;
+  }
+  function saveLoadout(arr) { try { localStorage.setItem(LOADOUT_KEY, JSON.stringify(arr)); } catch (e) {} if (typeof saveAll === 'function') { try { saveAll(); } catch (e) {} } }
+  function equip(slot, id) {                       // id = null 이면 비움. 이미 다른 칸에 있으면 그 칸을 비우고 옮김
+    var L = loadLoadout();
+    if (id) for (var i = 0; i < SLOTS; i++) if (L[i] === id) L[i] = null;
+    L[slot] = id || null;
+    saveLoadout(L);
+    return L;
+  }
   function coinsNow() { return (typeof coins !== 'undefined') ? coins : 0; }
   function priceLabel(p) { return p >= 10000 ? (p / 10000) + '만' : fmt(p); }
   function charName(cid) {
@@ -172,6 +202,11 @@
       var mx = (fx + me.x) / 2, my = (fy + me.y) / 2;
       addAt(mx, my, '<div style="font-size:38px;">🤝</div>', 'animation:fsPulse .9s ease-out forwards;', 950);
       setTimeout(function () { burst(mx, my, ['✨', '💫', '⭐'], love ? 12 : 7, 60); }, 350);
+    } else if (id === 'highlight' || id === 'wink' || id === 'encore') {
+      var col = id === 'wink' ? 'rgba(255,205,90,.55)' : (id === 'encore' ? 'rgba(190,140,255,.55)' : 'rgba(255,120,170,.55)');
+      addAt(me.x, me.y, '', 'width:40px;height:40px;border-radius:50%;border:4px solid ' + col + ';background:' + col.replace('.55', '.18') + ';animation:fsFlashC .8s ease-out forwards;', 900);
+      addAt(me.x, me.y, '<div style="font-size:34px;">' + skillById(id).icon + '</div>', 'animation:fsPulse .9s ease-out forwards;', 950);
+      setTimeout(function () { burst(fx, fy, id === 'wink' ? ['💖', '✨', '😉'] : (id === 'encore' ? ['✨', '🎆', '⭐'] : ['🎤', '🎵', '✨']), love ? 14 : 9, id === 'encore' ? 90 : 70); }, 420);
     } else if (id === 'heart') {
       var h = addAt(me.x, me.y, '<div style="font-size:30px;">💗</div>', 'transition:left .5s ease-in,top .5s ease-in;', 1300);
       if (h) setTimeout(function () { h.style.left = (fx * 100) + '%'; h.style.top = (fy * 100) + '%'; }, 30);
@@ -212,7 +247,7 @@
     var x = clamp(me.x + Math.cos(a) * r / ws.w, BOUNDS.x0, BOUNDS.x1);
     var y = clamp(me.y + Math.sin(a) * r / ws.h, BOUNDS.y0, BOUNDS.y1);
     var type = FANS[Math.floor(Math.random() * FANS.length)];
-    var f = { id: ++F.nid, x: x, y: y, name: type.name, emoji: type.emoji, fav: SKILLS[Math.floor(Math.random() * SKILLS.length)].id, until: Date.now() + FAN_TTL * 1000, el: null };
+    var f = { id: ++F.nid, x: x, y: y, name: type.name, emoji: type.emoji, fav: FAV_IDS[Math.floor(Math.random() * FAV_IDS.length)], until: Date.now() + FAN_TTL * 1000, el: null };
     f.el = buildFanEl(f);
     F.fans.push(f);
     var fsk = skillById(f.fav);
@@ -231,13 +266,13 @@
     else if (el.parentNode) el.parentNode.removeChild(el);
   }
 
-  function nearestFan() {
+  function nearestFan(rng) {
     var me = playerPos();
     if (!F || !me) return null;
     var best = null, bd = 1e9;
     F.fans.forEach(function (f) {
       var d = pxDist(f.x, f.y, me.x, me.y);
-      if (d <= FAN_RANGE && d < bd) { best = f; bd = d; }
+      if (d <= (rng || FAN_RANGE) && d < bd) { best = f; bd = d; }
     });
     return best;
   }
@@ -253,7 +288,7 @@
     var hk = bcHook();
     if (!hk || !F) return;
     hk.events().forEach(function (ev) {
-      if (!ev.fsFav) ev.fsFav = SKILLS[Math.floor(Math.random() * SKILLS.length)].id;
+      if (!ev.fsFav) ev.fsFav = FAV_IDS[Math.floor(Math.random() * FAV_IDS.length)];
       if (!ev.el || ev.el.querySelector('.fs-evb')) return;
       var sk = skillById(ev.fsFav);
       var b = document.createElement('div');
@@ -263,18 +298,18 @@
       ev.el.appendChild(b);
     });
   }
-  function nearestEvent() {
+  function nearestEvent(rng) {
     var hk = bcHook(), me = playerPos();
     if (!hk || !F || !me) return null;
     var best = null, bd = 1e9;
     hk.events().forEach(function (ev) {
       if (ev.fsBusy || !ev.fsFav) return;
       var d = pxDist(ev.x, ev.y, me.x, me.y);
-      if (d <= FAN_RANGE && d < bd) { best = ev; bd = d; }
+      if (d <= (rng || FAN_RANGE) && d < bd) { best = ev; bd = d; }
     });
     return best ? evTarget(best) : null;
   }
-  function nearestTarget() { return nearestEvent() || nearestFan(); }
+  function nearestTarget(rng) { return nearestEvent(rng) || nearestFan(rng); }
 
   // ════════ 보상 ════════
   function grant(love) {
@@ -302,13 +337,14 @@
     var sk = skillById(id);
     if (!sk) return null;
     if ($('bc-panel')) return null;                                  // 이벤트 진행 중엔 못 씀
+    if (!levelOk(sk)) { toast('🔒 ' + sk.name + '은(는) 플레이어 Lv.' + sk.useLv + '부터 쓸 수 있어요 (지금 Lv.' + plv() + ')'); return null; }
     if (!hasSkill(F.cid, sk)) { openBuyModal(sk); return null; }      // 아직 안 배운 스킬: 구매 창
     var now = Date.now();
     if ((F.cd[id] || 0) > now) return null;
-    var fan = nearestTarget();
+    var fan = nearestTarget(sk.reach);
     if (!fan) { toast(bcHook() ? '가까이에 이벤트가 없어요! ❗ 쪽으로 걸어가 봐요 (눌러서 닿기 전까지만)' : '가까이에 팬이 없어요! 팬 쪽으로 걸어가 봐요'); return null; }
     var me = playerPos();
-    var love = fan.fav === id;
+    var love = fan.fav === id || (!!sk.aoe && Math.random() < AOE_LOVE);
     if (fan.ev) {                                                    // 맵 이벤트에 스킬 사용: 이펙트 → 잠깐 뒤 결과창
       var hk = bcHook(), evRef = fan.ev;
       if (!hk.canResolve(evRef)) return null;                         // 스태미나 부족 등
@@ -327,6 +363,17 @@
       return { love: love, event: true };
     }
     var fanRef = fan;
+    if (sk.aoe) {                                                    // 광역: 범위 안의 다른 팬들도 한꺼번에 응대
+      var me2 = playerPos();
+      F.fans.slice().forEach(function (o) {
+        if (o === fan || !me2 || pxDist(o.x, o.y, me2.x, me2.y) > sk.reach) return;
+        F.fans.splice(F.fans.indexOf(o), 1);
+        var lv2 = o.fav === id || Math.random() < AOE_LOVE;
+        effect(id, o, me2, lv2); grant(lv2); addServe(F.cid);
+        floatText(o.x, o.y - 0.03, '<div style="font-size:15px;font-weight:900;color:' + (lv2 ? '#FFD700' : '#fff') + ';text-shadow:0 2px 6px #000;">' + (lv2 ? '😍 대만족!' : '😊 만족') + '</div>');
+        setTimeout(function () { removeFan(o, true); }, 900);
+      });
+    }
     F.fans.splice(F.fans.indexOf(fan), 1);                           // 응대 중인 팬은 다른 스킬 대상에서 빠짐
     effect(id, fanRef, me, love);
     var r = grant(love);
@@ -365,19 +412,24 @@
     var hint = document.createElement('div');
     hint.style.cssText = 'background:rgba(0,0,0,.62);border-radius:999px;padding:3px 12px;font-size:11px;font-weight:900;color:#fff;';
     var row = document.createElement('div');
-    row.style.cssText = 'display:flex;gap:8px;';
+    row.style.cssText = 'display:flex;gap:6px;';
     var btns = {};
-    SKILLS.forEach(function (s) {
+    for (var si = 0; si < SLOTS; si++) (function (si) {
       var b = document.createElement('div');
-      b.setAttribute('data-skill', s.id);
-      b.style.cssText = 'width:60px;height:60px;border-radius:50%;background:rgba(26,26,46,.9);border:2.5px solid #C084FC;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;color:#fff;user-select:none;-webkit-user-select:none;';
+      b.setAttribute('data-slot', si);
+      b.style.cssText = 'width:58px;height:58px;border-radius:50%;background:rgba(26,26,46,.9);border:2.5px solid #C084FC;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;color:#fff;user-select:none;-webkit-user-select:none;';
       b.innerHTML = '<div class="fs-ic" style="font-size:24px;line-height:1;"></div><div class="fs-lb" style="font-size:9px;font-weight:900;margin-top:2px;"></div>';
-      b.onpointerdown = function (e) { e.stopPropagation(); e.preventDefault(); useSkill(s.id); };
+      b.onpointerdown = function (e) { e.stopPropagation(); e.preventDefault(); var id = loadLoadout()[si]; if (id) useSkill(id); else openEditor(); };
       row.appendChild(b);
-      btns[s.id] = b;
-    });
+      btns[si] = b;
+    })(si);
     bar.addEventListener('pointerdown', function (e) { e.stopPropagation(); });   // 버튼 영역을 눌러도 캐릭터가 걸어가지 않게
+    var gear = document.createElement('div');
+    gear.textContent = '⚙️ 스킬 장착';
+    gear.style.cssText = 'background:rgba(0,0,0,.62);border:1px solid #C084FC;border-radius:999px;padding:2px 10px;font-size:10px;font-weight:900;color:#fff;cursor:pointer;';
+    gear.onpointerdown = function (e) { e.stopPropagation(); e.preventDefault(); openEditor(); };
     bar.appendChild(hint);
+    bar.appendChild(gear);
     bar.appendChild(row);
     view.appendChild(bar);
     F.bar = bar; F.hint = hint; F.btns = btns;
@@ -388,18 +440,21 @@
     F.bar.style.display = $('bc-panel') ? 'none' : 'flex';
     var near = nearestTarget();
     var now = Date.now();
-    SKILLS.forEach(function (s) {
-      var b = F.btns[s.id];
+    var L = loadLoadout();
+    for (var si = 0; si < SLOTS; si++) {
+      var s = L[si] ? skillById(L[si]) : null, b = F.btns[si];
       var ic = b.querySelector('.fs-ic'), lb = b.querySelector('.fs-lb');
-      var locked = !hasSkill(F.cid, s);
+      if (!s) { ic.textContent = '➕'; lb.textContent = '장착'; b.style.opacity = '.5'; b.style.borderColor = '#666'; b.style.animation = 'none'; continue; }
+      var lvLock = !levelOk(s), locked = !hasSkill(F.cid, s);
       var left = Math.max(0, Math.ceil(((F.cd[s.id] || 0) - now) / 1000));
-      ic.textContent = locked ? '🔒' : s.icon;
-      lb.textContent = locked ? ('🍔' + priceLabel(s.price)) : (left > 0 ? left + '초' : s.short);
-      var ready = !locked && left === 0 && !!near;
-      b.style.opacity = locked ? '.55' : ((left > 0 || !near) ? '.6' : '1');
-      b.style.borderColor = ready ? (near.fav === s.id ? '#FFD700' : '#FF6B9D') : '#C084FC';
-      b.style.animation = (ready && near.fav === s.id) ? 'fsReady 1s ease-in-out infinite' : 'none';
-    });
+      var nr = nearestTarget(s.reach);
+      ic.textContent = (lvLock || locked) ? '🔒' : s.icon;
+      lb.textContent = lvLock ? ('Lv.' + s.useLv) : (locked ? ('🍔' + priceLabel(s.price)) : (left > 0 ? left + '초' : s.short));
+      var ready = !lvLock && !locked && left === 0 && !!nr;
+      b.style.opacity = (lvLock || locked) ? '.55' : ((left > 0 || !nr) ? '.6' : '1');
+      b.style.borderColor = ready ? (nr.fav === s.id ? '#FFD700' : '#FF6B9D') : '#C084FC';
+      b.style.animation = (ready && nr.fav === s.id) ? 'fsReady 1s ease-in-out infinite' : 'none';
+    }
     var t;
     if (near) t = '💬 ' + near.emoji + ' ' + near.name + ' 바로 앞! ' + skillById(near.fav).icon + ' 를 좋아해요' + (hasSkill(F.cid, skillById(near.fav)) ? '' : ' (아직 못 배움 🔒)');
     else if (bcHook()) t = '❗ 이벤트 가까이 가서 스킬을 써봐요 (닿으면 미니게임이 열려요)';
@@ -487,6 +542,60 @@
     };
   }
 
+
+  // ════════ ⚔️ 스킬 장착 화면 (더보기 > 팬 스킬 상점 / 맵의 ⚙️ 버튼) ════════
+  var edSel = null;
+  function openEditor() {
+    var old = $('fs-editor'); if (old) old.remove();
+    var ov = document.createElement('div');
+    ov.id = 'fs-editor';
+    ov.style.cssText = 'position:fixed;inset:0;z-index:2000;background:rgba(0,0,0,.82);display:flex;align-items:center;justify-content:center;padding:14px;' + "font-family:'Noto Sans KR',sans-serif;";
+    ov.addEventListener('pointerdown', function (e) { e.stopPropagation(); });
+    document.body.appendChild(ov);
+    edSel = null;
+    renderEditor();
+  }
+  function renderEditor() {
+    var ov = $('fs-editor'); if (!ov) return;
+    var L = loadLoadout();
+    var slots = L.map(function (id, i) {
+      var s = id ? skillById(id) : null, on = edSel === i;
+      return '<div data-slot="' + i + '" style="width:54px;height:62px;border-radius:14px;border:2px solid ' + (on ? '#FFD700' : (s ? '#C084FC' : 'rgba(255,255,255,.25)')) + ';background:' + (s ? 'rgba(124,58,237,.35)' : 'rgba(255,255,255,.06)') + ';display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;color:#fff;">' +
+        '<div style="font-size:22px;">' + (s ? s.icon : '➕') + '</div><div style="font-size:9px;font-weight:900;margin-top:2px;">' + (s ? s.short : (on ? '고르기' : '빈 칸')) + '</div></div>';
+    }).join('');
+    var rows = SKILLS.map(function (s) {
+      var eq = L.indexOf(s.id) !== -1, low = !levelOk(s);
+      return '<div data-pick="' + s.id + '" style="display:flex;align-items:center;gap:10px;padding:9px 11px;margin-bottom:7px;border-radius:13px;cursor:pointer;background:' + (eq ? 'rgba(124,58,237,.3)' : 'rgba(255,255,255,.07)') + ';border:1.5px solid ' + (eq ? '#C084FC' : 'rgba(255,255,255,.14)') + ';opacity:' + (low ? '.6' : '1') + ';">' +
+        '<div style="font-size:24px;">' + s.icon + '</div><div style="flex:1;min-width:0;"><div style="font-size:13px;font-weight:900;color:#fff;">' + s.name + (s.aoe ? ' <span style="font-size:10px;color:#ffd76a;">광역</span>' : '') + '</div>' +
+        '<div style="font-size:10px;color:#bbb;line-height:1.4;">' + s.desc + '</div></div>' +
+        '<div style="font-size:11px;font-weight:900;color:' + (low ? '#ff9a9a' : '#9fe8b0') + ';white-space:nowrap;text-align:right;">' + (low ? '🔒 Lv.' + s.useLv : '사용 가능') + (eq ? '<br><span style="color:#C084FC;">장착중</span>' : '') + '</div></div>';
+    }).join('');
+    ov.innerHTML = '<div style="width:100%;max-width:380px;max-height:92vh;overflow-y:auto;background:linear-gradient(135deg,#1a1a2e,#2d1b4e);border:2px solid #C084FC;border-radius:20px;padding:18px 14px;color:#fff;">' +
+      '<div style="font-size:17px;font-weight:900;text-align:center;">⚔️ 스킬 장착</div>' +
+      '<div style="font-size:11px;color:#bbb;text-align:center;margin:4px 0 12px;line-height:1.5;">장착한 스킬이 모든 팬덤 원정 맵에서 똑같이 쓰여요<br>칸을 누르고 → 아래 스킬을 눌러 장착 · 장착된 칸을 누르면 해제<br><span style="color:#ffd76a;">스킬은 멤버마다 배워야 하고, 쓰려면 플레이어 레벨이 필요해요 (지금 Lv.' + plv() + ')</span></div>' +
+      '<div style="display:flex;justify-content:center;gap:7px;margin-bottom:14px;">' + slots + '</div>' + rows +
+      '<button id="fs-ed-close" style="width:100%;margin-top:6px;padding:12px;border:none;border-radius:12px;background:linear-gradient(135deg,#FF6B9D,#C084FC);color:#fff;font-size:14px;font-weight:900;cursor:pointer;font-family:inherit;">완료</button></div>';
+    $('fs-ed-close').onclick = function () { ov.remove(); try { refreshBar(); } catch (e) {} };
+    Array.prototype.forEach.call(ov.querySelectorAll('[data-slot]'), function (el) {
+      el.onclick = function () {
+        var i = Number(el.getAttribute('data-slot')), cur = loadLoadout();
+        if (cur[i]) { equip(i, null); edSel = null; } else edSel = (edSel === i ? null : i);
+        renderEditor();
+      };
+    });
+    Array.prototype.forEach.call(ov.querySelectorAll('[data-pick]'), function (el) {
+      el.onclick = function () {
+        var id = el.getAttribute('data-pick'), cur = loadLoadout();
+        var at = cur.indexOf(id);
+        if (at !== -1) { equip(at, null); edSel = null; renderEditor(); return; }     // 장착중인 걸 누르면 해제
+        var slot = edSel !== null && !cur[edSel] ? edSel : cur.indexOf(null);
+        if (slot === -1) { toast('빈 칸이 없어요! 장착된 칸을 눌러 먼저 해제해요'); return; }
+        equip(slot, id); edSel = null;
+        renderEditor();
+      };
+    });
+  }
+
   // ════════ 💖 팬 스킬 상점 (더보기 메뉴) ════════
   var shopChar = null;
   function charIds() {
@@ -532,7 +641,7 @@
         : '<button data-buy="' + s.id + '" style="padding:9px 12px;border:none;border-radius:12px;font-size:12px;font-weight:900;cursor:pointer;white-space:nowrap;color:' + (enough ? '#fff' : '#888') + ';background:' + (enough ? 'linear-gradient(135deg,#FF6B9D,#C084FC)' : 'rgba(255,255,255,.1)') + ';' + FONT + '">🍔 ' + fmt(s.price) + '</button>';
       return '<div style="display:flex;align-items:center;gap:12px;background:rgba(255,255,255,.07);border:1.5px solid ' + (own ? 'rgba(74,222,128,.5)' : 'rgba(255,255,255,.18)') + ';border-radius:16px;padding:12px 14px;margin-bottom:10px;">' +
         '<div style="font-size:30px;">' + s.icon + '</div>' +
-        '<div style="flex:1;min-width:0;"><div style="font-size:14px;font-weight:900;color:#fff;">' + s.name + '</div><div style="font-size:11px;color:#aaa;line-height:1.5;">' + s.desc + '</div></div>' + btn + '</div>';
+        '<div style="flex:1;min-width:0;"><div style="font-size:14px;font-weight:900;color:#fff;">' + s.name + (s.aoe ? ' <span style="font-size:10px;color:#ffd76a;">광역</span>' : '') + '</div><div style="font-size:11px;color:#aaa;line-height:1.5;">' + s.desc + ' · <b style="color:' + (levelOk(s) ? '#9fe8b0' : '#ff9a9a') + ';">사용 Lv.' + s.useLv + '</b></div></div>' + btn + '</div>';
     }).join('');
     ov.innerHTML =
       '<div style="position:sticky;top:0;z-index:2;background:rgba(10,5,20,.94);padding:14px 16px;display:flex;align-items:center;justify-content:space-between;">' +
@@ -541,6 +650,7 @@
       '<div style="padding:0 16px 40px;">' +
         '<div style="background:rgba(255,255,255,.07);border:1px solid #FFD70066;border-radius:12px;padding:8px 12px;margin-bottom:12px;display:flex;justify-content:space-between;font-size:13px;color:#fff;"><span>🍔 보유 코인</span><b style="color:#FFD700;">' + fmt(coinsNow()) + '</b></div>' +
         potionHtml() +
+        '<button id="fs-open-ed" style="width:100%;margin-bottom:12px;padding:12px;border:none;border-radius:13px;background:linear-gradient(135deg,#C084FC,#7c3aed);color:#fff;font-size:14px;font-weight:900;cursor:pointer;' + FONT + '">⚔️ 스킬 장착하기 (' + loadLoadout().filter(Boolean).length + '/' + SLOTS + ')</button>' +
         '<div style="font-size:11px;color:#aaa;line-height:1.6;margin-bottom:10px;">팬 응대 스킬은 멤버마다 따로 배워요. 팬은 아직 못 배운 스킬도 원하니까, 많이 배울수록 😍 대만족이 자주 나와요.</div>' +
         '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;">' + chips + '</div>' +
         rows + '</div>';
@@ -554,6 +664,7 @@
       };
     });
     ov.querySelector('#fs-shop-close').onclick = function () { ov.remove(); };
+    var edb = ov.querySelector('#fs-open-ed'); if (edb) edb.onclick = function () { openEditor(); var e2 = $('fs-editor'); if (e2) { var cl = e2.querySelector('#fs-ed-close'); var o = cl.onclick; cl.onclick = function () { o(); renderShop(ov); }; } };
     Array.prototype.forEach.call(ov.querySelectorAll('[data-ch]'), function (b) { b.onclick = function () { shopChar = b.getAttribute('data-ch'); renderShop(ov); }; });
     Array.prototype.forEach.call(ov.querySelectorAll('[data-buy]'), function (b) {
       b.onclick = function () {
@@ -591,6 +702,8 @@
   })();
 
   setInterval(tick, 200);
+
+  window.__fanSkillsAPI = { SKILLS: SKILLS, SLOTS: SLOTS, loadout: loadLoadout, equip: equip, levelOk: levelOk, hasSkill: function (cid, id) { var sk = skillById(id); return !!sk && hasSkill(cid, sk); }, openEditor: openEditor, openShop: openShop };
 
   window.__fanSkillsTest = {
     spawnFan: spawnFan, useSkill: useSkill, serves: serves, unlockedSkills: unlockedSkills,

@@ -40,9 +40,10 @@
 
   // 스킬 (unlock = 플레이어 레벨 / dmg = 기본 위력 / cd = 쿨타임(초) / range = 사거리 or 반경)
   var SKILLS = [
-    { id: 'sign',   icon: '✍️', name: '사인',       unlock: 10, cd: 0.8,  dmg: 34,  range: 150, kind: 'single', desc: '가까운 팬 1명에게 사인!' },
-    { id: 'photo',  icon: '📸', name: '사진촬영',   unlock: 10, cd: 2.6,  dmg: 42,  range: 300, kind: 'line',   desc: '앞쪽 일직선의 팬을 한꺼번에 찰칵!' },
-    { id: 'shake',  icon: '🤝', name: '악수',       unlock: 15, cd: 5.5,  dmg: 130, range: 120, kind: 'single', desc: '한 명을 확실하게! HP도 조금 회복' },
+    { id: 'sign',   icon: '✍️', name: '사인',       unlock: 1, cd: 0.8,  dmg: 34,  range: 150, kind: 'single', desc: '가까운 팬 1명에게 사인!' },
+    { id: 'photo',  icon: '📸', name: '사진촬영',   unlock: 1, cd: 2.6,  dmg: 42,  range: 300, kind: 'line',   desc: '앞쪽 일직선의 팬을 한꺼번에 찰칵!' },
+    { id: 'shake',  icon: '🤝', name: '악수',       unlock: 10, cd: 5.5,  dmg: 130, range: 120, kind: 'single', desc: '한 명을 확실하게! HP도 조금 회복' },
+    { id: 'heart',  icon: '💗', name: '손하트',     unlock: 15, cd: 4.5,  dmg: 60,  range: 270, kind: 'multi',  desc: '하트 3발! 가까운 팬 3명을 한꺼번에 저격' },
     { id: 'highlight', icon: '🎤', name: '하이라이트', unlock: 20, cd: 7,  dmg: 75,  range: 170, kind: 'aoe', sfx: 'concertHigh',  desc: '하이라이트 부르기! 주변 팬들을 확 사로잡아요 (광역)' },
     { id: 'wink',   icon: '💖', name: '윙크 샤워',   unlock: 25, cd: 10, dmg: 50,  range: 270, kind: 'aoe', sfx: 'concertWink',  desc: '넓은 범위에 윙크 세례! 팬들을 멀리 밀어내요 (넓은 광역)' },
     { id: 'encore', icon: '✨', name: '앵콜 폭죽',   unlock: 30, cd: 18, dmg: 210, range: 310, kind: 'aoe', sfx: 'concertEncore', desc: '앵콜 폭죽! 전방위 대폭발 + 잠깐 무적 (대광역)' }
@@ -67,7 +68,11 @@
   function fmt(n) { return Number(n).toLocaleString(); }
   function dmgMult() { return 1 + Math.max(0, plv() - 10) * DMG_PER_LV; }
   function maxHpNow() { return BASE_HP + Math.max(0, plv() - 10) * HP_PER_LV; }
-  function skillOpen(s) { return plv() >= s.unlock; }
+  var API = function () { return window.__fanSkillsAPI || null; };
+  function skillOpen(s) { var a = API(); return a ? plv() >= (a.SKILLS.filter(function (x) { return x.id === s.id; })[0] || { useLv: s.unlock }).useLv : plv() >= s.unlock; }
+  function skillOwned(s) { var a = API(); return !a || !G || a.hasSkill(G.charId, s.id); }
+  function loadoutIds() { var a = API(); return a ? a.loadout() : ['sign', 'photo', null, null, null]; }
+  function skillById(id) { return SKILLS.filter(function (x) { return x.id === id; })[0] || null; }
 
   // 웨이브 구성: 웨이브마다 [종류, 수] 목록 (마지막 웨이브는 보스 + 졸개)
   function waveList(n) {
@@ -249,7 +254,8 @@
     if (!G || G.over || G.paused) return false;
     var s = SKILLS.filter(function (x) { return x.id === id; })[0];
     if (!s) return false;
-    if (!skillOpen(s)) { toast('🔒 ' + s.name + '은(는) 플레이어 Lv.' + s.unlock + '에 열려요'); return false; }
+    if (!skillOpen(s)) { toast('🔒 ' + s.name + '은(는) 플레이어 Lv.' + (API() ? API().SKILLS.filter(function (x) { return x.id === id; })[0].useLv : s.unlock) + '부터 쓸 수 있어요'); return false; }
+    if (!skillOwned(s)) { toast('🔒 ' + (G.ch.name || '이 멤버') + '은(는) ' + s.name + '을(를) 아직 못 배웠어요 · 더보기 > 💖 팬 스킬 상점'); return false; }
     if (G.cd[id] > 0) return false;
     var m = dmgMult(), dmg = s.dmg * m, used = false;
     if (id === 'sign' || id === 'shake') {
@@ -258,6 +264,11 @@
       addFx({ k: 'beam', x: G.px, y: G.py, x2: f.x, y2: f.y, t: 0.25, max: 0.25, c: id === 'sign' ? '#ffe27a' : '#ff9ad0' });
       fanHit(f, dmg, 40, G.px, G.py);
       if (id === 'shake') heal(6);
+      used = true;
+    } else if (id === 'heart') {
+      var tg = G.fans.filter(function (f5) { return dist(f5.x, f5.y, G.px, G.py) - f5.T.r < s.range; }).sort(function (a, b) { return dist(a.x, a.y, G.px, G.py) - dist(b.x, b.y, G.px, G.py); }).slice(0, 3);
+      if (!tg.length) return false;
+      tg.forEach(function (f6) { addFx({ k: 'beam', x: G.px, y: G.py, x2: f6.x, y2: f6.y, t: 0.3, max: 0.3, c: '#ff6fb1' }); fanHit(f6, dmg, 35, G.px, G.py); });
       used = true;
     } else if (id === 'photo') {
       var tgt = nearestFan(420), dx = G.dir.x, dy = G.dir.y;
@@ -489,13 +500,13 @@
         '<div style="position:absolute;left:10px;bottom:8px;font-size:10px;color:rgba(255,255,255,.6);pointer-events:none;">화면을 누른 채 끌면 이동</div>' +
       '</div>';
     var sk = $('fr-skills');
-    SKILLS.forEach(function (s) {
-      var b = document.createElement('button'); b.className = 'fr-sk'; b.id = 'fr-sk-' + s.id;
-      b.innerHTML = s.icon + '<span class="nm">' + s.name.replace('윙크 샤워', '윙크샤워') + '</span><div class="cd"></div><span class="tm"></span>';
-      b.onclick = function (e) { e.stopPropagation(); useSkill(s.id); };
+    for (var si = 0; si < 5; si++) (function (si) {
+      var b = document.createElement('button'); b.className = 'fr-sk'; b.id = 'fr-slot-' + si;
+      b.innerHTML = '<span class="ic"></span><span class="nm"></span><div class="cd"></div><span class="tm"></span>';
+      b.onclick = function (e) { e.stopPropagation(); var id = loadoutIds()[si]; if (id) useSkill(id); else if (API()) API().openEditor(); else toast('스킬 장착은 더보기 > 💖 팬 스킬 상점에서 해요'); };
       b.addEventListener('pointerdown', function (e) { e.stopPropagation(); });
       sk.appendChild(b);
-    });
+    })(si);
     var pw = $('fr-pots');
     POTS.forEach(function (p, i) {
       var b = document.createElement('button'); b.className = 'fr-pot'; b.id = 'fr-pot' + i;
@@ -511,13 +522,18 @@
     $('fr-hptxt').textContent = Math.ceil(G.hp) + '/' + G.maxhp;
     $('fr-coin').textContent = fmt(G.coins); $('fr-kill').textContent = G.kills;
     $('fr-wave').textContent = G.wave === 0 ? '준비!' : (G.wave >= WAVES ? '👑 보스전' : 'WAVE ' + G.wave + '/' + WAVES);
-    SKILLS.forEach(function (s) {
-      var b = $('fr-sk-' + s.id); if (!b) return;
-      var open = skillOpen(s), cd = G.cd[s.id];
-      b.classList.toggle('lock', !open);
-      b.querySelector('.cd').style.height = (open && cd > 0 ? (cd / s.cd * 100) : 0) + '%';
-      b.querySelector('.tm').textContent = !open ? 'Lv.' + s.unlock : (cd > 0 ? (cd >= 10 ? Math.ceil(cd) : cd.toFixed(1)) : '');
-    });
+    var LD = loadoutIds();
+    for (var si = 0; si < 5; si++) {
+      var b = $('fr-slot-' + si); if (!b) continue;
+      var s = LD[si] ? skillById(LD[si]) : null;
+      if (!s) { b.classList.add('lock'); b.querySelector('.ic').textContent = '➕'; b.querySelector('.nm').textContent = '장착'; b.querySelector('.cd').style.height = '0'; b.querySelector('.tm').textContent = ''; continue; }
+      var open = skillOpen(s), own = skillOwned(s), cd = G.cd[s.id];
+      b.classList.toggle('lock', !open || !own);
+      b.querySelector('.ic').textContent = (open && own) ? s.icon : '🔒';
+      b.querySelector('.nm').textContent = s.name.replace('윙크 샤워', '윙크샤워').replace('하이라이트', '하이라이트').slice(0, 6);
+      b.querySelector('.cd').style.height = (open && own && cd > 0 ? (cd / s.cd * 100) : 0) + '%';
+      b.querySelector('.tm').textContent = !open ? 'Lv.' + (API() ? API().SKILLS.filter(function (x) { return x.id === s.id; })[0].useLv : s.unlock) : (!own ? '' : (cd > 0 ? (cd >= 10 ? Math.ceil(cd) : cd.toFixed(1)) : ''));
+    }
     POTS.forEach(function (p, i) { var b = $('fr-pot' + i); if (b) { b.textContent = p.emoji + ' ×' + potQty(p.name); b.style.opacity = potQty(p.name) > 0 ? '1' : '.5'; } });
   }
 
@@ -552,7 +568,7 @@
     keys[k] = down;
     var x = (keys['d'] || keys['arrowright'] ? 1 : 0) - (keys['a'] || keys['arrowleft'] ? 1 : 0), y = (keys['s'] || keys['arrowdown'] ? 1 : 0) - (keys['w'] || keys['arrowup'] ? 1 : 0);
     if (!stick) G.input = { x: x, y: y };
-    if (down && k >= '1' && k <= '6') useSkill(SKILLS[Number(k) - 1].id);
+    if (down && k >= '1' && k <= '5') { var kid = loadoutIds()[Number(k) - 1]; if (kid) useSkill(kid); }
   }
   window.addEventListener('keydown', onKey); window.addEventListener('keyup', onKey);
   document.addEventListener('visibilitychange', function () { if (G && !G.over) G.paused = document.hidden; });
@@ -561,6 +577,7 @@
     var cv = $('fr-cv');
     if (!cv || !G) { raf = 0; return; }
     var dt = Math.min(0.05, (ts - lastT) / 1000 || 0.016); lastT = ts;
+    if (G && !G.over) G.paused = document.hidden || !!$('fs-editor');
     update(dt);
     render(cv.getContext('2d'));
     updateHud();
