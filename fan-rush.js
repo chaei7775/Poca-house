@@ -486,7 +486,7 @@
     var ch = (typeof CHARS !== 'undefined' && CHARS[charId]) ? CHARS[charId] : { name: '아이돌' };
     overlay.innerHTML =
       '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:9px 14px;background:rgba(0,0,0,.7);position:relative;z-index:50;">' +
-        '<div style="color:#fff;font-size:15px;font-weight:900;white-space:nowrap;">🔥 팬 러시</div>' +
+        '<div style="color:#fff;font-size:15px;font-weight:900;white-space:nowrap;">✈️ 공항 입국장</div>' +
         '<div id="fr-wave" style="color:#FFE27A;font-size:12px;font-weight:900;flex:1;text-align:center;"></div>' +
         '<button id="fr-exit" style="background:rgba(255,255,255,.15);border:none;border-radius:10px;color:#fff;padding:7px 12px;cursor:pointer;white-space:nowrap;font-family:inherit;">나가기</button></div>' +
       '<div id="fr-view" style="position:relative;flex:1;min-height:0;overflow:hidden;background:#0c0719;">' +
@@ -595,7 +595,7 @@
     if (r.bagFull) lines += '<div style="color:#ff9a9a;font-size:12px;">가방이 가득 차서 조각을 못 받았어요</div>';
     el.innerHTML = '<div style="width:100%;max-width:330px;text-align:center;background:linear-gradient(160deg,#2a1a4a,#150b2a);border:2px solid ' + (r.won ? '#ffd76a' : '#ff8aa8') + ';border-radius:20px;padding:22px 18px;color:#fff;">' +
       '<div style="font-size:42px;">' + (r.won ? '🎉' : '😵') + '</div>' +
-      '<div style="font-size:19px;font-weight:900;color:' + (r.won ? '#ffd76a' : '#ff8aa8') + ';margin:4px 0;">' + (r.won ? '팬 러시 성공!' : '팬들한테 치였어요…') + '</div>' +
+      '<div style="font-size:19px;font-weight:900;color:' + (r.won ? '#ffd76a' : '#ff8aa8') + ';margin:4px 0;">' + (r.won ? '입국장 돌파 성공!' : '팬들한테 치였어요…') + '</div>' +
       '<div style="font-size:12px;color:#bbb;margin-bottom:12px;">' + r.kills + '명 응대 · WAVE ' + Math.min(r.wave, WAVES) + '/' + WAVES + ' · ' + Math.floor(r.time / 60) + '분 ' + (r.time % 60) + '초' + (r.won ? '' : '<br>번 보상의 ' + Math.round(DEFEAT_RATE * 100) + '%만 받아요') + '</div>' +
       '<div style="font-size:14px;line-height:1.9;margin-bottom:14px;">' + lines + '</div>' +
       '<button id="fr-again" style="width:100%;padding:13px;margin-bottom:8px;border:none;border-radius:12px;background:linear-gradient(135deg,#FB7185,#C084FC);color:#fff;font-size:15px;font-weight:900;cursor:pointer;font-family:inherit;">다시 도전 (⚡' + ENTRY_STAMINA + ')</button>' +
@@ -607,7 +607,7 @@
 
   // ════════ 입장 ════════
   function enter(charId, again) {
-    if (plv() < NEED_LEVEL) { toast('🔥 팬 러시는 플레이어 Lv.' + NEED_LEVEL + '부터 열려요 (지금 Lv.' + plv() + ')'); return false; }
+    if (plv() < NEED_LEVEL) { toast('✈️ 공항 입국장은 플레이어 Lv.' + NEED_LEVEL + '부터 열려요 (지금 Lv.' + plv() + ')'); return false; }
     var ov = $('special-overlay'); if (!ov) return false;
     if (typeof stamina === 'undefined' || stamina < ENTRY_STAMINA) { toast('스태미나가 부족해요! ⚡ 음료를 마셔봐요 (입장 ' + ENTRY_STAMINA + ')'); return false; }
     stamina -= ENTRY_STAMINA;
@@ -635,14 +635,14 @@
     if (typeof window.startSpecialExplore !== 'function' || typeof SPECIAL_LOCATIONS === 'undefined' || typeof window.openSpecialCardSelect !== 'function') { setTimeout(install, 60); return; }
     if (window.__frInstalled) return;
     window.__frInstalled = true;
-    if (!SPECIAL_LOCATIONS.some(function (l) { return l.id === LOC_ID; })) SPECIAL_LOCATIONS.push({ id: LOC_ID, name: '팬 러시', emoji: '🔥', color: '#FB7185', bg: IMG_BASE + BG_FILE });
+    if (!SPECIAL_LOCATIONS.some(function (l) { return l.id === LOC_ID; })) SPECIAL_LOCATIONS.push({ id: LOC_ID, name: '공항 입국장', emoji: '✈️', color: '#FB7185', bg: IMG_BASE + BG_FILE });
     var orig = window.startSpecialExplore;
     window.startSpecialExplore = function (locationId, charId) {
       if (locationId === LOC_ID) { enter(charId); return; }
       return orig.apply(this, arguments);
     };
     window.openFanRush = function () {
-      if (plv() < NEED_LEVEL) { toast('🔥 팬 러시는 플레이어 Lv.' + NEED_LEVEL + '부터 열려요 (지금 Lv.' + plv() + ')'); return; }
+      if (plv() < NEED_LEVEL) { toast('✈️ 공항 입국장은 플레이어 Lv.' + NEED_LEVEL + '부터 열려요 (지금 Lv.' + plv() + ')'); return; }
       window.openSpecialCardSelect(LOC_ID);
     };
     (function addBtn() {
@@ -651,7 +651,7 @@
         var b = document.createElement('button'); b.id = 'fr-entry-btn';
         b.onclick = window.openFanRush;
         b.style.cssText = 'width:100%;display:flex;align-items:center;gap:12px;padding:13px 14px;margin-bottom:9px;background:#FB71851f;border:1.5px solid #FB7185;border-radius:14px;color:#fff;font-size:14px;font-weight:900;cursor:pointer;text-align:left;font-family:inherit;';
-        b.innerHTML = '<span style="font-size:24px;">🔥</span><span>팬 러시 <span style="font-size:10px;color:#ffd1da;font-weight:700;">NEW</span><br><span style="font-size:10px;font-weight:400;color:#ffd1da;">몰려오는 팬들을 스킬로 응대해요 · Lv.' + NEED_LEVEL + ' · ⚡' + ENTRY_STAMINA + '</span></span><span style="margin-left:auto;color:#888;font-size:16px;">›</span>';
+        b.innerHTML = '<span style="font-size:24px;">✈️</span><span>공항 입국장 <span style="font-size:10px;color:#ffd1da;font-weight:700;">NEW</span><br><span style="font-size:10px;font-weight:400;color:#ffd1da;">몰려오는 팬들을 스킬로 응대해요 · Lv.' + NEED_LEVEL + ' · ⚡' + ENTRY_STAMINA + '</span></span><span style="margin-left:auto;color:#888;font-size:16px;">›</span>';
         var pad = sec.lastElementChild;     // 맨 아래 빈칸 앞에 끼운다
         sec.insertBefore(b, pad);
       }
