@@ -72,6 +72,11 @@
       hint: '🎒 가방 → 🧃 사과주스 → 사용하기. 스태미나(⚡)가 있어야 탐험을 나갈 수 있어요. 퀘스트를 깨면 주스를 계속 줘요!',
       done: function () { return quest('tut_drink'); }, reward: 200,
       go: function () { goTo('bag'); }, target: '#nav-bag' },
+    { id: 'concert', icon: '🎤', title: '첫 공연 · 선배의 무대',
+      hint: '플레이어 Lv.5가 되면 탑스타 세연 선배가 무대에 초대해요! 팬 하트를 가득 채우면 🎁 7일 체험 히든카드를 선물로 줘요. 홈의 🎤 버튼을 눌러요.',
+      when: function () { try { return Number(playerLevel) >= 5; } catch (e) { return false; } },
+      done: function () { try { return !!localStorage.getItem('ph_trialCard'); } catch (e) { return false; } }, reward: 600,
+      go: function () { if (typeof window.startConcertTutorial === 'function') window.startConcertTutorial(); else goTo('home'); }, target: '#concert-tut-btn' },
     { id: 'explore', icon: '🚐', title: '스케줄 나가서 재료 모으기',
       hint: '🚐 스케줄 가기 → 촬영 세트장·뷰티 살롱·공원에서 재료를 모아요. 🏕️ 워크숍 캠프에선 진짜 낚시도 할 수 있어요!',
       done: function () { return story('story_10') || !!S.flags.first_explore || (!newAcct() && hiLv() >= 3); }, reward: 300,
@@ -161,7 +166,7 @@
   STEPS.forEach(function (st) { if (st.reward) st.reward = st.reward * REWARD_MULT; });   // 길잡이 보상 배율 (코인)
 
   function currentIndex() {
-    for (var i = 0; i < STEPS.length; i++) { if (!STEPS[i].done()) return i; }
+    for (var i = 0; i < STEPS.length; i++) { if (STEPS[i].when && !STEPS[i].when()) continue; if (!STEPS[i].done()) return i; }
     return -1;
   }
 
