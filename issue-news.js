@@ -241,6 +241,13 @@
     var shown = !!(r && !r.hidden && r.innerHTML.length > 20);
     if (shown && !drShown) extra();
     drShown = shown;
+    // 탐험 결과 화면(숲·해변·연습실·뷰티·촬영 세트·스튜디오)이 새로 뜨면
+    var hs = document.querySelectorAll('div[style*="font-size:18px;font-weight:900"]');
+    for (var i = 0; i < hs.length; i++) {
+      var h = hs[i];
+      if (h.__issueSeen || !/탐험 끝!|완벽한 변신|변신 완료|완벽한 촬영/.test(h.textContent)) continue;
+      h.__issueSeen = true; extra();
+    }
   }, 800);
 
   window.__issueTest = { fire: fire, GENERIC: GENERIC, BY_IDOL: BY_IDOL, tick: tick, CHANCE: CHANCE, extra: extra, load: load };
