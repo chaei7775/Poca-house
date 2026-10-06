@@ -89,6 +89,8 @@ const NEW_CONTENT_FILES = [
   'big-drop-popup.js',
   'transcend-aura.js',
   'first-hidden.js',
+  'unlock-gate.js',
+  'manager.js',
 ];
 NEW_CONTENT_FILES.forEach(function(filename) {
   const s = document.createElement('script');

@@ -47,7 +47,8 @@
   function debutChance(pity, picks, wish) {
     var bonus = cardBonus(picks) || 0;
     var wishBonus = Math.min(WISH_MAX, Math.max(0, wish || 0)) * WISH_PCT;
-    return Math.min(MAX_CHANCE, DEBUT_BASE + pity * PITY_STEP + bonus + wishBonus);
+    var mgr = 0; try { mgr = (typeof window.__debutBonus === 'function') ? (Number(window.__debutBonus()) || 0) : 0; } catch (e) {}   // 신입 매니저 버프 (manager.js)
+    return Math.min(MAX_CHANCE, DEBUT_BASE + pity * PITY_STEP + bonus + wishBonus + mgr);
   }
   function rollDebut(pity, picks, rng, wish) {
     rng = rng || Math.random;
@@ -111,9 +112,9 @@
 
   // ════════ 기획사 메인 화면 ════════
   function openAgency() {
-    // 해금 판정은 agency-unlock.js 가 늦게 로드돼도 흔들리지 않게 여기서 직접 계산: 플레이어 레벨 10 이상이면 무조건 열림
+    // 해금 판정은 agency-unlock.js 가 늦게 로드돼도 흔들리지 않게 여기서 직접 계산: 플레이어 레벨 7 이상이면 무조건 열림
     var lvOk = false;
-    try { lvOk = Number(playerLevel) >= 10; } catch (e) {}
+    try { lvOk = Number(playerLevel) >= 7; } catch (e) {}
     if (!lvOk && typeof isPocaHouseFeatureUnlocked === 'function' && !isPocaHouseFeatureUnlocked('agency')) {
       if (typeof closePlace === 'function') closePlace();
       showPocaHouseLockedPopup(POCAHOUSE_UNLOCK.agency, '기획사');
