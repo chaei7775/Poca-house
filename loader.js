@@ -31,6 +31,7 @@ const NEW_CONTENT_FILES = [
   'fancafe.js',
   'live.js',
   'rising.js',
+  'happening.js',
   'enhance.js',
   'fan-skills.js',
   'cloud-extra.js',
