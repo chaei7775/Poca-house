@@ -485,8 +485,8 @@
       '<button id="meal-close" style="' + BTN + 'padding:8px 14px;background:rgba(255,255,255,0.1);color:#fff;font-size:13px;">닫기</button></div>';
     var dayBar = '<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;background:linear-gradient(135deg,rgba(255,107,157,0.18),rgba(192,132,252,0.18));border:1.5px solid #C084FC;border-radius:16px;padding:12px 14px;margin-bottom:10px;">' +
       '<div><div id="meal-day" style="font-size:17px;font-weight:900;color:#fff;">' + dayLabel(st.day) + '</div>' +
-      '<div style="font-size:11px;color:#cdb8ff;margin-top:2px;">하루를 보내면 일정이 진행돼요</div></div>' +
-      '<button id="meal-next" style="' + BTN + 'padding:11px 14px;background:linear-gradient(135deg,#FFD700,#F59E0B);color:#3a2600;font-size:13px;">🌙 하루 보내기</button></div>';
+      '<div style="font-size:11px;color:#cdb8ff;margin-top:2px;">' + (hungryNames(st).length ? '🍴 끼니를 다 채워야 하루를 보낼 수 있어요 (' + hungryNames(st).join(', ') + ')' : '하루를 보내면 일정이 진행돼요') + '</div></div>' +
+      '<button id="meal-next" style="' + BTN + 'padding:11px 14px;background:linear-gradient(135deg,#FFD700,#F59E0B);color:#3a2600;font-size:13px;opacity:' + (hungryNames(st).length ? 0.5 : 1) + ';">🌙 하루 보내기</button></div>';
     var cal = '<div id="meal-cal" style="margin-bottom:14px;">' + calHtml(st) + '</div>';
 
     var body = '';
@@ -663,9 +663,14 @@
   }
 
   // ── 하루 보내기 ──
+  function hungryNames(st) {            // 아직 끼니를 다 못 채운 데뷔 아이돌 이름들
+    return debutedIds().filter(function (cid) { return mealsLeft(st, cid) > 0; }).map(function (cid) { return CH[cid] ? CH[cid].name : cid; });
+  }
   function onNextDay() {
     if (busy) return;
     var st = load();
+    var hungry = hungryNames(st);
+    if (hungry.length) { toast('🍴 끼니를 다 채워야 하루를 보낼 수 있어요 (' + hungry.join(', ') + ')'); return; }
     var events = advanceDay(st);
     var total = 0;
     events.forEach(function (e) { total += e.pay; });
