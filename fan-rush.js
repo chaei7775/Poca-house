@@ -887,14 +887,18 @@
   // 🤖 자동 물약: 켜져 있으면 HP가 낮을 때 회복약, 피로도가 높을 때 드링크를 알아서 마심 (설정은 저장됨)
   function autoOn() { try { return localStorage.getItem('ph_fr_auto') !== '0'; } catch (e) { return true; } }
   function setAuto(v) { try { localStorage.setItem('ph_fr_auto', v ? '1' : '0'); } catch (e) {} }
+  function autoNum(key, def) { try { var v = Number(localStorage.getItem(key)); return v >= 5 && v <= 100 ? v : def; } catch (e) { return def; } }
+  function autoHp() { return autoNum('ph_fr_auto_hp', 45); }     // HP가 이 % 이하가 되면 회복약 (큰 회복약은 이 값의 절반 이하)
+  function autoFat() { return autoNum('ph_fr_auto_fat', 80); }   // 피로도가 이 이상이면 드링크
   function autoPots(dt) {
     if (!G || G.over || !autoOn()) return;
     G.autoT = (G.autoT || 0) - dt; if (G.autoT > 0) return;
     var hpR = G.hp / G.maxhp, big = POTS[1], small = POTS[0], dr = POTS[2];
-    if (hpR <= 0.25 && potQty(big.name) > 0) { usePot(big); G.autoT = 1.2; return; }
-    if (hpR <= 0.45 && potQty(small.name) > 0) { usePot(small); G.autoT = 1.2; return; }
-    if (hpR <= 0.3 && potQty(big.name) > 0) { usePot(big); G.autoT = 1.2; return; }
-    if ((G.fat || 0) >= 80 && potQty(dr.name) > 0) { usePot(dr); G.autoT = 1.2; return; }
+    var th = autoHp() / 100;
+    if (hpR <= th * 0.5 && potQty(big.name) > 0) { usePot(big); G.autoT = 1.2; return; }
+    if (hpR <= th && potQty(small.name) > 0) { usePot(small); G.autoT = 1.2; return; }
+    if (hpR <= th * 0.6 && potQty(big.name) > 0) { usePot(big); G.autoT = 1.2; return; }
+    if ((G.fat || 0) >= autoFat() && potQty(dr.name) > 0) { usePot(dr); G.autoT = 1.2; return; }
   }
 
   function styleOnce() {
@@ -917,10 +921,10 @@
       '<div id="fr-view" style="position:relative;flex:1;min-height:0;overflow:hidden;background:#0c0719;">' +
         '<canvas id="fr-cv" style="position:absolute;inset:0;width:100%;height:100%;touch-action:none;"></canvas>' +
         '<div style="position:absolute;left:8px;top:8px;right:8px;display:flex;align-items:center;gap:8px;pointer-events:none;">' +
-          '<div style="flex:1;max-width:190px;"><div style="font-size:11px;font-weight:900;color:#fff;text-shadow:0 1px 3px #000;margin-bottom:2px;">❤️ <span id="fr-hptxt"></span> · ' + ch.name + '</div>' +
-            '<div style="height:12px;border-radius:7px;background:rgba(0,0,0,.6);border:1px solid rgba(255,255,255,.4);overflow:hidden;"><div id="fr-hp" style="height:100%;width:100%;background:linear-gradient(90deg,#ff5c8a,#ffb86b);transition:width .15s"></div></div>' +
-            '<div style="font-size:10px;font-weight:900;color:#d9fbe8;text-shadow:0 1px 3px #000;margin:4px 0 1px;">😮‍💨 피로도 <span id="fr-fattxt">0</span>/100</div>' +
-            '<div style="height:8px;border-radius:5px;background:rgba(0,0,0,.6);border:1px solid rgba(255,255,255,.35);overflow:hidden;"><div id="fr-fat" style="height:100%;width:0%;background:linear-gradient(90deg,#6ee7a0,#ffd76a);"></div></div></div>' +
+          '<div style="flex:1;max-width:190px;"><div style="font-size:11px;font-weight:900;color:#fff;text-shadow:0 1px 3px #000;margin-bottom:2px;">❤️ <span id="fr-hptxt"></span> · ' + ch.name + ' <span id="fr-hpa" style="color:#9fd8ff;"></span></div>' +
+            '<div id="fr-hpw" style="padding:7px 0;margin:-7px 0;pointer-events:auto;touch-action:none;cursor:ew-resize;"><div style="position:relative;height:12px;border-radius:7px;background:rgba(0,0,0,.6);border:1px solid rgba(255,255,255,.4);overflow:hidden;"><div id="fr-hp" style="height:100%;width:100%;background:linear-gradient(90deg,#ff5c8a,#ffb86b);transition:width .15s"></div><div id="fr-hpmk" style="position:absolute;top:0;bottom:0;width:3px;margin-left:-1.5px;background:#9fd8ff;box-shadow:0 0 6px #9fd8ff;"></div></div></div>' +
+            '<div style="font-size:10px;font-weight:900;color:#d9fbe8;text-shadow:0 1px 3px #000;margin:4px 0 1px;">😮‍💨 피로도 <span id="fr-fattxt">0</span>/100 <span id="fr-fata" style="color:#9fd8ff;"></span></div>' +
+            '<div id="fr-fatw" style="padding:7px 0;margin:-7px 0;pointer-events:auto;touch-action:none;cursor:ew-resize;"><div style="position:relative;height:8px;border-radius:5px;background:rgba(0,0,0,.6);border:1px solid rgba(255,255,255,.35);overflow:hidden;"><div id="fr-fat" style="height:100%;width:0%;background:linear-gradient(90deg,#6ee7a0,#ffd76a);"></div><div id="fr-fatmk" style="position:absolute;top:0;bottom:0;width:3px;margin-left:-1.5px;background:#9fd8ff;box-shadow:0 0 6px #9fd8ff;"></div></div></div></div>' +
           '<div style="margin-left:auto;text-align:right;font-size:12px;font-weight:900;color:#fff;text-shadow:0 1px 3px #000;line-height:1.5;">🍔 <span id="fr-coin">0</span><br>😊 <span id="fr-kill">0</span>명 응대</div></div>' +
         '<div id="fr-pots" style="position:absolute;left:8px;top:74px;display:flex;flex-direction:column;gap:6px;"></div>' +
         '<div id="fr-skills" style="position:absolute;right:8px;bottom:10px;display:flex;flex-wrap:wrap-reverse;flex-direction:row-reverse;gap:8px;width:190px;justify-content:flex-start;"></div>' +
@@ -946,6 +950,23 @@
     ab.onclick = function (e) { e.stopPropagation(); setAuto(!autoOn()); paintAuto(); };
     ab.addEventListener('pointerdown', function (e) { e.stopPropagation(); });
     paintAuto(); pw.appendChild(ab);
+    // 📏 자동 기준: HP 바 / 피로도 바를 손가락으로 드래그해서 정함 (파란 선이 기준)
+    function bindDrag(w, key, lo, hi, paint) {
+      if (!w) return;
+      var on = false;
+      function setFrom(e) { var r = w.getBoundingClientRect(); var v = Math.round(((e.clientX - r.left) / r.width * 100) / 5) * 5; v = Math.max(lo, Math.min(hi, v)); try { localStorage.setItem(key, String(v)); } catch (x) {} paint(); }
+      w.addEventListener('pointerdown', function (e) { e.stopPropagation(); e.preventDefault(); on = true; try { w.setPointerCapture(e.pointerId); } catch (x) {} setFrom(e); });
+      w.addEventListener('pointermove', function (e) { if (on) { e.stopPropagation(); setFrom(e); } });
+      w.addEventListener('pointerup', function (e) { on = false; e.stopPropagation(); });
+      w.addEventListener('pointercancel', function () { on = false; });
+    }
+    function paintMarks() {
+      var h = $('fr-hpmk'), f = $('fr-fatmk'); if (h) h.style.left = autoHp() + '%'; if (f) f.style.left = autoFat() + '%';
+      var ha = $('fr-hpa'), fa = $('fr-fata'); if (ha) ha.textContent = '🤖' + autoHp() + '%↓'; if (fa) fa.textContent = '🤖' + autoFat() + '↑';
+    }
+    bindDrag($('fr-hpw'), 'ph_fr_auto_hp', 10, 90, paintMarks);
+    bindDrag($('fr-fatw'), 'ph_fr_auto_fat', 30, 95, paintMarks);
+    paintMarks();
   }
 
   function updateHud() {
@@ -1052,7 +1073,7 @@
       '팬 머리 위에 <b>스킬 아이콘</b>이 떠요. 그 스킬 버튼을 눌러 하트 게이지를 채우면 만족해서 돌아가요.',
       '일반 팬은 <b>2개</b>, 덕후는 <b>3개</b>, 👑 보스는 <b>5개</b>! 순서가 틀리면 팬이 <b>화나서</b> 더 빨라지고 처음부터예요.',
       '광역 스킬(🎤✨🌹…)은 아이콘으로도 떠요! 광역 스킬은 <b>어떤 칸이든</b> 채우고, 광역 칸에는 광역 스킬 아무거나 쓰면 돼요. 범위 안 팬 전부를 한꺼번에!',
-      '😮‍💨 스킬을 쓸 때마다 <b>피로도</b>가 차요. 가득 차면 스킬을 못 써요! 시간이 지나면 내려가고, 🥤 <b>피로회복 드링크</b>를 마시면 확 내려가요. <b>🤖 자동</b>을 켜두면 HP·피로도가 위험할 때 물약을 알아서 마셔요.',
+      '😮‍💨 스킬을 쓸 때마다 <b>피로도</b>가 차요. 가득 차면 스킬을 못 써요! 시간이 지나면 내려가고, 🥤 <b>피로회복 드링크</b>를 마시면 확 내려가요. <b>🤖 자동</b>을 켜두면 물약을 알아서 마셔요. HP 바·피로도 바를 <b>손가락으로 드래그</b>하면 파란 선(자동 기준)을 옮길 수 있어요.',
       '🕶️ 출동 전에 <b>보디가드</b>를 고용할 수 있어요 (최대 2명, 한 판 동안).',
       '8웨이브 + 보스를 모두 응대하면 성공! 코인·경험치·프리미엄 조각·📘 스킬북을 받아요.'
     ], go); else go();
