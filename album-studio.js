@@ -20,6 +20,7 @@
   var ACC = '#ffb86b';
   var NOTE_KEY = 'ph_composeNote';               // ph_ 로 시작 → 클라우드 저장 자동
   var MAX_KINDS = 12;
+  function ti(t, px) { return window.matIcon ? window.matIcon(t.name, px, t.emoji) : t.emoji; }   // 앨범 그림 (mat-icons.js), 없으면 이모지
   var TIERS = [                                  // 종류 수 → 등급. per = 고른 종류 하나당 드는 개수
     { id: 'full', min: 10, emoji: '📀', name: '정규 앨범', per: 11, price: 600000 },
     { id: 'mini', min: 7,  emoji: '💽', name: '미니 앨범', per: 7,  price: 180000 },
@@ -177,7 +178,7 @@
       '<div style="position:relative;width:100%;max-width:340px;text-align:center;animation:cpPop .55s ease-out;">' +
         '<div style="font-size:12px;font-weight:900;letter-spacing:4px;color:' + accent + ';">NEW RELEASE</div>' +
         '<div style="position:relative;width:190px;height:190px;margin:16px auto 14px;border-radius:50%;background:conic-gradient(from 30deg,#1a1a22,#3b2c4a,#1a1a22,#4a2c3a,#1a1a22);animation:cpSpin 5s linear infinite,cpGlow 2.2s ease-in-out infinite;border:3px solid ' + accent + ';">' +
-          '<div style="position:absolute;inset:34px;border-radius:50%;background:radial-gradient(circle,#ffe6b8,#ff8fc0);display:flex;align-items:center;justify-content:center;font-size:44px;">' + r.tier.emoji + '</div>' +
+          '<div style="position:absolute;inset:34px;border-radius:50%;background:radial-gradient(circle,#ffe6b8,#ff8fc0);display:flex;align-items:center;justify-content:center;font-size:44px;">' + ti(r.tier, 64) + '</div>' +
           '<div style="position:absolute;inset:88px;border-radius:50%;background:#140c10;"></div></div>' +
         '<div style="font-size:23px;font-weight:900;color:#fff;line-height:1.35;text-shadow:0 0 18px ' + accent + ';">〈' + esc(r.title) + '〉</div>' +
         '<div style="margin-top:8px;display:inline-block;padding:5px 14px;border-radius:20px;background:rgba(255,255,255,.12);border:1px solid ' + accent + ';font-size:13px;font-weight:900;color:' + accent + ';">' + r.tier.name + ' · ' + esc(r.genre.name) + '</div>' +
@@ -331,7 +332,7 @@
   function noteHtml(note) {
     var b = sellBonus(note);
     var h = '<div style="font-size:12px;color:#e6d6c4;line-height:1.55;margin-bottom:8px;">곡을 만들면 장르 × 등급 칸이 채워지고, 같은 장르의 <b>다음 등급 단서</b>(재료 분류 모양)가 적혀요. 칸 하나마다 앨범 판매가 <b>+1%</b>, 한 장르의 세 등급을 다 채우면 <b>+2%</b> 더!<br><span style="color:#FFD700;font-weight:900;">현재 판매가 보너스 +' + Math.round(b * 100) + '%</span></div>';
-    h += '<div style="display:grid;grid-template-columns:1.3fr repeat(3,1fr);gap:5px;align-items:center;font-size:11px;font-weight:900;color:#ffd9a8;margin-bottom:4px;"><div></div>' + TIERS.slice().reverse().map(function (t) { return '<div style="text-align:center;">' + t.emoji + ' ' + t.name.replace(' 앨범', '') + '</div>'; }).join('') + '</div>';
+    h += '<div style="display:grid;grid-template-columns:1.3fr repeat(3,1fr);gap:5px;align-items:center;font-size:11px;font-weight:900;color:#ffd9a8;margin-bottom:4px;"><div></div>' + TIERS.slice().reverse().map(function (t) { return '<div style="text-align:center;">' + ti(t, 20) + ' ' + t.name.replace(' 앨범', '') + '</div>'; }).join('') + '</div>';
     GENRES.forEach(function (g) {
       var found = TIERS.some(function (t) { return note[g.id + '_' + t.id]; }), done = genreDone(note, g);
       h += '<div style="display:grid;grid-template-columns:1.3fr repeat(3,1fr);gap:5px;align-items:center;margin-bottom:5px;">' +
@@ -368,7 +369,7 @@
     TIERS.slice().reverse().forEach(function (t) {
       var own = qtyOf(t.name, bag());
       h += '<div style="display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.08);border:1.5px solid rgba(255,255,255,.15);border-radius:14px;padding:11px;margin-bottom:9px;">' +
-        '<div style="font-size:30px;">' + t.emoji + '</div><div style="flex:1;"><div style="font-size:14px;font-weight:900;color:#fff;">' + t.name + '</div><div style="font-size:12px;font-weight:900;color:#FFD700;">🍔 ' + priceOf(t, note).toLocaleString() + ' <span style="color:#aaa;font-weight:700;">/ 1장</span></div></div>' +
+        '<div style="font-size:30px;">' + ti(t, 40) + '</div><div style="flex:1;"><div style="font-size:14px;font-weight:900;color:#fff;">' + t.name + '</div><div style="font-size:12px;font-weight:900;color:#FFD700;">🍔 ' + priceOf(t, note).toLocaleString() + ' <span style="color:#aaa;font-weight:700;">/ 1장</span></div></div>' +
         '<button data-sell="' + t.id + '" style="padding:11px 12px;border:none;border-radius:10px;font-size:13px;font-weight:900;font-family:inherit;cursor:pointer;color:#fff;background:' + (own ? 'linear-gradient(135deg,#4ade80,#22c55e)' : '#555') + ';">💰 전부 판매 (' + own + ')</button></div>';
     });
     return h;
