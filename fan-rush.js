@@ -267,6 +267,7 @@
     G.inv = Math.max(0, G.inv - dt); G.shield = Math.max(0, G.shield - dt); G.flashRed = Math.max(0, G.flashRed - dt);
     G.shake = Math.max(0, G.shake - dt * 30);
     SKILLS.forEach(function (s) { G.cd[s.id] = Math.max(0, G.cd[s.id] - dt); });
+    G.fat = Math.max(0, (G.fat || 0) - FAT_REGEN * dt);
     if (G.banner.t > 0) G.banner.t -= dt;
 
     // 웨이브 진행
@@ -402,6 +403,8 @@
     if (!skillOpen(s)) { toast('🔒 ' + s.name + '은(는) 플레이어 Lv.' + (API() ? API().SKILLS.filter(function (x) { return x.id === id; })[0].useLv : s.unlock) + '부터 쓸 수 있어요'); return false; }
     if (!skillOwned(s)) { toast('🔒 ' + (G.ch.name || '이 멤버') + '은(는) ' + s.name + '을(를) 아직 못 배웠어요' + (whoHas(s.id).length ? ' (배운 멤버: ' + whoHas(s.id).slice(0, 3).join(', ') + ')' : '') + ' · 더보기 > 💖 팬 스킬 상점'); return false; }
     if (G.cd[id] > 0) return false;
+    var fcost = FATC[id] || 10;
+    if ((G.fat || 0) + fcost > FAT_MAX) { if (!G.fatMsgT || G.time - G.fatMsgT > 1) { G.fatMsgT = G.time; addDn(G.px, G.py - 40, '😵 피로도가 가득!' + (potQty('피로회복 드링크') > 0 ? ' 🥤 마셔요' : ''), '#ffb4c8', true); } return false; }
     var used = false;
     var near = G.fans.slice().sort(function (a, b) { return dist(a.x, a.y, G.px, G.py) - dist(b.x, b.y, G.px, G.py); });
     function inRange(f, r) { return dist(f.x, f.y, G.px, G.py) - f.T.r < r; }
@@ -447,7 +450,7 @@
       if (id === 'finale') { G.shield = 2.2; G.shake = 14; }
       used = true;
     }
-    if (used) { G.cd[id] = s.cd; sfx(s.sfx || (id === 'encore' ? 'reward' : 'pick')); }
+    if (used) { G.fat = (G.fat || 0) + fcost; G.cd[id] = s.cd; sfx(s.sfx || (id === 'encore' ? 'reward' : 'pick')); }
     return used;
   }
 
@@ -860,10 +863,20 @@
 
   // ════════ 화면 / 입력 ════════
   var stick = null, keys = {}, raf = 0, lastT = 0, curChar = null;
-  var POTS = [{ name: '작은 회복약', emoji: '🧪', heal: 40 }, { name: '큰 회복약', emoji: '💊', heal: 9999 }];
+  // 😮‍💨 피로도 (콘서트 무대처럼): 스킬을 쓸 때마다 차고, 가득 차면 못 씀. 가만히 있어도 조금씩 내려가고 🥤 피로회복 드링크로 확 내려감
+  var FAT_MAX = 100, FAT_REGEN = 5, DRINK_FAT = 60;
+  var FATC = { sign: 8, photo: 10, shake: 12, heart: 14, highlight: 26, wink: 32, encore: 40, rose: 36, finale: 55 };
+  var POTS = [{ name: '작은 회복약', emoji: '🧪', heal: 40 }, { name: '큰 회복약', emoji: '💊', heal: 9999 }, { name: '피로회복 드링크', emoji: '🥤', fat: DRINK_FAT }];
   function potQty(name) { try { var it = bagItems.find(function (i) { return i.name === name; }); return it ? it.qty : 0; } catch (e) { return 0; } }
   function usePot(p) {
     if (!G || G.over) return;
+    if (p.fat) {
+      if ((G.fat || 0) <= 0) { toast('아직 하나도 안 피곤해요!'); return; }
+      if (potQty(p.name) <= 0) { toast(p.emoji + ' ' + p.name + '이(가) 없어요! 더보기 > 💖 팬 스킬 상점에서 살 수 있어요'); return; }
+      try { useFromBag(p.name, 1); if (typeof saveAll === 'function') saveAll(); } catch (e) {}
+      G.fat = Math.max(0, G.fat - p.fat); addDn(G.px, G.py - 40, p.emoji + ' 피로도 -' + p.fat + '!', '#9ff0b8', true); addFx({ k: 'ring', x: G.px, y: G.py, r: 90, t: 0.6, max: 0.6, c: '' }); sfx('pick');
+      return;
+    }
     if (G.hp >= G.maxhp) { toast('HP가 이미 가득 차 있어요!'); return; }
     if (potQty(p.name) <= 0) { toast(p.emoji + ' ' + p.name + '이(가) 없어요! 더보기 > 💖 팬 스킬 상점에서 살 수 있어요'); return; }
     try { useFromBag(p.name, 1); if (typeof saveAll === 'function') saveAll(); } catch (e) {}
@@ -891,9 +904,11 @@
         '<canvas id="fr-cv" style="position:absolute;inset:0;width:100%;height:100%;touch-action:none;"></canvas>' +
         '<div style="position:absolute;left:8px;top:8px;right:8px;display:flex;align-items:center;gap:8px;pointer-events:none;">' +
           '<div style="flex:1;max-width:190px;"><div style="font-size:11px;font-weight:900;color:#fff;text-shadow:0 1px 3px #000;margin-bottom:2px;">❤️ <span id="fr-hptxt"></span> · ' + ch.name + '</div>' +
-            '<div style="height:12px;border-radius:7px;background:rgba(0,0,0,.6);border:1px solid rgba(255,255,255,.4);overflow:hidden;"><div id="fr-hp" style="height:100%;width:100%;background:linear-gradient(90deg,#ff5c8a,#ffb86b);transition:width .15s"></div></div></div>' +
+            '<div style="height:12px;border-radius:7px;background:rgba(0,0,0,.6);border:1px solid rgba(255,255,255,.4);overflow:hidden;"><div id="fr-hp" style="height:100%;width:100%;background:linear-gradient(90deg,#ff5c8a,#ffb86b);transition:width .15s"></div></div>' +
+            '<div style="font-size:10px;font-weight:900;color:#d9fbe8;text-shadow:0 1px 3px #000;margin:4px 0 1px;">😮‍💨 피로도 <span id="fr-fattxt">0</span>/100</div>' +
+            '<div style="height:8px;border-radius:5px;background:rgba(0,0,0,.6);border:1px solid rgba(255,255,255,.35);overflow:hidden;"><div id="fr-fat" style="height:100%;width:0%;background:linear-gradient(90deg,#6ee7a0,#ffd76a);"></div></div></div>' +
           '<div style="margin-left:auto;text-align:right;font-size:12px;font-weight:900;color:#fff;text-shadow:0 1px 3px #000;line-height:1.5;">🍔 <span id="fr-coin">0</span><br>😊 <span id="fr-kill">0</span>명 응대</div></div>' +
-        '<div id="fr-pots" style="position:absolute;left:8px;top:54px;display:flex;flex-direction:column;gap:6px;"></div>' +
+        '<div id="fr-pots" style="position:absolute;left:8px;top:74px;display:flex;flex-direction:column;gap:6px;"></div>' +
         '<div id="fr-skills" style="position:absolute;right:8px;bottom:10px;display:flex;flex-wrap:wrap-reverse;flex-direction:row-reverse;gap:8px;width:190px;justify-content:flex-start;"></div>' +
         '<div style="position:absolute;left:10px;bottom:8px;font-size:10px;color:rgba(255,255,255,.6);pointer-events:none;">화면을 누른 채 끌면 이동</div>' +
       '</div>';
@@ -918,6 +933,7 @@
     var hp = $('fr-hp'); if (!hp) return;
     hp.style.width = (G.hp / G.maxhp * 100) + '%';
     $('fr-hptxt').textContent = Math.ceil(G.hp) + '/' + G.maxhp;
+    var ft = G.fat || 0, fe = $('fr-fat'); if (fe) { fe.style.width = Math.min(100, ft) + '%'; fe.style.background = ft > 80 ? 'linear-gradient(90deg,#ff8a8a,#ff4d6d)' : (ft > 55 ? 'linear-gradient(90deg,#ffd76a,#ffb04a)' : 'linear-gradient(90deg,#6ee7a0,#b6f5c9)'); var fx = $('fr-fattxt'); if (fx) fx.textContent = Math.round(ft); }
     $('fr-coin').textContent = fmt(G.coins); $('fr-kill').textContent = G.kills;
     $('fr-wave').textContent = G.wave === 0 ? '준비!' : (G.wave >= WAVES ? '👑 보스전' : 'WAVE ' + G.wave + '/' + WAVES);
     var LD = loadoutIds();
@@ -1017,6 +1033,7 @@
       '팬 머리 위에 <b>스킬 아이콘</b>이 떠요. 그 스킬 버튼을 눌러 하트 게이지를 채우면 만족해서 돌아가요.',
       '일반 팬은 <b>2개</b>, 덕후는 <b>3개</b>, 👑 보스는 <b>5개</b>! 순서가 틀리면 팬이 <b>화나서</b> 더 빨라지고 처음부터예요.',
       '광역 스킬(🎤✨🌹…)은 아이콘으로도 떠요! 광역 스킬은 <b>어떤 칸이든</b> 채우고, 광역 칸에는 광역 스킬 아무거나 쓰면 돼요. 범위 안 팬 전부를 한꺼번에!',
+      '😮‍💨 스킬을 쓸 때마다 <b>피로도</b>가 차요. 가득 차면 스킬을 못 써요! 시간이 지나면 내려가고, 🥤 <b>피로회복 드링크</b>를 마시면 확 내려가요.',
       '🕶️ 출동 전에 <b>보디가드</b>를 고용할 수 있어요 (최대 2명, 한 판 동안).',
       '8웨이브 + 보스를 모두 응대하면 성공! 코인·경험치·프리미엄 조각·📘 스킬북을 받아요.'
     ], go); else go();
