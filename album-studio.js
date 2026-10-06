@@ -272,6 +272,7 @@
     var o = document.getElementById('cp-open'); if (o) o.onclick = function () { ST.sel = {}; openPop(); };
   }
   // ── 작곡 팝업 ──
+  function mi(k, px) { return (window.matIcon ? window.matIcon(k.name, px, k.emoji) : k.emoji) || k.emoji; }
   var POP = 'compose-pop';
   function closePop() { var e = document.getElementById(POP); if (e) e.remove(); }
   function openPop() { closePop(); var pop = document.createElement('div'); pop.id = POP; pop.setAttribute('data-msg', ''); pop.style.cssText = 'position:fixed;inset:0;z-index:1000;background:rgba(6,3,2,.82);display:flex;align-items:flex-end;justify-content:center;font-family:\'Noto Sans KR\',sans-serif;'; document.body.appendChild(pop); renderPop(); }
@@ -282,13 +283,13 @@
     for (var i = 0; i < MAX_KINDS; i++) {
       var k = ids[i] ? kindById(ids[i]) : null;
       slots += k
-        ? '<div data-slot="' + k.id + '" style="cursor:pointer;height:60px;border-radius:12px;background:rgba(255,184,107,.28);border:2px solid ' + ACC + ';display:flex;flex-direction:column;align-items:center;justify-content:center;"><div style="font-size:22px;line-height:1.1;">' + k.emoji + '</div><div style="font-size:10px;font-weight:900;color:#fff;margin-top:2px;">' + k.name + '</div></div>'
+        ? '<div data-slot="' + k.id + '" style="cursor:pointer;height:60px;border-radius:12px;background:rgba(255,184,107,.28);border:2px solid ' + ACC + ';display:flex;flex-direction:column;align-items:center;justify-content:center;"><div style="font-size:22px;line-height:1.1;">' + mi(k, 30) + '</div><div style="font-size:10px;font-weight:900;color:#fff;margin-top:2px;">' + k.name + '</div></div>'
         : '<div style="height:60px;border-radius:12px;background:rgba(255,255,255,.05);border:2px dashed rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.25);font-size:18px;">' + (i + 1) + '</div>';
     }
     var tray = kinds().map(function (k) {
       var q = qtyOf(k.name, bag()), on = !!ST.sel[k.id];
       return '<div data-k="' + k.id + '" style="cursor:pointer;position:relative;padding:7px 2px 5px;border-radius:11px;text-align:center;background:' + (on ? 'rgba(255,184,107,.25)' : 'rgba(255,255,255,.1)') + ';border:2px solid ' + (on ? ACC : 'rgba(255,255,255,.14)') + ';opacity:' + (q || on ? 1 : .4) + ';">' +
-        '<div style="font-size:21px;line-height:1.1;">' + k.emoji + '</div><div style="font-size:9.5px;font-weight:900;color:#fff;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + k.name + '</div>' +
+        '<div style="font-size:21px;line-height:1.1;">' + mi(k, 30) + '</div><div style="font-size:9.5px;font-weight:900;color:#fff;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + k.name + '</div>' +
         '<div style="font-size:10px;font-weight:900;color:#c9d6ff;">×' + q + '</div>' + (on ? '<div style="position:absolute;top:2px;right:4px;font-size:10px;color:' + ACC + ';">✔</div>' : '') + '</div>';
     }).join('');
     pop.innerHTML = '<div style="width:100%;max-width:430px;max-height:96vh;display:flex;flex-direction:column;background:linear-gradient(180deg,#2a1a12,#150c08);border:2px solid ' + ACC + ';border-bottom:none;border-radius:22px 22px 0 0;padding:14px 12px 12px;">' +

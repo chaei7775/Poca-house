@@ -37,6 +37,7 @@ const NEW_CONTENT_FILES = [
   'broadcast-expedition.js',
   'fan-rush.js',
   'mat-where.js',
+  'mat-icons.js',
   'goods-gear.js',
   'premium-gacha.js',
   'home-clean.js',

@@ -157,7 +157,7 @@
     S.combo++;
     S.bursts.push({ x: p[0], y: p[1], t: 0, dur: 0.6, rgb: m.rare ? '255,215,90' : '255,190,230' });
     S.bursts.push({ x: p[0], y: p[1], t: 0, dur: 0.4, rgb: '255,255,255', ring: true });
-    S.fly.push({ ch: m.emoji, x: p[0], y: p[1], t: 0, dur: 0.7, rare: !!m.rare });
+    S.fly.push({ ch: m.emoji, nm: m.name, x: p[0], y: p[1], t: 0, dur: 0.7, rare: !!m.rare });
     S.misses.push({ x: p[0], y: p[1] - 30, t: 0, text: m.rare ? '✨ ' + m.name + '!' : '+1 ' + m.name, gold: !!m.rare });
     sfx(m.rare ? 'reward' : 'pick');
     if (m.rare && navigator.vibrate) { try { navigator.vibrate(20); } catch (e) {} }
@@ -237,7 +237,9 @@
       c.lineWidth = 4; c.strokeStyle = 'rgb(' + rgb + ')'; c.beginPath(); c.arc(0, 0, r, 0, 6.283); c.stroke();
       // 남은 시간 링
       c.lineWidth = 5; c.strokeStyle = k > 0.65 ? '#ff7a7a' : '#fff'; c.beginPath(); c.arc(0, 0, r + 7, -Math.PI / 2, -Math.PI / 2 + (1 - k) * 6.283); c.stroke();
-      c.font = Math.round(r * 0.95) + 'px sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillStyle = '#fff'; c.fillText(m.emoji, 0, 2);
+      c.font = Math.round(r * 0.95) + 'px sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillStyle = '#fff';
+      var mi = window.matImage && window.matImage(m.name);
+      if (mi && mi._ok) { var isz = r * 1.55; c.drawImage(mi, -isz / 2, -isz / 2, isz, isz); } else c.fillText(m.emoji, 0, 2);
       c.restore();
       outlined(c, m.name, pos[0], pos[1] + r + 20, 12, '#fff');
     });
@@ -261,7 +263,9 @@
     var tx = W / 2, ty = H - 36;
     S.fly.forEach(function (f) {
       var q = 1 - Math.pow(1 - f.t / f.dur, 3), x = f.x + (tx - f.x) * q, y = f.y + (ty - f.y) * q - Math.sin(q * 3.14) * 70;
-      c.font = (f.rare ? 34 : 28) * (1.2 - q * 0.4) + 'px sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(f.ch, x, y);
+      c.font = (f.rare ? 34 : 28) * (1.2 - q * 0.4) + 'px sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle';
+      var fi = window.matImage && window.matImage(f.nm);
+      if (fi && fi._ok) { var fz = (f.rare ? 44 : 38) * (1.2 - q * 0.4); c.drawImage(fi, x - fz / 2, y - fz / 2, fz, fz); } else c.fillText(f.ch, x, y);
     });
     c.save(); c.translate(tx, ty); var gb = 1 + S.bump * 0.4; c.scale(gb, gb);
     c.fillStyle = 'rgba(20,10,30,0.8)'; roundRect(c, -80, -20, 160, 40, 20); c.fill();
