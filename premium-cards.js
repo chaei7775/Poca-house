@@ -322,6 +322,79 @@
     $('pc-close').onclick = function () { o.remove(); };
     render();
   }
+
+  // ── ✨ 프리미엄 카드 선택권 (소원의 결정으로 얻음): 6명 중 원하는 카드 1장 고르기 ──
+  var VOUCHER = '프리미엄 카드 선택권';
+  function voucherCount() {
+    if (typeof bagItems === 'undefined') return 0;
+    var it = bagItems.find(function (i) { return i.name === VOUCHER; });
+    return it ? it.qty : 0;
+  }
+  function openVoucher() {
+    if (voucherCount() < 1) { toast('프리미엄 카드 선택권이 없어요!'); return; }
+    var old = $('pc-voucher'); if (old) old.remove();
+    ensureStyle();
+    var o = document.createElement('div'); o.id = 'pc-voucher';
+    o.style.cssText = 'position:fixed;inset:0;z-index:1400;background:rgba(0,0,0,.88);display:flex;align-items:center;justify-content:center;padding:14px;';
+    var cells = CARDS.map(function (c) {
+      var lv = levelOf(c.id);
+      return '<div data-pick="' + c.id + '" style="cursor:pointer;position:relative;border-radius:12px;overflow:hidden;border:2px solid ' + c.color + ';background:#111;">' +
+        '<img src="' + imgUrl(c) + '" style="width:100%;aspect-ratio:3/4;object-fit:cover;display:block;' + (lv ? '' : 'filter:brightness(.85);') + '" onerror="this.style.opacity=0">' +
+        '<div style="position:absolute;left:0;right:0;bottom:0;padding:14px 4px 5px;background:linear-gradient(transparent,rgba(0,0,0,.85));text-align:center;font-size:12px;font-weight:900;color:#fff;">' + c.name +
+        '<div style="font-size:10px;font-weight:700;color:' + (lv ? '#FFD700' : '#9fe8b0') + ';">' + (lv ? '보유 Lv.' + lv + ' · 조각 ' + REFUND + '개 환급' : '🆕 새 카드') + '</div></div></div>';
+    }).join('');
+    o.innerHTML = '<div style="width:100%;max-width:380px;max-height:94vh;overflow-y:auto;background:linear-gradient(135deg,#1a1a2e,#2d1b4e);border:2px solid #FFD700;border-radius:20px;padding:18px 14px;text-align:center;">' +
+      '<div style="font-size:18px;font-weight:900;color:#FFD700;">✨ 프리미엄 카드 선택권</div>' +
+      '<div style="font-size:12px;color:#bbb;margin:4px 0 12px;">원하는 카드 1장을 골라요 (이미 가진 카드는 조각 ' + REFUND + '개로 환급돼요)</div>' +
+      '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">' + cells + '</div>' +
+      '<button id="pc-voucher-x" style="margin-top:14px;width:100%;padding:11px;border:none;border-radius:12px;background:rgba(255,255,255,.08);color:#aaa;font-size:13px;cursor:pointer;font-family:inherit;">닫기</button></div>';
+    document.body.appendChild(o);
+    $('pc-voucher-x').onclick = function () { o.remove(); };
+    Array.prototype.forEach.call(o.querySelectorAll('[data-pick]'), function (el) {
+      el.onclick = function () {
+        var c = CARDS.find(function (x) { return x.id === el.getAttribute('data-pick'); });
+        if (!c) return;
+        var has = levelOf(c.id) > 0;
+        if (has && !window.confirm(c.name + ' 카드는 이미 있어요. 그래도 선택할까요? (조각 ' + REFUND + '개 환급)')) return;
+        if (!window.confirm(c.name + ' 카드로 정할까요?')) return;
+        if (typeof useFromBag !== 'function' || !useFromBag(VOUCHER, 1)) { toast('선택권을 쓰지 못했어요'); return; }
+        var d = load(), kind;
+        if (!has) { d[c.id] = { lv: 1 }; kind = 'new'; }
+        else { kind = 'dup'; if (typeof addToBag === 'function') addToBag(PIECE_EMOJI, PIECE_NAME, 'piece', REFUND, '프리미엄 카드 조각 · ' + GOAL + '개를 모으면 프리미엄 카드 1장'); }
+        save(d);
+        o.remove();
+        var bo = $('bag-detail-overlay'); if (bo) bo.remove();
+        if (typeof renderBag === 'function') { try { renderBag(); } catch (e) {} }
+        showReveal(c, kind, (d[c.id] && d[c.id].lv) || 1);
+      };
+    });
+  }
+  window.usePremiumVoucher = openVoucher;
+
+  // 가방에서 선택권을 열면 "카드 고르기" 버튼을 붙인다
+  (function hookBagDetail() {
+    if (typeof window.showBagItemDetail !== 'function') { setTimeout(hookBagDetail, 100); return; }
+    if (window.__pcBagHooked) return;
+    window.__pcBagHooked = true;
+    var orig = window.showBagItemDetail;
+    window.showBagItemDetail = function (idx) {
+      var r = orig.apply(this, arguments);
+      try {
+        var item = bagItems[idx], ov = $('bag-detail-overlay');
+        if (item && item.name === VOUCHER && ov && !ov.querySelector('#pc-voucher-use')) {
+          var b = document.createElement('button');
+          b.id = 'pc-voucher-use';
+          b.textContent = '✨ 카드 고르기';
+          b.style.cssText = 'width:100%;padding:12px;margin-bottom:8px;background:linear-gradient(135deg,#FFD700,#F59E0B);border:none;border-radius:12px;color:#1a1a2e;font-size:14px;font-weight:900;cursor:pointer;font-family:\'Noto Sans KR\',sans-serif;';
+          b.onclick = function () { openVoucher(); };
+          var close = ov.querySelector('button');
+          if (close) close.parentNode.insertBefore(b, close); else ov.firstChild.appendChild(b);
+        }
+      } catch (e) {}
+      return r;
+    };
+  })();
+
   window.openPremiumCards = openPremium;
 
   // ── 더보기 메뉴에 칸 추가 (다른 파일들과 같은 방식) ──
