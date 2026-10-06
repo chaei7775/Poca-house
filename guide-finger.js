@@ -1,11 +1,1 @@
-// ════════════════════════════════
-// 길잡이 강조 끄기 — quest-guide.js 의 노란 테두리 깜빡임도, 손가락 👆도 모두 보이지 않게 함
-// (quest-guide.js 의 "다음 할 일" 카드는 그대로 남음. loader.js 의 'guide-finger.js' 줄은 그대로 두면 됨)
-// ════════════════════════════════
-(function () {
-  var st = document.createElement('style');
-  st.textContent =
-    'html body .qg-pulse{animation:none !important;outline:none !important;box-shadow:none !important;}' +
-    '#qg-finger{display:none !important;}';
-  document.head.appendChild(st);
-})();
+// 길잡이 강조(하얀 깜빡임 테두리 + 👆 손가락)는 quest-guide.js 에서 초반 단계에만 다시 켜짐. 이 파일은 이제 아무 일도 하지 않음.

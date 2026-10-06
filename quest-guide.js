@@ -213,8 +213,9 @@
     var st = document.createElement('style');
     st.id = 'qg-style';
     st.textContent =
-      '@keyframes qgPulse{0%,100%{box-shadow:0 0 0 0 rgba(255,215,0,.85)}50%{box-shadow:0 0 0 7px rgba(255,215,0,0)}}' +
-      '.qg-pulse{animation:qgPulse 1.3s ease-in-out infinite !important;outline:2px solid #FFD700;outline-offset:1px;}' +
+      '@keyframes qgFinger{0%,100%{transform:translate(-50%,0)}50%{transform:translate(-50%,10px)}}#qg-finger{position:fixed;z-index:880;font-size:34px;line-height:1;pointer-events:none;filter:drop-shadow(0 2px 4px rgba(0,0,0,.6));animation:qgFinger .8s ease-in-out infinite;display:none;}' +
+      '@keyframes qgPulse{0%,100%{box-shadow:0 0 0 0 rgba(255,255,255,.95)}50%{box-shadow:0 0 0 7px rgba(255,255,255,0)}}' +
+      '.qg-pulse{animation:qgPulse 1.3s ease-in-out infinite !important;outline:3px solid #fff;outline-offset:2px;}' +
       '.qg-card{margin:8px 14px;background:#fff;border:2px solid #000;border-radius:14px;padding:10px 12px;font-family:"Noto Sans KR",sans-serif;}' +
       '.qg-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;}' +
       '.qg-label{font-size:10px;font-weight:900;color:#9333ea;letter-spacing:1px;}' +
@@ -250,6 +251,24 @@
     for (var i = 0; i < els.length; i++) els[i].classList.remove('qg-pulse');
   }
 
+  // ── 👆 손가락: 초반 단계(처음 FINGER_STEPS개)에서만, 목표 버튼 바로 아래에서 위를 가리킴 ──
+  var FINGER_STEPS = 6;
+  var curTarget = null, lastScrolled = '';
+  function placeFinger() {
+    var f = document.getElementById('qg-finger');
+    if (!f) { f = document.createElement('div'); f.id = 'qg-finger'; document.body.appendChild(f); }
+    var t = curTarget && document.body.contains(curTarget) ? curTarget : null;
+    if (!t || !t.offsetParent) { f.style.display = 'none'; return; }
+    var r = t.getBoundingClientRect(), vh = window.innerHeight;
+    if (r.width === 0 || r.height === 0) { f.style.display = 'none'; return; }
+    f.style.display = 'block';
+    f.style.left = Math.min(Math.max(r.left + r.width / 2, 24), window.innerWidth - 24) + 'px';
+    if (r.top > vh - 90) { f.textContent = '👇'; f.style.top = (vh - 130) + 'px'; }      // 화면 아래에 가려져 있으면 아래쪽에서 "스크롤 해봐" 느낌
+    else if (r.bottom < 70) { f.textContent = '👆'; f.style.top = '70px'; }
+    else { f.textContent = '👆'; f.style.top = (r.bottom + 4) + 'px'; }
+  }
+  setInterval(placeFinger, 250);
+
   function render() {
     ensureStyle();
     // 강화·초월 등 감지된 첫 체험은 기록해 둠 (나중에 카드가 사라져도 완료 유지)
@@ -262,7 +281,7 @@
     var home = document.getElementById('screen-home');
     var old = document.getElementById('qg-home-card');
     if (home) {
-      if (idx < 0) { if (old) old.remove(); }
+      if (idx < 0) { if (old) old.remove(); curTarget = null; }
       else {
         if (!old) {
           old = document.createElement('div');
@@ -273,9 +292,11 @@
         }
         old.innerHTML = cardHtml(idx);
         bindGo(old);
-        if (home.classList.contains('active')) {
+        curTarget = null;
+        if (idx < FINGER_STEPS) {
           var t = document.querySelector(STEPS[idx].target);
-          if (t) t.classList.add('qg-pulse');
+          if (t && (home.classList.contains('active') || /^#nav-/.test(STEPS[idx].target))) { t.classList.add('qg-pulse'); curTarget = t;
+            if (lastScrolled !== STEPS[idx].id && home.classList.contains('active')) { lastScrolled = STEPS[idx].id; try { t.scrollIntoView({ block: 'center', behavior: 'smooth' }); } catch (e) {} } }
         }
       }
     }
