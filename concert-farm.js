@@ -15,7 +15,7 @@
 // 시작하는 법:  window.startConcertFarm({ grantCard: true })   ← 끝나고 세연의 체험용 히든카드를 지급 (trial-card.js)
 // 테스트용 주소 파라미터:  ?concert=1 (체험카드 지급까지)  /  ?concert=2 (카드 없이 파밍만)
 // 그림은 없어도 동작한다 (색 칸으로 대신 그림). 그림을 올리면 자동 적용:
-//   map-concert.png   콘서트장 탑뷰 배경 (세로로 긴 큰 그림. 가로:세로 = 1000:1900 정도)
+//   map-concert.jpg   콘서트장 탑뷰 배경 (세로로 긴 그림, 가로:세로 = 2:3. 월드 1000x1500 에 맞춰 그려짐)
 //   face-seyeon.png   세연 얼굴 (원형으로 잘려서 표시, 200px 정도)
 //   fan-1.png ~ fan-8.png  관객 (이미 게임에 있는 팬 이미지)
 // 값을 바꾸고 싶으면 아래 [설정]만 고치면 된다.
@@ -25,20 +25,20 @@
 
   // ── 설정 ──
   var SESSION_SEC = 75;        // 무대 시간
-  var FAN_DROP_P = 0.28;       // 앵콜 때 하트 가득 찬 팬 한 명이 재료를 떨어뜨릴 확률 (봇 시뮬레이션 평균 약 10개)
+  var FAN_DROP_P = 0.33;       // 앵콜 때 하트 가득 찬 팬 한 명이 재료를 떨어뜨릴 확률 (팬 30명 기준 봇 시뮬레이션 평균 약 10개)
   var EXTRA_DROP = 0.0;        // (예비) 재료가 2개 나올 확률
   var STONE_DROP = 0.18;       // 끝났을 때 재조합석 확률 (기존 탐험과 동일)
-  var WORLD_W = 1000, WORLD_H = 1900;      // 월드 크기 (화면 픽셀이 아니라 그림 좌표)
+  var WORLD_W = 1000, WORLD_H = 1500;      // 월드 크기 (화면 픽셀이 아니라 그림 좌표)
   var VIEW_W = 520;            // 화면 가로로 보이는 월드 폭 (작을수록 확대)
   var SPEED = 270;             // 걷는 속도 (월드 단위/초)
-  var BG_FILE = 'map-concert.png';
+  var BG_FILE = 'map-concert.jpg';
   var SEYEON_FACE = 'face-seyeon.png';
   var FAN_FILES = ['fan-1.png', 'fan-2.png', 'fan-3.png', 'fan-4.png', 'fan-5.png', 'fan-6.png', 'fan-7.png', 'fan-8.png'];
-  var START = { x: 520, y: 1600 };
-  var STAGE = { x0: 120, x1: 880, y0: 40, y1: 400 };
+  var START = { x: 500, y: 1140 };
+  var STAGE = { x0: 100, x1: 900, y0: 30, y1: 430 };
   // 관객석: 왼쪽/오른쪽 블록, 가운데는 통로
-  var BLOCK_X = [[140, 240, 340], [660, 760, 860]];
-  var ROW_Y = [560, 710, 860, 1010, 1160, 1310];
+  var BLOCK_X = [[150, 250, 350], [650, 750, 850]];
+  var ROW_Y = [535, 640, 830, 940, 1040];     // 위 블록 2줄 + 아래 블록 3줄 (map-concert.jpg 그림의 객석 위치에 맞춤)
   var FAN_R = 28;              // 팬 크기(반지름)
   var SKILLS = [
     { id: 'highlight', name: '하이라이트 부르기', short: '하이라이트', icon: '🎤', radius: 250, gain: 50, cd: 5,  rgb: '255,120,170', sfx: 'concertHigh' },
