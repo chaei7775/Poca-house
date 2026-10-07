@@ -33,6 +33,8 @@
     bk_aux:     { name: '보조 스킬북',     emoji: '📘', kind: 'bag', type: 'skillbook', desc: '드라마 촬영 보조 스킬 숙련도 +5',     min: 2000, max: 5000000 }
   };
   var ORDER = ['recomb', 'ws', 'epic', 'stone', 'protect', 'trans', 'slotx', 'dev', 'bk_emotion', 'bk_action', 'bk_adlib', 'bk_aux'];
+  // 📖 팬 광역 스킬 습득서 (skill-tome.js 가 먼저 불러와져 있어야 함). 키 'bk_tome_<스킬id>' → 기존 'bk_.*' 규칙에 포함
+  try { if (typeof window.__skillTomeItems === 'function') { var TM = window.__skillTomeItems(); Object.keys(TM).forEach(function (k) { ITEMS[k] = TM[k]; ORDER.push(k); }); } } catch (e) {}
   // 🌿 탐험 재료도 거래 가능 (품목 키는 'mat_' + 재료이름 → Firebase 규칙에서 한 줄로 묶음)
   var MAT_MIN = 100, MAT_MAX = 50000;   // 재료 공통 가격 범위 (규칙 파일과 같아야 함)
   var MAT_ORDER = [];

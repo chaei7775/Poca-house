@@ -32,6 +32,7 @@
   var BOSS_STONE_CHANCE = 0.15;    // 보스 응대 시 강화석 +1 확률
   var DEFEAT_RATE = 0.5;           // 쫓겨났을 때 코인·경험치를 받는 비율
   var BOOK_FAN = 0.0003;           // 팬 한 명당 스킬북 확률 (매우 낮음: 스킬북이 비싸서)
+  var TOME_BOX = 0.02;             // 선물 상자에서 📖 광역 스킬 습득서 1장 나올 확률 (2%) — 멤버에게 가르치면 그 스킬을 배움, 거래소 거래 가능
   var BOOK_BOX = 0.03;             // 선물 상자에서 스킬북 1권 나올 확률 (3%)
   var HEART_DROP = 0.08;           // 팬이 만족했을 때 하트(HP +10)를 떨어뜨릴 확률
   // ── VIP 전용 설정 ──
@@ -537,7 +538,11 @@
       bk.forEach(function (sid) { if (A && A.giveBook && A.giveBook(sid)) gotBooks.push(sid); });
     } catch (e) {}
     if (won) { try { localStorage.setItem('ph_vr_clear', '1'); } catch (e) {} }
-    G.result = { books: gotBooks, won: !!won, coin: coin, exp: exp, pieces: pieces, stones: stones, protects: protects, kills: G.kills, time: Math.round(G.time) };
+    var gotTome = '';
+    if (won && Math.random() < TOME_BOX) {
+      try { var ao = (API() ? API().SKILLS : []).filter(function (k) { return k.aoe; }); var tk = ao[Math.floor(Math.random() * ao.length)]; if (tk && window.__giveSkillTome && window.__giveSkillTome(tk.id)) gotTome = tk.icon + ' ' + tk.short + ' 습득서'; } catch (e) {}
+    }
+    G.result = { books: gotBooks, won: !!won, coin: coin, exp: exp, pieces: pieces, stones: stones, protects: protects, tome: gotTome, kills: G.kills, time: Math.round(G.time) };
     try {
       if (coin > 0 && typeof coins !== 'undefined') coins += coin;
       giveCardExp(G.charId, exp);
@@ -1115,6 +1120,7 @@
     rows.push('<span>⭐ 카드 경험치 <b style="color:#9fd8ff;">+' + fmt(r.exp) + '</b></span>');
     if (r.stones) rows.push('<span>🔨 강화석 <b style="color:#ffe27a;">+' + r.stones + '</b></span>');
     if (r.protects) rows.push('<span>🛡️ 방지권 <b style="color:#7ee8a5;">+' + r.protects + '</b></span>');
+    if (r.tome) rows.push('<span>📖 <b style="color:#ffd76a;">' + r.tome + '</b> 획득! (대박)</span>');
     if (r.pieces) rows.push('<span>' + PIECE_EMOJI + ' 프리미엄 조각 <b style="color:#ffe27a;">+' + r.pieces + '</b></span>');
     if (r.books && r.books.length) { var bl = {}; r.books.forEach(function (x) { bl[x] = (bl[x] || 0) + 1; }); rows.push('<span>📘 스킬북 <b style="color:#9fd8ff;">' + Object.keys(bl).map(function (x) { var k = skillById(x); return (k ? k.icon + k.name : x) + ' ×' + bl[x]; }).join(', ') + '</b></span>'); }
     if (r.bagFull) rows.push('<span style="color:#ff9a9a;font-size:12px;">가방이 가득 차서 조각을 못 받았어요</span>');

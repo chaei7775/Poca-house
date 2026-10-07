@@ -37,6 +37,7 @@ const NEW_CONTENT_FILES = [
   'happening.js',
   'enhance.js',
   'fan-skills.js',
+  'skill-tome.js',
   'cloud-extra.js',
   'stamina-balance.js',
   'drink-bulk.js',
