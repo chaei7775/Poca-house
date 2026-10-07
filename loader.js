@@ -21,6 +21,7 @@ const NEW_CONTENT_FILES = [
   'mystery-explore.js',
   'agency.js',
   'wish-hidden-patch.js',
+  'wish-sync.js',
   'cf-shoot.js',
   'cf-photo.js',
   'cf-guest-fix.js',
