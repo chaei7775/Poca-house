@@ -598,7 +598,7 @@ function moreMenuTileHtml(icon, label, color, onclickFn) {
       }
     } else {
       const validPlaces = ['beach', 'park', 'forest', 'lake', 'square'];
-      if (validPlaces.includes(placeId) && Math.random() < 0.18) {
+      if (validPlaces.includes(placeId) && Math.random() < 0.25) {
         addToBag('🔹', '재조합석', 'material', 1, '카드 재조합에 필요한 재료');
         if (typeof exploreCollected !== 'undefined') exploreCollected.push('🔹 재조합석');
       }

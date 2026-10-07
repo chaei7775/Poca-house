@@ -19,7 +19,7 @@
   // ── 설정 ──
   var SESSION_SEC = 35;       // 탐험 시간
   var STAMINA_COST = 10;      // 기존 탐험과 동일
-  var STONE_DROP = 0.18;      // 끝났을 때 재조합석 확률 (기존 탐험과 동일)
+  var STONE_DROP = 0.25;      // 끝났을 때 재조합석 확률 (기존 탐험과 동일)
   var HIT_NEED = 8;           // 기구 하나를 연타해서 재료가 떨어지게 하는 데 필요한 탭 수
   var HIT_DECAY = 1.0;        // 가만히 있으면 게이지가 초당 이만큼 줄어듦
   var EXTRA_DROP = 0.25;      // 기구 하나에서 재료가 2개 떨어질 확률 (기본은 1개)

@@ -18,7 +18,7 @@
 
   // ── 설정 ──
   var STAMINA_COST = 10;      // 기존 탐험과 동일
-  var STONE_DROP = 0.18;      // 끝났을 때 재조합석 확률 (기존 탐험과 동일)
+  var STONE_DROP = 0.25;      // 끝났을 때 재조합석 확률 (기존 탐험과 동일)
   var ROUNDS = 3;             // 의뢰 개수
   var TRIES = 2;              // 의뢰 1건당 기회
   var FAN_COUNT = 8;          // 한 의뢰에 서 있는 팬 수 (정답 1 + 가짜 7)

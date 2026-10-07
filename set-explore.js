@@ -22,7 +22,7 @@
   // ── 설정 ──
   var SESSION_SEC = 35;       // 탐험 시간
   var STAMINA_COST = 10;      // 기존 탐험과 동일
-  var STONE_DROP = 0.18;      // 끝났을 때 재조합석 확률 (기존 탐험과 동일)
+  var STONE_DROP = 0.25;      // 끝났을 때 재조합석 확률 (기존 탐험과 동일)
   var TOTAL_PROPS = 6;        // 한 판에 놓아야 하는 소품 수 (재료 양이 예전 숲/헬스장과 비슷하게 나오는 값)
   var EXTRA_DROP = 0.25;      // 소품 하나를 놓았을 때 재료가 2개 나올 확률 (기본은 1개)
   var LIT_COUNT = 2;          // 동시에 켜져 있는 칸 수

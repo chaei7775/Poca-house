@@ -17,7 +17,7 @@
   // ── 설정 ──
   var SESSION_SEC = 35;       // 탐험 시간
   var STAMINA_COST = 10;      // 기존 탐험과 동일
-  var STONE_DROP = 0.18;      // 끝났을 때 재조합석 확률 (기존 탐험과 동일)
+  var STONE_DROP = 0.25;      // 끝났을 때 재조합석 확률 (기존 탐험과 동일)
   var SHAKE_NEED = 8;         // 나무 한 그루를 흔들어 재료가 떨어지게 하는 데 필요한 탭 수
   var SHAKE_DECAY = 1.0;      // 가만히 있으면 게이지가 초당 이만큼 줄어듦
   var EXTRA_DROP = 0.25;      // 나무 한 그루에서 재료가 2개 떨어질 확률 (기본은 1개)

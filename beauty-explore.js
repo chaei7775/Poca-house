@@ -21,7 +21,7 @@
   // ── 설정 ──
   var SESSION_SEC = 35;       // 탐험 시간
   var STAMINA_COST = 10;      // 기존 탐험과 동일
-  var STONE_DROP = 0.18;      // 끝났을 때 재조합석 확률 (기존 탐험과 동일)
+  var STONE_DROP = 0.25;      // 끝났을 때 재조합석 확률 (기존 탐험과 동일)
   var INTRO_SEC = 0.9;        // 단계가 바뀔 때 안내가 뜨는 시간
   var DRY_NEED = 8;           // 1단계: 좌우로 훑어야 하는 횟수 (한 방향 = 1번)
   var DRY_DROP_AT = [4, 8];   //         재료가 나오는 횟수
