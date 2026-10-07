@@ -47,7 +47,7 @@ function qpOpen(cfg) {
   const btn = 'border:none;border-radius:10px;font-family:\'Noto Sans KR\',sans-serif;font-weight:900;cursor:pointer;';
   ov.innerHTML =
     '<div style="width:100%;max-width:320px;background:linear-gradient(135deg,#1a1a2e,#2d1b4e);border:2px solid #C084FC;border-radius:20px;padding:22px 20px;text-align:center;">' +
-      '<div style="font-size:44px;margin-bottom:4px;">' + qpEsc(cfg.emoji) + '</div>' +
+      '<div style="font-size:44px;margin-bottom:4px;">' + (window.matIcon ? window.matIcon(cfg.name, 60, qpEsc(cfg.emoji)) : qpEsc(cfg.emoji)) + '</div>' +
       '<div style="font-size:16px;font-weight:900;color:#fff;margin-bottom:2px;">' + qpEsc(cfg.name) + '</div>' +
       '<div style="font-size:12px;color:#aaa;margin-bottom:14px;">' + (cfg.sub ? qpEsc(cfg.sub) : '개당 🍔 ' + cfg.unit.toLocaleString() + '코인 · ') + (cfg.sub ? ' · ' : '') + (isBuy ? '최대 ' + max + '개' : '보유 ' + cfg.max + '개') + (cfg.max > QP_MAX ? ' · 한 번에 ' + QP_MAX + '개까지' : '') + '</div>' +
       '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">' +
