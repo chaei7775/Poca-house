@@ -59,6 +59,8 @@
       text: function (v) { return '등교권·조각 드랍 ' + (v > 0 ? '+' : '-') + pct(v); } },
     { key: 'stone', icon: '🔨', name: '강화석 드랍', bad: -0.15, v: { center: 0.40, comeback: 0.20, trainee: 0.10 },
       text: function (v) { return '강화석 드랍 ' + (v > 0 ? '+' : '-') + pct(v); } },
+    { key: 'protect', icon: '🛡️', name: '방지권 드랍', bad: -0.15, v: { center: 0.40, comeback: 0.20, trainee: 0.10 },
+      text: function (v) { return '방지권 드랍 ' + (v > 0 ? '+' : '-') + pct(v); } },
     { key: 'film', icon: FILM_EMOJI, name: '필름 드랍', bad: -0.20, v: { center: 0.40, comeback: 0.20, trainee: 0.10 },
       text: function (v) { return '필름 드랍 ' + (v > 0 ? '+' : '-') + pct(v); } },
     // 센터 전용: 방송국 앞에서 프리미엄 조각이 나왔을 때 한 번 더
@@ -180,7 +182,7 @@
 
   // 원정에서 읽는 효과 합계 (이 캐릭터의 프리미엄 카드를 가졌을 때만)
   window.getEngraveBonus = function (charId) {
-    var out = { stamina: 0, coin: 0, exp: 0, zone: 0, npc: 0, ticket: 0, stone: 0, film: 0, pieceExtra: 0, cheer: null, fish: false, rainbow: false };
+    var out = { stamina: 0, coin: 0, exp: 0, zone: 0, npc: 0, ticket: 0, stone: 0, protect: 0, film: 0, pieceExtra: 0, cheer: null, fish: false, rainbow: false };
     if (!charId || ownedIds().indexOf(charId) === -1) return out;
     getCard(charId).slots.forEach(function (s) {
       if (!s) return;

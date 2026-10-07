@@ -713,7 +713,7 @@
     if (!success) return [];
     var rare = (type === 'golden' || type === 'legend');
     var t = rare ? MAP.enh.variant : MAP.enh.normal;
-    var d = { stone: Math.random() < t.stone * Math.max(0, 1 + engB('stone')) ? 1 : 0, protect: Math.random() < t.protect ? 1 : 0, trans: Math.random() < t.trans ? 1 : 0 };
+    var d = { stone: Math.random() < t.stone * Math.max(0, 1 + engB('stone')) ? 1 : 0, protect: Math.random() < t.protect * Math.max(0, 1 + engB('protect')) ? 1 : 0, trans: Math.random() < t.trans ? 1 : 0 };
     if (type === 'legend') d.stone = Math.max(d.stone, MAP.enh.npcStone || 1);          // 특별 NPC 성공: 강화석 확정
     if (!d.stone && !d.protect && !d.trans) return [];
     // 강화 재료는 가방 아이템으로 들어간다 (enhance.js 와 같은 이름/종류). 가방이 가득 차면 ph_enhance 에 임시 보관 → 다음에 가방으로 옮겨짐
