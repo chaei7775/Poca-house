@@ -1342,15 +1342,46 @@ function openBondDetail(charId) {
   document.getElementById('bond-detail-overlay').classList.add('show');
 }
 function closeBondDetail() { document.getElementById('bond-detail-overlay').classList.remove('show'); currentCharId = null; }
+// 대화는 한 번에 다 뜨지 않고, 화면을 탭할 때마다 말풍선이 하나씩 떠요 (채팅 보는 느낌)
+let storyShown = 0, storyTotal = 0;
+function storyBtnUpdate() {
+  const btn = document.getElementById('story-next-btn'), skip = document.getElementById('story-skip-btn');
+  if (!btn) return;
+  const done = storyShown >= storyTotal;
+  btn.textContent = done ? '✓ 읽음' : '탭해서 다음 ▶  (' + storyShown + '/' + storyTotal + ')';
+  if (skip) skip.style.display = done ? 'none' : 'block';
+}
+function storyNext() {
+  const body = document.getElementById('story-read-body');
+  if (!body) return;
+  if (storyShown >= storyTotal) { closeStoryRead(); return; }
+  const el = body.children[storyShown];
+  if (el) { el.style.display = 'flex'; el.classList.add('animate-in'); }
+  storyShown++;
+  storyBtnUpdate();
+  setTimeout(() => { body.scrollTop = body.scrollHeight; }, 30);
+  if (typeof sfx === 'function') { try { sfx('pick'); } catch (e) {} }
+}
+function storyShowAll() {
+  const body = document.getElementById('story-read-body');
+  if (!body) return;
+  Array.prototype.forEach.call(body.children, c => { c.style.display = 'flex'; });
+  storyShown = storyTotal; storyBtnUpdate();
+  setTimeout(() => { body.scrollTop = body.scrollHeight; }, 30);
+}
 function readStory(charId, idx) {
   const ch = CHARS[charId];
   const story = ch.stories[idx];
   document.getElementById('story-read-title').textContent = `${ch.name} - ${story.title}`;
-  document.getElementById('story-read-body').innerHTML = story.msgs.map(m => `<div class="story-msg ${m.who === 'player' ? 'player' : ''}"><div class="story-msg-name">${m.who === 'player' ? '나' : ch.name}</div><div class="story-msg-bubble">${m.text}</div></div>`).join('');
+  const body = document.getElementById('story-read-body');
+  body.innerHTML = story.msgs.map(m => `<div class="story-msg ${m.who === 'player' ? 'player' : ''}" style="display:none;"><div class="story-msg-name">${m.who === 'player' ? '나' : ch.name}</div><div class="story-msg-bubble">${m.text}</div></div>`).join('');
+  body.onclick = storyNext;                      // 대화 영역 아무 데나 탭해도 다음 말풍선
+  storyShown = 0; storyTotal = story.msgs.length;
   storyRead[charId + '_' + (idx + 1)] = true;
   saveAll();
   checkQuestProgress('first_story');
   document.getElementById('story-read-overlay').classList.add('show');
+  storyNext();                                   // 첫 말풍선은 바로
 }
 function closeStoryRead() { document.getElementById('story-read-overlay').classList.remove('show'); if (currentCharId) openBondDetail(currentCharId); }
 
