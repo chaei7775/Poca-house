@@ -213,6 +213,38 @@
     window.openMoreMenu = wrapped;
   });
 
+
+  // 히든카드 도감에도 세연 체험 카드를 맨 앞에 보여준다 (받기 전엔 잠금 칸, 끝나면 '체험 종료')
+  whenReady(function () { return typeof window.openHiddenCardDex === 'function'; }, function () {
+    var original = window.openHiddenCardDex;
+    if (original.__trialWrapped) return;
+    var wrapped = function () {
+      checkExpire();
+      var res = original.apply(this, arguments);
+      try {
+        var ov = document.getElementById('hidden-dex-overlay');
+        var grid = ov && ov.children[1];
+        if (grid && !document.getElementById('dex-trial-tile')) {
+          var r = read(), act = isActive(), st = act ? 'on' : (r ? 'end' : 'lock');
+          var badge = act ? '🎟️ 체험 D-' + dday() : (r ? '체험 종료' : '체험');
+          var sub = act ? '<div style="font-size:10px;color:#fcd34d;font-weight:900;margin-top:2px;">' + remainText() + ' 남음</div>'
+            : (r ? '<div style="font-size:10px;color:#aaa;margin-top:2px;">기간이 끝났어요</div>' : '<div style="font-size:10px;color:#FF6B9D;font-weight:900;margin-top:2px;">Lv.5 무대 후 지급</div>');
+          var d = document.createElement('div');
+          d.id = 'dex-trial-tile';
+          d.style.cssText = 'position:relative;border:2px solid ' + ACC + ';border-radius:14px;overflow:hidden;background:#111;aspect-ratio:3/4;' + (act ? 'cursor:pointer;box-shadow:0 0 14px ' + ACC + '88;' : '');
+          d.innerHTML = '<img src="' + imgUrl() + '" onerror="this.style.display=\'none\'" style="width:100%;height:100%;object-fit:cover;opacity:' + (act ? '1' : '.45') + ';' + (st === 'lock' ? 'filter:grayscale(1);' : '') + '">' +
+            '<div style="position:absolute;top:6px;right:6px;background:' + (act ? '#dc2626' : '#666') + ';color:#fff;font-size:9px;font-weight:900;padding:2px 6px;border-radius:8px;">' + badge + '</div>' +
+            '<div style="position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,0.75);padding:6px;text-align:center;"><div style="font-size:11px;font-weight:900;color:#fff;">' + CARD_NAME + ' (체험)</div>' + sub + '</div>';
+          if (act) d.onclick = function () { openTrial(); };
+          grid.insertBefore(d, grid.firstChild);
+        }
+      } catch (e) {}
+      return res;
+    };
+    wrapped.__trialWrapped = true;
+    window.openHiddenCardDex = wrapped;
+  });
+
   // 게임이 켜질 때와 켜 둔 동안 주기적으로 만료 확인
   function tick() { try { checkExpire(); } catch (e) {} }
   setTimeout(tick, 3000);
