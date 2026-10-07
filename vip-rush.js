@@ -262,7 +262,7 @@
         var X = xfs(); X.flash = 0.45; X.flashMax = 0.45; X.flashRgb = '255,240,190'; X.zoom = 0.05;
         confetti(40, CONF_COLS);
         for (var i = 0; i < 4; i++) burstAt(b.x + rnd(-60, 60), b.y + rnd(-60, 20), 44, ['#ffd76a', '#ff6fb1', '#9fd8ff', '#fff', '#c084fc'], 260, i * 0.12, true);
-        for (var k = 0; k < 28; k++) G.fx.push({ k: 'loot', x: b.x, y: b.y - 20, vx: rnd(-170, 170), vy: rnd(-330, -120), e: ['🔨', '🛡️', '🍔', '🖼️', '⭐', '🧩', '💖'][k % 7], n: [PIECE_LOOT0, PIECE_LOOT1, '', PIECE_NAME, '', PIECE_LOOT2, ''][k % 7], t: 1.8, max: 1.8 });
+        for (var k = 0; k < 28; k++) G.fx.push({ k: 'loot', x: b.x, y: b.y - 20, vx: rnd(-170, 170), vy: rnd(-330, -120), e: ['🔨', '🛡️', '🍔', '🖼️', '⭐', '🧩', '💖'][k % 7], n: [PIECE_LOOT0, PIECE_LOOT1, '', PIECE_NAME, '', PIECE_LOOT2, ''][k % 7], f: ['', '', 'vip-coin.png', '', 'vip-exp.png', '', 'vip-heart.png'][k % 7], t: 1.8, max: 1.8 });
         sfx('reward');
       }
     } else { b.ot += dt; if (b.ot > 1.9 && !b.fin) { b.fin = true; finish(true); } }
@@ -673,6 +673,13 @@
     if (b.state === 'idle') { c.font = '900 15px sans-serif'; c.textAlign = 'center'; c.lineWidth = 4; c.strokeStyle = 'rgba(0,0,0,.7)'; c.strokeText('가까이 가서 열어봐요!', b.x, b.y - S * 0.62); c.fillStyle = '#ffe27a'; c.fillText('가까이 가서 열어봐요!', b.x, b.y - S * 0.62); }
   }
 
+  // 🖼️ UI 아이콘 그림(코인·경험치·하트·편지·번개·왕관): 그림이 안 불러와졌으면 이모지로 대신 나옴
+  function icoHtml(file, emoji, px) { px = px || 20; return '<img src="' + IMG_BASE + file + '" alt="" draggable="false" style="width:' + px + 'px;height:' + px + 'px;object-fit:contain;vertical-align:-' + Math.round(px * 0.2) + 'px;" onerror="this.outerHTML=\'' + emoji + '\'">'; }
+  function drawIco(c, file, emoji, x, y, size, fontPx) {
+    var im = boxImg(file);
+    if (im && im._ok) c.drawImage(im, x - size / 2, y - size / 2, size, size);
+    else { c.font = fontPx + 'px sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(emoji, x, y); }
+  }
   function drawFan(c, f) {
     var T = f.T, bob = Math.sin(f.wob) * 2;
     c.fillStyle = 'rgba(0,0,0,.35)'; c.beginPath(); c.ellipse(f.x, f.y + T.r * 0.7, T.r * 0.9, T.r * 0.4, 0, 0, 7); c.fill();
@@ -687,14 +694,14 @@
       c.drawImage(fi, f.x - R * 1.1, f.y + bob - R * 1.1, R * 2.2, R * 2.2);
       c.shadowBlur = 0;
       drawAcc(c, f, R * 2.2, bob);
-      if (T.ranged) { c.font = '16px sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('💌', f.x + R * 0.8, f.y + bob + R * 0.7); }
-      if (f.type === 'rusher') { c.font = '14px sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('⚡', f.x + R * 0.8, f.y + bob - R * 0.7); }
+      if (T.ranged) drawIco(c, 'vip-letter.png', '💌', f.x + R * 0.8, f.y + bob + R * 0.7, 24, 16);
+      if (f.type === 'rusher') drawIco(c, 'vip-bolt.png', '⚡', f.x + R * 0.8, f.y + bob - R * 0.7, 22, 14);
     } else {
     // 얼굴 그림이 하나도 아직 안 불러와졌을 때만: 작은 이모지 대신 동그란 자리표시 (곧 그림으로 바뀜)
     c.fillStyle = 'rgba(255,214,235,.85)'; c.beginPath(); c.arc(f.x, f.y + bob, T.r * 1.15, 0, 7); c.fill();
     }
     c.shadowBlur = 0;
-    if (T.boss) { c.font = Math.round(T.r * 1.0) + 'px sans-serif'; c.fillText('👑', f.x, f.y - T.r * 1.25 - 8 + bob); }
+    if (T.boss) drawIco(c, 'vip-crown.png', '👑', f.x, f.y - T.r * 1.25 - 8 + bob, Math.round(T.r * 1.4), Math.round(T.r));
     // 머리 위: 💗 만족도 게이지 (스킬 데미지로 차오르고, 가득 차면 만족)
     var tot = 0;
     var gp = clamp((f.vis || 0) / 100, 0, 1), gw = Math.max(48, T.r * 2.3, tot), gh = T.boss ? 11 : 8, gx = f.x - gw / 2, gy = f.y - T.r - (T.boss ? 24 : 14);
@@ -830,7 +837,7 @@
   }
   function drawFx(c) {
     G.fx.forEach(function (e) {
-      if (e.k === 'loot') { e.vy += 700 * 0.016; e.x += e.vx * 0.016; e.y += e.vy * 0.016; c.globalAlpha = Math.min(1, e.t * 2); var li = e.n ? matImg(e.n) : null; if (li && li._ok) c.drawImage(li, e.x - 18, e.y - 18, 36, 36); else { c.font = '26px sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(e.e, e.x, e.y); } c.globalAlpha = 1; return; }
+      if (e.k === 'loot') { e.vy += 700 * 0.016; e.x += e.vx * 0.016; e.y += e.vy * 0.016; c.globalAlpha = Math.min(1, e.t * 2); var li = e.f ? boxImg(e.f) : (e.n ? matImg(e.n) : null); if (li && li._ok) c.drawImage(li, e.x - 18, e.y - 18, 36, 36); else { c.font = '26px sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(e.e, e.x, e.y); } c.globalAlpha = 1; return; }
       if (e.t > e.max) return;   // 아직 시작 전(딜레이)
       var p = 1 - e.t / e.max;
       if (e.k === 'burst') { drawBurst(c, e, p); return; }
@@ -900,7 +907,7 @@
     // 하트 아이템
     G.pick.forEach(function (h) { c.fillStyle = '#ff6fb1'; c.shadowColor = '#ff6fb1'; c.shadowBlur = 10; heartPath(c, h.x, h.y + Math.sin(G.time * 5) * 2, 11); c.shadowBlur = 0; });
     // 편지
-    G.proj.forEach(function (p) { c.font = '20px sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('💌', p.x, p.y); });
+    G.proj.forEach(function (p) { drawIco(c, 'vip-letter.png', '💌', p.x, p.y, 28, 20); });
     // 팬 + 플레이어 (아래쪽에 있는 게 앞에 보이게)
     var order = G.fans.slice().sort(function (a, b) { return a.y - b.y; }), drawnP = false;
     order.forEach(function (f) { if (!drawnP && f.y > G.py) { drawPlayer(c); drawnP = true; } drawFan(c, f); });
@@ -1139,8 +1146,8 @@
     var el = document.createElement('div'); el.id = 'fr-result';
     el.style.cssText = 'position:absolute;inset:0;z-index:80;background:rgba(8,4,18,.86);display:flex;align-items:center;justify-content:center;padding:16px;font-family:\'Noto Sans KR\',sans-serif;';
     var rows = [];
-    rows.push('<span>🍔 코인 <b style="color:#ffd76a;">+' + fmt(r.coin) + '</b></span>');
-    rows.push('<span>⭐ 카드 경험치 <b style="color:#9fd8ff;">+' + fmt(r.exp) + '</b></span>');
+    rows.push('<span>' + icoHtml('vip-coin.png', '🍔') + ' 코인 <b style="color:#ffd76a;">+' + fmt(r.coin) + '</b></span>');
+    rows.push('<span>' + icoHtml('vip-exp.png', '⭐') + ' 카드 경험치 <b style="color:#9fd8ff;">+' + fmt(r.exp) + '</b></span>');
     if (r.stones) rows.push('<span>' + matHtml('강화석', '🔨') + ' 강화석 <b style="color:#ffe27a;">+' + r.stones + '</b></span>');
     if (r.protects) rows.push('<span>' + matHtml('방지권', '🛡️') + ' 방지권 <b style="color:#7ee8a5;">+' + r.protects + '</b></span>');
     if (r.tome) rows.push('<span>📖 <b style="color:#ffd76a;">' + r.tome + '</b> 획득! (대박)</span>');

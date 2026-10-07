@@ -517,6 +517,19 @@
   }
   // 팬 얼굴 이미지: rfan-1.png ~ rfan-10.png (없으면 이모지로 대체), 보스는 rfan-boss.png
   var FAN_FACES = 10, fanImgs = {};
+  // 🖼️ UI 아이콘 그림(코인·경험치·편지·번개·왕관): 그림이 안 불러와졌으면 이모지로 대신 나옴
+  var _uiImgs = {};
+  function uiImg(n) {
+    if (_uiImgs[n]) return _uiImgs[n];
+    var im = new Image(); im.crossOrigin = 'anonymous'; im.onload = function () { im._ok = true; };
+    im.src = IMG_BASE + n; _uiImgs[n] = im; return im;
+  }
+  function icoHtml(file, emoji, px) { px = px || 20; return '<img src="' + IMG_BASE + file + '" alt="" draggable="false" style="width:' + px + 'px;height:' + px + 'px;object-fit:contain;vertical-align:-' + Math.round(px * 0.2) + 'px;" onerror="this.outerHTML=\'' + emoji + '\'">'; }
+  function drawIco(c, file, emoji, x, y, size, fontPx) {
+    var im = uiImg(file);
+    if (im && im._ok) c.drawImage(im, x - size / 2, y - size / 2, size, size);
+    else { c.font = fontPx + 'px sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(emoji, x, y); }
+  }
   function fanFace(key) {
     if (fanImgs[key]) return fanImgs[key];
     var im = new Image(); im.crossOrigin = 'anonymous';
@@ -610,14 +623,14 @@
       c.drawImage(fi, f.x - R * 1.1, f.y + bob - R * 1.1, R * 2.2, R * 2.2);
       c.shadowBlur = 0;
       drawAcc(c, f, R * 2.2, bob);
-      if (T.ranged) { c.font = '16px sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('💌', f.x + R * 0.8, f.y + bob + R * 0.7); }
-      if (f.type === 'rusher') { c.font = '14px sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('⚡', f.x + R * 0.8, f.y + bob - R * 0.7); }
+      if (T.ranged) drawIco(c, 'vip-letter.png', '💌', f.x + R * 0.8, f.y + bob + R * 0.7, 24, 16);
+      if (f.type === 'rusher') drawIco(c, 'vip-bolt.png', '⚡', f.x + R * 0.8, f.y + bob - R * 0.7, 22, 14);
     } else {
     // 얼굴 그림이 하나도 아직 안 불러와졌을 때만: 작은 이모지 대신 동그란 자리표시 (곧 그림으로 바뀜)
     c.fillStyle = 'rgba(255,214,235,.85)'; c.beginPath(); c.arc(f.x, f.y + bob, T.r * 1.15, 0, 7); c.fill();
     }
     c.shadowBlur = 0;
-    if (T.boss) { c.font = Math.round(T.r * 1.0) + 'px sans-serif'; c.fillText('👑', f.x, f.y - T.r * 1.25 - 8 + bob); }
+    if (T.boss) drawIco(c, 'vip-crown.png', '👑', f.x, f.y - T.r * 1.25 - 8 + bob, Math.round(T.r * 1.4), Math.round(T.r));
     // 머리 위: 써야 할 스킬 순서 + 💗 하트 게이지 (순서를 채울수록 차오르고, 가득 차면 만족)
     var n = f.seq.length, iw = 22, tot = n * iw, ix = f.x - tot / 2, iy = f.y - T.r - (T.boss ? 50 : 40);
     for (var i = 0; i < n; i++) {
@@ -826,7 +839,7 @@
     // 하트 아이템
     G.pick.forEach(function (h) { c.fillStyle = '#ff6fb1'; c.shadowColor = '#ff6fb1'; c.shadowBlur = 10; heartPath(c, h.x, h.y + Math.sin(G.time * 5) * 2, 11); c.shadowBlur = 0; });
     // 편지
-    G.proj.forEach(function (p) { c.font = '20px sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('💌', p.x, p.y); });
+    G.proj.forEach(function (p) { drawIco(c, 'vip-letter.png', '💌', p.x, p.y, 28, 20); });
     // 팬 + 플레이어 (아래쪽에 있는 게 앞에 보이게)
     var order = G.fans.slice().sort(function (a, b) { return a.y - b.y; }), drawnP = false;
     order.forEach(function (f) { if (!drawnP && f.y > G.py) { drawPlayer(c); drawnP = true; } drawFan(c, f); });
@@ -857,7 +870,7 @@
       var bx = boss.x - G.cam.x, by = boss.y - G.cam.y;
       if (bx < 0 || by < 0 || bx > G.vw || by > G.vh) {
         var ax = clamp(bx, 26, G.vw - 26), ay = clamp(by, 26, G.vh - 26);
-        c.font = '26px sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('👑', ax, ay);
+        drawIco(c, 'vip-crown.png', '👑', ax, ay, 32, 26);
       }
     }
   }
@@ -1064,7 +1077,7 @@
     var r = G.result, old = $('fr-result'); if (old) old.remove();
     var el = document.createElement('div'); el.id = 'fr-result';
     el.style.cssText = 'position:absolute;inset:0;z-index:80;background:rgba(8,4,18,.86);display:flex;align-items:center;justify-content:center;padding:16px;font-family:\'Noto Sans KR\',sans-serif;';
-    var lines = '<div>🍔 코인 <b style="color:#ffd76a;">+' + fmt(r.coin) + '</b></div><div>⭐ 카드 경험치 <b style="color:#9fd8ff;">+' + fmt(r.exp) + '</b></div>';
+    var lines = '<div>' + icoHtml('vip-coin.png', '🍔') + ' 코인 <b style="color:#ffd76a;">+' + fmt(r.coin) + '</b></div><div>' + icoHtml('vip-exp.png', '⭐') + ' 카드 경험치 <b style="color:#9fd8ff;">+' + fmt(r.exp) + '</b></div>';
     if (r.pieces) lines += '<div>' + PIECE_EMOJI + ' 프리미엄 조각 <b style="color:#ffe27a;">+' + r.pieces + '</b></div>';
     if (r.stones) lines += '<div>🔨 강화석 <b style="color:#ffe27a;">+' + r.stones + '</b></div>';
     if (r.books && r.books.length) { var bl = {}; r.books.forEach(function (x) { bl[x] = (bl[x] || 0) + 1; }); lines += '<div>📘 스킬북 <b style="color:#9fd8ff;">' + Object.keys(bl).map(function (x) { var k = skillById(x); return (k ? k.icon + k.name : x) + ' ×' + bl[x]; }).join(', ') + '</b></div>'; }
