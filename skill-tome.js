@@ -68,7 +68,10 @@
           if (!r.ok) { draw('⚠️ ' + r.why); return; }
           try { if (typeof renderBag === 'function') renderBag(); } catch (e) {}
           if (qty(sk) <= 0) { ov.remove(); toast('🎉 ' + charName(cid) + '이(가) ' + sk.name + '을(를) 배웠어요!'); var d = document.getElementById('bag-detail-overlay'); if (d) d.remove(); }
-          else draw('🎉 ' + charName(cid) + '이(가) ' + sk.name + '을(를) 배웠어요!');
+          else {
+            draw('🎉 ' + charName(cid) + '이(가) ' + sk.name + '을(를) 배웠어요!');
+            try { var bd = document.getElementById('bag-detail-overlay'); if (bd) Array.prototype.forEach.call(bd.querySelectorAll('div'), function (dv) { if (!dv.children.length && /^보유:/.test(dv.textContent)) dv.textContent = '보유: ' + qty(sk) + '개'; }); } catch (e) {}
+          }
         };
       });
     }

@@ -203,6 +203,10 @@
           sfx('rarePick');
           draw('📘 숙련도 +1!' + (r.after > r.before ? ' ⭐ 숙련 Lv.' + r.after + ' 달성!' : ''));
           try { if (typeof renderBag === 'function') renderBag(); } catch (e) {}
+          try {                                                  // 뒤에 깔린 가방 상세창의 '보유: N개'도 같이 갱신 (0개면 닫기)
+            var bd = $('bag-detail-overlay'), left = (function () { var it = bagItems.find(function (i) { return i.name === bookName(sk); }); return it ? it.qty : 0; })();
+            if (bd) { if (left <= 0) bd.remove(); else Array.prototype.forEach.call(bd.querySelectorAll('div'), function (d) { if (!d.children.length && /^보유:/.test(d.textContent)) d.textContent = '보유: ' + left + '개'; }); }
+          } catch (e) {}
         };
       });
       ov.querySelector('#fs-book-x').onclick = function () { ov.remove(); };
