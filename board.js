@@ -184,7 +184,7 @@ async function deleteBoardPost(postId) {
           const accBtn = document.createElement('button');
           accBtn.id = 'more-menu-account-btn';
           accBtn.style.cssText = 'display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;aspect-ratio:0.95;padding:6px 4px;background:#9333ea1f;border:1.5px solid #9333ea;border-radius:12px;color:#fff;font-size:10px;font-weight:700;line-height:1.2;cursor:pointer;font-family:\'Noto Sans KR\',sans-serif;text-align:center;';
-          accBtn.innerHTML = '<span style="font-size:19px;">☁️</span><span>계정</span>';
+          accBtn.innerHTML = '<span style="font-size:19px;">' + (window.moreIcon ? window.moreIcon('☁️') : '☁️') + '</span><span>계정</span>';
           accBtn.onclick = function() { overlay.remove(); openAuthOverlay(); };
           grid.appendChild(accBtn);
         }
