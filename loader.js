@@ -42,6 +42,7 @@ const NEW_CONTENT_FILES = [
   'drink-bulk.js',
   'broadcast-expedition.js',
   'fan-rush.js',
+  'vip-rush.js',
   'mat-where.js',
   'mat-icons.js',
   'goods-gear.js',
