@@ -35,6 +35,9 @@
   var CARD_IMG = 'hidden-seyeon-trial.jpg';   // 카드 그림 (이름·효과 글씨가 그림 안에 들어 있음)
   var CARD_RATIO = '1054/1492';
   var ACQUIRE_TEXT = '🧩 소원의 조각 50개를 모으면 첫 1회에 한해 레어히든 카드로 바로 바꿔드려요!';
+  // 왜 7일 안에 정식 카드를 노려야 하는지 (동기 설명) — 세연 선배의 말투
+  var WHY_HTML = '<div style="background:rgba(245,158,11,.12);border:1.5px solid ' + '#F59E0B' + '66;border-radius:12px;padding:10px 12px;margin:0 0 12px;text-align:left;font-size:12px;color:#fde7b0;line-height:1.7;">' +
+    '<b style="color:#FFD700;">💬 세연 선배</b><br>“이건 7일만 빌려주는 카드야.<br>써 보면 알걸? 탐험이 얼마나 편해지는지.<br>계속 쓰고 싶으면 <b>소원의 조각 50개</b> 모아서 진짜 내 카드로 만들어 둬!<br>7일 안에 못 바꾸면 카드는 사라지고, 효과도 같이 끝나.”</div>';
   var EFFECTS = [
     { label: '스태미나 소모', value: '-10%' },
     { label: '희귀재료 획득', value: '+1%' }
@@ -158,8 +161,9 @@
       '<div style="font-size:21px;font-weight:900;color:' + ACC + ';text-shadow:0 0 20px ' + ACC + 'aa;margin-bottom:14px;">🎟️ 체험용 히든카드 획득!</div>' +
       cardHtml(230) +
       '<div style="margin-top:10px;">' + effectsHtml() + '</div>' +
-      '<div style="font-size:12px;color:#fca5a5;margin:12px 0 4px;font-weight:700;">⏳ ' + TRIAL_DAYS + '일 뒤에 사라져요</div>' +
-      '<div style="font-size:11px;color:#bbb;margin-bottom:14px;">' + ACQUIRE_TEXT + '</div>' +
+      '<div style="font-size:12px;color:#fca5a5;margin:12px 0 8px;font-weight:700;">⏳ ' + TRIAL_DAYS + '일 뒤에 사라져요</div>' +
+      WHY_HTML +
+      '<div style="font-size:11px;color:#bbb;margin-bottom:14px;">' + ACQUIRE_TEXT + '<br>조각은 드라마 촬영·탐험·퀘스트에서 모아요</div>' +
       '<button id="trial-ok" style="' + BTN + 'background:linear-gradient(135deg,#f59e0b,#ef4444);color:#fff;">좋아요!</button>');
     $('trial-ok').onclick = function () { ov.remove(); };
     try { if (window.pocaSfx) window.pocaSfx.play('reward'); } catch (e) {}
@@ -172,7 +176,7 @@
       '<div style="font-size:13px;color:#ddd;line-height:1.7;margin-bottom:14px;">' + CARD_NAME + ' 체험 카드가 사라졌어요.<br>써보느라 수고했어요! 대신 선물을 드려요 🎁</div>' +
       '<div style="display:inline-block;background:rgba(255,255,255,.1);border:1.5px solid ' + ACC + ';border-radius:14px;padding:10px 18px;font-size:14px;font-weight:900;color:#FFD700;line-height:1.8;margin-bottom:14px;">' +
       '🍔 ' + REWARD_COINS.toLocaleString() + ' 코인<br>🔹 재조합석 ×' + REWARD_STONES + '</div>' +
-      '<div style="font-size:11px;color:#bbb;margin-bottom:14px;">' + ACQUIRE_TEXT + '</div>' +
+      '<div style="font-size:11px;color:#bbb;margin-bottom:14px;">' + ACQUIRE_TEXT + '<br>(조각 50개 교환은 아직 남아 있어요)</div>' +
       '<button id="trial-ok" style="' + BTN + 'background:rgba(255,255,255,.14);color:#fff;">확인</button>');
     $('trial-ok').onclick = function () { ov.remove(); };
   }
@@ -189,7 +193,8 @@
       '<div style="margin:16px 0 4px;font-size:13px;font-weight:900;color:#fca5a5;">⏳ 남은 시간 ' + remainText() + ' (D-' + dday() + ')</div>' +
       '<div style="height:10px;border-radius:5px;background:rgba(255,255,255,.12);overflow:hidden;margin-bottom:14px;"><div style="height:100%;width:' + pct + '%;background:linear-gradient(90deg,#ef4444,#f59e0b);"></div></div>' +
       '<div style="background:rgba(255,255,255,.07);border-radius:12px;padding:11px;font-size:12px;color:#ddd;line-height:1.6;">' +
-      '🎁 끝나면 카드는 사라지지만<br>코인 ' + REWARD_COINS.toLocaleString() + ' + 재조합석 ×' + REWARD_STONES + '을 드려요<br><span style="color:#bbb;">' + ACQUIRE_TEXT + '</span></div>');
+      '🎁 끝나면 카드는 사라지지만<br>코인 ' + REWARD_COINS.toLocaleString() + ' + 재조합석 ×' + REWARD_STONES + '을 드려요<br><span style="color:#bbb;">' + ACQUIRE_TEXT + '</span></div>' +
+      '<div style="margin-top:12px;">' + WHY_HTML + '</div>');
     $('trial-close').onclick = function () { ov.remove(); };
   }
   window.openTrialCard = openTrial;
