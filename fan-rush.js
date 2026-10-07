@@ -385,7 +385,8 @@
     var X = xfs(), i;
     X.flash = C.flash; X.flashMax = C.flash; X.flashRgb = C.rgb;
     X.zoom = C.zoom; X.slowT = C.slow[0]; X.slowS = C.slow[1];
-    X.cut = { t: 0.95, max: 0.95, icon: sk.icon, name: C.name, rgb: C.rgb };
+    if (window.__fsCutIn && $('fr-view')) { try { window.__fsCutIn(id, $('fr-view'), G.charId); } catch (e) { X.cut = { t: 0.95, max: 0.95, icon: sk.icon, name: C.name, rgb: C.rgb }; } }
+    else X.cut = { t: 0.95, max: 0.95, icon: sk.icon, name: C.name, rgb: C.rgb };
     G.shake = Math.max(G.shake, C.shake);
     for (i = 0; i < C.bursts; i++) {
       var a = Math.random() * 6.283, d = i === 0 ? 0 : sk.range * (0.35 + Math.random() * 0.5);

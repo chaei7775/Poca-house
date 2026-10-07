@@ -354,14 +354,16 @@
     rose:      { rgb: '255,90,130',  ms: 1800, from: 'top',   tilt: 0,  parts: ['🌹','🌸','🥀','💖'], mode: 'fall',  n: 30, flash: 0.5,  shake: 0.3, vig: true, sub: '' },
     finale:    { rgb: '255,235,170', ms: 2100, from: 'zoom',  tilt: 0,  parts: ['🎆','🎇','✨','⭐','💫'], mode: 'mix', n: 46, flash: 0.95, shake: 0.7, conf: true, bars: true, sub: '' }
   };
-  function cutFaceFile() {
-    var id = (F && F.cid) || '';
+  function cutFaceFile(cid) {
+    var id = cid || (F && F.cid) || '';
     if (id === 'seyeon_trial') id = 'seyeon';
     return 'https://raw.githubusercontent.com/chaei7775/Poca-house/main/face-' + id + '.png';
   }
-  function cutIn(id) {
-    var view = $('bc-view'); if (!view) return;
+  function cutIn(id, host, cid) {
+    var view = host || $('bc-view'); if (!view) return;
+    injectStyle();
     var sk = skillById(id), C = CUT[id] || CUT.highlight, rgb = C.rgb;
+    if (!sk) return;
     var wrap = document.createElement('div');
     wrap.style.cssText = 'position:absolute;inset:0;z-index:40;pointer-events:none;overflow:hidden;';
     var anim = { left: 'fsCut', right: 'fsCutR', top: 'fsCutT', zoom: 'fsCutZ' }[C.from] || 'fsCut';
@@ -372,7 +374,7 @@
     if (C.big) h += '<div style="position:absolute;left:50%;top:55%;font-size:90px;transform:translate(-50%,-50%);animation:fsPulse 1s ease-out forwards;">' + C.big + '</div>';
     h += '<div style="position:absolute;left:-4%;right:-4%;top:26%;height:' + (id === 'finale' ? 98 : 84) + 'px;background:linear-gradient(90deg,rgba(10,5,25,.92),rgba(' + rgb + ',.6) 50%,rgba(10,5,25,.92));' +
       'border-top:3px solid rgb(' + rgb + ');border-bottom:3px solid rgb(' + rgb + ');transform:skewY(' + C.tilt + 'deg);animation:' + anim + ' ' + C.ms + 'ms ease-out forwards;display:flex;align-items:center;gap:12px;padding:0 6%;' + (C.from === 'right' ? 'flex-direction:row-reverse;' : '') + '">' +
-      '<div style="width:' + (id === 'finale' ? 78 : 68) + 'px;height:' + (id === 'finale' ? 78 : 68) + 'px;border-radius:' + (id === 'rose' ? '14px' : '50%') + ';border:3px solid rgb(' + rgb + ');background:#2a1a40 url(' + cutFaceFile() + ') center/cover;box-shadow:0 0 18px rgb(' + rgb + ');flex:none;margin-top:-10px;"></div>' +
+      '<div style="width:' + (id === 'finale' ? 78 : 68) + 'px;height:' + (id === 'finale' ? 78 : 68) + 'px;border-radius:' + (id === 'rose' ? '14px' : '50%') + ';border:3px solid rgb(' + rgb + ');background:#2a1a40 url(' + cutFaceFile(cid) + ') center/cover;box-shadow:0 0 18px rgb(' + rgb + ');flex:none;margin-top:-10px;"></div>' +
       '<div style="font-size:' + (id === 'finale' ? 30 : 26) + 'px;font-weight:900;color:#fff;-webkit-text-stroke:5px rgba(20,8,40,.95);paint-order:stroke fill;white-space:nowrap;text-shadow:0 0 14px rgb(' + rgb + ');">' + sk.icon + ' ' + sk.name + '!</div>' +
     '</div>';
     wrap.innerHTML = h;
@@ -381,7 +383,7 @@
     setTimeout(function () { view.style.animation = ''; }, C.shake * 1000 + 30);
     setTimeout(function () { if (wrap.parentNode) wrap.parentNode.removeChild(wrap); }, C.ms + 150);
     var vw = view.clientWidth || 360, vh = view.clientHeight || 640;
-    for (var i = 0; i < C.n; i++) {
+    for (var i = 0; i < Math.round(C.n * 1.5); i++) {
       var p = document.createElement('div'), em = C.parts[i % C.parts.length], x = Math.round(Math.random() * 100), sz = 16 + Math.round(Math.random() * 18);
       var mode = C.mode === 'mix' ? (i % 2 ? 'burst' : 'fall') : C.mode, tr, st;
       if (mode === 'rise') { st = 'left:' + x + '%;top:100%;'; tr = 'translateY(-' + Math.round(vh * (0.5 + Math.random() * 0.6)) + 'px) translateX(' + Math.round(Math.random() * 60 - 30) + 'px)'; }
@@ -392,9 +394,9 @@
       wrap.appendChild(p);
       (function (q, t) { setTimeout(function () { q.style.transform = t; q.style.opacity = '0'; }, 40); })(p, tr);
     }
-    if (C.conf) {
+    if (true) {
       var cols = ['#ffd76a', '#ff6fb1', '#9fd8ff', '#c084fc', '#7ee8a5'];
-      for (var j = 0; j < 28; j++) {
+      for (var j = 0; j < (C.conf ? 40 : 22); j++) {
         var q2 = document.createElement('div');
         q2.style.cssText = 'position:absolute;top:-10px;left:' + Math.round(Math.random() * 100) + '%;width:7px;height:11px;background:' + cols[j % 5] + ';transition:transform 1.5s ease-in,opacity 1.5s;';
         wrap.appendChild(q2);
@@ -1001,6 +1003,7 @@
       return r;
     };
   })();
+  window.__fsCutIn = cutIn;
   window.__fanSkillsAPI = { tut: tutModal, giveBook: giveBook, bookName: function (id) { var k = skillById(id); return k ? bookName(k) : ''; }, feedBook: feedBook, SKILLS: SKILLS, SLOTS: SLOTS, loadout: loadLoadout, equip: equip, levelOk: levelOk, hasSkill: function (cid, id) { var sk = skillById(id); return !!sk && hasSkill(cid, sk); }, openEditor: openEditor, openShop: openShop };
 
   window.__fanSkillsTest = {
