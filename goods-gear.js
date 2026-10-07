@@ -528,6 +528,63 @@
   }
 
   window.openGoodsGear = open;
+  // ── 🔧 분해: 안 쓰는 굿즈를 가방에서 분해하면 재료를 일부 돌려줌 (만들 때 쓴 재료의 일부) ──
+  var DISMANTLE_RATIO = { normal: 0.25, good: 0.3, rare: 0.4, epic: 0.5, unique: 0.6 };   // 제작 재료 대비 돌려받는 비율
+  function dismantleReturn(g) {
+    var S = SLOTS[g.slot], ratio = DISMANTLE_RATIO[g.grade] || 0.25;
+    return S.mats.map(function (m) { return [m[0], Math.max(1, Math.round(m[1] * ratio))]; });
+  }
+  function matEmoji(name) {
+    if (name === STONE_NAME) return STONE_EMOJI;
+    try { if (typeof getMaterialEmoji === 'function') return getMaterialEmoji(name) || '🌿'; } catch (e) {}
+    return '🌿';
+  }
+  function dismantle(item) {
+    var g = item && item.gear; if (!g) return '굿즈가 아니에요';
+    var idx = bagItems.indexOf(item); if (idx < 0) return '가방에서 찾을 수 없어요';
+    var ret = dismantleReturn(g);
+    var newSlots = ret.filter(function (r) { return !bagItems.some(function (i) { return i.name === r[0]; }); }).length;
+    if (bagItems.length - 1 + newSlots > bagSlots) return '가방이 꽉 찼어요! 슬롯을 비워주세요';
+    bagItems.splice(idx, 1);
+    ret.forEach(function (r) { addToBag(matEmoji(r[0]), r[0], 'material', r[1], r[0] === STONE_NAME ? '굿즈 공방에서 굿즈를 만들 때 쓰는 원석' : '제작 재료 (굿즈 분해)'); });
+    if (typeof saveBag === 'function') saveBag();
+    if (typeof saveAll === 'function') saveAll();
+    return null;
+  }
+  (function hookBagDismantle() {
+    if (typeof window.showBagItemDetail !== 'function') { setTimeout(hookBagDismantle, 200); return; }
+    function install() {
+      if (typeof window.showBagItemDetail !== 'function' || window.__ggDisHooked) return;
+      window.__ggDisHooked = true;
+      var orig = window.showBagItemDetail;
+      var w = function (idx) {
+        var r = orig.apply(this, arguments);
+        try {
+          var item = bagItems[idx], ov = document.getElementById('bag-detail-overlay');
+          if (item && item.type === 'goods_gear' && item.gear && ov && ov.firstElementChild && !ov.querySelector('#gg-dis-btn')) {
+            var ret = dismantleReturn(item.gear);
+            var b = document.createElement('button'); b.id = 'gg-dis-btn';
+            b.textContent = '🔧 분해해서 재료로 돌려받기';
+            b.style.cssText = 'width:100%;padding:11px;margin-top:8px;background:linear-gradient(135deg,#38bdf8,#6366f1);border:none;border-radius:12px;color:#fff;font-size:13px;font-weight:900;cursor:pointer;font-family:inherit;';
+            b.onclick = function (e) {
+              e.stopPropagation();
+              if (!window.confirm('이 굿즈를 분해할까요?\n\n받는 재료: ' + ret.map(function (x) { return x[0] + ' x' + x[1]; }).join(', ') + '\n(굿즈는 사라져요)')) return;
+              var err = dismantle(item);
+              if (err) { toast('❌ ' + err); return; }
+              ov.remove();
+              try { if (typeof renderBag === 'function') renderBag(); } catch (x) {}
+              toast('🔧 분해 완료! ' + ret.map(function (x) { return x[0] + ' x' + x[1]; }).join(', '));
+            };
+            ov.firstElementChild.appendChild(b);
+          }
+        } catch (e) {}
+        return r;
+      };
+      w.__ggDis = true; window.showBagItemDetail = w;
+    }
+    install();   // 한 번만 감쌈 (bag-delete.js 처럼 주기적으로 다시 감싸는 파일과 서로 겹겹이 감싸지 않도록)
+  })();
+
   window.__goodsGear = { globalTotals: globalTotals, craft: craft, rollGear: rollGear, totals: totals, bonusOf: bonusOf, equip: equip, unequip: unequip };
 
   // ── 맵: 🛍️ 상점거리 에 "🎁 굿즈 공방" 버튼 ──
