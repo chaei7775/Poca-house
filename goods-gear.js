@@ -83,7 +83,7 @@
     var old = $('gg-toast'); if (old) old.remove();
     var el = document.createElement('div');
     el.id = 'gg-toast';
-    el.style.cssText = 'position:fixed;left:50%;top:18%;transform:translateX(-50%);z-index:1300;background:rgba(20,20,40,.96);border:1.5px solid #FFD700;border-radius:14px;padding:11px 18px;color:#fff;font-size:13px;font-weight:900;max-width:86%;text-align:center;font-family:\'Noto Sans KR\',sans-serif;';
+    el.style.cssText = 'position:fixed;left:50%;top:62px;transform:translateX(-50%);z-index:1300;background:rgba(20,20,40,.96);border:1.5px solid #FFD700;border-radius:14px;padding:9px 16px;color:#fff;font-size:13px;font-weight:900;max-width:86%;text-align:center;font-family:\'Noto Sans KR\',sans-serif;pointer-events:none;';
     el.textContent = msg;
     document.body.appendChild(el);
     setTimeout(function () { if (el.parentNode) el.remove(); }, 2600);

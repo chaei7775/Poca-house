@@ -27,8 +27,8 @@
     var old = document.getElementById('st-toast'); if (old) old.remove();
     var el = document.createElement('div');
     el.id = 'st-toast';
-    var top = document.getElementById('gg-toast') ? '26%' : '18%';   // 공방의 원석 알림과 겹치면 아래로 비킴
-    el.style.cssText = 'position:fixed;left:50%;top:' + top + ';transform:translateX(-50%);z-index:1300;background:rgba(20,20,40,.96);border:1.5px solid #FFD700;border-radius:14px;padding:11px 18px;color:#fff;font-size:13px;font-weight:900;max-width:86%;text-align:center;font-family:\'Noto Sans KR\',sans-serif;pointer-events:none;';
+    var top = document.getElementById('gg-toast') ? '112px' : '62px';   // 공방의 원석 알림과 겹치면 아래로 비킴
+    el.style.cssText = 'position:fixed;left:50%;top:' + top + ';transform:translateX(-50%);z-index:1300;background:rgba(20,20,40,.96);border:1.5px solid #FFD700;border-radius:14px;padding:9px 16px;color:#fff;font-size:13px;font-weight:900;max-width:86%;text-align:center;font-family:\'Noto Sans KR\',sans-serif;pointer-events:none;';
     el.textContent = msg;
     document.body.appendChild(el);
     setTimeout(function () { if (el.parentNode) el.remove(); }, SHOW_MS);
