@@ -21,7 +21,7 @@
   var WAVE_MAX_SEC = 24;           // 한 웨이브가 이 시간 넘으면 다음 웨이브가 먼저 시작
   var PLAYER_SPEED = 140;          // 이동 속도 (px/초)
   var BASE_HP = 135, HP_PER_LV = 10;         // 최대 HP = BASE + (플레이어 레벨 - 10) × HP_PER_LV
-  var DMG_PER_LV = 0.04;           // 스킬 위력: 1 + (플레이어 레벨 - 10) × 이 값
+  var DMG_PER_LV = 0.035;          // 스킬 위력: 1 + (플레이어 레벨 - 10) × 이 값
   var HIT_COOLDOWN = 0.5;          // 한 번 맞고 나서 무적 시간(초)
   // 보상 (한 판 전부 성공했을 때 대략: 코인 약 10만, 경험치 약 2천, 조각 0~2개)
   var COIN_PER_FAN = 700;          // 팬 1명 응대 코인 (웨이브가 높을수록 조금씩 늘어남)
@@ -67,11 +67,11 @@
   ];
   // 팬 종류 (hp = 만족해야 하는 양 / sp = 속도 / dmg = 닿았을 때 HP 깎임 / r = 크기)
   var FANTYPES = {
-    normal:  { emoji: '🙋', name: '일반 팬',     hp: 900,  sp: 58,  dmg: 4,  r: 15 },
-    rusher:  { emoji: '⚡', name: '열혈 팬',     hp: 540,  sp: 112, dmg: 3,  r: 13 },
-    tank:    { emoji: '🧸', name: '덕후',        hp: 2600, sp: 40,  dmg: 8,  r: 23 },
-    thrower: { emoji: '💌', name: '편지러',      hp: 780,  sp: 46,  dmg: 3,  r: 14, ranged: true },
-    boss:    { emoji: '👑', name: '고인물 팬클럽장', hp: 1100, sp: 52, dmg: 12, r: 36, boss: true }
+    normal:  { emoji: '🙋', name: '일반 팬',     hp: 2000, sp: 58,  dmg: 4,  r: 15 },
+    rusher:  { emoji: '⚡', name: '열혈 팬',     hp: 1200, sp: 112, dmg: 3,  r: 13 },
+    tank:    { emoji: '🧸', name: '덕후',        hp: 5700, sp: 40,  dmg: 8,  r: 23 },
+    thrower: { emoji: '💌', name: '편지러',      hp: 1700, sp: 46,  dmg: 3,  r: 14, ranged: true },
+    boss:    { emoji: '👑', name: '고인물 팬클럽장', hp: 2400, sp: 52, dmg: 12, r: 36, boss: true }
   };
 
   // ── 보디가드(용병): 출전 전에 코인으로 고용 (한 판마다). 최대 BG_MAX명 ──
