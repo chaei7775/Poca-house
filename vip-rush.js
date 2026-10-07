@@ -31,8 +31,8 @@
   var BOSS_PIECE_BONUS = 0.25;     // 거기에 한 번 더(+1) 줄 확률
   var BOSS_STONE_CHANCE = 0.15;    // 보스 응대 시 강화석 +1 확률
   var DEFEAT_RATE = 0.5;           // 쫓겨났을 때 코인·경험치를 받는 비율
-  var BOOK_FAN = 0.005;            // 팬 한 명 응대할 때 📘 스킬북(장착 스킬 중 하나)이 나올 확률
-  var BOOK_BOSS = 2;               // 보스까지 깨면 보장되는 스킬북 개수
+  var BOOK_FAN = 0.0003;           // 팬 한 명당 스킬북 확률 (매우 낮음: 스킬북이 비싸서)
+  var BOOK_BOX = 0.03;             // 선물 상자에서 스킬북 1권 나올 확률 (3%)
   var HEART_DROP = 0.08;           // 팬이 만족했을 때 하트(HP +10)를 떨어뜨릴 확률
   // ── VIP 전용 설정 ──
   var AGGRO_R = 300;               // 이 거리 안에 들어가면 그 무리 전체가 어그로
@@ -532,7 +532,7 @@
     var gotBooks = [];
     try {
       var bk = G.books.slice();
-      if (won) { var pl = loadoutIds().filter(Boolean); for (var bi = 0; bi < BOOK_BOSS && pl.length; bi++) bk.push(pl[Math.floor(Math.random() * pl.length)]); }
+      if (won) { var pl = loadoutIds().filter(Boolean); if (pl.length && Math.random() < BOOK_BOX) bk.push(pl[Math.floor(Math.random() * pl.length)]); }
       var A = API();
       bk.forEach(function (sid) { if (A && A.giveBook && A.giveBook(sid)) gotBooks.push(sid); });
     } catch (e) {}
