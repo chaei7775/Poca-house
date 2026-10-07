@@ -37,6 +37,7 @@
   var ACQUIRE_TEXT = '🧩 소원의 조각 50개를 모으면 첫 1회에 한해 레어히든 카드로 바로 바꿔드려요!';
   // 왜 7일 안에 정식 카드를 노려야 하는지 (동기 설명) — 세연 선배의 말투
   var WHY_HTML = '<div style="background:rgba(245,158,11,.12);border:1.5px solid ' + '#F59E0B' + '66;border-radius:12px;padding:10px 12px;margin:0 0 12px;text-align:left;font-size:12px;color:#fde7b0;line-height:1.7;">' +
+    '<b style="color:#FFD700;">❓ 히든카드가 뭐예요?</b><br>갖고만 있어도 <b>효과가 계속 켜지는 특별한 카드</b>예요.<br>(스태미나 절약 · 알바 코인↑ · 희귀재료↑ · 제작 대성공↑ 등)<br>강화·초월하면 효과도, 데뷔한 멤버의 <b>기획사 수익</b>도 커져요.<br><br>' +
     '<b style="color:#FFD700;">💬 세연 선배</b><br>“이건 7일만 빌려주는 카드야.<br>써 보면 알걸? 탐험이 얼마나 편해지는지.<br>계속 쓰고 싶으면 <b>소원의 조각 50개</b> 모아서 진짜 내 카드로 만들어 둬!<br>7일 안에 못 바꾸면 카드는 사라지고, 효과도 같이 끝나.”</div>';
   var EFFECTS = [
     { label: '스태미나 소모', value: '-10%' },

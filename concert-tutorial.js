@@ -33,7 +33,7 @@
       '<div style="font-size:44px;margin-bottom:6px;">🎤</div>' +
       '<div style="font-size:19px;font-weight:900;color:#fff;margin-bottom:8px;">선배가 무대에 초대했어요!</div>' +
       '<div style="font-size:13px;color:#e9d5ff;line-height:1.7;margin-bottom:6px;">탑스타 <b style="color:#FFD700;">세연</b> 선배의 공연장!<br>팬들의 하트를 가득 채우면<br>🎁 <b style="color:#FFD700;">7일 체험 히든카드</b>를 선물로 줘요.</div>' +
-      '<div style="font-size:12px;color:#fde7b0;line-height:1.7;margin:8px 0;background:rgba(245,158,11,.12);border-radius:10px;padding:8px 10px;">“써 보고 마음에 들면<br>7일 안에 <b>소원의 조각 50개</b>로<br>진짜 내 카드로 바꿔 둬!”</div>' +
+      '<div style="font-size:12px;color:#fde7b0;line-height:1.7;margin:8px 0;background:rgba(245,158,11,.12);border-radius:10px;padding:8px 10px;"><span style="color:#fff;">히든카드 = 갖고만 있어도 <b>효과가 켜지는 카드</b><br>(스태미나 절약, 알바 코인↑ 등)</span><br>“써 보고 마음에 들면<br>7일 안에 <b>소원의 조각 50개</b>로<br>진짜 내 카드로 바꿔 둬!”</div>' +
       '<div style="font-size:11px;color:#c4b5fd;margin-bottom:16px;">(피로회복 드링크 ' + FREE_DRINKS + '개도 챙겨 가요)</div>' +
       '<button id="ct-go" style="width:100%;padding:14px;background:linear-gradient(135deg,#f59e0b,#ec4899);border:none;border-radius:12px;color:#fff;font-size:15px;font-weight:900;cursor:pointer;' + FONT + '">✨ 무대 올라가기</button>' +
       '<button id="ct-later" style="width:100%;margin-top:8px;padding:11px;background:rgba(255,255,255,.1);border:none;border-radius:12px;color:#ddd;font-size:13px;cursor:pointer;' + FONT + '">나중에 할래요</button></div>';
