@@ -16,7 +16,7 @@
 
   // ── 설정 ──
   var LOC_ID = 'fan_rush';
-  var NEED_LEVEL = 15;             // 입장 가능한 플레이어 레벨
+  var NEED_LEVEL = 20;             // 입장 가능한 플레이어 레벨
   var ENTRY_STAMINA = 120;         // 입장할 때 드는 스태미나
   var WORLD = 1500;                // 맵 한 변 (px)
   var WAVES = 8;                   // 웨이브 수 (마지막은 보스)
