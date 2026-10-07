@@ -177,7 +177,7 @@
       done: function () { return !!S.flags.hidden_try || hiddenTried(); }, reward: 500,
       go: function () { if (typeof openRecombine === 'function') openRecombine(); else goTo('home'); }, target: '#nav-shop' },
     { id: 'expedition', icon: '🚌', title: '팬덤 원정 떠나기',
-      hint: '🚐 스케줄 가기 → 🎬 팬덤 원정 → 방송국 앞. 현장을 돌아다니며 🖼️ 프리미엄 조각과 강화석을 모아요. 스태미나는 드링크로 채워요!',
+      hint: '🌟 팬덤 원정은 히든카드를 가진 멤버만 갈 수 있어요! (체험 카드도 가능) 🚐 스케줄 가기 → 🎬 팬덤 원정 → 방송국 앞. 현장을 돌아다니며 🖼️ 프리미엄 조각과 강화석을 모아요. 스태미나는 드링크로 채워요!',
       done: function () { return !!S.flags.first_expedition; }, reward: 500,
       go: function () { goTo('map'); }, target: '.btn-collection' },
     { id: 'fanskill', icon: '🤝', title: '팬 스킬 배우기',
