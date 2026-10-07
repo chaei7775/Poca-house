@@ -36,6 +36,8 @@
   var BOOK_BOX = 0.03;             // 선물 상자에서 스킬북 1권 나올 확률 (3%)
   var HEART_DROP = 0.08;           // 팬이 만족했을 때 하트(HP +10)를 떨어뜨릴 확률
   // ── VIP 전용 설정 ──
+  var BUFF_POWER = 1.3;            // 🎶 응원 버프 보디가드: 스킬 위력 배율 (피로도 회복도 BUFF_FAT 배)
+  var BUFF_FAT = 1.5;
   var CARD_LV_RATE = 0.02;         // 멤버 카드 레벨 1당 위력 +2%
   var MASTERY_RATE = 0.12;         // 스킬 숙련 Lv 1당 위력 +12% (Lv.5면 +60%)
   var ENH_DMG_SHARE = 0.3;         // 히든카드 강화·초월로 오른 '수익 보너스'의 이만큼이 위력에 반영
@@ -77,6 +79,7 @@
   var BODYGUARDS = [
     { id: 'wall',   img: 'guard-1.png', name: '강도현', role: '철벽 경호', cost: 2000, desc: '몸으로 팬들을 막아 밀어내고, 내가 맞는 피해도 35% 줄여줘요' },
     { id: 'luck',   img: 'guard-2.png', name: '하윤',   role: '실수 보호', cost: 2000, desc: '스킬 순서를 틀려도 40% 확률로 벌을 안 받고 넘어가요' },
+    { id: 'buff',   img: 'guard-4.png', name: '시온',   role: '응원 버프', cost: 3000, desc: '응원가로 힘을 북돋아요! 스킬 위력 +30%, 피로도도 더 빨리 회복돼요' },
     { id: 'bounty', img: 'guard-3.png', name: '마석',   role: '보상 사냥꾼', cost: 2500, desc: '이번 판 코인 +30%, 경험치 +20%, 보스 프리미엄 조각 확률 +20%p' }
   ];
   function bgById(id) { return BODYGUARDS.filter(function (b) { return b.id === id; })[0] || null; }
@@ -220,7 +223,7 @@
       });
     });
     G.total = G.fans.length;
-    var pp = powerParts(G.charId, 'sign');
+    var pp = powerParts(G.charId, 'sign'); if (hasGuard('buff')) pp.enh *= BUFF_POWER;
     G.banner = { text: '👑 팬들을 모두 만족시켜요! (내 위력 ×' + (Math.round(pp.plv * pp.card * pp.enh * 10) / 10) + ')', t: 3 };
   }
   function pullPack(f) {
@@ -321,7 +324,7 @@
     G.inv = Math.max(0, G.inv - dt); G.shield = Math.max(0, G.shield - dt); G.flashRed = Math.max(0, G.flashRed - dt);
     G.shake = Math.max(0, G.shake - dt * 30);
     SKILLS.forEach(function (s) { G.cd[s.id] = Math.max(0, G.cd[s.id] - dt); });
-    G.fat = Math.max(0, (G.fat || 0) - FAT_REGEN * dt);
+    G.fat = Math.max(0, (G.fat || 0) - FAT_REGEN * (hasGuard('buff') ? BUFF_FAT : 1) * dt);
     autoPots(dt);
     if (G.banner.t > 0) G.banner.t -= dt;
 
@@ -455,7 +458,7 @@
       enh: 1 + (enhOf(cid) - 1) * ENH_DMG_SHARE
     };
   }
-  function powerMult(id) { var p = powerParts(G ? G.charId : null, id); return p.plv * p.card * p.mas * p.enh; }
+  function powerMult(id) { var p = powerParts(G ? G.charId : null, id); return p.plv * p.card * p.mas * p.enh * (hasGuard('buff') ? BUFF_POWER : 1); }
   function dealDmg(f, base, kb) {
     if (!f || f.hp <= 0 || G.over) return;
     var d = Math.max(1, Math.round(base * (0.9 + Math.random() * 0.2)));
