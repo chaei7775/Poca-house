@@ -438,7 +438,7 @@
     wink:      { rgb: '255,170,210', zoom: 0.015, shake: 2,  flash: 0.1,  slow: [0, 1],      name: '윙크 샤워',       cols: ['#ffb3d1', '#ffffff'], bursts: 0, conf: 0,  cut: false, dim: 0.55 },
     rose:      { rgb: '255,110,150', zoom: 0.02,  shake: 3,  flash: 0.12, slow: [0, 1],      name: '장미 세례',       cols: ['#ff7f9f', '#ffd1da'], bursts: 0, conf: 0,  cut: false, dim: 0.55 },
     encore:    { rgb: '200,160,255', zoom: 0.04,  shake: 6,  flash: 0.28, slow: [0.2, 0.4],  name: '앵콜 폭죽',       cols: ['#d8c2ff', '#ffe3a3', '#ffffff'], bursts: 2, conf: 14, cut: true, dim: 0.9 },
-    finale:    { rgb: '255,236,180', zoom: 0.06,  shake: 8,  flash: 0.22,  slow: [0.35, 0.35], name: '피날레 불꽃쇼',   cols: ['#ffe3a3', '#ffb3d1', '#bfe3ff', '#e3ccff', '#ffffff'], bursts: 4, conf: 30, cut: true, dim: 1.2 }
+    finale:    { rgb: '255,236,180', zoom: 0.06,  shake: 8,  flash: 0.22,  slow: [0.35, 0.35], name: '피날레 불꽃쇼',   cols: ['#ffe3a3', '#ffb3d1', '#bfe3ff', '#e3ccff', '#ffffff'], bursts: 3, conf: 20, cut: true, dim: 1.2 }
   };
   function cinematic(id, sk, inR) {
     var C = SKILL_CINE[id]; if (!C) return;
@@ -450,7 +450,7 @@
     G.shake = Math.max(G.shake, C.shake);
     for (i = 0; i < C.bursts; i++) {
       var a = Math.random() * 6.283, d = i === 0 ? 0 : sk.range * (0.35 + Math.random() * 0.5);
-      burstAt(G.px + Math.cos(a) * d, G.py + Math.sin(a) * d, id === 'finale' ? 44 : 30, C.cols, id === 'finale' ? 260 : 200, i * (id === 'finale' ? 0.12 : 0.1), id === 'finale' || id === 'encore');
+      burstAt(G.px + Math.cos(a) * d, G.py + Math.sin(a) * d, id === 'finale' ? 32 : 30, C.cols, id === 'finale' ? 240 : 200, i * (id === 'finale' ? 0.12 : 0.1), id === 'finale' || id === 'encore');
     }
     inR.forEach(function (f, k) { if (k < 8) addFx({ k: 'pop', id: 'hit', x: f.x, y: f.y - 4, t: 0.45, max: 0.45 }); });   // 맞은 팬마다 작은 빛 반짝
     if (C.conf) confetti(C.conf, CONF_COLS);

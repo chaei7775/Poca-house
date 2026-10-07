@@ -378,7 +378,7 @@
     wink:      { rgb: '255,120,190', zoom: 0.06, shake: 9,  flash: 0.55, slow: [0.2, 0.4], name: '윙크 샤워',       cols: ['#ff6fb1', '#ffd1e8', '#ffffff'], bursts: 2, conf: 25 },
     encore:    { rgb: '190,140,255', zoom: 0.09, shake: 13, flash: 0.75, slow: [0.35, 0.35], name: '앵콜 폭죽',     cols: ['#c084fc', '#ffd76a', '#ff6fb1', '#9fd8ff'], bursts: 4, conf: 70 },
     rose:      { rgb: '255,90,130',  zoom: 0.07, shake: 10, flash: 0.6, slow: [0.3, 0.4],  name: '장미 세례',       cols: ['#ff3d6e', '#ff8aa8', '#ffd1da'], bursts: 3, conf: 60 },
-    finale:    { rgb: '255,235,170', zoom: 0.13, shake: 17, flash: 0.9, slow: [0.55, 0.3], name: '피날레 불꽃쇼',   cols: ['#ffd76a', '#ff6fb1', '#9fd8ff', '#7ee8a5', '#c084fc', '#ffffff'], bursts: 8, conf: 110 }
+    finale:    { rgb: '255,235,170', zoom: 0.13, shake: 17, flash: 0.9, slow: [0.55, 0.3], name: '피날레 불꽃쇼',   cols: ['#ffd76a', '#ff6fb1', '#9fd8ff', '#7ee8a5', '#c084fc', '#ffffff'], bursts: 5, conf: 60 }
   };
   function cinematic(id, sk, inR) {
     var C = SKILL_CINE[id]; if (!C) return;
@@ -390,9 +390,9 @@
     G.shake = Math.max(G.shake, C.shake);
     for (i = 0; i < C.bursts; i++) {
       var a = Math.random() * 6.283, d = i === 0 ? 0 : sk.range * (0.35 + Math.random() * 0.5);
-      burstAt(G.px + Math.cos(a) * d, G.py + Math.sin(a) * d, id === 'finale' ? 44 : 30, C.cols, id === 'finale' ? 260 : 200, i * (id === 'finale' ? 0.12 : 0.1), id === 'finale' || id === 'encore');
+      burstAt(G.px + Math.cos(a) * d, G.py + Math.sin(a) * d, id === 'finale' ? 32 : 30, C.cols, id === 'finale' ? 240 : 200, i * (id === 'finale' ? 0.12 : 0.1), id === 'finale' || id === 'encore');
     }
-    inR.forEach(function (f, k) { if (k < 14) burstAt(f.x, f.y - 6, 10, C.cols, 120, 0.05 + k * 0.03, false); });   // 맞은 팬마다 반짝
+    inR.forEach(function (f, k) { if (k < 8) burstAt(f.x, f.y - 6, 10, C.cols, 120, 0.05 + k * 0.03, false); });   // 맞은 팬마다 반짝
     if (C.conf) confetti(C.conf, id === 'rose' ? ['#ff3d6e', '#ff8aa8', '#ffd1da', '#ffffff'] : CONF_COLS);
     addFx({ k: 'ring', x: G.px, y: G.py, r: sk.range * 0.7, t: 0.8, max: 0.8, c: 'gold' });
     addDn(G.px, G.py - 56, sk.icon + ' ' + inR.length + '명 두근!', '#fff1b8', true);
@@ -721,9 +721,9 @@
     } else if (id === 'finale') {                          // 🎆 불꽃쇼
       if (p < 0.18) { c.globalAlpha = 0.55 * (1 - p / 0.18); c.fillStyle = '#fff'; c.beginPath(); c.arc(x, y, R * 1.3, 0, 7); c.fill(); }
       var cols = ['#ffd76a', '#ff6fd8', '#7fe9ff', '#9bff9b', '#ff9a5a', '#c084fc', '#fff'];
-      for (i = 0; i < 11; i++) {
+      for (i = 0; i < 8; i++) {
         pp = clamp01((p - i * 0.065) / 0.45); a = hh(i, 16) * 6.2832; var fd = R * Math.sqrt(hh(i, 17)) * 0.95;
-        starBurst(c, x + Math.cos(a) * fd, y + Math.sin(a) * fd, 85 + hh(i, 18) * 40, pp, cols[i % cols.length], 16);
+        starBurst(c, x + Math.cos(a) * fd, y + Math.sin(a) * fd, 85 + hh(i, 18) * 40, pp, cols[i % cols.length], 12);
       }
       c.globalAlpha = 1 - p; c.textAlign = 'center'; c.textBaseline = 'middle'; c.font = '46px sans-serif'; c.fillText('🎆', x, y - 40 - p * 30);
     }
