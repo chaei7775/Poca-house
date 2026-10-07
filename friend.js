@@ -194,7 +194,7 @@ async function removeFriend(uid) {
         const btn = document.createElement('button');
         btn.id = 'more-menu-friend-btn';
         btn.style.cssText = 'display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;aspect-ratio:0.95;padding:6px 4px;background:#FF6B9D1f;border:1.5px solid #FF6B9D;border-radius:12px;color:#fff;font-size:10px;font-weight:700;line-height:1.2;cursor:pointer;font-family:\'Noto Sans KR\',sans-serif;text-align:center;';
-        btn.innerHTML = '<span style="font-size:19px;">👥</span><span>친구</span>';
+        btn.innerHTML = '<span style="font-size:19px;">' + (window.moreIcon ? window.moreIcon('👥') : '👥') + '</span><span>친구</span>';
         btn.onclick = function() { overlay.remove(); openFriendOverlay(); };
         grid.appendChild(btn);
       }

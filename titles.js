@@ -254,7 +254,7 @@ window.recordTitleCombo = function(combo) {
         const btn = document.createElement('button');
         btn.id = 'more-menu-title-btn';
         btn.style.cssText = 'display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;aspect-ratio:0.95;padding:6px 4px;background:#FFD7001f;border:1.5px solid #FFD700;border-radius:12px;color:#fff;font-size:10px;font-weight:700;line-height:1.2;cursor:pointer;font-family:\'Noto Sans KR\',sans-serif;text-align:center;';
-        btn.innerHTML = '<span style="font-size:19px;">🏷️</span><span>칭호</span>';
+        btn.innerHTML = '<span style="font-size:19px;">' + (window.moreIcon ? window.moreIcon('🏷️') : '🏷️') + '</span><span>칭호</span>';
         btn.onclick = function() { overlay.remove(); openTitleOverlay(); };
         grid.appendChild(btn);
       }

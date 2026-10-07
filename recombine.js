@@ -544,9 +544,15 @@ function openMoreMenu() {
   document.body.appendChild(overlay);
 }
 
+// 더보기 타일 아이콘: 이모지 → 전용 이미지 (없는 이모지는 그대로 이모지)
+var MORE_ICON_FILES = { '🔮': 'recomb', '📖': 'dex', '🛍️': 'shop', '🎼': 'compose', '👗': 'wardrobe', '🎤': 'training', '💖': 'fanskill', '📸': 'happening', '🚗': 'road', '🏪': 'trade', '🎟️': 'trial', '📋': 'board', '🎀': 'fanclub', '👥': 'friend', '🏷️': 'titles', '💎': 'premium', '📁': 'collection' };
+window.moreIcon = function (icon) {
+  var f = MORE_ICON_FILES[icon];
+  return f ? '<img src="more-' + f + '.png" alt="" style="width:36px;height:36px;object-fit:contain;display:block;pointer-events:none;">' : icon;
+};
 function moreMenuTileHtml(icon, label, color, onclickFn) {
   return '<button onclick="document.getElementById(\'more-menu-overlay\').remove();' + onclickFn + ';" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;aspect-ratio:0.95;padding:6px 4px;background:' + color + '1f;border:1.5px solid ' + color + ';border-radius:12px;color:#fff;font-size:10px;font-weight:700;cursor:pointer;font-family:\'Noto Sans KR\',sans-serif;text-align:center;line-height:1.2;">' +
-    '<span style="font-size:19px;">' + icon + '</span><span>' + label + '</span></button>';
+    '<span style="font-size:19px;">' + window.moreIcon(icon) + '</span><span>' + label + '</span></button>';
 }
 
 (function hookGoToForRecombine() {
