@@ -708,7 +708,7 @@ function resolveSpecialCapture(success) {
     '<div style="font-size:16px;font-weight:900;color:#fff;margin-bottom:4px;">' + displayName + '</div>' +
     (isFirstCapture ? '<div style="font-size:12px;color:#FF6B9D;font-weight:900;margin-bottom:12px;">📖 화보집 신규 등록!</div>' : '<div style="font-size:11px;color:#888;margin-bottom:12px;">(반복 촬영)</div>') +
     dropHtml +
-    '<button onclick="renderSpecialExploreScreen()" style="margin-top:10px;padding:13px 28px;background:linear-gradient(135deg,#FF6B9D,#C084FC);border:none;border-radius:14px;color:#fff;font-size:14px;font-weight:900;cursor:pointer;font-family:\'Noto Sans KR\',sans-serif;">계속 탐험하기</button>';
+    '<button onclick="renderSpecialExploreScreen()" style="margin-top:10px;padding:13px 28px;background:linear-gradient(135deg,#FF6B9D,#C084FC);border:none;border-radius:14px;color:#fff;font-size:14px;font-weight:900;cursor:pointer;font-family:\'Noto Sans KR\',sans-serif;">계속하기</button>';
 
   if (typeof saveAll === 'function') saveAll();
   if (typeof updateCoinsDisplay === 'function') updateCoinsDisplay();

@@ -896,7 +896,7 @@
     });
     panel('<div style="font-size:19px;font-weight:900;margin-bottom:8px;">' + head + '</div>' +
       '<div style="margin-bottom:10px;">' + (chips || '<div style="font-size:12px;color:#aaa;">얻은 게 없어요</div>') + '</div>' +
-      '<button id="bc-next" style="' + BTN + '">계속 탐험하기</button>');
+      '<button id="bc-next" style="' + BTN + '">계속하기</button>');
     $('bc-next').onclick = function () { closeEvent(ev); };
     if (S && S.hp <= 0) {                                       // HP 0: 보상을 확인하고 나면 쓰러진다
       $('bc-next').textContent = '😵 …앗, 쓰러진다!';
