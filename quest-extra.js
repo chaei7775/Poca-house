@@ -106,6 +106,20 @@
     main_drama_10: { title:'드라마 촬영 10회', desc:'(Lv.8~) 🎥 드라마 촬영을 10번 해보자. 시청률이 쌓이면 탑스타가 될 수 있어.',
       condition:'q2_drama_10', rewardCoins:3000, rewardExp:400, type:'main', detect:function () { return (J('ph_drama', {}) || {}).shoots >= 10; } },
 
+    // ───── 매니저 ─────
+    main_mgr_actor: { title:'배우 전담 매니저', desc:'🎭 드라마 촬영을 한 번 하면 윤서진 매니저가 찾아와. 맵 → 광장 → 🎤 기획사 매니저 카드에서 만나보자. 드라마 출연료가 올라가.',
+      condition:'q2_mgr_actor', rewardCoins:1000, rewardExp:150, type:'main', detect:function () { return !!(J('ph_manager', {}) || {}).actMet; } },
+    main_mgr_event: { title:'매니저 사건 사고', desc:'매니저를 만난 뒤 플레이하다 보면 간식·기사·스캔들 같은 사건이 터져. 선택지를 골라 첫 사건을 해결해봐. 경험치 보상이 있어!',
+      condition:'q2_mgr_event', rewardCoins:1500, rewardExp:200, type:'main', detect:function () { return ((J('ph_mgrevent', {}) || {}).count || 0) >= 1; } },
+    main_mgr_road: { title:'로드 매니저 계약', desc:'(Lv.12~) ⋯ 더보기 → 🚗 로드 매니저. 박현수 매니저를 만나 계약하면 대신 심부름을 다녀와 줘.',
+      condition:'q2_mgr_road', rewardCoins:1000, rewardExp:150, type:'main', detect:function () { return !!(J('ph_roadmgr', {}) || {}).met; } },
+    main_mgr_run: { title:'첫 심부름 파견', desc:'(Lv.12~) 🚗 로드 매니저에게 심부름을 보내고, 돌아오면 받아와. 다녀오는 동안은 내가 다른 걸 해도 돼.',
+      condition:'q2_mgr_run', rewardCoins:1500, rewardExp:200, type:'main', detect:function () { return ((J('ph_roadmgr', {}) || {}).done || 0) >= 1; } },
+    main_mgr_event10: { title:'매니저 사건 10번', desc:'매니저 사건을 10번 해결하기. 선택에 따라 결과가 달라져. 신뢰가 쌓일수록 좋은 결과가 잘 나와.',
+      condition:'q2_mgr_event10', rewardCoins:3000, rewardExp:400, type:'main', detect:function () { return ((J('ph_mgrevent', {}) || {}).count || 0) >= 10; } },
+    main_mgr_run10: { title:'심부름 10번', desc:'🚗 로드 매니저 심부름을 10번 다녀오게 하기.',
+      condition:'q2_mgr_run10', rewardCoins:3000, rewardExp:400, type:'main', detect:function () { return ((J('ph_roadmgr', {}) || {}).done || 0) >= 10; } },
+
     // ───── 메인: 프리미엄·수집 ─────
     main_premium: { title:'첫 프리미엄 카드', desc:'팬덤 원정에서 🖼️ 프리미엄 조각 100개 → 더보기 → 💎 프리미엄 카드에서 교환!',
       condition:'q2_premium', rewardCoins:3000, rewardExp:500, type:'main', detect:function () { return premiumList().length >= 1; } },
