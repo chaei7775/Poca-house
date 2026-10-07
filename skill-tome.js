@@ -99,7 +99,7 @@
   // 거래소 품목 등록 (trade.js 가 먼저 불러와졌을 때를 위해 약간 기다림)
   window.__skillTomeItems = function () {
     var out = {};
-    aoeSkills().forEach(function (sk) { out['bk_tome_' + sk.id] = { name: tomeName(sk), emoji: '📖', kind: 'bag', type: TYPE, desc: sk.icon + ' ' + sk.name + ' 배우기 (멤버 1명)', min: 2000, max: 5000000 }; });
+    aoeSkills().forEach(function (sk) { out['bk_tome_' + sk.id] = { name: tomeName(sk), emoji: '📖', kind: 'bag', type: TYPE, desc: sk.icon + ' ' + sk.name + ' 배우기 (멤버 1명)', min: 2000, max: sk.id === 'finale' ? 10000000 : 5000000 }; });   // 불꽃쇼 습득서만 상한 1000만 (※ 서버 규칙의 가격 한도도 같이 올려야 함)
     return out;
   };
   window.__giveSkillTome = function (id) { return give(id); };
