@@ -96,6 +96,17 @@
   var $ = function (id) { return document.getElementById(id); };
   function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
   function toast(m) { if (typeof showBagToast === 'function') showBagToast(m); }
+  // 게임 화면 위쪽에 잠깐 뜨는 알림 (터치 방해 안 함, 여러 개면 위에서부터 쌓임)
+  function topToast(msg, ms) {
+    var v = $('fr-view'); if (!v) return;
+    var box = $('vr-toasts');
+    if (!box) { box = document.createElement('div'); box.id = 'vr-toasts'; box.style.cssText = 'position:absolute;left:0;right:0;top:8px;z-index:40;display:flex;flex-direction:column;align-items:center;gap:6px;pointer-events:none;'; v.appendChild(box); }
+    var el = document.createElement('div');
+    el.style.cssText = 'background:rgba(20,10,40,.88);border:1.5px solid #ffd76a;border-radius:14px;padding:8px 14px;color:#fff;font-size:13px;font-weight:900;max-width:88%;text-align:center;font-family:\'Noto Sans KR\',sans-serif;transition:opacity .4s;';
+    el.textContent = msg; box.appendChild(el);
+    setTimeout(function () { el.style.opacity = '0'; }, Math.max(300, (ms || 3000) - 400));
+    setTimeout(function () { if (el.parentNode) el.remove(); }, ms || 3000);
+  }
   function plv() { try { return Number(playerLevel) || 1; } catch (e) { return 1; } }
   function rnd(a, b) { return a + Math.random() * (b - a); }
   function dist(ax, ay, bx, by) { var dx = ax - bx, dy = ay - by; return Math.sqrt(dx * dx + dy * dy); }
@@ -224,7 +235,7 @@
     });
     G.total = G.fans.length;
     var pp = powerParts(G.charId, 'sign'); if (hasGuard('buff')) pp.enh *= BUFF_POWER;
-    G.banner = { text: '👑 팬들을 모두 만족시켜요! (내 위력 ×' + (Math.round(pp.plv * pp.card * pp.enh * 10) / 10) + ')', t: 3 };
+    topToast('👑 팬들을 모두 만족시켜요! (내 위력 ×' + (Math.round(pp.plv * pp.card * pp.enh * 10) / 10) + ')', 3500);
   }
   function pullPack(f) {
     if (f.aggro) return;
@@ -234,7 +245,7 @@
   }
   function spawnBox() {
     G.box = { x: WORLD / 2, y: WORLD / 2, t: 0, state: 'idle', ot: 0 };
-    G.banner = { text: '🎁 팬들의 선물 상자가 나타났어요!', t: 3.5 };
+    topToast('🎁 팬들의 선물 상자가 나타났어요!', 3500);
     var X = xfs(); X.flash = 0.6; X.flashMax = 0.6; X.flashRgb = '255,230,150'; confetti(60, CONF_COLS);
     burstAt(G.box.x, G.box.y, 40, ['#ffd76a', '#ff6fb1', '#fff'], 220, 0, true);
     sfx('reward');
@@ -1224,7 +1235,7 @@
     var cv = $('fr-cv');
     G = newGame(charId, 390, 600);
     G.guards = hiredIds.map(function (id, i) { var d = bgById(id); return { def: d, x: G.px + (i ? -46 : 46), y: G.py, t: 0, flash: 0 }; });
-    if (G.guards.length) G.banner = { text: '🕶️ 보디가드 ' + G.guards.map(function (g) { return g.def.name; }).join('·') + ' 출동!', t: 2.2 };
+    if (G.guards.length) topToast('🕶️ 보디가드 ' + G.guards.map(function (g) { return g.def.name; }).join('·') + ' 출동!', 3000);
     setupVip(); resize(); bindInput(cv);
     $('fr-exit').onclick = function () {
       if (G && !G.over) {
