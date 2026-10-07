@@ -23,6 +23,7 @@ const NEW_CONTENT_FILES = [
   'wish-hidden-patch.js',
   'wish-sync.js',
   'bag-delete.js',
+  'viral-hit.js',
   'cf-shoot.js',
   'cf-photo.js',
   'cf-guest-fix.js',

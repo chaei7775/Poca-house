@@ -402,7 +402,7 @@
       }
       // 탈덕 고민
       if (fan.status === 'active' && fan.aff <= QUIT_AFF && (t - fan.joinedAt) >= QUIT_GRACE &&
-          (t - fan.warnAt) >= QUIT_COOLDOWN && !pendingQuit(ic, def.id) && rng() < QUIT_ROLL) {
+          (t - fan.warnAt) >= QUIT_COOLDOWN && !pendingQuit(ic, def.id) && (!ic.shieldUntil || t >= ic.shieldUntil) && rng() < QUIT_ROLL) {
         quitPost(ic, cid, def, fan, t, rng);
       }
     });
@@ -610,13 +610,13 @@
     var newTag = fresh ? '<span style="background:#FF6B9D;color:#fff;font-size:9px;font-weight:900;border-radius:6px;padding:1px 5px;margin-left:6px;">NEW</span>' : '';
     var def = p.fanId ? defOf(p.fanId) : null;
     var fan = p.fanId ? ic.fans[p.fanId] : null;
-    var sys = !def;
+    var sys = !def && !p.nick;
     var border = (p.kind === 'viral' || p.kind === 'gift') ? '#FFD700' : p.kind === 'sys' ? '#60A5FA' : p.kind === 'quit' && !p.resolved ? '#FF6B6B' : 'rgba(255,255,255,0.1)';
     var bg = (p.kind === 'viral' || p.kind === 'gift') ? 'rgba(255,215,0,0.10)' : p.kind === 'quit' && !p.resolved ? 'rgba(255,107,107,0.10)' : 'rgba(255,255,255,0.06)';
     var head = '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">' +
-      (sys ? '<div style="width:30px;height:30px;border-radius:50%;background:rgba(96,165,250,0.25);display:flex;align-items:center;justify-content:center;font-size:16px;">📢</div>' : fanAvatar(def, 30)) +
-      '<div style="flex:1;min-width:0;"><div style="font-size:12px;font-weight:900;color:' + (sys ? '#93C5FD' : '#FFB3CC') + ';">' + (sys ? '알림' : esc(def.nick)) + newTag + '</div>' +
-      (def ? '<div style="font-size:10px;color:#888;">' + esc(def.label) + '</div>' : '') + '</div>' +
+      (sys ? '<div style="width:30px;height:30px;border-radius:50%;background:rgba(96,165,250,0.25);display:flex;align-items:center;justify-content:center;font-size:16px;">📢</div>' : (def ? fanAvatar(def, 30) : '<div style="width:30px;height:30px;border-radius:50%;background:rgba(255,215,0,0.18);display:flex;align-items:center;justify-content:center;font-size:16px;">' + (p.emoji || '🆕') + '</div>')) +
+      '<div style="flex:1;min-width:0;"><div style="font-size:12px;font-weight:900;color:' + (sys ? '#93C5FD' : '#FFB3CC') + ';">' + (sys ? '알림' : esc(def ? def.nick : p.nick)) + newTag + '</div>' +
+      (def ? '<div style="font-size:10px;color:#888;">' + esc(def.label) + '</div>' : (p.nick ? '<div style="font-size:10px;color:#888;">신규 회원</div>' : '')) + '</div>' +
       '<div style="font-size:11px;color:#888;">' + timeAgo(p.ts, now) + '</div></div>';
     var body = '<div style="font-size:14px;font-weight:900;color:#fff;margin-bottom:4px;">' + esc(p.title) + '</div>' +
       '<div style="font-size:13px;color:#ddd;line-height:1.6;word-break:break-word;">' + esc(p.body).replace(/\n/g, '<br>') + '</div>';
@@ -812,6 +812,44 @@
     }
   }
   setInterval(live, 5000);
+
+  // ── 🚀 숏폼 떡상 (viral-hit.js 가 부름): 팬 폭증 + 신규 회원 도배 글 + 대표 팬 감격 글 + 72시간 탈덕 방지 ──
+  var BOOM_NICKS = [['알고리즘의노예', '📱'], ['릴스보고왔어요', '🎞️'], ['틱포카입덕러', '🔥'], ['새벽의입덕', '🌙'], ['오늘부터1일', '🍀']];
+  var BOOM_POSTS = [
+    ['릴스 보고 들어왔는데 여기 {idol} 팬카페 맞음??', '추천에 계속 뜨길래 눌렀다가 그대로 입덕했어요. 맞게 찾아온 거 맞죠?'],
+    ['방금 틱포카 500만 뷰 찍은 걔 누구냐... 입덕 좌표 좀', '이름이 {idol}이래서 바로 찾아왔어요. 좌표 줘서 고마워요.'],
+    ['알고리즘 미쳤다 ㅋㅋㅋㅋ 오늘부터 1일 차 팬임', '선배님들 잘 부탁드립니다. 뭐부터 정주행하면 되나요?'],
+    ['3초 나오는 거 보고 입덕 완료했습니다', '진짜 3초였는데 그걸로 끝났어요. 소속사 열일하네요.'],
+    ['숏폼 알고리즘이 나를 여기로 이끌었다', '자려고 누웠다가 영상 보고 잠 다 깼어요. {idol} 어디서 볼 수 있어요?']
+  ];
+  function viralBoom(cid) {
+    var s = loadAll(), now = Date.now(), rng = Math.random;
+    if (!s.idols[cid]) return null;
+    var ic = normalize(s.idols[cid], now), before = members(ic), idol = idolName(cid);
+    var gain = Math.round(40 + before * (2 + rng() * 3) + rng() * 80);
+    ic.anon += gain;
+    var joined = 0;
+    for (var k = 0; k < 2; k++) { var nd = nextDef(ic); if (nd && rng() < 0.8) { joinFan(ic, cid, nd, now, rng); joined++; } }
+    var pool = BOOM_POSTS.slice(), nick = BOOM_NICKS.slice(), n = 3 + Math.floor(rng() * 3);
+    for (var i = 0; i < n && pool.length; i++) {
+      var po = pool.splice(Math.floor(rng() * pool.length), 1)[0], ni = nick.splice(Math.floor(rng() * nick.length), 1)[0];
+      addPost(ic, { ts: now + i * 700, fanId: null, nick: ni[0], emoji: ni[1], kind: 'viral',
+                    title: '💣 ' + po[0].replace(/\{idol\}/g, idol), body: po[1].replace(/\{idol\}/g, idol), hearts: smallHearts(ic, rng) + 3 });
+    }
+    var vet = ROSTER.filter(function (d) { var f = ic.fans[d.id]; return f && f.status === 'active'; });
+    var pick = null;
+    for (var j = 0; j < vet.length; j++) if (vet[j].id === 'veteran') pick = vet[j];
+    if (!pick && vet.length) pick = vet[Math.floor(rng() * vet.length)];
+    if (pick) addPost(ic, { ts: now + 4000, fanId: pick.id, kind: 'viral', title: '[공지/잡담] 얘들아... 우리 ' + idol + ' 드디어 알고리즘 탔다 ㅠㅠㅠ',
+                            body: '나 울어... 조회수 500만 찍음!! 신규 회원분들 환영해요. 소속사 대표님 진짜 적게 일하고 많이 버세요 사랑합니다...', hearts: smallHearts(ic, rng) + 8 });
+    ic.shieldUntil = now + 72 * HOUR;
+    ic.lastCare = Math.max(ic.lastCare || 0, now);
+    s.idols[cid] = ic; saveAllState(s);
+    try { if (document.getElementById('fancafe-overlay')) render(); } catch (e) {}
+    return { before: before, after: members(ic), gain: gain, joined: joined };
+  }
+  window.__fancafeViral = viralBoom;
+  window.__fancafeHas = function (cid) { try { return !!loadAll().idols[cid]; } catch (e) { return false; } };
 
   window.openFanCafe = openFanCafe;
   window.__fancafeCurrentCid = function () { return ui.cid; };   // 지금 열려 있는 팬카페의 아이돌 (live.js 가 라이브 버튼을 붙일 때 씀)
