@@ -86,11 +86,11 @@
     try { if (navigator.vibrate) navigator.vibrate([80, 40, 80, 40, 160]); } catch (e) {}
 
     var ov = document.createElement('div'); ov.id = 'vh-overlay';
-    ov.style.cssText = 'position:fixed;inset:0;z-index:3000;background:#08060f;display:flex;align-items:center;justify-content:center;overflow:hidden;' + FONT;
+    ov.style.cssText = 'position:fixed;inset:0;z-index:3000;background:#08060f url(viral-bg.jpg) center/cover no-repeat;display:flex;align-items:center;justify-content:center;overflow:hidden;' + FONT;
     ov.innerHTML =
       '<div id="vh-flash" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;animation:vhGlow 0.7s ease 2;text-align:center;">' +
-        '<div style="font-size:54px;animation:vhShake .5s ease 1;">🚨</div>' +
-        '<div style="font-size:30px;font-weight:900;letter-spacing:1px;color:#fff;text-shadow:0 0 14px #ff3c78,0 0 34px #a855f7;animation:vhFlash .6s ease both;margin-top:6px;">ALGORITHM<br>BUSTED!</div>' +
+        '<div id="vh-ttl" style="animation:vhShake .5s ease 1;width:100%;display:flex;flex-direction:column;align-items:center;">' +
+          '<img src="viral-title.png" alt="ALGORITHM BUSTED!" style="width:86%;max-width:420px;animation:vhFlash .6s ease both;filter:drop-shadow(0 0 22px rgba(255,60,120,.7));" onerror="this.outerHTML=\'<div style=&quot;font-size:54px;&quot;>🚨</div><div style=&quot;font-size:30px;font-weight:900;color:#fff;text-shadow:0 0 14px #ff3c78,0 0 34px #a855f7;margin-top:6px;&quot;>ALGORITHM<br>BUSTED!</div>\'"></div>' +
         '<div style="font-size:15px;font-weight:900;color:#ffb3d1;margin-top:10px;animation:vhFlash .8s ease both;">알고리즘 간택!</div></div>' +
       '<div id="vh-feed" style="display:none;position:relative;width:100%;max-width:420px;height:100%;"></div>' +
       '<button id="vh-skip" style="position:absolute;top:calc(12px + env(safe-area-inset-top,0px));right:14px;z-index:5;background:rgba(255,255,255,.14);border:none;border-radius:99px;color:#fff;font-size:11px;font-weight:700;padding:6px 12px;cursor:pointer;' + FONT + '">건너뛰기 ›</button>';
@@ -103,7 +103,7 @@
       var f = ov.querySelector('#vh-feed'), fl = ov.querySelector('#vh-flash'); if (!f) return;
       fl.style.display = 'none'; f.style.display = 'block';
       f.innerHTML =
-        '<div style="position:absolute;inset:0;background:linear-gradient(180deg,#1a1033,#0b0817 60%,#000);"></div>' +
+        '<div style="position:absolute;inset:0;background:#0b0817 url(viral-bg.jpg) center/cover no-repeat;"></div>' +
         '<div style="position:absolute;left:50%;top:50%;transform:translate(-50%,-56%);width:62%;aspect-ratio:3/4;border-radius:18px;overflow:hidden;background:linear-gradient(135deg,#ff6b9d,#a855f7);box-shadow:0 0 40px rgba(255,60,120,.5);">' +
           '<img src="face-' + cid + '.png" alt="" style="width:100%;height:100%;object-fit:cover;object-position:center top;" onerror="this.style.display=\'none\'">' +
           '<div style="position:absolute;left:0;right:0;bottom:0;padding:26px 12px 10px;background:linear-gradient(transparent,rgba(0,0,0,.75));color:#fff;font-size:13px;font-weight:900;">@' + idol + ' <span style="font-weight:400;opacity:.8;">· ' + (source === 'cf' ? 'CF 비하인드' : '드라마 명장면') + '</span></div></div>' +
