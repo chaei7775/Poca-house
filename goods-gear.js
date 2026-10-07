@@ -41,7 +41,7 @@
     honor:  { label: '우등생조각 획득',   icon: '✨', unit: '%',  dec: 0, scope: 'all',  cap: 60,  r: [[5, 10],  [10, 20], [20, 40]] }
   };
   var STAT_KEYS = ['coin', 'exp', 'piece', 'ticket', 'wish', 'honor', 'recomb'];
-  var RAND_KEYS = ['coin', 'exp', 'piece', 'ticket', 'wish', 'honor'];   // 일반·고급·레어 굿즈에 랜덤으로 붙는 능력치
+  var RAND_KEYS = ['coin', 'exp', 'piece', 'ticket', 'honor'];   // 일반·고급·레어 굿즈에 랜덤으로 붙는 능력치 (🧩소원의 조각은 에픽, 🔮재조합은 유니크 전용)
   var GRADES = {
     normal: { label: '일반', color: '#cbd5e1', n: 1, i: 0 },
     good:   { label: '고급', color: '#4ade80', n: 1, i: 1 },
@@ -390,7 +390,7 @@
       var S = STATS[k];
       return '<tr style="border-top:1px solid rgba(255,255,255,.08);"><td style="padding:5px 4px 5px 0;white-space:nowrap;">' + S.icon + ' ' + S.label.replace(/\(.*\)/, '') + '</td><td>' + rg(k, 0) + '</td><td>' + rg(k, 1) + '</td><td>' + rg(k, 2) + '</td><td style="color:#FFD700;">' + S.cap + S.unit + '</td></tr>';
     }).join('');
-    var scopeNote = RAND_KEYS.concat(['recomb']).map(function (k) { return STATS[k].icon + ' ' + STATS[k].label.replace(/\(.*\)/, '') + ': ' + (STATS[k].scope === 'char' ? '장착한 그 아이돌의 원정에만' : '장착한 모든 굿즈 합산 (아이돌 상관없음)'); }).join('<br>');
+    var scopeNote = RAND_KEYS.concat(['wish', 'recomb']).map(function (k) { return STATS[k].icon + ' ' + STATS[k].label.replace(/\(.*\)/, '') + ': ' + (STATS[k].scope === 'char' ? '장착한 그 아이돌의 원정에만' : '장착한 모든 굿즈 합산 (아이돌 상관없음)'); }).join('<br>');
     body.innerHTML =
       '<div style="' + box + '"><div style="font-weight:900;font-size:13px;margin-bottom:6px;">🔨 제작하면 이렇게 나와요</div>' +
         '<div style="margin-bottom:6px;">실패 <b>' + pc(P_FAIL) + '</b> (재료만 사라져요) · 성공하면 아래 등급 중 하나!</div>' + gradeRows + '</div>' +
