@@ -47,7 +47,7 @@
     good:   { label: '고급', color: '#4ade80', n: 1, i: 1 },
     rare:   { label: '레어', color: '#FFD700', n: 2, i: 2 },
     epic:   { label: '에픽', color: '#c084fc', n: 2, i: 3 },
-    unique: { label: '유니크', color: '#ff6ec7', n: 2, i: 4 }
+    unique: { label: '유니크', color: '#ff9f1c', n: 2, i: 4 }
   };
 
 
@@ -408,14 +408,14 @@
     if (lastResult) {
       res = lastResult.fail
         ? '<div style="background:rgba(239,68,68,.15);border:1.5px solid #ef4444;border-radius:14px;padding:14px;text-align:center;margin-bottom:12px;font-weight:900;">💥 제작 실패…<div style="font-size:11px;color:#fbb;font-weight:400;margin-top:3px;">재료와 코인이 사라졌어요</div></div>'
-        : '<div style="margin-bottom:6px;font-size:12px;font-weight:900;color:#FFD700;">' + (lastResult.gear.grade === 'unique' ? '🌈 유니크 굿즈 탄생!!!' : lastResult.gear.grade === 'epic' ? '💜 에픽 굿즈 탄생!!' : lastResult.gear.grade === 'rare' ? '✨ 레어 굿즈 탄생!!' : '🎉 제작 성공!') + '</div>' + gearCard(lastResult.gear);
+        : '<div style="margin-bottom:6px;font-size:12px;font-weight:900;color:#FFD700;">' + (lastResult.gear.grade === 'unique' ? '👑 유니크 굿즈 탄생!!!' : lastResult.gear.grade === 'epic' ? '💜 에픽 굿즈 탄생!!' : lastResult.gear.grade === 'rare' ? '✨ 레어 굿즈 탄생!!' : '🎉 제작 성공!') + '</div>' + gearCard(lastResult.gear);
     }
     body.innerHTML = res +
       '<div style="font-size:12px;color:#9ab;margin-bottom:6px;">만들 부위</div>' +
       '<div style="display:flex;gap:6px;margin-bottom:12px;">' + slotBtns + '</div>' +
       '<div style="background:rgba(255,255,255,.07);border-radius:14px;padding:12px;font-size:12px;line-height:1.8;margin-bottom:12px;">' +
         '필요: 🍔 ' + fmt(CRAFT_COIN) + ' (보유 ' + fmt(coins) + ')<br>' + S.mats.map(function (m) { var h = matQty(m[0]); return '<div style="margin-top:4px;">' + m[0] + ' x' + m[1] + ' (보유 <b style="color:' + (h >= m[1] ? '#4ade80' : '#ff8a8a') + ';">' + h + '</b>)<div style="font-size:10.5px;color:#8fd3ff;line-height:1.5;">📍 ' + matWhere(m[0]) + '</div></div>'; }).join('') +
-        '<span style="color:#9ab;">능력치는 만들 때마다 랜덤! · 실패 ' + Math.round(P_FAIL * 100) + '% · 고급 ' + Math.round(P_GOOD * 100) + '% · 레어 ' + Math.round(P_RARE * 100) + '% (능력치 2개) · 아주 가끔 💜에픽(소원의 조각↑) · 🌈유니크(재조합 상승↑)</span></div>' +
+        '<span style="color:#9ab;">능력치는 만들 때마다 랜덤! · 실패 ' + Math.round(P_FAIL * 100) + '% · 고급 ' + Math.round(P_GOOD * 100) + '% · 레어 ' + Math.round(P_RARE * 100) + '% (능력치 2개) · 아주 가끔 💜에픽(소원의 조각↑) · 👑유니크(재조합 상승↑)</span></div>' +
       '<button id="gg-craft" style="' + BTN + 'width:100%;padding:15px;font-size:16px;background:linear-gradient(135deg,#FFD700,#F59E0B);color:#1a1a2e;">🔨 ' + S.label + ' 굿즈 제작</button>' +
       '<div style="font-size:10.5px;color:#789;margin-top:10px;line-height:1.6;">재료는 위 📍 표시된 맵에서 탐험으로 모아요. 🔶 공방의 원석은 탐험 중 재료를 주울 때 가끔 같이 나와요. 만든 굿즈는 가방에 들어가고, 🎒 장착 탭에서 캐릭터에게 달아줘요.</div>';
     body.querySelectorAll('[data-slot]').forEach(function (b) { b.onclick = function () { craftSlot = b.getAttribute('data-slot'); lastResult = null; draw(); }; });
