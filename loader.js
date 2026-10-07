@@ -106,7 +106,15 @@ function __bootReveal() {
   var sp = document.getElementById('boot-splash');
   if (sp) { sp.style.opacity = '0'; setTimeout(function () { if (sp.parentNode) sp.parentNode.removeChild(sp); }, 350); }
 }
-function __bootOne() { __bootLeft--; if (__bootLeft <= 0) setTimeout(__bootReveal, 300); }
+function __bootOne() {
+  __bootLeft--; if (__bootLeft > 0) return;
+  var t0 = Date.now();   // 다 불러온 뒤에도 길잡이/일일퀘스트 카드가 1~2초 늦게 붙으니, 카드가 합쳐질 때까지(최대 2.4초) 더 기다림
+  (function wait() {
+    var g = document.getElementById('qg-home-card'), d = document.getElementById('dq-home-card');
+    var ready = g && d && g.classList.contains('qg-merged') && d.classList.contains('dq-merged');
+    if (ready || Date.now() - t0 > 2400) setTimeout(__bootReveal, 120); else setTimeout(wait, 100);
+  })();
+}
 setTimeout(__bootReveal, 6000);   // 안전장치: 아무리 늦어도 6초 뒤엔 보여줌
 NEW_CONTENT_FILES.forEach(function(filename) {
   const s = document.createElement('script');
