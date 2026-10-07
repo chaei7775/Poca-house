@@ -46,7 +46,7 @@
   var PACK_TYPES = [['normal','normal','rusher'],['normal','thrower','normal'],['rusher','normal','tank'],['normal','normal','thrower','normal'],['tank','normal','rusher'],['thrower','normal','normal','rusher'],['normal','rusher','normal'],['tank','thrower','normal','normal']];
   var PIECE_NAME = '프리미엄 조각', PIECE_EMOJI = '🖼️', PIECE_GOAL = 100;
   var IMG_BASE = 'https://raw.githubusercontent.com/chaei7775/Poca-house/main/';
-  var BG_FILE = 'vip-floor.jpg';  // 있으면 배너·카드선택 배경으로 쓰임(없어도 됨)
+  var BG_FILE = 'map-vip.png';  // 있으면 배너·카드선택 배경으로 쓰임(없어도 됨)
 
   // 스킬 (unlock = 플레이어 레벨 / dmg = 기본 위력 / cd = 쿨타임(초) / range = 사거리 or 반경)
   var SKILLS = [
