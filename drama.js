@@ -829,7 +829,7 @@ function finish(ok){
   const capped=!hid&&!star&&raw>CAP,r=capped?CAP:raw;
   const remain=ok?G.okRemain:0;
   const buzz=G.buzz;
-  const pay=Math.round(((r*8600+buzz*500+remain*1000)*(star?1.5:1))/100)*100;
+  const pay=Math.round(((r*8600+buzz*500+remain*1000)*(star?1.5:1)*(typeof window.__actorPayMult==='function'?window.__actorPayMult():1))/100)*100;
   const shards=r>=10?10:r>=5?5:0;
   const drop=rollSkill(hid);
   const learned=G.correct>=3;
