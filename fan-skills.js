@@ -291,6 +291,9 @@
       '@keyframes fsBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}' +
       '@keyframes fsIn{0%{opacity:0;transform:scale(.4)}70%{opacity:1;transform:scale(1.12)}100%{opacity:1;transform:scale(1)}}' +
       '@keyframes fsCut{0%{transform:translateX(-110%)}16%{transform:translateX(0)}80%{transform:translateX(0);opacity:1}100%{transform:translateX(30%);opacity:0}}' +
+      '@keyframes fsCutR{0%{transform:translateX(110%) skewY(3deg)}16%{transform:translateX(0) skewY(3deg)}80%{transform:translateX(0) skewY(3deg);opacity:1}100%{transform:translateX(-30%) skewY(3deg);opacity:0}}' +
+      '@keyframes fsCutT{0%{transform:translateY(-260%);opacity:0}18%{transform:translateY(0);opacity:1}82%{transform:translateY(0);opacity:1}100%{transform:translateY(40%);opacity:0}}' +
+      '@keyframes fsCutZ{0%{transform:scale(3);opacity:0}16%{transform:scale(1);opacity:1}85%{transform:scale(1.04);opacity:1}100%{transform:scale(1.3);opacity:0}}' +
       '@keyframes fsFlashS{0%{opacity:.8}100%{opacity:0}}' +
       '@keyframes fsShakeV{0%,100%{transform:translate(0,0)}20%{transform:translate(-5px,3px)}40%{transform:translate(5px,-3px)}60%{transform:translate(-4px,-2px)}80%{transform:translate(3px,3px)}}' +
       '@keyframes fsReady{0%,100%{box-shadow:0 0 0 0 rgba(255,215,0,.0)}50%{box-shadow:0 0 14px 3px rgba(255,215,0,.85)}}';
@@ -342,8 +345,15 @@
     }
   }
 
-  // ════════ 🎬 광역 스킬 컷인 (파밍 중인 포카 얼굴 + 스킬 이름) — 모든 원정맵 공통 ════════
-  var CUT_RGB = { highlight: '255,225,120', wink: '255,120,190', encore: '190,140,255', rose: '255,90,130', finale: '255,235,170' };
+  // ════════ 🎬 광역 스킬 컷인 (파밍 중인 포카 얼굴 + 스킬 이름) — 스킬마다 연출이 달라요 ════════
+  //  mode: rise(아래→위) / fall(위→아래) / burst(가운데서 사방으로) / mix(burst+fall)
+  var CUT = {
+    highlight: { rgb: '255,225,120', ms: 1300, from: 'left',  tilt: -3, parts: ['🎵','🎶','🎤','✨'], mode: 'rise',  n: 16, flash: 0.55, shake: 0.4, spot: true,  sub: '🎤 스포트라이트!' },
+    wink:      { rgb: '255,120,190', ms: 1300, from: 'right', tilt: 3,  parts: ['💖','💕','😉','💗'], mode: 'rise',  n: 26, flash: 0.45, shake: 0.3, big: '😉', sub: '' },
+    encore:    { rgb: '190,140,255', ms: 1700, from: 'left',  tilt: -2, parts: ['🎆','✨','⭐','🎇'], mode: 'burst', n: 36, flash: 0.75, shake: 0.5, conf: true, sub: '' },
+    rose:      { rgb: '255,90,130',  ms: 1800, from: 'top',   tilt: 0,  parts: ['🌹','🌸','🥀','💖'], mode: 'fall',  n: 30, flash: 0.5,  shake: 0.3, vig: true, sub: '' },
+    finale:    { rgb: '255,235,170', ms: 2100, from: 'zoom',  tilt: 0,  parts: ['🎆','🎇','✨','⭐','💫'], mode: 'mix', n: 46, flash: 0.95, shake: 0.7, conf: true, bars: true, sub: '' }
+  };
   function cutFaceFile() {
     var id = (F && F.cid) || '';
     if (id === 'seyeon_trial') id = 'seyeon';
@@ -351,29 +361,44 @@
   }
   function cutIn(id) {
     var view = $('bc-view'); if (!view) return;
-    var sk = skillById(id), rgb = CUT_RGB[id] || '255,225,120';
+    var sk = skillById(id), C = CUT[id] || CUT.highlight, rgb = C.rgb;
     var wrap = document.createElement('div');
     wrap.style.cssText = 'position:absolute;inset:0;z-index:40;pointer-events:none;overflow:hidden;';
-    var big = id === 'finale' || id === 'encore';
-    var ms = big ? 1700 : 1300;
-    wrap.innerHTML =
-      '<div style="position:absolute;inset:0;background:radial-gradient(circle,rgba(255,255,255,.55),rgba(' + rgb + ',.35));animation:fsFlashS .5s ease-out forwards;"></div>' +
-      '<div style="position:absolute;left:-4%;right:-4%;top:26%;height:84px;background:linear-gradient(90deg,rgba(10,5,25,.92),rgba(' + rgb + ',.6) 50%,rgba(10,5,25,.92));' +
-        'border-top:3px solid rgb(' + rgb + ');border-bottom:3px solid rgb(' + rgb + ');transform:skewY(-3deg);animation:fsCut ' + ms + 'ms ease-out forwards;display:flex;align-items:center;gap:12px;padding:0 6% 0 6%;">' +
-        '<div style="width:68px;height:68px;border-radius:50%;border:3px solid rgb(' + rgb + ');background:#2a1a40 url(' + cutFaceFile() + ') center/cover;box-shadow:0 0 18px rgb(' + rgb + ');flex:none;margin-top:-10px;"></div>' +
-        '<div style="font-size:26px;font-weight:900;color:#fff;-webkit-text-stroke:5px rgba(20,8,40,.95);paint-order:stroke fill;white-space:nowrap;text-shadow:0 0 14px rgb(' + rgb + ');">' + sk.icon + ' ' + sk.name + '!</div>' +
-      '</div>';
+    var anim = { left: 'fsCut', right: 'fsCutR', top: 'fsCutT', zoom: 'fsCutZ' }[C.from] || 'fsCut';
+    var h = '<div style="position:absolute;inset:0;background:radial-gradient(circle,rgba(255,255,255,.6),rgba(' + rgb + ',.35));animation:fsFlashS .55s ease-out forwards;opacity:' + C.flash + ';"></div>';
+    if (C.vig) h += '<div style="position:absolute;inset:0;background:radial-gradient(circle,transparent 35%,rgba(120,0,30,.65));animation:fsFlashS ' + C.ms + 'ms ease-in-out forwards;"></div>';
+    if (C.spot) h += '<div style="position:absolute;left:50%;top:-5%;width:70%;height:115%;transform:translateX(-50%);background:linear-gradient(180deg,rgba(255,240,170,.75),rgba(255,240,170,0) 90%);clip-path:polygon(42% 0,58% 0,100% 100%,0 100%);animation:fsFlashS ' + C.ms + 'ms ease-out forwards;"></div>';
+    if (C.bars) h += '<div style="position:absolute;left:0;right:0;top:0;height:11%;background:#000;animation:fsFlashS ' + C.ms + 'ms ease-in-out forwards;"></div><div style="position:absolute;left:0;right:0;bottom:0;height:11%;background:#000;animation:fsFlashS ' + C.ms + 'ms ease-in-out forwards;"></div>';
+    if (C.big) h += '<div style="position:absolute;left:50%;top:55%;font-size:90px;transform:translate(-50%,-50%);animation:fsPulse 1s ease-out forwards;">' + C.big + '</div>';
+    h += '<div style="position:absolute;left:-4%;right:-4%;top:26%;height:' + (id === 'finale' ? 98 : 84) + 'px;background:linear-gradient(90deg,rgba(10,5,25,.92),rgba(' + rgb + ',.6) 50%,rgba(10,5,25,.92));' +
+      'border-top:3px solid rgb(' + rgb + ');border-bottom:3px solid rgb(' + rgb + ');transform:skewY(' + C.tilt + 'deg);animation:' + anim + ' ' + C.ms + 'ms ease-out forwards;display:flex;align-items:center;gap:12px;padding:0 6%;' + (C.from === 'right' ? 'flex-direction:row-reverse;' : '') + '">' +
+      '<div style="width:' + (id === 'finale' ? 78 : 68) + 'px;height:' + (id === 'finale' ? 78 : 68) + 'px;border-radius:' + (id === 'rose' ? '14px' : '50%') + ';border:3px solid rgb(' + rgb + ');background:#2a1a40 url(' + cutFaceFile() + ') center/cover;box-shadow:0 0 18px rgb(' + rgb + ');flex:none;margin-top:-10px;"></div>' +
+      '<div style="font-size:' + (id === 'finale' ? 30 : 26) + 'px;font-weight:900;color:#fff;-webkit-text-stroke:5px rgba(20,8,40,.95);paint-order:stroke fill;white-space:nowrap;text-shadow:0 0 14px rgb(' + rgb + ');">' + sk.icon + ' ' + sk.name + '!</div>' +
+    '</div>';
+    wrap.innerHTML = h;
     view.appendChild(wrap);
-    view.style.animation = 'fsShakeV .4s linear';
-    setTimeout(function () { view.style.animation = ''; }, 420);
-    setTimeout(function () { if (wrap.parentNode) wrap.parentNode.removeChild(wrap); }, ms + 100);
-    if (big) {
+    view.style.animation = 'fsShakeV ' + C.shake + 's linear';
+    setTimeout(function () { view.style.animation = ''; }, C.shake * 1000 + 30);
+    setTimeout(function () { if (wrap.parentNode) wrap.parentNode.removeChild(wrap); }, C.ms + 150);
+    var vw = view.clientWidth || 360, vh = view.clientHeight || 640;
+    for (var i = 0; i < C.n; i++) {
+      var p = document.createElement('div'), em = C.parts[i % C.parts.length], x = Math.round(Math.random() * 100), sz = 16 + Math.round(Math.random() * 18);
+      var mode = C.mode === 'mix' ? (i % 2 ? 'burst' : 'fall') : C.mode, tr, st;
+      if (mode === 'rise') { st = 'left:' + x + '%;top:100%;'; tr = 'translateY(-' + Math.round(vh * (0.5 + Math.random() * 0.6)) + 'px) translateX(' + Math.round(Math.random() * 60 - 30) + 'px)'; }
+      else if (mode === 'fall') { st = 'left:' + x + '%;top:-6%;'; tr = 'translateY(' + (vh + 40) + 'px) translateX(' + Math.round(Math.random() * 120 - 60) + 'px) rotate(' + Math.round(Math.random() * 540) + 'deg)'; }
+      else { var ang = Math.random() * 6.283, d = 80 + Math.random() * Math.min(vw, vh) * 0.45; st = 'left:50%;top:' + (35 + Math.round(Math.random() * 25)) + '%;'; tr = 'translate(' + Math.round(Math.cos(ang) * d) + 'px,' + Math.round(Math.sin(ang) * d) + 'px) scale(1.4)'; }
+      p.textContent = em;
+      p.style.cssText = 'position:absolute;' + st + 'font-size:' + sz + 'px;opacity:1;transition:transform ' + (C.ms * 0.8) + 'ms ease-out,opacity ' + (C.ms * 0.8) + 'ms ease-in;transition-delay:' + Math.round(Math.random() * 250) + 'ms;';
+      wrap.appendChild(p);
+      (function (q, t) { setTimeout(function () { q.style.transform = t; q.style.opacity = '0'; }, 40); })(p, tr);
+    }
+    if (C.conf) {
       var cols = ['#ffd76a', '#ff6fb1', '#9fd8ff', '#c084fc', '#7ee8a5'];
-      for (var i = 0; i < 30; i++) {
-        var p = document.createElement('div');
-        p.style.cssText = 'position:absolute;top:-10px;left:' + Math.round(Math.random() * 100) + '%;width:7px;height:11px;background:' + cols[i % 5] + ';opacity:.9;transition:transform 1.4s ease-in,opacity 1.4s;';
-        wrap.appendChild(p);
-        (function (q) { setTimeout(function () { q.style.transform = 'translateY(' + (view.clientHeight + 30) + 'px) rotate(' + Math.round(Math.random() * 720) + 'deg)'; q.style.opacity = '0'; }, 30); })(p);
+      for (var j = 0; j < 28; j++) {
+        var q2 = document.createElement('div');
+        q2.style.cssText = 'position:absolute;top:-10px;left:' + Math.round(Math.random() * 100) + '%;width:7px;height:11px;background:' + cols[j % 5] + ';transition:transform 1.5s ease-in,opacity 1.5s;';
+        wrap.appendChild(q2);
+        (function (q) { setTimeout(function () { q.style.transform = 'translateY(' + (vh + 30) + 'px) rotate(' + Math.round(Math.random() * 720) + 'deg)'; q.style.opacity = '0'; }, 40); })(q2);
       }
     }
   }
