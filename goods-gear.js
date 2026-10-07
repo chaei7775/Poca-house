@@ -364,11 +364,43 @@
       '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">' +
         '<div style="font-size:19px;font-weight:900;">🎁 굿즈 공방</div>' +
         '<button id="gg-close" style="' + BTN + 'background:rgba(255,255,255,.12);color:#fff;padding:8px 14px;font-size:13px;">닫기</button></div>' +
-      '<div style="display:flex;gap:8px;margin-bottom:12px;">' + tabBtn('craft', '🔨 제작') + tabBtn('equip', '🎒 장착') + '</div>' +
+      '<div style="display:flex;gap:8px;margin-bottom:12px;">' + tabBtn('craft', '🔨 제작') + tabBtn('equip', '🎒 장착') + tabBtn('info', '📋 옵션표') + '</div>' +
       '<div id="gg-body"></div></div>';
     $('gg-close').onclick = function () { ov.remove(); };
     ov.querySelectorAll('[data-tab]').forEach(function (b) { b.onclick = function () { tab = b.getAttribute('data-tab'); lastResult = null; equipSlot = null; draw(); }; });
-    if (tab === 'craft') drawCraft(); else drawEquip();
+    if (tab === 'craft') drawCraft(); else if (tab === 'info') drawInfo(); else drawEquip();
+  }
+  // ── 📋 옵션표: 굿즈 공방에서 나오는 등급·능력치·확률을 미리 볼 수 있음 (설정값에서 자동으로 계산) ──
+  function drawInfo() {
+    var body = $('gg-body'); if (!body) return;
+    var ok = 1 - P_FAIL, pN = 1 - P_UNIQUE - P_EPIC - P_RARE - P_GOOD;
+    function pc(x) { var v = x * 100; return (v >= 10 ? Math.round(v) : Math.round(v * 10) / 10) + '%'; }
+    function rg(k, i) { var r = STATS[k].r[Math.min(i, 2)]; return r[0] + ' ~ ' + r[1] + STATS[k].unit; }
+    var box = 'background:rgba(255,255,255,.07);border-radius:14px;padding:12px;margin-bottom:12px;font-size:12px;line-height:1.75;';
+    var gradeRows = [
+      ['normal', pN, '능력치 1개 (랜덤)'], ['good', P_GOOD, '능력치 1개 (랜덤, 수치↑)'], ['rare', P_RARE, '능력치 2개 (랜덤, 수치↑↑)'],
+      ['epic', P_EPIC, '💜 소원의 조각 확률 ' + EPIC_WISH[0] + ' ~ ' + EPIC_WISH[1] + '%p (고정) + 랜덤 1개'],
+      ['unique', P_UNIQUE, '👑 재조합 등급 상승 확률 ' + UNIQUE_RECOMB[0] + ' ~ ' + UNIQUE_RECOMB[1] + '%p (고정) + 랜덤 1개']
+    ].map(function (r) {
+      var G = GRADES[r[0]];
+      return '<div style="display:flex;gap:8px;align-items:flex-start;margin-bottom:6px;"><div style="min-width:48px;font-weight:900;color:' + G.color + ';">' + G.label + '</div><div style="flex:1;">' + r[2] + '<div style="color:#9ab;font-size:11px;">제작 성공 중 ' + pc(r[1]) + ' · 제작 1번당 ' + pc(ok * r[1]) + '</div></div></div>';
+    }).join('');
+    var head = '<tr style="color:#9ab;font-size:11px;"><td style="padding:3px 0;">능력치</td><td>일반</td><td>고급</td><td>레어</td><td>합계 상한</td></tr>';
+    var statRows = RAND_KEYS.map(function (k) {
+      var S = STATS[k];
+      return '<tr style="border-top:1px solid rgba(255,255,255,.08);"><td style="padding:5px 4px 5px 0;white-space:nowrap;">' + S.icon + ' ' + S.label.replace(/\(.*\)/, '') + '</td><td>' + rg(k, 0) + '</td><td>' + rg(k, 1) + '</td><td>' + rg(k, 2) + '</td><td style="color:#FFD700;">' + S.cap + S.unit + '</td></tr>';
+    }).join('');
+    var scopeNote = RAND_KEYS.concat(['recomb']).map(function (k) { return STATS[k].icon + ' ' + STATS[k].label.replace(/\(.*\)/, '') + ': ' + (STATS[k].scope === 'char' ? '장착한 그 아이돌의 원정에만' : '장착한 모든 굿즈 합산 (아이돌 상관없음)'); }).join('<br>');
+    body.innerHTML =
+      '<div style="' + box + '"><div style="font-weight:900;font-size:13px;margin-bottom:6px;">🔨 제작하면 이렇게 나와요</div>' +
+        '<div style="margin-bottom:6px;">실패 <b>' + pc(P_FAIL) + '</b> (재료만 사라져요) · 성공하면 아래 등급 중 하나!</div>' + gradeRows + '</div>' +
+      '<div style="' + box + '"><div style="font-weight:900;font-size:13px;margin-bottom:6px;">📊 능력치 종류와 수치 범위</div>' +
+        '<table style="width:100%;border-collapse:collapse;font-size:11px;text-align:left;">' + head + statRows + '</table>' +
+        '<div style="color:#9ab;font-size:11px;margin-top:6px;">💜에픽·👑유니크의 랜덤 능력치는 레어 범위로 나와요.</div></div>' +
+      '<div style="' + box + '"><div style="font-weight:900;font-size:13px;margin-bottom:6px;">🧭 어디에 적용되나요?</div>' + scopeNote +
+        '<div style="color:#9ab;font-size:11px;margin-top:6px;">🧩 소원의 조각 확률은 🌟소원의 샘 성공 확률에도 (×10) 적용돼요. 🔮 재조합 상승은 카드 재조합에서 등급이 오르는 확률에 더해져요 (UR+UR 제외).</div></div>' +
+      '<div style="' + box + '"><div style="font-weight:900;font-size:13px;margin-bottom:6px;">🎽 굿즈 종류</div>' +
+        ['hat', 'hand', 'acc'].map(function (sl) { var S = SLOTS[sl]; return '<div style="margin-bottom:4px;"><b>' + S.label + '</b> · ' + S.items.map(function (it) { return it[0] + it[1]; }).join(' · ') + '<br><span style="color:#c9a8ff;">💜 ' + EXTRA[sl].epic[0] + EXTRA[sl].epic[1] + '</span> · <span style="color:#ffb454;">👑 ' + EXTRA[sl].unique[0] + EXTRA[sl].unique[1] + '</span></div>'; }).join('') + '</div>';
   }
 
   function gearCard(g, extra) {
