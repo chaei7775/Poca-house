@@ -22,6 +22,8 @@ const RC_TABLE = {
   'UR_UR':   { upgrade: 0,    same: 94,    rareHidden: 4,    epicHidden: 2,    coin: 100000, stones: { normal: 5, epic: 2 } },
 };
 
+function rcGearBonus() { try { return Number(window.__goodsGear && window.__goodsGear.globalTotals().recomb) || 0; } catch (e) { return 0; } }
+
 function getRcTableKey(gradeA, gradeB) {
   const lo = rcGradeIndex(gradeA) <= rcGradeIndex(gradeB) ? gradeA : gradeB;
   const hi = rcGradeIndex(gradeA) <= rcGradeIndex(gradeB) ? gradeB : gradeA;
@@ -289,7 +291,7 @@ function doRecombine() {
     result = rollHiddenCard('에픽히든', recipe);
   } else if (roll < epicChance + rareChance) {
     result = rollHiddenCard('레어히든', recipe);
-  } else if (roll < epicChance + rareChance + table.upgrade) {
+  } else if (roll < epicChance + rareChance + table.upgrade + (table.upgrade > 0 ? rcGearBonus() : 0)) {   // 🔮 유니크 굿즈: 등급 상승 확률 +%p
     result = { type: 'card', grade: rcHigherGrade(recipe.lowerGrade) };
   } else {
     result = { type: 'card', grade: recipe.lowerGrade };

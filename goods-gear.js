@@ -14,7 +14,15 @@
   var STONE_NAME = '공방의 원석', STONE_EMOJI = '🔶';
   var STONE_NEED = 3;                          // 굿즈 1개 제작에 필요한 원석 개수
   var STONE_DROP = { normal: 0.015, rare: 0.05 };   // 재료 1개 주울 때 원석이 같이 나올 확률 (희귀 재료는 더 높음)
-    var P_FAIL = 0.15, P_RARE = 0.04, P_GOOD = 0.18;   // 실패 15% / 레어 4% / 고급 18% / 나머지 일반
+    var P_FAIL = 0.15, P_RARE = 0.04, P_GOOD = 0.18;
+  var P_EPIC = 0.015, P_UNIQUE = 0.005;                // 제작 성공했을 때 에픽 1.5% / 유니크 0.5% (신등급)
+  var EPIC_WISH = [0.5, 0.9];                          // 에픽: 탐험 소원의 조각 확률 +%p (고정 효과)
+  var UNIQUE_RECOMB = [1.5, 2.5];                      // 유니크: 카드 재조합 '등급 상승' 확률 +%p (고정 효과)
+  var EXTRA = {                                        // 에픽·유니크 전용 굿즈 (그림 파일이 없으면 이모지로 표시)
+    hat:  { epic: ['🌠', '소원의 별 왕관', 'goods-epic-hat.png'],   unique: ['💎', '재조합 수정 왕관', 'goods-unique-hat.png'] },
+    hand: { epic: ['🪄', '소원의 별빛봉', 'goods-epic-hand.png'],   unique: ['🔮', '재조합 수정봉', 'goods-unique-hand.png'] },
+    acc:  { epic: ['📿', '소원의 별 목걸이', 'goods-epic-acc.png'], unique: ['💠', '재조합 수정 목걸이', 'goods-unique-acc.png'] }
+  };   // 실패 15% / 레어 4% / 고급 18% / 나머지 일반
   var SLOTS = {
     hat:  { label: '머리', mats: [['고급원목', 8], ['별빛나무', 6], [STONE_NAME, STONE_NEED]], items: [['🎀', '응원 머리띠', 'goods-hat-1.png'], ['🧢', '팬클럽 야구모자', 'goods-hat-2.png'], ['👑', '반짝 왕관', 'goods-hat-3.png']] },
     hand: { label: '손',   mats: [['빛나는돌', 8], ['해바라기', 6], [STONE_NAME, STONE_NEED]], items: [['📣', '응원 메가폰', 'goods-hand-1.png'], ['🪄', '야광봉', 'goods-hand-2.png'], ['💐', '꽃다발', 'goods-hand-3.png']] },
@@ -29,13 +37,17 @@
     piece:  { label: '프리미엄 조각 확률', icon: '🖼️', unit: '%',  dec: 1, scope: 'char', cap: 8,   r: [[0.5, 1.5], [1.5, 2.5], [2.5, 4]] },
     ticket: { label: '등교권·조각 드랍',  icon: '🎫', unit: '%',  dec: 0, scope: 'char', cap: 60,  r: [[5, 10],  [10, 20], [20, 40]] },
     wish:   { label: '탐험 소원의 조각 확률', icon: '🧩', unit: '%p', dec: 2, scope: 'all', cap: 1.5, r: [[0.05, 0.12], [0.12, 0.25], [0.25, 0.5]] },
+    recomb: { label: '재조합 등급 상승 확률', icon: '🔮', unit: '%p', dec: 1, scope: 'all', cap: 6, r: [[1.5, 2.5], [1.5, 2.5], [1.5, 2.5]] },   // 유니크 전용
     honor:  { label: '우등생조각 획득',   icon: '✨', unit: '%',  dec: 0, scope: 'all',  cap: 60,  r: [[5, 10],  [10, 20], [20, 40]] }
   };
-  var STAT_KEYS = ['coin', 'exp', 'piece', 'ticket', 'wish', 'honor'];
+  var STAT_KEYS = ['coin', 'exp', 'piece', 'ticket', 'wish', 'honor', 'recomb'];
+  var RAND_KEYS = ['coin', 'exp', 'piece', 'ticket', 'wish', 'honor'];   // 일반·고급·레어 굿즈에 랜덤으로 붙는 능력치
   var GRADES = {
     normal: { label: '일반', color: '#cbd5e1', n: 1, i: 0 },
     good:   { label: '고급', color: '#4ade80', n: 1, i: 1 },
-    rare:   { label: '레어', color: '#FFD700', n: 2, i: 2 }
+    rare:   { label: '레어', color: '#FFD700', n: 2, i: 2 },
+    epic:   { label: '에픽', color: '#c084fc', n: 2, i: 3 },
+    unique: { label: '유니크', color: '#ff6ec7', n: 2, i: 4 }
   };
 
 
@@ -44,6 +56,7 @@
   function fileOf(g) {
     var its = SLOTS[g.slot] ? SLOTS[g.slot].items : [];
     for (var i = 0; i < its.length; i++) if (its[i][1] === g.base) return its[i][2];
+    var ex = EXTRA[g.slot]; if (ex) { if (ex.epic[1] === g.base) return ex.epic[2]; if (ex.unique[1] === g.base) return ex.unique[2]; }
     return null;
   }
   function icon(g, px) {
@@ -88,9 +101,16 @@
 
   // ── 제작 ──
   function rollGear(slot) {
-    var r = Math.random(), g = r < P_RARE ? 'rare' : r < P_RARE + P_GOOD ? 'good' : 'normal';
+    var r = Math.random(), g = r < P_UNIQUE ? 'unique' : r < P_UNIQUE + P_EPIC ? 'epic' : r < P_UNIQUE + P_EPIC + P_RARE ? 'rare' : r < P_UNIQUE + P_EPIC + P_RARE + P_GOOD ? 'good' : 'normal';
+    if (g === 'epic' || g === 'unique') {      // 신등급: 고정 효과 1개 + 랜덤 능력치 1개(레어 범위)
+      var xb = EXTRA[slot][g], fk = g === 'epic' ? 'wish' : 'recomb', fr = g === 'epic' ? EPIC_WISH : UNIQUE_RECOMB, st = {};
+      st[fk] = rnum(fr[0], fr[1], STATS[fk].dec);
+      var rk = RAND_KEYS.filter(function (x) { return x !== fk; }), k2 = rk[Math.floor(Math.random() * rk.length)], rg2 = STATS[k2].r[2];
+      st[k2] = rnum(rg2[0], rg2[1], STATS[k2].dec);
+      return { slot: slot, grade: g, emoji: xb[0], base: xb[1], stats: st };
+    }
     var G = GRADES[g], base = pick(SLOTS[slot].items);
-    var keys = STAT_KEYS.slice(), stats = {};
+    var keys = RAND_KEYS.slice(), stats = {};
     for (var i = 0; i < G.n; i++) {
       var k = keys.splice(Math.floor(Math.random() * keys.length), 1)[0], rg = STATS[k].r[G.i];
       stats[k] = rnum(rg[0], rg[1], STATS[k].dec);
@@ -115,7 +135,7 @@
         name: '[' + GRADES[g.grade].label + '] ' + g.base, emoji: g.emoji, type: 'goods_gear', qty: 1, affExp: 1,
         desc: '굿즈 · ' + S.label + ' · ' + statText(g.stats), gear: g
       });
-      setFlag('crafted'); if (g.grade === 'rare') setFlag('rare');
+      setFlag('crafted'); if (g.grade === 'rare' || g.grade === 'epic' || g.grade === 'unique') setFlag('rare');
       res = { gear: g };
     }
     if (typeof saveBag === 'function') saveBag();
@@ -388,14 +408,14 @@
     if (lastResult) {
       res = lastResult.fail
         ? '<div style="background:rgba(239,68,68,.15);border:1.5px solid #ef4444;border-radius:14px;padding:14px;text-align:center;margin-bottom:12px;font-weight:900;">💥 제작 실패…<div style="font-size:11px;color:#fbb;font-weight:400;margin-top:3px;">재료와 코인이 사라졌어요</div></div>'
-        : '<div style="margin-bottom:6px;font-size:12px;font-weight:900;color:#FFD700;">' + (lastResult.gear.grade === 'rare' ? '✨ 레어 굿즈 탄생!!' : '🎉 제작 성공!') + '</div>' + gearCard(lastResult.gear);
+        : '<div style="margin-bottom:6px;font-size:12px;font-weight:900;color:#FFD700;">' + (lastResult.gear.grade === 'unique' ? '🌈 유니크 굿즈 탄생!!!' : lastResult.gear.grade === 'epic' ? '💜 에픽 굿즈 탄생!!' : lastResult.gear.grade === 'rare' ? '✨ 레어 굿즈 탄생!!' : '🎉 제작 성공!') + '</div>' + gearCard(lastResult.gear);
     }
     body.innerHTML = res +
       '<div style="font-size:12px;color:#9ab;margin-bottom:6px;">만들 부위</div>' +
       '<div style="display:flex;gap:6px;margin-bottom:12px;">' + slotBtns + '</div>' +
       '<div style="background:rgba(255,255,255,.07);border-radius:14px;padding:12px;font-size:12px;line-height:1.8;margin-bottom:12px;">' +
         '필요: 🍔 ' + fmt(CRAFT_COIN) + ' (보유 ' + fmt(coins) + ')<br>' + S.mats.map(function (m) { var h = matQty(m[0]); return '<div style="margin-top:4px;">' + m[0] + ' x' + m[1] + ' (보유 <b style="color:' + (h >= m[1] ? '#4ade80' : '#ff8a8a') + ';">' + h + '</b>)<div style="font-size:10.5px;color:#8fd3ff;line-height:1.5;">📍 ' + matWhere(m[0]) + '</div></div>'; }).join('') +
-        '<span style="color:#9ab;">능력치는 만들 때마다 랜덤! · 실패 ' + Math.round(P_FAIL * 100) + '% · 고급 ' + Math.round(P_GOOD * 100) + '% · 레어 ' + Math.round(P_RARE * 100) + '% (능력치 2개)</span></div>' +
+        '<span style="color:#9ab;">능력치는 만들 때마다 랜덤! · 실패 ' + Math.round(P_FAIL * 100) + '% · 고급 ' + Math.round(P_GOOD * 100) + '% · 레어 ' + Math.round(P_RARE * 100) + '% (능력치 2개) · 아주 가끔 💜에픽(소원의 조각↑) · 🌈유니크(재조합 상승↑)</span></div>' +
       '<button id="gg-craft" style="' + BTN + 'width:100%;padding:15px;font-size:16px;background:linear-gradient(135deg,#FFD700,#F59E0B);color:#1a1a2e;">🔨 ' + S.label + ' 굿즈 제작</button>' +
       '<div style="font-size:10.5px;color:#789;margin-top:10px;line-height:1.6;">재료는 위 📍 표시된 맵에서 탐험으로 모아요. 🔶 공방의 원석은 탐험 중 재료를 주울 때 가끔 같이 나와요. 만든 굿즈는 가방에 들어가고, 🎒 장착 탭에서 캐릭터에게 달아줘요.</div>';
     body.querySelectorAll('[data-slot]').forEach(function (b) { b.onclick = function () { craftSlot = b.getAttribute('data-slot'); lastResult = null; draw(); }; });
