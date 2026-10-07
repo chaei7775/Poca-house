@@ -36,7 +36,7 @@
     exp:    { label: '원정 EXP',         icon: '⭐', unit: '%',  dec: 0, scope: 'char', cap: 40,  r: [[2, 6],   [5, 10],  [10, 20]] },
     piece:  { label: '프리미엄 조각 확률', icon: '🖼️', unit: '%',  dec: 1, scope: 'char', cap: 8,   r: [[0.5, 1.5], [1.5, 2.5], [2.5, 4]] },
     ticket: { label: '등교권·조각 드랍',  icon: '🎫', unit: '%',  dec: 0, scope: 'char', cap: 60,  r: [[5, 10],  [10, 20], [20, 40]] },
-    wish:   { label: '탐험 소원의 조각 확률', icon: '🧩', unit: '%p', dec: 2, scope: 'all', cap: 1.5, r: [[0.05, 0.12], [0.12, 0.25], [0.25, 0.5]] },
+    wish:   { label: '탐험 소원의 조각 확률(샘 성공도 ×10)', icon: '🧩', unit: '%p', dec: 2, scope: 'all', cap: 1.5, r: [[0.05, 0.12], [0.12, 0.25], [0.25, 0.5]] },
     recomb: { label: '재조합 등급 상승 확률', icon: '🔮', unit: '%p', dec: 1, scope: 'all', cap: 6, r: [[1.5, 2.5], [1.5, 2.5], [1.5, 2.5]] },   // 유니크 전용
     honor:  { label: '우등생조각 획득',   icon: '✨', unit: '%',  dec: 0, scope: 'all',  cap: 60,  r: [[5, 10],  [10, 20], [20, 40]] }
   };
@@ -92,7 +92,7 @@
   function save(d) { try { localStorage.setItem(KEY, JSON.stringify(d)); } catch (e) {} }
   function rnum(a, b, dec) { var m = Math.pow(10, dec); return Math.round((a + Math.random() * (b - a)) * m) / m; }
   function statText(stats) {
-    return STAT_KEYS.filter(function (k) { return stats[k]; }).map(function (k) { return STATS[k].icon + ' ' + STATS[k].label + ' +' + stats[k] + STATS[k].unit; }).join(' · ');
+    return STAT_KEYS.filter(function (k) { return stats[k]; }).map(function (k) { return STATS[k].icon + ' ' + STATS[k].label + ' +' + stats[k] + STATS[k].unit + (k === 'wish' ? ' (🌟소원의 샘 성공 +' + (Math.round(stats[k] * 100) / 10) + '%p)' : ''); }).join(' · ');
   }
   function matQty(name) {
     var it = bagItems.find(function (i) { return i.name === name; });
