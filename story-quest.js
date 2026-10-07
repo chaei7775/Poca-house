@@ -514,6 +514,23 @@
     ] }
   };
 
+
+  // ════════════════════════════════════════════════════════════
+  // 🪪 등장인물 소개 (누구인지 알려주는 프로필 이야기)
+  // ════════════════════════════════════════════════════════════
+  var PROFILES = {
+    minjun: ['도서관의 별', ['n:오래된 도서관, 가장 안쪽 창가 자리. 그곳엔 언제나 같은 사람이 앉아 있다.', 'n:민준. 말수가 적고 늘 책을 들고 있어서, 사람들은 그를 "도서관의 별"이라 불렀다.', 'i:…누가 부르는 거야? 아, 너구나. 조용히 해줘, 지금 좋은 대목이야.', 'n:차갑게 들리지만 사실은 낯을 가릴 뿐이다. 길 잃은 사람에게 말없이 책갈피를 건네주는 사람.', 'n:다만 그는 자기 이름이 적힌 페이지만은 아직 펼치지 못했다.']],
+    sion: ['폭풍 속의 기타', ['n:비바람이 치는 날에도 골목 끝에선 기타 소리가 들렸다.', 'n:시온. 무뚝뚝하고 퉁명스럽지만, 소리만큼은 누구보다 솔직한 사람.', 'i:…듣고 싶으면 듣든가. 박수는 필요 없어.', 'n:그의 목소리는 어디에서도 들어본 적 없는 독특한 음색이다. 한 번 들으면 잊히지 않는다.', 'n:그는 아무도 듣지 않아도 연주를 멈추지 않았다. 그 이유를 아직 아무에게도 말하지 않았다.']],
+    doyun: ['보이지 않는 실세', ['n:학생회장 도윤. 그가 나서는 일은 드물지만, 모든 일은 결국 그의 뜻대로 돌아간다.', 'n:정돈된 말투, 흐트러짐 없는 규칙. 사람들은 그를 어려워하면서도 의지했다.', 'i:규칙은 사람을 지키려고 있는 거야. …그렇게 믿고 있어.', 'n:완벽해 보이는 그가 가끔 창밖을 오래 바라보는 이유를 아는 사람은 없다.']],
+    harin: ['새벽의 노래', ['n:막차가 끊긴 정류장에서, 하린은 작게 노래를 부르고 있었다.', 'n:다정하고 조심스러운 사람. 남의 이야기는 끝까지 들어주면서, 자기 이야기는 늘 노래로만 한다.', 'i:이 시간에 깨어 있는 사람, 나 말고 또 있었네.', 'n:그녀의 노래는 새벽 공기처럼 맑고 조금은 쓸쓸하다. 누군가에게 닿기를 바라면서도, 닿지 않을까 늘 두려워한다.']],
+    yuna: ['봄을 기다리는 꽃집', ['n:골목 모퉁이의 작은 꽃집. 문을 열면 제일 먼저 웃음소리가 들린다.', 'n:윤아. 밝고 수다스럽고, 누구에게나 꽃 한 송이를 건네는 사람.', 'i:어서 와! 오늘은 어떤 기분이야? 기분에 맞는 꽃으로 골라줄게!', 'n:늘 웃고 있어서 아무도 눈치채지 못했지만, 그녀는 누군가 이름을 불러주길 누구보다 기다리고 있다.']],
+    ara: ['무대의 여왕', ['n:스포트라이트 한가운데가 제 자리라고 믿는 사람. 아라.', 'n:도도하고 자신만만하다. 칭찬은 당연하다는 듯 받고, 약점은 절대 보이지 않는다.', 'i:구경하는 건 자유야. 대신 눈은 떼지 마.', 'n:하지만 박수가 끝난 뒤의 조용한 대기실에서, 그녀는 가끔 아주 작은 목소리로 혼잣말을 한다.']]
+  };
+  function profileQuest(cid) {
+    var d = PROFILES[cid];
+    return { id: 'profile_' + cid, title: NAMES[cid] + ' · ' + d[0], lines: d[1], who: cid, track: 'profile', coins: 0, exp: 0 };
+  }
+
   // 아이돌별 퀘스트 조건 (종류별)
   function idolDetect(id, kind) {
     switch (kind) {
@@ -645,7 +662,7 @@
       '<style>@keyframes stFade{from{opacity:0}to{opacity:1}}@keyframes stPop{from{transform:translateY(8px);opacity:0}to{transform:none;opacity:1}}</style>' +
       '<div style="width:100%;max-width:480px;padding:0 12px 18px;box-sizing:border-box;">' +
       '<div style="text-align:center;margin-bottom:10px;">' +
-      '<div style="font-size:11px;color:#FFB3CC;letter-spacing:.5px;">' + esc(t ? t.title : '') + '</div>' +
+      '<div style="font-size:11px;color:#FFB3CC;letter-spacing:.5px;">' + esc(t ? t.title : '등장인물') + '</div>' +
       '<div style="font-size:18px;font-weight:900;color:#fff;margin-top:2px;">' + esc(x.title) + '</div></div>' +
       '<div id="story-face" style="height:150px;display:flex;align-items:flex-end;justify-content:center;margin-bottom:-14px;position:relative;z-index:1;"></div>' +
       '<div id="story-box" style="position:relative;background:rgba(255,255,255,.08);border:1.5px solid rgba(255,179,204,.5);border-radius:16px;padding:16px 16px 14px;min-height:110px;color:#fff;backdrop-filter:blur(6px);">' +
@@ -741,6 +758,14 @@
       '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">' +
       '<div style="font-size:13px;font-weight:700;color:#FFB3CC;">📚 연대기 퀘스트</div>' +
       '<div style="font-size:11px;color:#aaa;">' + c.done + ' / ' + c.total + '</div></div>';
+    h += '<div style="font-size:11px;color:#9b8cc4;margin:4px 0 6px;">— 등장인물 소개 —</div><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:6px;">';
+    ORDER.forEach(function (cid) {
+      h += '<div data-st="profile" data-c="' + cid + '" style="cursor:pointer;text-align:center;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.16);border-radius:12px;padding:8px 4px;">' +
+        '<img src="face-' + cid + '.png" style="height:54px;object-fit:contain;" onerror="this.style.display=\'none\'">' +
+        '<div style="font-size:12px;font-weight:700;color:#fff;margin-top:2px;">' + esc(NAMES[cid]) + '</div>' +
+        '<div style="font-size:10px;color:#FFB3CC;">누구야? ▸</div></div>';
+    });
+    h += '</div>';
     var group = '';
     TRACKS.forEach(function (t) {
       if (t.kind !== group) {
@@ -813,6 +838,7 @@
         if (!n) return;
         if (n.getAttribute('data-st') === 'toggle') { var id = n.getAttribute('data-t'); openTracks[id] = !openTracks[id]; renderSection(); }
         else if (n.getAttribute('data-st') === 'replay') { if (!showing) openStory(BYID[n.getAttribute('data-q')], false); }
+        else if (n.getAttribute('data-st') === 'profile') { if (!showing) openStory(profileQuest(n.getAttribute('data-c')), false); }
         else if (n.getAttribute('data-st') === 'detail') { openDetail(BYID[n.getAttribute('data-q')]); }
       });
     }
