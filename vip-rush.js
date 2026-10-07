@@ -50,6 +50,7 @@
   var PACKS = [[330,330],[750,250],[1170,330],[240,760],[1260,760],[750,640],[420,960],[1080,960]];   // 팬 무리 위치
   var PACK_TYPES = [['normal','normal','rusher'],['normal','thrower','normal'],['rusher','normal','tank'],['normal','normal','thrower','normal'],['tank','normal','rusher'],['thrower','normal','normal','rusher'],['normal','rusher','normal'],['tank','thrower','normal','normal']];
   var PIECE_NAME = '프리미엄 조각', PIECE_EMOJI = '🖼️', PIECE_GOAL = 100;
+  var PIECE_LOOT0 = '강화석', PIECE_LOOT1 = '방지권', PIECE_LOOT2 = '소원의 조각';   // 상자에서 터지는 아이템 중 그림이 있는 것들
   var IMG_BASE = 'https://raw.githubusercontent.com/chaei7775/Poca-house/main/';
   var BG_FILE = 'map-vip.png';  // 있으면 배너·카드선택 배경으로 쓰임(없어도 됨)
 
@@ -261,7 +262,7 @@
         var X = xfs(); X.flash = 0.45; X.flashMax = 0.45; X.flashRgb = '255,240,190'; X.zoom = 0.05;
         confetti(40, CONF_COLS);
         for (var i = 0; i < 4; i++) burstAt(b.x + rnd(-60, 60), b.y + rnd(-60, 20), 44, ['#ffd76a', '#ff6fb1', '#9fd8ff', '#fff', '#c084fc'], 260, i * 0.12, true);
-        for (var k = 0; k < 28; k++) G.fx.push({ k: 'loot', x: b.x, y: b.y - 20, vx: rnd(-170, 170), vy: rnd(-330, -120), e: ['🔨', '🛡️', '🍔', '⭐', '🎁', '💎', '💖'][k % 7], t: 1.8, max: 1.8 });
+        for (var k = 0; k < 28; k++) G.fx.push({ k: 'loot', x: b.x, y: b.y - 20, vx: rnd(-170, 170), vy: rnd(-330, -120), e: ['🔨', '🛡️', '🍔', '🖼️', '⭐', '🧩', '💖'][k % 7], n: [PIECE_LOOT0, PIECE_LOOT1, '', PIECE_NAME, '', PIECE_LOOT2, ''][k % 7], t: 1.8, max: 1.8 });
         sfx('reward');
       }
     } else { b.ot += dt; if (b.ot > 1.9 && !b.fin) { b.fin = true; finish(true); } }
@@ -651,6 +652,9 @@
     else { for (var x = 0; x < WORLD; x += 100) for (var y = 0; y < WORLD; y += 100) { c.fillStyle = ((x / 100 + y / 100) % 2 === 0) ? '#3a2a4d' : '#2e2140'; c.fillRect(x, y, 100, 100); } }
     c.strokeStyle = 'rgba(255,215,106,.55)'; c.lineWidth = 6; c.strokeRect(3, 3, WORLD - 6, WORLD - 6);
   }
+  // 🖼️ 재료 그림: mat-icons.js 의 그림이 있으면 그림, 없으면 이모지 (글자용 HTML / 캔버스용 Image)
+  function matHtml(name, emoji, px) { try { return (window.matIcon ? window.matIcon(name, px || 20, emoji) : emoji) || emoji; } catch (e) { return emoji; } }
+  function matImg(name) { try { return window.matImage ? window.matImage(name) : null; } catch (e) { return null; } }
   var _boxImgs = {};
   function boxImg(n) {
     if (_boxImgs[n]) return _boxImgs[n];
@@ -826,7 +830,7 @@
   }
   function drawFx(c) {
     G.fx.forEach(function (e) {
-      if (e.k === 'loot') { e.vy += 700 * 0.016; e.x += e.vx * 0.016; e.y += e.vy * 0.016; c.globalAlpha = Math.min(1, e.t * 2); c.font = '26px sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(e.e, e.x, e.y); c.globalAlpha = 1; return; }
+      if (e.k === 'loot') { e.vy += 700 * 0.016; e.x += e.vx * 0.016; e.y += e.vy * 0.016; c.globalAlpha = Math.min(1, e.t * 2); var li = e.n ? matImg(e.n) : null; if (li && li._ok) c.drawImage(li, e.x - 18, e.y - 18, 36, 36); else { c.font = '26px sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(e.e, e.x, e.y); } c.globalAlpha = 1; return; }
       if (e.t > e.max) return;   // 아직 시작 전(딜레이)
       var p = 1 - e.t / e.max;
       if (e.k === 'burst') { drawBurst(c, e, p); return; }
@@ -1137,10 +1141,10 @@
     var rows = [];
     rows.push('<span>🍔 코인 <b style="color:#ffd76a;">+' + fmt(r.coin) + '</b></span>');
     rows.push('<span>⭐ 카드 경험치 <b style="color:#9fd8ff;">+' + fmt(r.exp) + '</b></span>');
-    if (r.stones) rows.push('<span>🔨 강화석 <b style="color:#ffe27a;">+' + r.stones + '</b></span>');
-    if (r.protects) rows.push('<span>🛡️ 방지권 <b style="color:#7ee8a5;">+' + r.protects + '</b></span>');
+    if (r.stones) rows.push('<span>' + matHtml('강화석', '🔨') + ' 강화석 <b style="color:#ffe27a;">+' + r.stones + '</b></span>');
+    if (r.protects) rows.push('<span>' + matHtml('방지권', '🛡️') + ' 방지권 <b style="color:#7ee8a5;">+' + r.protects + '</b></span>');
     if (r.tome) rows.push('<span>📖 <b style="color:#ffd76a;">' + r.tome + '</b> 획득! (대박)</span>');
-    if (r.pieces) rows.push('<span>' + PIECE_EMOJI + ' 프리미엄 조각 <b style="color:#ffe27a;">+' + r.pieces + '</b></span>');
+    if (r.pieces) rows.push('<span>' + matHtml(PIECE_NAME, PIECE_EMOJI) + ' 프리미엄 조각 <b style="color:#ffe27a;">+' + r.pieces + '</b></span>');
     if (r.books && r.books.length) { var bl = {}; r.books.forEach(function (x) { bl[x] = (bl[x] || 0) + 1; }); rows.push('<span>📘 스킬북 <b style="color:#9fd8ff;">' + Object.keys(bl).map(function (x) { var k = skillById(x); return (k ? k.icon + k.name : x) + ' ×' + bl[x]; }).join(', ') + '</b></span>'); }
     if (r.bagFull) rows.push('<span style="color:#ff9a9a;font-size:12px;">가방이 가득 차서 조각을 못 받았어요</span>');
     if (!document.getElementById('vr-css')) { var st = document.createElement('style'); st.id = 'vr-css'; st.textContent = '@keyframes vrPop{0%{opacity:0;transform:translateY(-26px) scale(.6)}60%{opacity:1;transform:translateY(4px) scale(1.12)}100%{opacity:1;transform:none}}.vr-row{opacity:0;animation:vrPop .45s ease-out forwards}'; document.head.appendChild(st); }
@@ -1151,7 +1155,7 @@
       '<div style="font-size:19px;font-weight:900;color:' + (r.won ? '#ffd76a' : '#ff8aa8') + ';margin:4px 0;">' + (r.won ? '팬들의 선물 도착!' : '팬들한테 치였어요…') + '</div>' +
       '<div style="font-size:12px;color:#bbb;margin-bottom:12px;">' + r.kills + '명 응대 · ' + Math.floor(r.time / 60) + '분 ' + (r.time % 60) + '초' + (r.won ? '' : '<br>번 보상의 ' + Math.round(DEFEAT_RATE * 100) + '%만 받아요 (선물 상자는 못 열었어요)') + '</div>' +
       '<div style="font-size:14px;line-height:1.9;margin-bottom:14px;">' + lines + '</div>' +
-      '<button id="fr-again" class="vr-row" style="animation-delay:' + tail + 's;width:100%;padding:13px;margin-bottom:8px;border:none;border-radius:12px;background:linear-gradient(135deg,#F5B942,#FB7185);color:#fff;font-size:15px;font-weight:900;cursor:pointer;font-family:inherit;">다시 도전 (🧩 ' + ENTRY_WISH + ')</button>' +
+      '<button id="fr-again" class="vr-row" style="animation-delay:' + tail + 's;width:100%;padding:13px;margin-bottom:8px;border:none;border-radius:12px;background:linear-gradient(135deg,#F5B942,#FB7185);color:#fff;font-size:15px;font-weight:900;cursor:pointer;font-family:inherit;">다시 도전 (' + matHtml('소원의 조각', '🧩', 20) + ' ' + ENTRY_WISH + ')</button>' +
       '<button id="fr-out" class="vr-row" style="animation-delay:' + tail + 's;width:100%;padding:11px;border:none;border-radius:12px;background:rgba(255,255,255,.1);color:#ccc;font-size:14px;cursor:pointer;font-family:inherit;">나가기</button></div>';
     ov.appendChild(el);
     for (var qi = 0; qi < rows.length; qi++) (function (d) { setTimeout(function () { sfx('pick'); }, d); })(250 + qi * 280);
