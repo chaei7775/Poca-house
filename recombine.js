@@ -562,7 +562,8 @@ function moreMenuTileHtml(icon, label, color, onclickFn) {
 
 // ── 탐험 후킹: 재조합석류 드랍 추가 + 신비의 섬 보정 ──
 // 신비의 섬: 희귀재료 45%, 스태미나 15 소모, 에픽재조합석 3% 드랍
-// 그 외 일반 탐험지: 재조합석 15% 드랍 (희귀재료 확률은 기존 30% 유지)
+// 신비의 섬도 재조합석 25% 드랍
+// 그 외 일반 탐험지: 재조합석 25% 드랍 (희귀재료 확률은 기존 30% 유지)
 (function hookStartExploreForRcStones() {
   if (typeof window.startExplore !== 'function') {
     setTimeout(hookStartExploreForRcStones, 50);
@@ -590,6 +591,10 @@ function moreMenuTileHtml(icon, label, color, onclickFn) {
       }
       // 신비의 섬 희귀재료 보정: 기존 30%보다 15%p 더 높은 효과를 위해
       // 별도 보너스 판정으로 희귀재료를 추가 지급 (원본 30% + 보너스 15% ≈ 45%)
+      if (Math.random() < 0.25) {   // 일반 재조합석도 다른 탐험지와 같은 25%
+        addToBag('🔹', '재조합석', 'material', 1, '카드 재조합에 필요한 재료');
+        if (typeof exploreCollected !== 'undefined') exploreCollected.push('🔹 재조합석');
+      }
       if (typeof EXPLORE_MATERIALS !== 'undefined' && EXPLORE_MATERIALS.mystery && Math.random() < 0.15) {
         const rarePool = EXPLORE_MATERIALS.mystery.rare;
         const bonusMat = rarePool[Math.floor(Math.random() * rarePool.length)];
