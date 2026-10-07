@@ -30,9 +30,9 @@
   var MAPS = ['beach', 'park', 'forest', 'lake', 'square', 'mystery'];
   var STORY = [
     '안녕하세요, 대표님! 이번에 로드 매니저로 합류한 ' + NAME + '입니다. 운전은 자신 있습니다!',
-    '대표님 대신 탐험지로 심부름 다녀올게요. 재료랑 경험, 잘 챙겨서 오겠습니다!',
-    '아직 일이 익숙하지 않아서… 대표님이 직접 하시는 것보다 ' + Math.round(EFF * 100) + '%정도밖에 못 가져와요. 죄송합니다!',
-    '대신 열심히 달릴게요! 출발 전에 에너지 드링크 한 캔만 마시고 가겠습니다. (스태미나만 조금 주세요!)'
+    '대표님 바쁘실 때 제가 대신 심부름 다녀올게요. 필요한 거 있으면 말씀만 하세요!',
+    '아직 일이 익숙하지 않아서… 대표님이 직접 하시는 것보다는 ' + Math.round(EFF * 100) + '%정도밖에 못 해올 거예요. 죄송합니다!',
+    '대신 열심히 달릴게요! 출발 전에 에너지 드링크 한 캔만 마시고 가겠습니다!'
   ];
   var FONT = "font-family:'Noto Sans KR',sans-serif;";
 
@@ -73,8 +73,8 @@
     var lucky = r < LUCKY_P, mishap = !lucky && r < LUCKY_P + MISHAP_P;
     var counts = {}, i, name;
     for (i = 0; i < n; i++) { name = pick(Math.random() < rare ? m.rare : m.normal); counts[name] = (counts[name] || 0) + 1; }
-    if (lucky) { name = pick(m.rare); counts[name] = (counts[name] || 0) + 1; note = pick(['🍀 휴게소에서 희귀 재료를 주웠어요! (+1)', '🍀 길가에서 반짝이는 걸 발견했대요! (+1)', '🍀 현지 어르신이 덤으로 챙겨주셨대요! (+1)']); }
-    if (mishap && n > 1) { var keys = Object.keys(counts), k = pick(keys); counts[k] -= 1; if (counts[k] <= 0) delete counts[k]; note = pick(['😴 졸음운전하다 재료 하나를 흘렸대요… (-1)', '🍟 휴게소에서 배고파서 재료로 간식을 샀대요… (-1)']); }
+    if (lucky) { name = pick(m.rare); counts[name] = (counts[name] || 0) + 1; note = pick(['🍀 휴게소에서 귀한 걸 주웠대요! (+1)', '🍀 길가에서 반짝이는 걸 발견했대요! (+1)', '🍀 현지 어르신이 덤으로 챙겨주셨대요! (+1)']); }
+    if (mishap && n > 1) { var keys = Object.keys(counts), k = pick(keys); counts[k] -= 1; if (counts[k] <= 0) delete counts[k]; note = pick(['😴 졸다가 짐 하나를 흘렸대요… (-1)', '🍟 휴게소에서 배고파서 간식을 사 먹었대요… (-1)']); }
     var items = Object.keys(counts).map(function (k) { return { name: k, qty: counts[k] }; });
     var total = items.reduce(function (a, b) { return a + b.qty; }, 0);
     return { items: items, exp: Math.round(total * EXP_PER_ITEM * EFF), note: note };
