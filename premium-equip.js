@@ -81,9 +81,15 @@
 
   // ════════ 게임 데이터 읽기 ════════
   function dataReady() { return typeof HIDDEN_CARDS !== 'undefined' && typeof ownedHiddenCards !== 'undefined'; }
-  function hiddenList() { return (typeof HIDDEN_CARDS !== 'undefined' && Array.isArray(HIDDEN_CARDS)) ? HIDDEN_CARDS : []; }
+  // 세연 체험 카드(7일 한정)도 히든카드처럼 장착 대상에 포함 (체험 중일 때만)
+  var TRIAL_ID = 'seyeon_trial';
+  function trialOn() { try { return !!(window.__trialTest && window.__trialTest.isActive()); } catch (e) { return false; } }
+  function hiddenList() {
+    var base = (typeof HIDDEN_CARDS !== 'undefined' && Array.isArray(HIDDEN_CARDS)) ? HIDDEN_CARDS : [];
+    return trialOn() ? [{ id: TRIAL_ID, name: '세연 (체험 · D-' + ((window.__trialTest && window.__trialTest.dday()) || '') + ')', img: BASE + 'hidden-seyeon-trial.jpg' + BUST, grade: '체험히든' }].concat(base) : base;
+  }
   function hiddenById(id) { return hiddenList().filter(function (h) { return h.id === id; })[0] || null; }
-  function isOwned(id) { return (typeof ownedHiddenCards !== 'undefined') && ownedHiddenCards.indexOf(id) !== -1; }
+  function isOwned(id) { if (id === TRIAL_ID) return trialOn(); return (typeof ownedHiddenCards !== 'undefined') && ownedHiddenCards.indexOf(id) !== -1; }
   function coinsNow() { return (typeof coins !== 'undefined') ? coins : 0; }
   function toast(m) { if (typeof showBagToast === 'function') showBagToast(m); }
   function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
@@ -116,6 +122,7 @@
     if (!dataReady() || !ownedHiddenCards.length) return;
     var eq = loadEq(), raw = readJSON(STORE), seen = {}, out = {};
     Object.keys(eq).forEach(function (h) {
+      if (h === TRIAL_ID && !window.__trialTest) { out[h] = raw && raw[h] ? raw[h] : eq[h]; return; }   // 체험 카드 파일이 아직 안 켜졌으면 건드리지 않음
       if (!isOwned(h)) return;
       var s = eq[h].map(function (pid) {
         if (!pid || seen[pid] || premiumLv(pid) < 1) return null;
