@@ -32,8 +32,16 @@
     var o = window.getEnhanceIncomeMult;
     if (typeof o !== 'function' && tries < 40) { setTimeout(function () { hookIncome(tries + 1); }, 500); return; }
     if (o && o.__viral) return;
+    var desc = Object.getOwnPropertyDescriptor(window, 'getEnhanceIncomeMult');
+    var isAccessor = !!(desc && desc.get);           // meal.js 가 getter/setter 로 바꿔둔 경우
     var w = function () { var b = (typeof o === 'function') ? o.apply(this, arguments) : 1; return b * (buffOn() ? BUFF_MULT : 1); };
-    w.__viral = true; window.getEnhanceIncomeMult = w;
+    w.__viral = true;
+    if (isAccessor) {
+      // 그냥 대입하면 meal.js 의 setter 가 w 를 base 로 저장해서 w 가 자기 자신을 다시 부르는 무한 반복이 난다 → getter 만 감싸고 setter 는 그대로
+      Object.defineProperty(window, 'getEnhanceIncomeMult', { configurable: true, get: function () { return w; }, set: desc.set });
+    } else if (typeof o === 'function') {
+      window.getEnhanceIncomeMult = w;
+    }
   })(0);
 
   // ── 보상 지급 ──
