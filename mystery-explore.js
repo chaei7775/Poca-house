@@ -129,7 +129,9 @@
         var item = rollMaterial();
         var el = document.createElement('div');
         el.style.cssText = 'position:absolute;left:' + (10 + Math.random() * 80) + '%;top:' + (15 + Math.random() * 65) + '%;transform:translate(-50%,-50%);font-size:32px;cursor:pointer;animation:pulse 1s infinite;filter:drop-shadow(0 0 8px #FFD700);padding:6px;';
-        el.textContent = '✨';
+        var mi = window.matIcon ? window.matIcon(item.name, 40, '') : '';
+        if (mi) { el.innerHTML = mi; el.style.fontSize = '0'; el.style.filter = (item.isRare ? 'drop-shadow(0 0 12px #FFD700) ' : 'drop-shadow(0 0 7px #fff) ') + 'drop-shadow(0 2px 4px rgba(0,0,0,.5))'; }
+        else el.textContent = '✨';
         el.onpointerdown = function (e) { e.preventDefault(); collectExploreItem(idx, item, el); };
         area.appendChild(el);
       })(i);
@@ -157,6 +159,7 @@
         'background:radial-gradient(circle,#fffbe0 0%,#ffe27a 35%,rgba(255,226,122,0) 72%);' +
         'animation:myFloat ' + (1.6 + Math.random() * 1.2) + 's ease-in-out infinite,myGlow 0.9s ease-in-out infinite;filter:drop-shadow(0 0 10px #ffe27a);';
       var o = { el: orb, taken: false };
+      if (window.matIcon) orb.innerHTML = window.matIcon(FF_NAME, 44, '');
       orb.onpointerdown = (function (oo) { return function (e) { e.preventDefault(); takeOrb(oo); }; })(o);
       area.appendChild(orb);
       orbs.push(o);
