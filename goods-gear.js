@@ -399,8 +399,13 @@
         '<div style="color:#9ab;font-size:11px;margin-top:6px;">💜에픽·👑유니크의 랜덤 능력치는 레어 범위로 나와요.</div></div>' +
       '<div style="' + box + '"><div style="font-weight:900;font-size:13px;margin-bottom:6px;">🧭 어디에 적용되나요?</div>' + scopeNote +
         '<div style="color:#9ab;font-size:11px;margin-top:6px;">🧩 소원의 조각 확률은 🌟소원의 샘 성공 확률에도 (×10) 적용돼요. 🔮 재조합 상승은 카드 재조합에서 등급이 오르는 확률에 더해져요 (UR+UR 제외).</div></div>' +
-      '<div style="' + box + '"><div style="font-weight:900;font-size:13px;margin-bottom:6px;">🎽 굿즈 종류</div>' +
-        ['hat', 'hand', 'acc'].map(function (sl) { var S = SLOTS[sl]; return '<div style="margin-bottom:4px;"><b>' + S.label + '</b> · ' + S.items.map(function (it) { return it[0] + it[1]; }).join(' · ') + '<br><span style="color:#c9a8ff;">💜 ' + EXTRA[sl].epic[0] + EXTRA[sl].epic[1] + '</span> · <span style="color:#ffb454;">👑 ' + EXTRA[sl].unique[0] + EXTRA[sl].unique[1] + '</span></div>'; }).join('') + '</div>';
+      '<div style="' + box + '"><div style="font-weight:900;font-size:13px;margin-bottom:8px;">굿즈 종류</div>' +
+        ['hat', 'hand', 'acc'].map(function (sl) {
+          var S = SLOTS[sl];
+          function cell(emo, name, color) { return '<div style="width:72px;text-align:center;">' + icon({ slot: sl, base: name, emoji: emo }, 44) + '<div style="font-size:10px;line-height:1.3;margin-top:2px;color:' + (color || '#dde') + ';">' + name + '</div></div>'; }
+          return '<div style="margin-bottom:10px;"><div style="font-weight:900;margin-bottom:4px;">' + S.label + '</div><div style="display:flex;flex-wrap:wrap;gap:6px;">' +
+            S.items.map(function (it) { return cell(it[0], it[1]); }).join('') + cell(EXTRA[sl].epic[0], EXTRA[sl].epic[1], GRADES.epic.color) + cell(EXTRA[sl].unique[0], EXTRA[sl].unique[1], GRADES.unique.color) + '</div></div>';
+        }).join('') + '</div>';
   }
 
   function gearCard(g, extra) {
