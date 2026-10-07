@@ -36,6 +36,9 @@
   var BOOK_BOX = 0.03;             // 선물 상자에서 스킬북 1권 나올 확률 (3%)
   var HEART_DROP = 0.08;           // 팬이 만족했을 때 하트(HP +10)를 떨어뜨릴 확률
   // ── VIP 전용 설정 ──
+  var CARD_LV_RATE = 0.02;         // 멤버 카드 레벨 1당 위력 +2%
+  var MASTERY_RATE = 0.12;         // 스킬 숙련 Lv 1당 위력 +12% (Lv.5면 +60%)
+  var ENH_DMG_SHARE = 0.3;         // 히든카드 강화·초월로 오른 '수익 보너스'의 이만큼이 위력에 반영
   var AGGRO_R = 300;               // 이 거리 안에 들어가면 그 무리 전체가 어그로
   var FAN_DMG_MULT = 1.5;          // 팬이 닿을 때 피해 배율 (공항보다 아픔)
   var BOX_COIN = 150000, BOX_EXP = 3000;     // 선물 상자 코인 / 카드 경험치
@@ -62,10 +65,10 @@
   ];
   // 팬 종류 (hp = 만족해야 하는 양 / sp = 속도 / dmg = 닿았을 때 HP 깎임 / r = 크기)
   var FANTYPES = {
-    normal:  { emoji: '🙋', name: '일반 팬',     hp: 45,   sp: 58,  dmg: 4,  r: 15 },
-    rusher:  { emoji: '⚡', name: '열혈 팬',     hp: 26,   sp: 112, dmg: 3,  r: 13 },
-    tank:    { emoji: '🧸', name: '덕후',        hp: 170,  sp: 40,  dmg: 8,  r: 23 },
-    thrower: { emoji: '💌', name: '편지러',      hp: 38,   sp: 46,  dmg: 3,  r: 14, ranged: true },
+    normal:  { emoji: '🙋', name: '일반 팬',     hp: 900,  sp: 58,  dmg: 4,  r: 15 },
+    rusher:  { emoji: '⚡', name: '열혈 팬',     hp: 540,  sp: 112, dmg: 3,  r: 13 },
+    tank:    { emoji: '🧸', name: '덕후',        hp: 2600, sp: 40,  dmg: 8,  r: 23 },
+    thrower: { emoji: '💌', name: '편지러',      hp: 780,  sp: 46,  dmg: 3,  r: 14, ranged: true },
     boss:    { emoji: '👑', name: '고인물 팬클럽장', hp: 1100, sp: 52, dmg: 12, r: 36, boss: true }
   };
 
@@ -202,7 +205,6 @@
     }
     var wmul = 1 + (G.wave - 1) * 0.04;     // 웨이브가 올라갈수록 조금씩 튼튼해짐
     var f = { id: G.nextId++, type: type, T: T, x: x, y: y, hp: T.hp * (T.boss ? 1 : wmul), mhp: T.hp * (T.boss ? 1 : wmul), kx: 0, ky: 0, flash: 0, shootT: rnd(0.8, 2), wob: Math.random() * 6, step: 0, angry: 0, face: 1 + Math.floor(Math.random() * FAN_FACES), acc: pickAcc(type), lc: ['#ff4d9d', '#4dd2ff', '#ffd23f', '#9b6bff', '#5dff9a'][Math.floor(Math.random() * 5)] };
-    f.seq = makeSeq(SEQ_BY[type] || 1);
     G.fans.push(f);
     return f;
   }
@@ -218,7 +220,8 @@
       });
     });
     G.total = G.fans.length;
-    G.banner = { text: '👑 팬들을 모두 만족시켜요!', t: 2.8 };
+    var pp = powerParts(G.charId, 'sign');
+    G.banner = { text: '👑 팬들을 모두 만족시켜요! (내 위력 ×' + (Math.round(pp.plv * pp.card * pp.enh * 10) / 10) + ')', t: 3 };
   }
   function pullPack(f) {
     if (f.aggro) return;
@@ -384,18 +387,9 @@
     // 효과·숫자
     if (G.xf) { var X0 = G.xf; X0.flash = Math.max(0, X0.flash - dt); X0.zoom *= Math.exp(-dt * 7); if (X0.zoom < 0.001) X0.zoom = 0; if (X0.cut) { X0.cut.t -= dt; if (X0.cut.t <= 0) X0.cut = null; }
       for (var ci = X0.conf.length - 1; ci >= 0; ci--) { var q = X0.conf[ci]; q.x += q.vx * dt; q.y += q.vy * dt; q.rot += q.vr * dt; q.vx += Math.sin(q.rot) * 30 * dt; if (q.y > G.vh + 20) X0.conf.splice(ci, 1); } }
-    G.fans.forEach(function (f) { var tg = f.seq.length ? 100 * f.step / f.seq.length : 0; f.vis = (f.vis || 0) + (tg - (f.vis || 0)) * Math.min(1, dt * 8); });   // 게이지가 부드럽게 차오르게
+    G.fans.forEach(function (f) { var tg = 100 * (1 - Math.max(0, f.hp) / f.mhp); f.vis = (f.vis || 0) + (tg - (f.vis || 0)) * Math.min(1, dt * 8); });   // 만족도 게이지가 부드럽게 차오르게
     for (var xi = G.fx.length - 1; xi >= 0; xi--) { G.fx[xi].t -= dt; if (G.fx[xi].t <= 0) G.fx.splice(xi, 1); }
     for (var ni = G.dn.length - 1; ni >= 0; ni--) { var N = G.dn[ni]; N.t -= dt; N.y -= 26 * dt; if (N.t <= 0) G.dn.splice(ni, 1); }
-    // 장착을 바꿔서 못 쓰는 스킬이 팬의 남은 순서에 있으면 남은 칸만 새로 뽑음
-    G.regenT = (G.regenT || 0) - dt;
-    if (G.regenT <= 0) {
-      G.regenT = 0.5;
-      var pool = usablePool();
-      if (pool.length) G.fans.forEach(function (f) {
-        for (var q = f.step; q < f.seq.length; q++) if (pool.indexOf(f.seq[q]) < 0) { f.seq = f.seq.slice(0, f.step).concat(makeSeq(f.seq.length - f.step)); break; }
-      });
-    }
     // 보디가드: 졸졸 따라다님. 철벽은 가까이 온 팬을 몸으로 밀어냄
     G.guards.forEach(function (g, gi) {
       var ang = G.time * 0.8 + gi * Math.PI, gx = G.px + Math.cos(ang) * 46, gy = G.py + Math.sin(ang) * 46;
@@ -449,6 +443,27 @@
     addDn(G.px, G.py - 56, sk.icon + ' ' + inR.length + '명 두근!', '#fff1b8', true);
   }
 
+  // ── 💥 위력 계산 (옛 포가튼처럼 비율로): 스킬 기본 위력 × 플레이어Lv × 멤버 카드Lv × 스킬 숙련도 × 히든카드 강화 ──
+  function cardLvOf(cid) { try { return typeof getCardLevel === 'function' ? Math.max(1, Number(getCardLevel(cid)) || 1) : 1; } catch (e) { return 1; } }
+  function masteryOf(cid, id) { try { var a = API(); return a && a.masteryLv ? Math.max(0, Number(a.masteryLv(cid, id)) || 0) : 0; } catch (e) { return 0; } }
+  function enhOf(cid) { try { var m = typeof window.getEnhanceIncomeMult === 'function' ? Number(window.getEnhanceIncomeMult(cid)) : 1; return Math.max(1, m || 1); } catch (e) { return 1; } }
+  function powerParts(cid, id) {
+    return {
+      plv: dmgMult(),
+      card: 1 + (cardLvOf(cid) - 1) * CARD_LV_RATE,
+      mas: 1 + masteryOf(cid, id) * MASTERY_RATE,
+      enh: 1 + (enhOf(cid) - 1) * ENH_DMG_SHARE
+    };
+  }
+  function powerMult(id) { var p = powerParts(G ? G.charId : null, id); return p.plv * p.card * p.mas * p.enh; }
+  function dealDmg(f, base, kb) {
+    if (!f || f.hp <= 0 || G.over) return;
+    var d = Math.max(1, Math.round(base * (0.9 + Math.random() * 0.2)));
+    f.hp -= d; f.flash = 0.15; pullPack(f);
+    if (kb) knock(f, kb, G.px, G.py);
+    addDn(f.x + rnd(-10, 10), f.y - f.T.r - 8, '💗' + fmt(d), '#ff9ec7', false);
+    if (f.hp <= 0) satisfy(f);
+  }
   function useSkill(id) {
     if (!G || G.over || G.paused) return false;
     var s = SKILLS.filter(function (x) { return x.id === id; })[0];
@@ -459,23 +474,21 @@
     var fcost = FATC[id] || 10;
     if ((G.fat || 0) + fcost > FAT_MAX) { if (!G.fatMsgT || G.time - G.fatMsgT > 1) { G.fatMsgT = G.time; addDn(G.px, G.py - 40, '😵 피로도가 가득!' + (potQty('피로회복 드링크') > 0 ? ' 🥤 마셔요' : ''), '#ffb4c8', true); } return false; }
     var used = false;
+    var base = s.dmg * powerMult(id);       // 이 스킬의 이번 위력 (스킬 기본 × 플레이어Lv × 카드Lv × 숙련도 × 강화)
     var near = G.fans.slice().sort(function (a, b) { return dist(a.x, a.y, G.px, G.py) - dist(b.x, b.y, G.px, G.py); });
     function inRange(f, r) { return dist(f.x, f.y, G.px, G.py) - f.T.r < r; }
-    function needs(f) { return f.seq[f.step] === id; }
     if (s.kind === 'single') {
       var cand = near.filter(function (f) { return inRange(f, s.range); });
       if (!cand.length) return false;
-      var tg1 = cand.filter(needs)[0] || cand[0];
+      var tg1 = cand[0];
       addFx({ k: 'beam', x: G.px, y: G.py, x2: tg1.x, y2: tg1.y, t: 0.25, max: 0.25, c: id === 'sign' ? '#ffe27a' : '#ff9ad0' });
       addFx({ k: 'pop', id: id, x: tg1.x, y: tg1.y, t: 0.6, max: 0.6 });
-      if (needs(tg1)) { knock(tg1, 25, G.px, G.py); advance(tg1); if (id === 'shake') heal(6); } else missPress(tg1);
+      dealDmg(tg1, base, 25); if (id === 'shake') heal(6);
       used = true;
     } else if (s.kind === 'multi') {
-      var cm = near.filter(function (f) { return inRange(f, s.range); });
+      var cm = near.filter(function (f) { return inRange(f, s.range); }).slice(0, 3);
       if (!cm.length) return false;
-      var hit3 = cm.filter(needs).slice(0, 3);
-      if (!hit3.length) { addFx({ k: 'beam', x: G.px, y: G.py, x2: cm[0].x, y2: cm[0].y, t: 0.3, max: 0.3, c: '#ff6fb1' }); missPress(cm[0]); }
-      else hit3.forEach(function (f6) { addFx({ k: 'beam', x: G.px, y: G.py, x2: f6.x, y2: f6.y, t: 0.3, max: 0.3, c: '#ff6fb1' }); knock(f6, 25, G.px, G.py); advance(f6); });
+      cm.forEach(function (f6) { addFx({ k: 'beam', x: G.px, y: G.py, x2: f6.x, y2: f6.y, t: 0.3, max: 0.3, c: '#ff6fb1' }); dealDmg(f6, base, 25); });
       used = true;
     } else if (s.kind === 'line') {
       var tgt = nearestFan(420), dx = G.dir.x, dy = G.dir.y;
@@ -486,19 +499,17 @@
         return along > 0 && along < s.range + f2.T.r && perp < 26 + f2.T.r;
       });
       addFx({ k: 'flash', x: G.px, y: G.py, x2: G.px + dx * s.range, y2: G.py + dy * s.range, t: 0.3, max: 0.3 });
-      var ok2 = inLine.filter(needs);
-      if (!ok2.length) missPress(inLine[0] || tgt);
-      else ok2.slice().forEach(function (f7) { knock(f7, 20, G.px, G.py); advance(f7); });
+      inLine.slice().forEach(function (f7) { dealDmg(f7, base, 20); });
       used = true;
     } else if (s.kind === 'aoe') {
       var inR = G.fans.filter(function (f3) { return inRange(f3, s.range); });
       if (!inR.length) return false;
       var kb = id === 'finale' ? 70 : (id === 'encore' ? 55 : (id === 'wink' ? 45 : (id === 'rose' ? 35 : 28)));
-      inR.slice().forEach(function (f4) { knock(f4, kb, G.px, G.py); if (id === 'rose') f4.slow = 3; advance(f4); });   // 광역: 어떤 순서 칸이든 하나를 채움
       var DUR = { highlight: 0.95, wink: 0.95, encore: 1.15, rose: 1.5, finale: 1.7 }[id] || 0.9;
       addFx({ k: 'skill', id: id, x: G.px, y: G.py, r: s.range, t: DUR, max: DUR });
       addFx({ k: (id === 'encore' || id === 'finale') ? 'bigring' : 'ring', x: G.px, y: G.py, r: s.range, t: 0.7, max: 0.7, c: (id === 'wink' || id === 'rose') ? 'gold' : '' });
       cinematic(id, s, inR);
+      inR.slice().forEach(function (f4) { if (id === 'rose') f4.slow = 3; dealDmg(f4, base, kb); });
       if (id === 'encore') { G.shield = 1.5; G.shake = 10; }
       if (id === 'finale') { G.shield = 2.2; G.shake = 14; }
       used = true;
@@ -667,17 +678,8 @@
     }
     c.shadowBlur = 0;
     if (T.boss) { c.font = Math.round(T.r * 1.0) + 'px sans-serif'; c.fillText('👑', f.x, f.y - T.r * 1.25 - 8 + bob); }
-    // 머리 위: 써야 할 스킬 순서 + 💗 하트 게이지 (순서를 채울수록 차오르고, 가득 차면 만족)
-    var n = f.seq.length, iw = 22, tot = n * iw, ix = f.x - tot / 2, iy = f.y - T.r - (T.boss ? 50 : 40);
-    for (var i = 0; i < n; i++) {
-      var k = skillById(f.seq[i]), cur = i === f.step, done = i < f.step;
-      c.globalAlpha = done ? 0.3 : 1;
-      c.fillStyle = cur ? 'rgba(255,255,255,.95)' : 'rgba(255,255,255,.7)'; c.beginPath(); c.arc(ix + i * iw + iw / 2, iy, cur ? 11 : 9, 0, 7); c.fill();
-      if (cur) { c.strokeStyle = f.angry > 0 ? '#ff6b6b' : '#ffd76a'; c.lineWidth = 2; c.stroke(); }
-      c.font = (cur ? 15 : 12) + 'px sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillStyle = '#000';
-      c.fillText(k ? k.icon : '?', ix + i * iw + iw / 2, iy + 1);
-    }
-    c.globalAlpha = 1;
+    // 머리 위: 💗 만족도 게이지 (스킬 데미지로 차오르고, 가득 차면 만족)
+    var tot = 0;
     var gp = clamp((f.vis || 0) / 100, 0, 1), gw = Math.max(48, T.r * 2.3, tot), gh = T.boss ? 11 : 8, gx = f.x - gw / 2, gy = f.y - T.r - (T.boss ? 24 : 14);
     c.fillStyle = 'rgba(20,6,36,.85)'; roundRectP(c, gx - 2.5, gy - 2.5, gw + 5, gh + 5, 7); c.fill();
     if (gp > 0) {
@@ -1149,13 +1151,13 @@
     if (wishNow() < ENTRY_WISH) { toast('🧩 소원의 조각이 모자라요! (입장 ' + ENTRY_WISH + '개 · 지금 ' + wishNow() + '개)'); return false; }
     var A = API();
     G = null;
-    if (!hasAoe()) { toast('📣 광역 스킬을 장착한 멤버로만 입장할 수 있어요! (더보기 → 💖 팬 스킬 상점)'); return false; }
     var go = function () { openHire(charId, ov); };
-    if (A && A.tut && !again) A.tut('ph_tut_vip', '👑', '레드카펫 VIP 게이트', [
+    if (A && A.tut && !again) A.tut('ph_tut_vip2', '👑', '레드카펫 VIP 게이트', [
       '팬 무리가 맵 곳곳에 서 있어요. <b>가까이 가면 어그로!</b> 무리 전체가 몰려와요. 닿으면 HP가 깎여요.',
-      '팬마다 머리 위에 <b>광역 스킬 2개</b>가 떠 있어요. 해당 광역 스킬(🎤💖✨🌹🎆)을 쓰면 범위 안 팬들이 <b>한꺼번에</b> 한 칸씩 채워져요. 단타 스킬로는 못 깨요!',
-      '<b>시간 제한은 없어요.</b> 도망치면서 천천히 해도 돼요. 대신 HP가 0이 되면 쫓겨나요.',
-      '팬을 <b>전부</b> 만족시키면 맵 가운데에 🎁 <b>팬들의 선물 상자</b>가 나타나요. 가까이 가서 열면 🔨강화석·🛡️방지권이 쏟아져요!',
+      '팬 머리 위 <b>💗 만족도 게이지</b>가 가득 차면 만족해요. 어떤 스킬이든 쓰면 <b>데미지처럼</b> 게이지가 차올라요. 순서는 없어요!',
+      '위력은 <b>스킬 기본 위력 × 플레이어 레벨 × 멤버 카드 레벨 × 스킬 숙련도 × 히든카드 강화</b>로 정해져요. 다 키울수록 팬이 금방 만족해요.',
+      '단타 스킬은 한 명씩, 광역 스킬(🎤💖✨🌹🎆)은 범위 안 팬 <b>전부</b>에게 한꺼번에 들어가요. 무리를 모아서 광역으로!',
+      '<b>시간 제한은 없어요.</b> 대신 HP가 0이 되면 쫓겨나요. 팬을 <b>전부</b> 만족시키면 🎁 <b>팬들의 선물 상자</b>가 나타나요!',
       '입장할 때 🧩 <b>소원의 조각 ' + ENTRY_WISH + '개</b>를 내요. 🕶️ 보디가드도 고용할 수 있어요.'
     ], go); else go();
     return true;
@@ -1252,7 +1254,7 @@
         var b = document.createElement('button'); b.id = 'vr-entry-btn';
         b.onclick = window.openVipRush;
         b.style.cssText = 'width:100%;display:flex;align-items:center;gap:12px;padding:13px 14px;margin-bottom:9px;background:#F5B9421f;border:1.5px solid #F5B942;border-radius:14px;color:#fff;font-size:14px;font-weight:900;cursor:pointer;text-align:left;font-family:inherit;';
-        b.innerHTML = '<span style="font-size:24px;">👑</span><span>레드카펫 VIP 게이트 <span style="font-size:10px;color:#ffe9b0;font-weight:700;">NEW</span><br><span style="font-size:10px;font-weight:400;color:#ffe9b0;">광역 스킬로 팬 무리를 응대! 선물 상자에서 강화석·방지권 · Lv.' + NEED_LEVEL + ' · 🧩' + ENTRY_WISH + '</span></span><span style="margin-left:auto;color:#888;font-size:16px;">›</span>';
+        b.innerHTML = '<span style="font-size:24px;">👑</span><span>레드카펫 VIP 게이트 <span style="font-size:10px;color:#ffe9b0;font-weight:700;">NEW</span><br><span style="font-size:10px;font-weight:400;color:#ffe9b0;">스킬로 팬 무리를 만족시켜요! 선물 상자에서 강화석·방지권 · Lv.' + NEED_LEVEL + ' · 🧩' + ENTRY_WISH + '</span></span><span style="margin-left:auto;color:#888;font-size:16px;">›</span>';
         var pad = sec.lastElementChild;     // 맨 아래 빈칸 앞에 끼운다
         sec.insertBefore(b, pad);
       }

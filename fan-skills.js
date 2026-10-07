@@ -1011,7 +1011,7 @@
     };
   })();
   window.__fsCutIn = cutIn;
-  window.__fanSkillsAPI = { tut: tutModal, giveBook: giveBook, bookName: function (id) { var k = skillById(id); return k ? bookName(k) : ''; }, feedBook: feedBook, SKILLS: SKILLS, SLOTS: SLOTS, loadout: loadLoadout, equip: equip, levelOk: levelOk, hasSkill: function (cid, id) { var sk = skillById(id); return !!sk && hasSkill(cid, sk); }, openEditor: openEditor, openShop: openShop };
+  window.__fanSkillsAPI = { masteryLv: function (cid, id) { return masteryLv(cid, id); }, tut: tutModal, giveBook: giveBook, bookName: function (id) { var k = skillById(id); return k ? bookName(k) : ''; }, feedBook: feedBook, SKILLS: SKILLS, SLOTS: SLOTS, loadout: loadLoadout, equip: equip, levelOk: levelOk, hasSkill: function (cid, id) { var sk = skillById(id); return !!sk && hasSkill(cid, sk); }, openEditor: openEditor, openShop: openShop };
 
   window.__fanSkillsTest = {
     spawnFan: spawnFan, useSkill: useSkill, serves: serves, masteryLv: masteryLv, useCount: useCount, unlockedSkills: unlockedSkills,
