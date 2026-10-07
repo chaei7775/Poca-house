@@ -98,8 +98,19 @@ const NEW_CONTENT_FILES = [
   'mobile-fit.js',
   'issue-news.js',
 ];
+// 🎬 첫 화면 깜빡임 방지: 새 콘텐츠 파일이 다 불러와질 때까지 예전 홈화면을 가리고(index.html의 boot-veil/boot-splash), 끝나면 부드럽게 보여줌
+var __bootLeft = NEW_CONTENT_FILES.length, __bootDone = false;
+function __bootReveal() {
+  if (__bootDone) return; __bootDone = true;
+  var v = document.getElementById('boot-veil'); if (v) v.remove();
+  var sp = document.getElementById('boot-splash');
+  if (sp) { sp.style.opacity = '0'; setTimeout(function () { if (sp.parentNode) sp.parentNode.removeChild(sp); }, 350); }
+}
+function __bootOne() { __bootLeft--; if (__bootLeft <= 0) setTimeout(__bootReveal, 300); }
+setTimeout(__bootReveal, 6000);   // 안전장치: 아무리 늦어도 6초 뒤엔 보여줌
 NEW_CONTENT_FILES.forEach(function(filename) {
   const s = document.createElement('script');
   s.src = filename + '?v=' + Date.now(); // 같은 사이트(GitHub Pages) 경로에서 직접 로드 - raw.githubusercontent.com은 JS 실행이 막힐 수 있음
+  s.onload = __bootOne; s.onerror = __bootOne;
   document.body.appendChild(s);
 });

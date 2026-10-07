@@ -279,8 +279,10 @@
   }
 </script>
 
+<style id="boot-veil">#screen-home,.navbar{opacity:0 !important}#boot-splash{position:fixed;inset:0;z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;background:linear-gradient(180deg,#FFF0F5,#FFE4EF);color:#FF6B9D;font-weight:900;font-family:'Noto Sans KR',sans-serif;transition:opacity .3s}#boot-splash .bs-t{font-size:26px}#boot-splash .bs-s{font-size:12px;color:#ff6b9d99}</style>
 </head>
 <body>
+<div id="boot-splash"><div class="bs-t">🎀 포카하우스</div><div class="bs-s">불러오는 중…</div></div>
 
 <!-- 닉네임 팝업 -->
 <div class="nickname-popup" id="nickname-popup" style="display:none;">
@@ -772,6 +774,7 @@
   <script src="clean.js"></script>
   <script src="fanclub.js"></script>
   <script>var s=document.createElement('script');s.src='loader.js?v='+Date.now();document.body.appendChild(s);</script>
+  <script>setTimeout(function(){var v=document.getElementById('boot-veil');if(v)v.remove();var p=document.getElementById('boot-splash');if(p)p.remove();},9000);</script>
   
 </body>
 </html>
