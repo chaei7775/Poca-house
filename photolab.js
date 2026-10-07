@@ -260,6 +260,46 @@
       '<button id="pl-close" style="background:rgba(255,255,255,.12);border:none;border-radius:10px;color:#fff;padding:7px 12px;cursor:pointer;">닫기</button></div>';
   }
 
+  // 📋 옵션표: 현상 등급·효과·강화 확률을 미리 볼 수 있음 (설정값에서 자동으로 만들어져요)
+  function renderInfo() {
+    var tot = 0;
+    GRADES.forEach(function (g) { tot += g.w; });
+    var gdesc = { center: '최상급 · 효과가 가장 크고 센터 전용 효과도 있어요', comeback: '중간 · 센터의 절반 정도 효과', trainee: '기본 · 효과가 작아요', rumor: '나쁜 효과 (손해가 나요)', black: '효과 없는 장식 (놀리는 맛)' };
+    function fv(v) { return (v > 0 ? '+' : '-') + pct(v); }
+    var box = 'background:rgba(255,255,255,.07);border-radius:14px;padding:12px;margin-bottom:12px;font-size:12px;line-height:1.75;';
+    var gradeRows = GRADES.map(function (g) {
+      return '<div style="display:flex;gap:8px;align-items:flex-start;margin-bottom:5px;"><div style="min-width:58px;font-weight:900;color:' + g.color + ';">' + g.name + '</div><div style="flex:1;">' + gdesc[g.id] + '<div style="color:#9ab;font-size:11px;">한 칸당 ' + Math.round(g.w / tot * 100) + '%</div></div></div>';
+    }).join('');
+    var head = '<tr style="color:#9ab;font-size:11px;"><td style="padding:3px 0;">효과</td><td style="color:#FFD700;">센터</td><td style="color:#C084FC;">컴백</td><td style="color:#7dd3fc;">연습생</td><td style="color:#f87171;">구설수</td></tr>';
+    var rows = OPTS.filter(function (o) { return o.key !== 'pieceExtra'; }).map(function (o) {
+      var label = o.key === 'stamina' ? '이벤트 스태미나' : o.name;
+      return '<tr style="border-top:1px solid rgba(255,255,255,.08);"><td style="padding:5px 4px 5px 0;white-space:nowrap;">' + o.icon + ' ' + label + '</td>' +
+        '<td>' + fv(o.v.center) + '</td><td>' + fv(o.v.comeback) + '</td><td>' + fv(o.v.trainee) + '</td><td style="color:#fca5a5;">' + (o.bad === null ? '-' : fv(o.bad)) + '</td></tr>';
+    }).join('');
+    var piece = OPTS.filter(function (o) { return o.key === 'pieceExtra'; })[0];
+    var blacks = BLACKS.map(function (b) { return b.icon + ' ' + b.name + ' — ' + b.text(); }).join('<br>');
+    var enhRows = ENH_RATE.map(function (r, i) {
+      var c = enhCost(i);
+      return '+' + (i + 1) + '강 ' + r + '% · ' + DEV_EMOJI + ' ' + c.dev + ' · 🍔 ' + c.coin.toLocaleString();
+    }).join('<br>');
+    shell(header('옵션표') +
+      '<div style="' + box + '"><div style="font-weight:900;font-size:13px;margin-bottom:6px;">🎞️ 칸마다 이 등급이 따로 뽑혀요</div>' + gradeRows +
+        '<div style="color:#9ab;font-size:11px;margin-top:4px;">카드 한 장에 3칸 · 같은 카드 안에서는 같은 효과가 겹치지 않아요</div></div>' +
+      '<div style="' + box + '"><div style="font-weight:900;font-size:13px;margin-bottom:6px;">📊 효과 종류와 수치</div>' +
+        '<table style="width:100%;border-collapse:collapse;font-size:11px;text-align:left;">' + head + rows + '</table>' +
+        '<div style="color:#9ab;font-size:11px;margin-top:6px;">⚡ 스태미나는 -가 좋은 효과(덜 들어요), 구설수에서는 더 들어요.<br>' +
+        (piece ? '🖼️ 센터 전용 — ' + piece.text(piece.v.center) + '<br>' : '') + '효과는 이 카드의 아이돌이 원정에 나갈 때 적용돼요.</div></div>' +
+      '<div style="' + box + '"><div style="font-weight:900;font-size:13px;margin-bottom:6px;">⚪ 흑역사 (장식 3종)</div>' + blacks + '</div>' +
+      '<div style="' + box + '"><div style="font-weight:900;font-size:13px;margin-bottom:6px;">' + DEV_EMOJI + ' 옵션 강화 (센터·컴백·연습생 칸만)</div>' + enhRows +
+        '<div style="color:#9ab;font-size:11px;margin-top:6px;">1강마다 효과 +' + Math.round(ENH_STEP * 100) + '% · 최대 +' + ENH_MAX + '강 · 실패해도 재료·코인만 사라져요<br>다시 현상하면 그 칸의 강화는 사라져요 (🔒 잠그면 유지)</div></div>' +
+      '<div style="' + box + '"><div style="font-weight:900;font-size:13px;margin-bottom:6px;">💰 현상 비용</div>' +
+        FILM_EMOJI + ' ' + BASE_FILM + ' + 🍔 ' + BASE_COIN.toLocaleString() + ' (카드별로 현상할 때마다 코인 +' + Math.round(ESC_STEP * 100) + '%, 최대 ' + ESC_MAX + '배)<br>' +
+        '🔒 칸을 잠그면 그 칸은 유지돼요 · 잠금 1개마다 비용 +' + LOCK_ADD + '배 · 3칸 모두 잠글 수는 없어요</div>' +
+      '<button id="pl-info-back" style="' + BTN + 'background:rgba(255,255,255,.12);">돌아가기</button>');
+    $('pl-close').onclick = close;
+    $('pl-info-back').onclick = function () { if (ST && ST.charId) renderLab(false); else renderPicker(); };
+  }
+
   // 카드 고르기
   function renderPicker() {
     var ids = ownedIds();
@@ -272,8 +312,10 @@
     }).join('');
     shell(header('시크릿 포토랩') +
       '<div style="font-size:12px;color:#fda4af;margin-bottom:12px;">현상할 프리미엄 카드를 골라요 · 보유 필름 ' + FILM_EMOJI + ' ' + filmQty() + '개</div>' +
+      '<button id="pl-info" style="' + BTN + 'background:rgba(255,255,255,.12);margin-bottom:12px;">📋 옵션표 보기</button>' +
       (rows || '<div style="text-align:center;color:#aaa;padding:30px 0;font-size:13px;">프리미엄 카드가 아직 없어요<br>방송국 앞에서 프리미엄 조각을 모아 교환해요</div>'));
     $('pl-close').onclick = close;
+    $('pl-info').onclick = function () { renderInfo(); };
     Array.prototype.forEach.call(document.querySelectorAll('.pl-pick'), function (b) {
       b.onclick = function () { ST.charId = b.getAttribute('data-id'); ST.locked = [false, false, false]; renderLab(false); };
     });
@@ -316,12 +358,14 @@
       '<div style="font-size:11px;color:#fda4af;text-align:center;margin:4px 0 10px;">🔒 잠그면 그 칸은 그대로! (잠금 1개마다 비용 +' + LOCK_ADD + '배) · 되돌릴 수 없어요<br>' + DEV_EMOJI + ' 강화한 칸은 다시 현상하면 사라져요 (🔒 잠그면 유지)</div>' +
       '<div style="font-size:12px;text-align:center;margin-bottom:8px;color:' + (enough ? '#fff' : '#f87171') + ';">비용 ' + FILM_EMOJI + ' ' + cost.film + ' + 🍔 ' + cost.coin.toLocaleString() + '<br><span style="font-size:10px;color:#9ca3af;">보유 ' + FILM_EMOJI + ' ' + filmQty() + ' · ' + DEV_EMOJI + ' ' + devQty() + ' · 🍔 ' + coinsNow().toLocaleString() + '</span></div>' +
       '<button id="pl-roll" style="' + BTN + (canRoll && enough ? '' : 'opacity:.45;') + '">' + (firstRoll ? '📷 첫 현상하기' : '📷 다시 현상하기') + '</button>' +
+      '<button id="pl-info" style="' + BTN + 'margin-top:8px;background:rgba(255,255,255,.12);">📋 옵션표 보기</button>' +
       '<button id="pl-back" style="' + BTN + 'margin-top:8px;background:rgba(255,255,255,.12);">다른 카드 고르기</button>',
       bonus.rainbow);
     var cardBox = $('pl-overlay').firstChild;
     if (bonus.rainbow) { cardBox.style.border = '3px solid #ff5a5a'; cardBox.style.animation = 'plRainbow 3s linear infinite'; cardBox.style.borderRadius = '18px'; }
     $('pl-close').onclick = close;
     $('pl-back').onclick = function () { renderPicker(); };
+    $('pl-info').onclick = function () { renderInfo(); };
     Array.prototype.forEach.call(document.querySelectorAll('.pl-lock'), function (b) {
       b.onclick = function () {
         var i = +b.getAttribute('data-i');
@@ -403,6 +447,7 @@
     if (typeof updateCoinsDisplay === 'function') updateCoinsDisplay();
     var before = c.slots.slice();
     c.slots = rollAll(c.slots, locked);
+    if (lockCount > 0) { try { localStorage.setItem('ph_lab_lockroll', '1'); } catch (e) {} }   // 길잡이: 잠그고 다시 현상하기
     c.rolls += 1;
     setCard(id, c);
     if (typeof saveBag === 'function') saveBag();
