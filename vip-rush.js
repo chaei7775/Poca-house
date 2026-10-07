@@ -79,7 +79,7 @@
   var BODYGUARDS = [
     { id: 'wall',   img: 'guard-1.png', name: '강도현', role: '철벽 경호', cost: 2000, desc: '몸으로 팬들을 막아 밀어내고, 내가 맞는 피해도 35% 줄여줘요' },
     { id: 'luck',   img: 'guard-2.png', name: '하윤',   role: '실수 보호', cost: 2000, desc: '스킬 순서를 틀려도 40% 확률로 벌을 안 받고 넘어가요' },
-    { id: 'buff',   img: 'guard-4.png', name: '시온',   role: '응원 버프', cost: 3000, desc: '응원가로 힘을 북돋아요! 스킬 위력 +30%, 피로도도 더 빨리 회복돼요' },
+    { id: 'buff',   img: 'guard-4.png', name: '맥킨',   role: '응원 버프', cost: 3000, desc: '응원가로 힘을 북돋아요! 스킬 위력 +30%, 피로도도 더 빨리 회복돼요' },
     { id: 'bounty', img: 'guard-3.png', name: '마석',   role: '보상 사냥꾼', cost: 2500, desc: '이번 판 코인 +30%, 경험치 +20%, 보스 프리미엄 조각 확률 +20%p' }
   ];
   function bgById(id) { return BODYGUARDS.filter(function (b) { return b.id === id; })[0] || null; }
