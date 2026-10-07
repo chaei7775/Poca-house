@@ -100,6 +100,7 @@ const NEW_CONTENT_FILES = [
   'first-hidden.js',
   'unlock-gate.js',
   'level-pace.js',
+  'hidden-effects.js',
   'manager.js',
   'manager-events.js',
   'road-manager.js',
