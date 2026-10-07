@@ -203,6 +203,10 @@ const CSS=`#dr-root{position:fixed;inset:0;z-index:780;overflow:hidden;
 #dr-root .ic.ic-chemi{background-image:url(drama/icons/chemi.png)}
 #dr-root .ic.ic-close{background-image:url(drama/icons/close.png)}
 #dr-root .ic.ic-memo{background-image:url(drama/icons/memo.png)}
+#dr-root .ic.ic-dash{background-image:url(drama/icons/dash.png),url(drama/icons/chase.png)}
+#dr-root .ic.ic-tumble{background-image:url(drama/icons/tumble.png),url(drama/icons/wire.png)}
+#dr-root .ic.ic-gag{background-image:url(drama/icons/gag.png),url(drama/icons/laugh.png)}
+#dr-root .ic.ic-hum{background-image:url(drama/icons/hum.png),url(drama/icons/song.png)}
 #dr-root .ic.ic-one{background-image:url(drama/icons/one.png)}
 #dr-root .dr.dr-calm{background-image:url(drama/dir/calm.png)}
 #dr-root .dr.dr-feel{background-image:url(drama/dir/feel.png)}
@@ -393,10 +397,14 @@ const SKILLS={
  tears:{n:'눈물연기',cat:'감정',gr:'레어',cd:15,i:'눈',chance:'emotion',d:()=>`+${sc(10)}% (감정 찬스 ×1.5)`,use:C=>{gain(10,C,'눈물연기');tearFx()}},
  rage:{n:'분노폭발',cat:'감정',gr:'레어',cd:18,i:'분',d:()=>`+${sc(12)}% 확정`,use:C=>{gain(12,C,'분노폭발');burstFx('#ff5468',22)}},
  dead:{n:'무표정 열연',cat:'감정',gr:'히든',cd:20,i:'무',d:()=>'다음 판정 GOOD 이상 보장',use:C=>{G.good=true;popup('열연 대기','sm','var(--ok)')}},
+ dash:{n:'전력 질주',cat:'액션',gr:'일반',cd:8,i:'질',d:()=>`액션씬 +${sc(8)}%, 그 외 +${sc(3)}%`,use:C=>{const a=C.scene==='action';gain(a?8:3,C,'전력 질주');if(a)shakeFx()}},
+ tumble:{n:'구르기',cat:'액션',gr:'일반',cd:10,i:'구',d:()=>`+${sc(6)}%, 화제성 +${bd(2)}`,use:C=>{gain(6,C,'구르기');addBuzz(bu(2))}},
  chase:{n:'추격씬',cat:'액션',gr:'레어',cd:25,i:'추',d:()=>`${fmt(8*MCTX)}초간 자동 상승 2배`,use:C=>{G.chaseUntil=G.t+8*MM();popup('추격 2배!','','var(--act)')}},
  wire:{n:'와이어액션',cat:'액션',gr:'레어',cd:22,i:'와',d:()=>`액션씬 +${sc(15)}%, 화제성 +${bd(5)}`,use:C=>{const a=C.scene==='action';gain(a?15:4,C,'와이어');if(a){addBuzz(bu(5));shakeFx()}}},
  act:{n:'액션연기',cat:'액션',gr:'히든',cd:20,i:'액',chance:'action',d:()=>`액션씬 +${sc(22)}%, 그 외 +${sc(5)}%`,use:C=>{const a=C.scene==='action';gain(a?22:5,C,'액션연기');if(a||C.chance)shakeFx()}},
  stunt:{n:'스턴트',cat:'액션',gr:'프리미엄',cd:30,i:'스',d:()=>`${Math.round(pr(.6,MLV)*100)}% +${sc(30)}% / 실패 -3초`,use:C=>{if(Math.random()<pr(.6,ML())){gain(30,C,'스턴트 성공!');shakeFx();burstFx('#ffcf4a',26)}else{addTime(-3);popup('스턴트 실패 -3초','','var(--rec)')}}},
+ gag:{n:'썰렁 개그',cat:'애드리브',gr:'일반',cd:9,i:'썰',d:()=>`로맨스 +${sc(8)}%, 그 외 +${sc(3)}%, 화제성 +${bd(3)}`,use:C=>{const r=C.scene==='romance';gain(r?8:3,C,'썰렁 개그');addBuzz(bu(3))}},
+ hum:{n:'흥얼거리기',cat:'애드리브',gr:'일반',cd:7,i:'흥',d:()=>`+${sc(5)}%, 화제성 +${bd(2)}`,use:C=>{gain(5,C,'흥얼거리기');addBuzz(bu(2))}},
  laugh:{n:'웃음 참기 실패',cat:'애드리브',gr:'레어',cd:15,i:'웃',d:()=>`로맨스 +${sc(10)}%, 화제성 +${bd(8)}`,use:C=>{const r=C.scene==='romance';gain(r?10:3,C,'웃음 참기 실패');if(r)addBuzz(bu(8))}},
  adlib:{n:'애드리브',cat:'애드리브',gr:'히든',cd:25,i:'애',chance:'adlib',d:()=>`${Math.round(pr(.5,MLV)*100)}% +${sc(25)}%, 화제성 +${bd(10)} / 실패 -4초`,use:C=>{if(Math.random()<pr(.5,ML())){gain(25,C,'예상 밖의 명장면!');addBuzz(bu(10));burstFx('#b793ff',30)}else{addTime(-4);popup('NG! 감독 당황 -4초','','var(--rec)');dirSay('…방금 뭐였지?')}}},
  song:{n:'즉흥 노래',cat:'애드리브',gr:'히든',cd:28,i:'노',d:()=>`${Math.round(pr(.7,MLV)*100)}% +${sc(20)}% / 실패 -2초`,use:C=>{if(Math.random()<pr(.7,ML())){gain(20,C,'즉흥 노래 대성공!');burstFx('#b793ff',24)}else{addTime(-2);popup('음이탈 -2초','','var(--rec)')}}},
