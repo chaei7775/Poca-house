@@ -1605,8 +1605,10 @@ function closeAttend() {
 let playerExp = parseInt(localStorage.getItem('ph_playerExp') || '0');
 let playerLevel = parseInt(localStorage.getItem('ph_playerLevel') || '1');
 
+// 초반(Lv1~4)은 천천히: 한 번에 여러 레벨이 오르지 않게 (해금 콘텐츠가 한꺼번에 열리는 것 방지)
+const EARLY_EXP_REQ = { 1: 20, 2: 120, 3: 250, 4: 400 };
 function getExpRequired(level) {
-  return 20 * level * level;
+  return EARLY_EXP_REQ[level] || 20 * level * level;
 }
 
 function addPlayerExp(amount) {
@@ -2456,13 +2458,13 @@ let questProgress = JSON.parse(localStorage.getItem('ph_quest') || '{}');
 
 const QUESTS = {
   // 튜토리얼
-  tut_alba: { title:'일단 살아야지', desc:'주머니를 뒤져봤지만 코인 한 닢 없다. 포카버거에서 알바를 해보자.', condition:'first_alba', rewardCoins:200, rewardExp:50, type:'tutorial' },
-  tut_gacha: { title:'저 가게가 궁금해', desc:'마을을 걷다 보니 반짝이는 가게가 눈에 들어왔다. 카드 한 장 뽑아볼까?', condition:'first_gacha', rewardCoins:300, rewardExp:50, type:'tutorial' },
-  tut_meet: { title:'처음 만나는 인연', desc:'카드 속 아이돌이 실제로 존재한다고? 직접 찾아가보자.', condition:'first_meet', rewardCoins:200, rewardExp:50, type:'tutorial' },
+  tut_alba: { title:'일단 살아야지', desc:'주머니를 뒤져봤지만 코인 한 닢 없다. 포카버거에서 알바를 해보자.', condition:'first_alba', rewardCoins:200, rewardExp:10, type:'tutorial' },
+  tut_gacha: { title:'저 가게가 궁금해', desc:'마을을 걷다 보니 반짝이는 가게가 눈에 들어왔다. 카드 한 장 뽑아볼까?', condition:'first_gacha', rewardCoins:300, rewardExp:10, type:'tutorial' },
+  tut_meet: { title:'처음 만나는 인연', desc:'카드 속 아이돌이 실제로 존재한다고? 직접 찾아가보자.', condition:'first_meet', rewardCoins:200, rewardExp:10, type:'tutorial' },
   // 메인
-  main_cards: { title:'포카를 모아봐', desc:'포카 속 아이돌들이 비밀을 알고 있다. 일단 카드를 모아야 해. 10장이면 뭔가 달라질까?', condition:'cards_10', rewardCoins:500, rewardExp:100, type:'main' },
-  main_affection: { title:'마음을 열어봐', desc:'아이돌들은 쉽게 마음을 열지 않는다. 진심으로 다가가야 한다.', condition:'affection_level_2', rewardCoins:500, rewardExp:150, type:'main' },
-  main_story: { title:'처음 듣는 이야기', desc:'드디어 아이돌이 마음을 열기 시작했다. 뭔가 중요한 이야기를 들을 수 있을 것 같다...', condition:'first_story', rewardCoins:300, rewardExp:100, type:'main' },
+  main_cards: { title:'포카를 모아봐', desc:'포카 속 아이돌들이 비밀을 알고 있다. 일단 카드를 모아야 해. 10장이면 뭔가 달라질까?', condition:'cards_10', rewardCoins:500, rewardExp:20, type:'main' },
+  main_affection: { title:'마음을 열어봐', desc:'아이돌들은 쉽게 마음을 열지 않는다. 진심으로 다가가야 한다.', condition:'affection_level_2', rewardCoins:500, rewardExp:30, type:'main' },
+  main_story: { title:'처음 듣는 이야기', desc:'드디어 아이돌이 마음을 열기 시작했다. 뭔가 중요한 이야기를 들을 수 있을 것 같다...', condition:'first_story', rewardCoins:300, rewardExp:20, type:'main' },
   main_level: { title:'학원 문을 열어라', desc:'기술학원 앞에 서봤다. 문이 잠겨있다. 더 열심히 알바하고 탐험해야겠다.', condition:'player_level_10', rewardCoins:1000, rewardExp:300, type:'main' },
   main_mystery: { title:'전설의 섬', desc:"아이돌이 귓속말로 말해줬다. '신비의 섬에 가봐. 거기에 네가 찾는 게 있을 거야.'", condition:'mystery_island_unlock', rewardCoins:1000, rewardExp:300, type:'main' },
   main_wish: { title:'기억의 조각', desc:'신비의 섬에서 뭔가 반짝이는 걸 발견했다. 이게... 기억의 조각? 전설이 진짜였어.', condition:'first_wish_fragment', rewardCoins:2000, rewardExp:500, type:'main' },
