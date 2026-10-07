@@ -95,6 +95,7 @@ const NEW_CONTENT_FILES = [
   'first-hidden.js',
   'unlock-gate.js',
   'manager.js',
+  'manager-events.js',
   'mobile-fit.js',
   'issue-news.js',
 ];
