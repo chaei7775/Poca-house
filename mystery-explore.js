@@ -22,6 +22,7 @@
   var SESSION_MS = 5000;        // 탐험 시간 (기존과 동일 3초)
   var FIREFLY_MIN = 2;          // 판당 반딧불 (2~4개, 가운데 값이 제일 잘 나옴)
   var FIREFLY_MAX = 4;
+  var NORMAL_STONE = 0.25;      // 일반 재조합석 (다른 일반 탐험지와 같음)
   var EPIC_STONE = 0.03;        // 에픽 재조합석 (기존 신비의 섬과 동일)
   var RARE_BONUS = 0.15;        // 희귀재료 추가 지급 (기존 신비의 섬과 동일)
 
@@ -191,6 +192,9 @@
     (typeof exploreCollected !== 'undefined' ? exploreCollected : []).forEach(function (n) { got.push(n); });
 
     // 기존 recombine.js가 신비의 섬에 얹어둔 보너스들
+    if (Math.random() < NORMAL_STONE) {      // 일반 재조합석 (다른 탐험지와 같은 25%)
+      if (addToBag('🔹', '재조합석', 'material', 1, '카드 재조합에 필요한 재료')) got.push('🔹 재조합석');
+    }
     if (Math.random() < EPIC_STONE) {
       if (addToBag('💠', '에픽 재조합석', 'material', 1, 'SSR/UR 카드 재조합에 필요한 재료')) got.push('💠 에픽 재조합석');
     }
