@@ -209,9 +209,9 @@
   // ── 팬 무리 / 어그로 / 선물 상자 ──
   function setupVip() {
     PACKS.forEach(function (p, gi) {
-      var types = PACK_TYPES[gi % PACK_TYPES.length];
+      var types = PACK_TYPES[gi % PACK_TYPES.length].concat(PACK_TYPES[(gi + 3) % PACK_TYPES.length]);   // 무리마다 팬 2배
       types.forEach(function (t, k) {
-        var a = (k / types.length) * 6.2832 + gi, r = 46;
+        var a = (k / types.length) * 6.2832 + gi, r = k % 2 ? 62 : 38;
         var f = spawnFan(t, p[0] + Math.cos(a) * r, p[1] + Math.sin(a) * r);
         f.grp = gi; f.aggro = false; f.hx = p[0]; f.hy = p[1]; f.wt = rnd(0.5, 2); f.wa = Math.random() * 6.28;
       });
