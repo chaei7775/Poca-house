@@ -48,7 +48,7 @@
   var DRAMA_VISUAL_MAX = 0.30;   // 비주얼 100 → 드라마 촬영 코인 +30%
   var DRAMA_STAMINA_MAX = 0.30;  // 체력 100 → 촬영 시간 +30%
   var DRAMA_MOOD_MAX = 0.15;     // 기분 100 → 스킬 효과 +15%
-  var DRAMA_PAY_PER_RATING = 8600; // drama.js의 시청률 1%당 코인 (drama.js 값과 맞춤)
+  var DRAMA_PAY_PER_RATING = 43000; // drama.js의 시청률 1%당 코인 (drama.js 값과 맞춤)
   var DRAMA_TIRED = 8, DRAMA_GLOW = 3; // 드라마 촬영 한 판 하고 나면 체력 −8, 기분 +3
   var INCOME_MAX = 0.30;         // 세 수치 평균 100 → 기획사 수익 +30%
   var NEG_RATIO = 0.5;           // 50 아래일 때 깎이는 양은 보너스의 절반까지만

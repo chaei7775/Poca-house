@@ -148,6 +148,8 @@ const CSS=`#dr-root{position:fixed;inset:0;z-index:780;overflow:hidden;
 #dr-root .slot small{font-size:11.5px;color:var(--muted);white-space:nowrap}
 #dr-root .slot .cd{position:absolute;inset:0;background:conic-gradient(rgba(14,11,20,.78) var(--p,0%),transparent 0);}
 #dr-root .slot .cdn{position:absolute;inset:0;display:grid;place-items:center;font-family:var(--f-mono);font-size:15px;font-weight:700;color:#fff;text-shadow:0 1px 2px #000}
+#dr-root .slot.hot::after{content:'지금!';position:absolute;top:-6px;right:2px;background:#ff3d6e;color:#fff;font-size:10px;font-weight:900;border-radius:8px;padding:1px 6px;animation:dr-pulse .5s ease-in-out infinite alternate;z-index:3}
+#dr-root .slot{position:relative}
 #dr-root .slot.hot .orb{animation:dr-pulse .5s ease-in-out infinite alternate;box-shadow:0 0 0 4px var(--bg),0 0 0 7px var(--slate)}
 @keyframes dr-pulse{to{transform:scale(1.1)}}
 #dr-root .slot.pas .orb{opacity:.55}
@@ -708,7 +710,10 @@ function activate(ev){
     $('#dr-choices').innerHTML=`<div class="cue">${ev.cue}</div>`+tones.map(t=>`<button class="ch" data-t="${t}">${ev.o[t]}</button>`).join('')+`<div class="ctimer"><i id="dr-ctI"></i></div>`;
   }
   else if(ev.type==='chance'){a.end=G.t+CFG.CHANCE+G.chExt;G.chExt=0;
-    const b=$('#dr-banner');b.hidden=false;b.textContent=KIND_BANNER[ev.kind];b.style.background=KIND_COLOR[ev.kind];}
+    const b=$('#dr-banner');b.hidden=false;b.style.background=KIND_COLOR[ev.kind];
+    const KN={emotion:'😭 감정 찬스',action:'💥 액션 찬스',adlib:'🎤 애드리브 찬스'};
+    const m=G.skills.filter(k=>k.chance===ev.kind).map(k=>k.n);
+    b.textContent=KN[ev.kind]+'! '+(m.length?'→ '+m.join(' / ')+' 지금 써요!':'(맞는 스킬이 없어요)');}
   G.active=a;
   const bub=$('#dr-bubble');bub.hidden=false;bub.textContent=ev.type==='choice'?ev.cue:ev.line;
 }
@@ -829,7 +834,7 @@ function finish(ok){
   const capped=!hid&&!star&&raw>CAP,r=capped?CAP:raw;
   const remain=ok?G.okRemain:0;
   const buzz=G.buzz;
-  const pay=Math.round(((r*8600+buzz*500+remain*1000)*(star?1.5:1)*(typeof window.__actorPayMult==='function'?window.__actorPayMult():1))/100)*100;
+  const pay=Math.round(((r*43000+buzz*2500+remain*5000)*(star?1.5:1)*(typeof window.__actorPayMult==='function'?window.__actorPayMult():1))/100)*100;
   const shards=r>=10?10:r>=5?5:0;
   const drop=rollSkill(hid);
   const learned=G.correct>=3;
