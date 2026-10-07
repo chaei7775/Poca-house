@@ -290,6 +290,9 @@
       '@keyframes fsRise{0%{opacity:0;transform:translate(-50%,-30%)}20%{opacity:1;transform:translate(-50%,-70%)}100%{opacity:0;transform:translate(-50%,-190%)}}' +
       '@keyframes fsBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}' +
       '@keyframes fsIn{0%{opacity:0;transform:scale(.4)}70%{opacity:1;transform:scale(1.12)}100%{opacity:1;transform:scale(1)}}' +
+      '@keyframes fsCut{0%{transform:translateX(-110%)}16%{transform:translateX(0)}80%{transform:translateX(0);opacity:1}100%{transform:translateX(30%);opacity:0}}' +
+      '@keyframes fsFlashS{0%{opacity:.8}100%{opacity:0}}' +
+      '@keyframes fsShakeV{0%,100%{transform:translate(0,0)}20%{transform:translate(-5px,3px)}40%{transform:translate(5px,-3px)}60%{transform:translate(-4px,-2px)}80%{transform:translate(3px,3px)}}' +
       '@keyframes fsReady{0%,100%{box-shadow:0 0 0 0 rgba(255,215,0,.0)}50%{box-shadow:0 0 14px 3px rgba(255,215,0,.85)}}';
     document.head.appendChild(st);
   }
@@ -336,6 +339,42 @@
       var h = addAt(me.x, me.y, '<div style="font-size:30px;">💗</div>', 'transition:left .5s ease-in,top .5s ease-in;', 1300);
       if (h) setTimeout(function () { h.style.left = (fx * 100) + '%'; h.style.top = (fy * 100) + '%'; }, 30);
       setTimeout(function () { burst(fx, fy, ['💗', '💖', '💕'], love ? 14 : 8, 70); }, 520);
+    }
+  }
+
+  // ════════ 🎬 광역 스킬 컷인 (파밍 중인 포카 얼굴 + 스킬 이름) — 모든 원정맵 공통 ════════
+  var CUT_RGB = { highlight: '255,225,120', wink: '255,120,190', encore: '190,140,255', rose: '255,90,130', finale: '255,235,170' };
+  function cutFaceFile() {
+    var id = (F && F.cid) || '';
+    if (id === 'seyeon_trial') id = 'seyeon';
+    return 'https://raw.githubusercontent.com/chaei7775/Poca-house/main/face-' + id + '.png';
+  }
+  function cutIn(id) {
+    var view = $('bc-view'); if (!view) return;
+    var sk = skillById(id), rgb = CUT_RGB[id] || '255,225,120';
+    var wrap = document.createElement('div');
+    wrap.style.cssText = 'position:absolute;inset:0;z-index:40;pointer-events:none;overflow:hidden;';
+    var big = id === 'finale' || id === 'encore';
+    var ms = big ? 1700 : 1300;
+    wrap.innerHTML =
+      '<div style="position:absolute;inset:0;background:radial-gradient(circle,rgba(255,255,255,.55),rgba(' + rgb + ',.35));animation:fsFlashS .5s ease-out forwards;"></div>' +
+      '<div style="position:absolute;left:-4%;right:-4%;top:26%;height:84px;background:linear-gradient(90deg,rgba(10,5,25,.92),rgba(' + rgb + ',.6) 50%,rgba(10,5,25,.92));' +
+        'border-top:3px solid rgb(' + rgb + ');border-bottom:3px solid rgb(' + rgb + ');transform:skewY(-3deg);animation:fsCut ' + ms + 'ms ease-out forwards;display:flex;align-items:center;gap:12px;padding:0 6% 0 6%;">' +
+        '<div style="width:68px;height:68px;border-radius:50%;border:3px solid rgb(' + rgb + ');background:#2a1a40 url(' + cutFaceFile() + ') center/cover;box-shadow:0 0 18px rgb(' + rgb + ');flex:none;margin-top:-10px;"></div>' +
+        '<div style="font-size:26px;font-weight:900;color:#fff;-webkit-text-stroke:5px rgba(20,8,40,.95);paint-order:stroke fill;white-space:nowrap;text-shadow:0 0 14px rgb(' + rgb + ');">' + sk.icon + ' ' + sk.name + '!</div>' +
+      '</div>';
+    view.appendChild(wrap);
+    view.style.animation = 'fsShakeV .4s linear';
+    setTimeout(function () { view.style.animation = ''; }, 420);
+    setTimeout(function () { if (wrap.parentNode) wrap.parentNode.removeChild(wrap); }, ms + 100);
+    if (big) {
+      var cols = ['#ffd76a', '#ff6fb1', '#9fd8ff', '#c084fc', '#7ee8a5'];
+      for (var i = 0; i < 30; i++) {
+        var p = document.createElement('div');
+        p.style.cssText = 'position:absolute;top:-10px;left:' + Math.round(Math.random() * 100) + '%;width:7px;height:11px;background:' + cols[i % 5] + ';opacity:.9;transition:transform 1.4s ease-in,opacity 1.4s;';
+        wrap.appendChild(p);
+        (function (q) { setTimeout(function () { q.style.transform = 'translateY(' + (view.clientHeight + 30) + 'px) rotate(' + Math.round(Math.random() * 720) + 'deg)'; q.style.opacity = '0'; }, 30); })(p);
+      }
     }
   }
   function floatText(x, y, html) {
@@ -539,6 +578,7 @@
         list.push(o);
       });
     }
+    if (sk.aoe) { try { cutIn(id); } catch (e) {} }
     var res = { done: 0, fail: 0, ok: 0 }, didUse = false;
     list.forEach(function (o) {
       var st = applyStep(o, id, sk, mlv);
