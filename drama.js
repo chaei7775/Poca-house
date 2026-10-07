@@ -294,6 +294,7 @@ const CHARS=[
 ];
 const BASE_SLOTS={'일반':1,'레어':2,'히든':3};
 const CAP=10;
+const PAY_MULT=20;   // 출연료 전체 배율 (팬덤 원정 수입에 맞춰 올림. 이 숫자만 바꾸면 조절됨)
 const DIRS=[
  {id:'calm',name:'한결 감독',style:'담백파',hint:'절제된 연기를 좋아한다는 소문이 있어요.',tone:'plain',
   wrong:{emotional:'음… 너무 과해.',funny:'지금 웃을 장면 아니야.'}},
@@ -842,7 +843,7 @@ function finish(ok){
   const capped=!hid&&!star&&raw>CAP,r=capped?CAP:raw;
   const remain=ok?G.okRemain:0;
   const buzz=G.buzz;
-  const pay=Math.round(((r*43000+buzz*2500+remain*5000)*(star?1.5:1)*(typeof window.__actorPayMult==='function'?window.__actorPayMult():1))/100)*100;
+  const pay=Math.round(((r*43000+buzz*2500+remain*5000)*PAY_MULT*(star?1.5:1)*(typeof window.__actorPayMult==='function'?window.__actorPayMult():1))/100)*100;
   const shards=r>=10?10:r>=5?5:0;
   const drop=rollSkill(hid);
   const learned=G.correct>=3;
