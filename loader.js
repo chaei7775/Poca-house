@@ -99,6 +99,7 @@ const NEW_CONTENT_FILES = [
   'transcend-aura.js',
   'first-hidden.js',
   'unlock-gate.js',
+  'level-pace.js',
   'manager.js',
   'manager-events.js',
   'road-manager.js',
