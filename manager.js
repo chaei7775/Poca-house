@@ -130,6 +130,18 @@
       h += '<div id="mgr-act-meet" style="display:flex;align-items:center;gap:10px;margin-top:8px;padding:8px;border-radius:12px;background:rgba(251,113,133,.15);border:1.5px dashed #fb7185;cursor:pointer;">' + actAvatar(40) +
         '<div style="flex:1;font-size:12px;color:#fff;font-weight:900;">🎭 배우 전담 매니저가 찾아왔어요!<div style="font-size:10px;color:#fda4af;font-weight:400;">눌러서 만나보기</div></div></div>';
     }
+    (function () {          // 🚗 로드 매니저 (road-manager.js): 기획사에서도 바로 파견 화면으로
+      var T = window.__roadMgrTest, lv = plv(), RM = 12;
+      if (!T) return;
+      var st = ''; try { st = T.status(); } catch (e) {}
+      var met = !!(T.load && T.load().met), lock = lv < RM;
+      var line = lock ? '플레이어 Lv.' + RM + '부터 만나요 (지금 Lv.' + lv + ')' : (!met ? '눌러서 만나보기' : (st === 'ready' ? '✅ 다녀왔어요! 눌러서 받기' : (st === 'running' ? '🚗 탐험 파견 중…' : '탐험을 대신 다녀와요 · 눌러서 파견')));
+      h += '<div id="mgr-road" style="display:flex;align-items:center;gap:10px;margin-top:8px;padding-top:8px;border-top:1px solid rgba(52,211,153,.35);' + (lock ? 'opacity:.55;' : 'cursor:pointer;') + '">' +
+        '<span style="position:relative;display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#34d399,#3b82f6);overflow:hidden;font-size:22px;flex:none;">🚗' +
+        '<img src="road-manager.png?v=1" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 25%;" onload="this.parentNode.style.fontSize=\'0\'" onerror="this.remove()"></span>' +
+        '<div style="flex:1;min-width:0;"><div style="font-size:13px;font-weight:900;color:#fff;">박현수 <span style="font-size:11px;color:#6ee7b7;font-weight:400;">로드 매니저</span></div>' +
+        '<div style="font-size:11px;color:#d1fae5;margin-top:2px;">' + (lock ? '🔒 ' : '') + line + '</div></div></div>';
+    })();
     h += '<div style="display:flex;gap:6px;margin-top:8px;">' + LOCKED.filter(function (l) { return l.icon !== '🎭' || !(actorMet() || actorReady()); }).map(function (l) {
       return '<div style="flex:1;text-align:center;padding:6px 2px;border-radius:10px;background:rgba(0,0,0,.25);opacity:.75;"><div style="font-size:16px;">' + l.icon + '🔒</div><div style="font-size:9px;color:#aaa;line-height:1.3;margin-top:2px;">' + esc(l.title.replace(' 전담 매니저', '')) + '<br>매니저</div></div>';
     }).join('') + '</div></div>';
@@ -162,6 +174,7 @@
   }
 
   document.addEventListener('click', function (e) { if (e.target && e.target.closest && e.target.closest('#mgr-act-meet')) showActorStory(); }, true);
+  document.addEventListener('click', function (e) { if (e.target && e.target.closest && e.target.closest('#mgr-road') && typeof window.openRoadManager === 'function') window.openRoadManager(); }, true);
   var lastCid = '';
   document.addEventListener('click', function (e) { var b = e.target && e.target.closest && e.target.closest('[data-debut]'); if (b) lastCid = b.getAttribute('data-debut'); }, true);
 
