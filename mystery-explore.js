@@ -28,6 +28,7 @@
   var SPRING_COST = 20;         // 샘에 한 번 던질 때 드는 반딧불
   var SPRING_BASE = 0.35;       // 기본 성공 확률
   var SPRING_STEP = 0.15;       // 실패할 때마다 오르는 확률
+  var SPRING_WISH_MULT = 10;    // 굿즈 '소원의 조각 확률' 1%p당 샘 성공 확률 +10%p
   var SPRING_PITY = 4;          // 연속 이만큼 실패하면 다음 던지기는 확정
   var FAIL_KEY = 'ph_spring_fails';
 
@@ -49,7 +50,11 @@
 
   function springChance(fails) {
     if (fails >= SPRING_PITY) return 1;
-    return Math.min(0.95, SPRING_BASE + SPRING_STEP * fails);
+    return Math.min(0.95, SPRING_BASE + SPRING_STEP * fails + springGearBonus());
+  }
+  // 🎁 굿즈의 '탐험 소원의 조각 확률(%p)'은 샘 성공 확률에도 적용 (×SPRING_WISH_MULT). 예: 1.5%p → +15%p
+  function springGearBonus() {
+    try { var w = Number(window.__goodsGear && window.__goodsGear.globalTotals().wish) || 0; return w * SPRING_WISH_MULT / 100; } catch (e) { return 0; }
   }
 
   function getFails() { return parseInt(localStorage.getItem(FAIL_KEY) || '0', 10) || 0; }
