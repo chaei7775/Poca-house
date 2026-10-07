@@ -291,6 +291,7 @@
       '@keyframes fsBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}' +
       '@keyframes fsIn{0%{opacity:0;transform:scale(.4)}70%{opacity:1;transform:scale(1.12)}100%{opacity:1;transform:scale(1)}}' +
       '@keyframes fsCut{0%{transform:translateX(-110%)}16%{transform:translateX(0)}80%{transform:translateX(0);opacity:1}100%{transform:translateX(30%);opacity:0}}' +
+      '@keyframes fsLine{0%{transform:translateX(-80px)}100%{transform:translateX(420px)}}' +
       '@keyframes fsCutR{0%{transform:translateX(110%) skewY(3deg)}16%{transform:translateX(0) skewY(3deg)}80%{transform:translateX(0) skewY(3deg);opacity:1}100%{transform:translateX(-30%) skewY(3deg);opacity:0}}' +
       '@keyframes fsCutT{0%{transform:translateY(-260%);opacity:0}18%{transform:translateY(0);opacity:1}82%{transform:translateY(0);opacity:1}100%{transform:translateY(40%);opacity:0}}' +
       '@keyframes fsCutZ{0%{transform:scale(3);opacity:0}16%{transform:scale(1);opacity:1}85%{transform:scale(1.04);opacity:1}100%{transform:scale(1.3);opacity:0}}' +
@@ -372,11 +373,17 @@
     if (C.spot) h += '<div style="position:absolute;left:50%;top:-5%;width:70%;height:115%;transform:translateX(-50%);background:linear-gradient(180deg,rgba(255,240,170,.75),rgba(255,240,170,0) 90%);clip-path:polygon(42% 0,58% 0,100% 100%,0 100%);animation:fsFlashS ' + C.ms + 'ms ease-out forwards;"></div>';
     if (C.bars) h += '<div style="position:absolute;left:0;right:0;top:0;height:11%;background:#000;animation:fsFlashS ' + C.ms + 'ms ease-in-out forwards;"></div><div style="position:absolute;left:0;right:0;bottom:0;height:11%;background:#000;animation:fsFlashS ' + C.ms + 'ms ease-in-out forwards;"></div>';
     if (C.big) h += '<div style="position:absolute;left:50%;top:55%;font-size:90px;transform:translate(-50%,-50%);animation:fsPulse 1s ease-out forwards;">' + C.big + '</div>';
-    h += '<div style="position:absolute;left:-4%;right:-4%;top:26%;height:' + (id === 'finale' ? 98 : 84) + 'px;background:linear-gradient(90deg,rgba(10,5,25,.92),rgba(' + rgb + ',.6) 50%,rgba(10,5,25,.92));' +
-      'border-top:3px solid rgb(' + rgb + ');border-bottom:3px solid rgb(' + rgb + ');transform:skewY(' + C.tilt + 'deg);animation:' + anim + ' ' + C.ms + 'ms ease-out forwards;display:flex;align-items:center;gap:12px;padding:0 6%;' + (C.from === 'right' ? 'flex-direction:row-reverse;' : '') + '">' +
-      '<div style="width:' + (id === 'finale' ? 78 : 68) + 'px;height:' + (id === 'finale' ? 78 : 68) + 'px;border-radius:' + (id === 'rose' ? '14px' : '50%') + ';border:3px solid rgb(' + rgb + ');background:#2a1a40 url(' + cutFaceFile(cid) + ') center/cover;box-shadow:0 0 18px rgb(' + rgb + ');flex:none;margin-top:-10px;"></div>' +
-      '<div style="font-size:' + (id === 'finale' ? 30 : 26) + 'px;font-weight:900;color:#fff;-webkit-text-stroke:5px rgba(20,8,40,.95);paint-order:stroke fill;white-space:nowrap;text-shadow:0 0 14px rgb(' + rgb + ');">' + sk.icon + ' ' + sk.name + '!</div>' +
-    '</div>';
+    var bh = id === 'finale' ? 92 : 80, lines = '';
+    for (var li = 0; li < 4; li++) lines += '<div style="position:absolute;left:0;top:' + (8 + li * 17) + 'px;width:60px;height:2px;background:rgba(255,255,255,.55);animation:fsLine ' + (0.5 + li * 0.12) + 's linear infinite;animation-delay:-' + (li * 0.17) + 's;"></div>';
+    h += '<div style="position:absolute;left:0;right:0;top:26%;height:' + bh + 'px;animation:fsCut ' + C.ms + 'ms ease-out forwards;">' +
+      '<div style="position:absolute;inset:0;clip-path:polygon(-1% 0,101% 0,100% 100%,-3% 100%);background:linear-gradient(90deg,rgba(10,5,25,.9),rgba(' + rgb + ',.55) 50%,rgba(10,5,25,.9));overflow:hidden;">' + lines + '</div>' +
+      '<div style="position:absolute;left:0;right:0;top:0;height:3px;background:rgb(' + rgb + ');box-shadow:0 0 10px rgb(' + rgb + ');"></div>' +
+      '<div style="position:absolute;left:0;right:0;bottom:0;height:3px;background:rgb(' + rgb + ');box-shadow:0 0 10px rgb(' + rgb + ');"></div>' +
+      '<div style="position:absolute;inset:0;display:flex;align-items:center;gap:10px;padding:0 5%;">' +
+        '<div style="font-size:44px;line-height:1;filter:drop-shadow(0 0 10px rgb(' + rgb + '));flex:none;">' + sk.icon + '</div>' +
+        '<div style="width:62px;height:62px;border-radius:50%;border:3px solid rgb(' + rgb + ');background:#2a1a40 url(' + cutFaceFile(cid) + ') center/cover;box-shadow:0 0 16px rgb(' + rgb + ');flex:none;"></div>' +
+        '<div style="font-size:' + (id === 'finale' ? 28 : 25) + 'px;font-weight:900;color:#fff;-webkit-text-stroke:6px rgba(20,8,40,.95);paint-order:stroke fill;white-space:nowrap;">' + sk.name + '!</div>' +
+      '</div></div>';
     wrap.innerHTML = h;
     view.appendChild(wrap);
     view.style.animation = 'fsShakeV ' + C.shake + 's linear';
