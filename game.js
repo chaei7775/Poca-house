@@ -2134,7 +2134,6 @@ function normalizeClothBagItems() {
 }
 
 function getEquippedStats() {
-  return {}; // 가방에서 직접 입는 옷은 효과 없음 (효과는 👗 의상실에 입힌 옷만 적용)
   if (!equippedCloth) return {};
   let clothId = equippedCloth;
   let statValOverride = null;
@@ -2203,7 +2202,7 @@ function equipCloth(clothId, itemName) {
   localStorage.setItem('ph_equippedCloth', JSON.stringify(equippedCloth));
   saveBag();
   saveAll();
-  showBagToast(`👗 ${item.name} 착용! (능력치 효과는 더보기 > 의상실에 입혀야 적용돼요)`);
+  showBagToast(`👗 ${item.name} 착용 완료! ${getClothDisplayDesc(cloth, item)}`);
   if (typeof renderBag === 'function') renderBag();
   const recipe = document.getElementById('sewing-recipe-overlay');
   if (recipe) recipe.remove();
