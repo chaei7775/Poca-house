@@ -10,7 +10,8 @@
     if (!b) {
       b = document.createElement('button');
       b.id = 'btn-wardrobe';
-      b.textContent = '👗 옷장 (멤버 옷 입히기)';
+      var base = ''; try { base = B; } catch (e) {}
+      b.innerHTML = '<img src="' + base + 'more-wardrobe.png" style="width:26px;height:26px;object-fit:contain;vertical-align:middle;margin-right:6px;" onerror="this.outerHTML=\'👗\'">옷장 (멤버 옷 입히기)';
       b.style.cssText = deco.style.cssText;
       b.setAttribute('onclick', '');
       b.onclick = function () {
