@@ -64,15 +64,17 @@ function showTitleUnlockToast(t) {
   setTimeout(function() { if (el.parentNode) el.remove(); }, 2800);
 }
 
+var __titleBoot = Date.now();
 function checkTitles() {
   let changed = false;
+  const quiet = Date.now() - __titleBoot < 20000;   // 접속 직후엔 서버 저장값이 늦게 들어와서 이미 받은 칭호가 새로 뜨는 것처럼 보임 → 조용히 처리
   TITLES.forEach(function(t) {
     if (unlockedTitles.indexOf(t.id) === -1) {
       try {
         if (t.cond()) {
           unlockedTitles.push(t.id);
           changed = true;
-          showTitleUnlockToast(t);
+          if (!quiet) showTitleUnlockToast(t);
         }
       } catch (e) { /* 관련 데이터가 아직 준비 안 됐으면 그냥 다음에 다시 체크 */ }
     }
