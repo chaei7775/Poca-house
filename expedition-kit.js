@@ -75,6 +75,7 @@
 
   // ── 보상 지급 + 결과 화면 ──
   function settle(cfg, root, charId, res, rate) {
+    try { var cl = JSON.parse(localStorage.getItem('ph_xk_clears') || '{}') || {}; cl[cfg.id] = (cl[cfg.id] || 0) + 1; localStorage.setItem('ph_xk_clears', JSON.stringify(cl)); } catch (e) {}   // 퀘스트용 클리어 기록
     var gmR = 1; try { if (window.FanGear) gmR = window.FanGear.mult(charId, 'reward'); } catch (e) {}   // 🎀 소품 보상 증가
     var coin = Math.round((res.coin || 0) * rate * gmR), exp = Math.round((res.exp || 0) * rate * gmR);
     var items = [];

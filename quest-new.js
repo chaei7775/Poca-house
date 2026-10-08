@@ -31,6 +31,8 @@
     return s && typeof s === 'object' && K(s).some(function (c) { return (s[c] || []).some(function (x) { return !!x; }); });
   }
 
+  function clears(id) { var c = J('ph_xk_clears', {}) || {}; return c[id] || 0; }
+
   // type:'main' 은 퀘스트 탭의 일반 퀘스트 / aff = 모든 멤버 호감도 경험치 보상
   var NEW = {
     n_rom1: { title: '💓 첫 설렘', desc: '💞 인연 → 멤버 선택 → 💓 설렘 이벤트. 호감도 30이면 첫 이벤트가 열려. 선택지에 따라 두근이 달라져!', condition: 'q3_rom1', rewardCoins: 0, rewardExp: 20, aff: 10, detect: function () { return romMax() >= 1; } },
@@ -43,6 +45,10 @@
     n_gear1: { title: '🎀 소품 장착', desc: '팬덤 원정(방송국·팬미팅 등)의 인트로 🎀 소품 장착 → 멤버에게 소품을 끼워 봐. 원정 효과가 올라가!', condition: 'q3_gear1', rewardCoins: 800, rewardExp: 40, detect: function () { return gearAny(); } },
     n_gear2: { title: '🎀 소품 2칸 채우기', desc: '한 멤버의 소품 장착칸 2개를 모두 채워봐. 효과가 겹쳐서 원정이 훨씬 편해져!', condition: 'q3_gear2', rewardCoins: 1500, rewardExp: 60, detect: function () { return gearFull(); } },
     n_skill: { title: '🎯 스킬 장착', desc: '팬덤 원정 인트로 → 스킬 장착. 그 멤버가 배운 스킬만 장착할 수 있어.', condition: 'q3_skill', rewardCoins: 800, rewardExp: 40, detect: function () { return skillAny(); } },
+    n_map_rhythm: { title: '🎧 음악방송 리허설장', desc: '🗺️ 맵 → 팬덤 원정 → 🎧 음악방송 리허설장(Lv.25). 패턴을 외워서 따라 치고 퍼펙트 게이지를 채워봐!', condition: 'q3_map_rhythm', rewardCoins: 2000, rewardExp: 100, detect: function () { return clears('rhythm_stage') >= 1; } },
+    n_map_papa: { title: '🕵️ 파파라치 탈출', desc: '🗺️ 맵 → 팬덤 원정 → 🕵️ 파파라치 탈출(Lv.30). 파파라치를 피해 멤버를 무사히 탈출시켜!', condition: 'q3_map_papa', rewardCoins: 3000, rewardExp: 150, detect: function () { return clears('paparazzi_run') >= 1; } },
+    n_map_world: { title: '🏟️ 월드투어 스타디움', desc: '🗺️ 맵 → 팬덤 원정 → 🏟️ 월드투어 스타디움(Lv.35). 팬서비스로 한 줄씩 성공시켜 스타디움을 달궈봐!', condition: 'q3_map_world', rewardCoins: 4000, rewardExp: 200, detect: function () { return clears('world_tour') >= 1; } },
+    n_map_all: { title: '🌏 새 원정 맵 정복', desc: '리허설장 · 파파라치 탈출 · 월드투어 스타디움 3곳을 모두 한 번씩 클리어해봐. 맵마다 상자가 나와!', condition: 'q3_map_all', rewardCoins: 8000, rewardExp: 300, detect: function () { return clears('rhythm_stage') >= 1 && clears('paparazzi_run') >= 1 && clears('world_tour') >= 1; } },
     n_src: { title: '🔎 획득처 확인', desc: '🎒 가방 → 아이템을 눌러 상세 화면에서 획득처를 확인해봐. 어디서 구하는지 한눈에 알려줘.', condition: 'q3_src', rewardCoins: 300, rewardExp: 10, detect: function () { return !!flags().src; } }
   };
   var DETECT = {}, AFF = {};
