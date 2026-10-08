@@ -68,7 +68,8 @@
   function pieceStat(p) { var c = clothDef(p.id); return c ? c.stat : null; }
   function pieceHeart(p) {          // 💓 두근 (설렘 이벤트용) — 원피스는 배수 적용
     var c = clothDef(p.id); if (!c || c.stat2 !== 'heart') return 0;
-    return kindOf(p.id) === 'dress' ? r1(c.val2 * DRESS_MULT) : c.val2;
+    var v2 = c.val2 + (p.great ? 1 : 0);     // 대성공 ✨ = 두근도 +1
+    return kindOf(p.id) === 'dress' ? r1(v2 * DRESS_MULT) : v2;
   }
   function piecesOf(d, cid) {      // 그 캐릭터가 입고 있는 옷 조각들 [{slot, p}]
     var e = (d && d[cid]) || {}, out = [];
