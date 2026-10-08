@@ -81,7 +81,7 @@
         var i = +b.getAttribute('data-i'), got = Math.random() < DROP_CHANCE, added = false;
         if (got) { try { added = !!addToBag(TICKET_EMOJI, TICKET_NAME, 'item', 1, '인연 화면에서 멤버에게 선물하면 설렘 이벤트가 하나씩 열려요 (멤버당 하루 1개)'); } catch (e) {} }
         var tail = got
-          ? (added ? '<div style="margin-top:12px;font-size:15px;font-weight:900;color:#ffe08a;">' + TICKET_EMOJI + ' ' + TICKET_NAME + ' +1</div><div style="font-size:12px;color:#ddd;margin-top:4px;">"이걸 그 아이한테 슬쩍 쥐여줘 보렴. 하루에 한 번만이야, 급하면 체해."</div>'
+          ? (added ? '<div style="margin-top:12px;font-size:15px;font-weight:900;color:#ffe08a;">' + (typeof window.matIcon === 'function' ? window.matIcon(TICKET_NAME, 28, TICKET_EMOJI) : TICKET_EMOJI) + ' ' + TICKET_NAME + ' +1</div><div style="font-size:12px;color:#ddd;margin-top:4px;">"이걸 그 아이한테 슬쩍 쥐여줘 보렴. 하루에 한 번만이야, 급하면 체해."</div>'
                        : '<div style="margin-top:12px;font-size:12px;color:#ff9a9a;">가방이 꽉 차서 티켓을 못 받았어요… 슬롯을 비우고 다시 만나요</div>')
           : '<div style="margin-top:12px;font-size:12px;color:#ddd;">"오늘은 줄 게 없구나. 다음에 또 오렴."</div>';
         ov.firstChild.innerHTML = '<div style="font-size:34px;">👵</div><div style="font-size:12px;color:#FF9EC4;font-weight:700;margin:4px 0 8px;">꽃집 할머니</div>' +
