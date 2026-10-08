@@ -180,6 +180,11 @@
       hint: '🌟 팬덤 원정은 히든카드를 가진 멤버만 갈 수 있어요! (체험 카드도 가능) 🚐 스케줄 가기 → 🎬 팬덤 원정 → 방송국 앞. 현장을 돌아다니며 🖼️ 프리미엄 조각과 강화석을 모아요. 스태미나는 드링크로 채워요!',
       done: function () { return !!S.flags.first_expedition; }, reward: 500,
       go: function () { goTo('map'); }, target: '.btn-collection' },
+    { id: 'potion', icon: '🧪', title: '원정에서 회복약 마시기',
+      hint: '팬덤 원정에선 팬한테 치이면 ❤️HP가 깎여요. HP가 줄면 맵 오른쪽 위의 🧪 회복약 버튼을 눌러 마셔요! (처음 입장하면 작은 회복약을 3개 줘요. 더 필요하면 더보기 → 💖 팬 스킬 상점)',
+      when: function () { return !!S.flags.first_expedition; },
+      done: function () { return !!S.flags.first_potion; }, reward: 300,
+      go: function () { goTo('map'); }, target: '.btn-collection' },
     { id: 'fanskill', icon: '🤝', title: '팬 스킬 배우기',
       hint: '더보기 → 💖 팬 스킬 상점에서 멤버에게 🤝 악수(30만 코인)를 가르쳐요. 팬덤 원정에서는 팬 머리 위에 뜬 스킬을 순서대로 써야 해요!',
       when: function () { try { return Number(playerLevel) >= 10; } catch (e) { return false; } },
@@ -374,6 +379,25 @@
     return function () {
       var r = orig.apply(this, arguments);
       flag('first_expedition');
+      return r;
+    };
+  });
+  // 🧪 팬덤 원정 첫 입장 선물: 작은 회복약 3개 (팬 스킬 상점은 Lv.10부터라 초보는 살 곳이 없음). 한 번만.
+  function giveStarterPotions() {
+    if (S.flags.potion_gift) return;
+    try {
+      if (typeof addToBag === 'function' && addToBag('🧪', '작은 회복약', 'potion', 3, '원정 중 HP +40 · 맵 오른쪽 위 버튼으로 써요')) {
+        flag('potion_gift');
+        if (typeof showBagToast === 'function') showBagToast('🎁 작은 회복약 3개를 받았어요! 원정 중 HP가 줄면 마셔요');
+      }
+    } catch (e) {}
+  }
+  setInterval(function () { if (S.flags.first_expedition && !S.flags.potion_gift && document.getElementById('bc-view')) giveStarterPotions(); }, 600);
+  // 회복약을 마시면(가방에서 빠지면) 완료 표시
+  hookLater('useFromBag', function (orig) {
+    return function (name) {
+      var r = orig.apply(this, arguments);
+      try { if (/회복약/.test(String(name))) flag('first_potion'); } catch (e) {}
       return r;
     };
   });
