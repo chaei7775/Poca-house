@@ -242,12 +242,34 @@
     while (out.length < SLOTS) out.push(null);
     return out;
   }
+  // 🔁 스킬 세트: 멤버마다 1·2·3번 세트를 저장해 두고 한 번에 갈아끼운다 (지금 장착을 바꾸면 쓰고 있는 세트에도 자동 저장)
+  var SETS_KEY = 'ph_skillSets', SET_N = 3;
+  function readSets() { try { return JSON.parse(localStorage.getItem(SETS_KEY) || '{}') || {}; } catch (e) { return {}; } }
+  function writeSets(m) { try { localStorage.setItem(SETS_KEY, JSON.stringify(m)); } catch (e) {} }
+  function activeSet(cid) { var m = readSets(); return (m[cid] && m[cid].active) || 1; }
+  function switchSet(cid, n) {
+    cid = cid || curCid();
+    var m = readSets(), o = m[cid] || { active: 1 };
+    o[o.active || 1] = loadLoadout(cid).slice();         // 지금 장착을 쓰던 세트에 저장
+    o.active = n;
+    var target = o[n], out = [];
+    if (!target) {                                        // 처음 쓰는 세트는 기본 스킬만 장착된 상태
+      target = [];
+      SKILLS.forEach(function (s) { if (target.length < SLOTS && s.price === 0) target.push(s.id); });
+    }
+    var seen = {};
+    for (var i = 0; i < SLOTS; i++) { var id = target[i], sk = id && skillById(id); out.push(sk && !seen[id] && hasSkill(cid, sk) ? (seen[id] = 1, id) : null); }
+    m[cid] = o; writeSets(m);
+    saveLoadout(out, cid);
+    return out;
+  }
   function saveLoadout(arr, cid) {
     cid = cid || curCid();
     var st = readLoadoutStore(), map = {};
     if (Array.isArray(st)) { charIds().forEach(function (c) { map[c] = st.slice(); }); }   // 예전 공통 저장분을 멤버별로 나눠 담음
     else if (st && typeof st === 'object') map = st;
     map[cid] = arr;
+    try { var sm = readSets(), so = sm[cid] || { active: 1 }; so[so.active || 1] = arr.slice(); sm[cid] = so; writeSets(sm); } catch (e) {}
     try { localStorage.setItem(LOADOUT_KEY, JSON.stringify(map)); } catch (e) {}
     if (typeof saveAll === 'function') { try { saveAll(); } catch (e) {} }
   }
@@ -887,9 +909,21 @@
     ov.innerHTML = '<div style="width:100%;max-width:380px;max-height:92vh;overflow-y:auto;background:linear-gradient(135deg,#1a1a2e,#2d1b4e);border:2px solid #C084FC;border-radius:20px;padding:18px 14px;color:#fff;">' +
       '<div style="font-size:17px;font-weight:900;text-align:center;">⚔️ ' + (charName(edChar) || '') + ' 스킬 장착</div>' +
       '<div style="font-size:11px;color:#bbb;text-align:center;margin:4px 0 12px;line-height:1.5;">장착은 멤버마다 따로예요 · 그 멤버가 배운 스킬만 장착할 수 있어요 (모든 팬덤 원정 맵에서 적용)<br>칸을 누르고 → 아래 스킬을 눌러 장착 · 장착된 칸을 누르면 해제<br><span style="color:#ffd76a;">스킬은 멤버마다 배워야 하고, 쓰려면 플레이어 레벨이 필요해요 (지금 Lv.' + plv() + ')</span></div>' +
+      '<div style="display:flex;justify-content:center;align-items:center;gap:6px;margin-bottom:10px;"><span style="font-size:11px;color:#bbb;margin-right:2px;">세트</span>' +
+        [1, 2, 3].map(function (n) { var on = activeSet(edChar) === n; return '<button data-set="' + n + '" style="padding:8px 16px;border-radius:12px;border:2px solid ' + (on ? '#FFD700' : 'rgba(255,255,255,.25)') + ';background:' + (on ? 'rgba(255,215,0,.18)' : 'rgba(255,255,255,.06)') + ';color:#fff;font-size:13px;font-weight:900;cursor:pointer;font-family:inherit;">' + n + '번</button>'; }).join('') + '</div>' +
       '<div style="display:flex;justify-content:center;gap:7px;margin-bottom:14px;">' + slots + '</div>' + rows +
       '<button id="fs-ed-close" style="width:100%;margin-top:6px;padding:12px;border:none;border-radius:12px;background:linear-gradient(135deg,#FF6B9D,#C084FC);color:#fff;font-size:14px;font-weight:900;cursor:pointer;font-family:inherit;">완료</button></div>';
     $('fs-ed-close').onclick = function () { ov.remove(); edChar = null; try { refreshBar(); } catch (e) {} };
+    Array.prototype.forEach.call(ov.querySelectorAll('[data-set]'), function (el) {
+      el.onclick = function () {
+        var n = Number(el.getAttribute('data-set'));
+        if (n === activeSet(edChar)) return;
+        switchSet(edChar, n); edSel = null;
+        toast(n + '번 세트로 바꿨어요');
+        try { refreshBar(); } catch (e) {}
+        renderEditor();
+      };
+    });
     Array.prototype.forEach.call(ov.querySelectorAll('[data-slot]'), function (el) {
       el.onclick = function () {
         var i = Number(el.getAttribute('data-slot')), cur = loadLoadout();

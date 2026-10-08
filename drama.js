@@ -483,6 +483,11 @@ function pickDefault(){const ok=CHARS.find(c=>isDebut(c.id)&&cardsOf(c.id).lengt
 const script=()=>SCRIPTS.find(s=>s.id===S.sel.script);
 const dir=()=>DIRS.find(d=>d.id===S.sel.dir);
 const eq=cid=>(S.equip[cid]||[]).map(u=>S.inv.find(i=>i.u===u)).filter(Boolean);
+/* 스킬 세트: 카드마다 1·2·3번 세트를 저장해 두고 한 번에 갈아끼운다. 장착을 바꾸면 쓰는 세트에도 자동 저장 */
+const SET_N=3;
+function getSets(cid){if(!S.sets)S.sets={};if(!S.sets[cid])S.sets[cid]={active:1,1:[...(S.equip[cid]||[])],2:[],3:[]};return S.sets[cid]}
+function syncSet(cid){const st=getSets(cid);st[st.active||1]=[...(S.equip[cid]||[])]}
+function setBar(cid){const st=getSets(cid),ac=st.active||1;return `<div class="slotrow"><span class="lab">세트</span>${[1,2,3].map(n=>`<button class="btn" data-a="set" data-n="${n}" style="padding:8px 16px;font-size:13px;${n===ac?'border:2px solid #FFD700;background:rgba(255,215,0,.15);':''}">${n}번${n===ac?'':` <span style="font-size:10px;color:var(--muted)">${(st[n]||[]).length}</span>`}</button>`).join('')}</div>`}
 const onCard=u=>{for(const k in S.equip)if((S.equip[k]||[]).includes(u))return k;return null};
 let snackT;
 function snack(t){const e=$('#dr-snack');e.textContent=t;e.hidden=false;clearTimeout(snackT);snackT=setTimeout(()=>e.hidden=true,1800)}
@@ -535,6 +540,7 @@ function renderPrep(){
 
     <div class="sec"><h2><span class="n">4</span>스킬 세팅 · ${c_.name} ${c_.grade}</h2>
       ${locked?`<div class="s" style="color:var(--muted)">${lockWhy}</div>`:`
+      ${setBar(c_.id)}
       <div class="slotrow"><span class="lab">슬롯</span>${Array.from({length:c_.slots},(_,i)=>{const it=mine[i];return it?`<button class="sl c-${SKILLS[it.s].cat} g-${SKILLS[it.s].gr} ic ic-${it.s}" data-a="eq" data-u="${it.u}">${SKILLS[it.s].i}</button>`:`<span class="sl empty">+</span>`}).join('')}</div>
       ${(()=>{const base=c_.slots,ex=S.slotExp[c_.id]||0,q=slotxQty(),full=base>=CFG.SLOT_MAX||ex>=CFG.SLOT_EXP_MAX;return `<button class="btn" data-a="slotx" style="width:100%;margin-bottom:12px;padding:10px 12px;font-size:13px" ${(q<1||full)?'disabled':''}>🎟️ 슬롯 확장권 사용 · 보유 ${q}개 · 이 카드 확장 ${ex}/${CFG.SLOT_EXP_MAX}${full?' (최대)':''}</button>`})()}
       ${(()=>{const ids=[...new Set(S.inv.map(i=>i.s))].sort((a,b)=>GR[SKILLS[b].gr]-GR[SKILLS[a].gr]);
@@ -591,6 +597,20 @@ $('#dr-prep').addEventListener('click',e=>{
     if(cur===cid){S.equip[cid]=S.equip[cid].filter(x=>x!==u)}
     else if(cur){snack(card(cur).name+' 카드에 장착중이에요')}
     else{const l=S.equip[cid]||[];if(l.length>=c.slots)snack('슬롯이 가득 찼어요');else S.equip[cid]=[...l,u]}
+    syncSet(cid);
+  }
+  else if(a==='set'){
+    const cid=S.sel.card,c=card(cid),n=+b.dataset.n;
+    if(!c||!isDebut(c.char))return;
+    const st=getSets(cid);
+    if(n!==(st.active||1)){
+      st[st.active||1]=[...(S.equip[cid]||[])];            /* 쓰던 세트에 지금 장착을 저장 */
+      st.active=n;
+      const want=(st[n]||[]).filter(u=>S.inv.some(i=>i.u===u)),out=[];let skip=0;
+      for(const u of want){const oc=onCard(u);if((oc&&oc!==cid)||out.length>=c.slots){skip++;continue}out.push(u)}
+      S.equip[cid]=out;
+      snack(skip?`${n}번 세트로 바꿨어요 (다른 카드가 쓰는 스킬 ${skip}개는 빠졌어요)`:`${n}번 세트로 바꿨어요`);
+    }
   }
   else if(a==='buy'){const n=+b.dataset.n,p=n===1?CFG.SMALL:CFG.BIG;if(coins<p)snack('골드가 부족해요');else{coins-=p;saveGame();S.potion+=n;snack(`체력 음료로 촬영 ${n}회를 더 할 수 있어요`)}}
   else if(a==='go'){startShoot();return}
