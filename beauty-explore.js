@@ -52,9 +52,9 @@
     { fx: 0.00, fy: 0.30, rgb: '255,110,110' }     // 입가
   ];
   var STAGES = [
-    { icon: '💨', name: '드라이기', tip: '좌우로 쓱쓱 훑어서 머리를 말려요! 💨' },
-    { icon: '💄', name: '메이크업', tip: '반짝이는 곳을 톡톡! 💥은 피해요' },
-    { icon: '✨', name: '스프레이', tip: '꾹 눌러서 게이지를 채워요! ✨' }
+    { icon: '💨', name: '드라이기', tip: '좌우로 쓱쓱 훑어서 머리를 말려요!' },
+    { icon: '💄', name: '메이크업', tip: '반짝이는 곳을 톡톡! NG는 피해요' },
+    { icon: '✨', name: '스프레이', tip: '꾹 눌러서 게이지를 채워요!' }
   ];
 
   // 도구 그림 (beauty-*.png). 그림이 아직 안 불러와졌으면 이모지로 대신 그린다.
@@ -232,7 +232,7 @@
     S.sway = 1;
     sfx('beautyDry'); vib(8);
     var f = faceC();
-    S.bursts.push({ x: f[0], y: f[1] - f[2] * 0.45, text: '💨 쓱!', t: 0, dur: 0.4, golden: false, big: false, screen: true });
+    S.bursts.push({ x: f[0], y: f[1] - f[2] * 0.45, text: '쓱!', pic: 'dryer', t: 0, dur: 0.4, golden: false, big: false, screen: true });
     if (DRY_DROP_AT.indexOf(n) >= 0) { giveRoll(f[0], f[1] - f[2] * 0.2); sfx('reward'); }
     if (n >= DRY_NEED) nextStage();
   }
@@ -266,13 +266,13 @@
       S.timeLeft = Math.max(0, S.timeLeft - NG_PENALTY);
       S.flash = 0.35; S.perfect = false;
       sfx('fail'); vib([80, 40, 80]);
-      S.pops.push({ x: sp[0], y: sp[1] - 30, text: '💥 NG! -' + NG_PENALTY + '초', t: 0, bad: true });
+      S.pops.push({ x: sp[0], y: sp[1] - 30, text: 'NG! -' + NG_PENALTY + '초', pic: pic('ng'), t: 0, bad: true });
       return;
     }
     S.hits += 1;
     S.marks.push({ fx: SPOTS[best.spot].fx, fy: SPOTS[best.spot].fy, rgb: SPOTS[best.spot].rgb, t: S.t });
     sfx('beautyPuff'); vib(10);
-    S.bursts.push({ x: sp[0], y: sp[1], text: '💄 톡!', t: 0, dur: 0.45, golden: false, big: false, screen: true });
+    S.bursts.push({ x: sp[0], y: sp[1], text: '톡!', pic: 'puff', t: 0, dur: 0.45, golden: false, big: false, screen: true });
     if (S.hits % 2 === 0) { giveRoll(sp[0], sp[1] - 40); sfx('reward'); }
     if (S.hits >= PUFF_NEED) nextStage();
   }
@@ -284,10 +284,10 @@
     sfx('beautyDone'); vib([15, 25, 30]);
     var f = faceC();
     S.shine = Math.min(1, S.rounds / SPRAY_ROUNDS);
-    S.bursts.push({ x: f[0], y: f[1], text: '✨ 치익!', t: 0, dur: 0.6, golden: true, big: false, screen: true });
+    S.bursts.push({ x: f[0], y: f[1], text: '치익!', pic: 'spray', t: 0, dur: 0.6, golden: true, big: false, screen: true });
     giveRoll(f[0], f[1] - f[2] * 0.3);
     if (S.rounds >= SPRAY_ROUNDS) nextStage();
-    else say('한 번 더! 손을 뗐다가 다시 꾹 ✨', 1.8);
+    else say('한 번 더! 손을 뗐다가 다시 꾹', 1.8);
   }
 
   // ── 단계 넘기기 / 변신 완료 ──
@@ -305,10 +305,10 @@
     var f = faceC();
     S.shine = 1; S.glow = 0.3; S.shakeT = 0.25;
     sfx('cheer'); setTimeout(function () { sfx('reward'); }, 250);
-    S.bursts.push({ x: f[0], y: f[1], text: S.perfect ? '🌟 완벽한 변신!' : '💄 변신 완료!', t: 0, dur: 1.3, golden: true, big: true, screen: true });
+    S.bursts.push({ x: f[0], y: f[1], text: S.perfect ? '완벽한 변신!' : '변신 완료!', pic: S.perfect ? 'sparkle' : 'puff', t: 0, dur: 1.3, golden: true, big: true, screen: true });
     giveDrop(rollDrop(luck, Math.random, true), f[0], f[1] + f[2] * 0.55);
-    if (S.perfect) { giveDrop(rollDrop(luck, Math.random, false), f[0], f[1] + f[2] * 0.55 + 26); say('NG 없이 완벽해요! 보너스 재료 🎉', 2.5); }
-    else say('변신 완료! 다음엔 NG 없이 도전해봐요 💄', 2.5);
+    if (S.perfect) { giveDrop(rollDrop(luck, Math.random, false), f[0], f[1] + f[2] * 0.55 + 26); say('NG 없이 완벽해요! 보너스 재료', 2.5); }
+    else say('변신 완료! 다음엔 NG 없이 도전해봐요', 2.5);
     S.endDelay = 1.7;
   }
 
@@ -469,8 +469,9 @@
       c.save(); c.translate(bx, by); c.scale(sc, sc);
       c.font = '900 ' + (b.big ? 34 : 24) + 'px "Noto Sans KR",sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle';
       c.lineWidth = 7; c.strokeStyle = 'rgba(60,0,40,0.85)'; c.lineJoin = 'round';
-      c.strokeText(b.text, 0, 0);
-      c.fillStyle = b.golden ? '#FFD700' : '#fff'; c.fillText(b.text, 0, 0);
+      c.fillStyle = b.golden ? '#FFD700' : '#fff';
+      if (b.pic) drawLabel(c, b.pic, b.text, 0, 0, b.big ? 46 : 34, true);
+      else { c.strokeText(b.text, 0, 0); c.fillText(b.text, 0, 0); }
       c.restore();
     });
     c.globalAlpha = 1;
@@ -628,11 +629,11 @@
     S = null;
     ov.innerHTML = '<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.78);">' +
       '<div style="background:linear-gradient(135deg,#1a1a2e,#4e1b45);border:2px solid #ff9ccf;border-radius:20px;padding:26px 22px;text-align:center;width:85%;max-width:300px;">' +
-      '<div style="font-size:36px;margin-bottom:6px;">💄</div>' +
+      '<div style="margin-bottom:6px;"><img src="beauty-puff.png" alt="" style="width:56px;height:56px;object-fit:contain;" onerror="this.outerHTML=\'<span style=font-size:36px>💄</span>\'"></div>' +
       '<div style="font-size:18px;font-weight:900;color:#fff;margin-bottom:8px;">' + (perfect ? '완벽한 변신!' : (full ? '변신 완료!' : '뷰티 살롱 탐험 끝!')) + '</div>' +
       '<div style="font-size:12px;color:#aaa;margin-bottom:8px;">스태미나 -' + STAMINA_COST + ' (잔여: ' + left + ')</div>' +
       '<div style="font-size:14px;color:#FFD700;line-height:1.7;margin-bottom:16px;">' + list + '</div>' +
-      '<button id="beauty-again" style="width:100%;padding:13px;margin-bottom:8px;background:linear-gradient(135deg,#ff9ccf,#C084FC);border:none;border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:\'Noto Sans KR\',sans-serif;">💄 한 번 더 (⚡' + STAMINA_COST + ')</button>' +
+      '<button id="beauty-again" style="width:100%;padding:13px;margin-bottom:8px;background:linear-gradient(135deg,#ff9ccf,#C084FC);border:none;border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:\'Noto Sans KR\',sans-serif;">' + '<img src="beauty-puff.png" alt="" style="width:20px;height:20px;object-fit:contain;vertical-align:-4px;margin-right:4px;" onerror="this.outerHTML=\'💄\'">' + '한 번 더 (⚡' + STAMINA_COST + ')</button>' +
       '<button id="beauty-close" style="width:100%;padding:12px;background:rgba(255,255,255,0.1);border:none;border-radius:12px;color:#ccc;font-size:14px;cursor:pointer;font-family:\'Noto Sans KR\',sans-serif;">확인</button>' +
       '</div></div>';
     document.getElementById('beauty-close').onclick = function () { ov.remove(); };
