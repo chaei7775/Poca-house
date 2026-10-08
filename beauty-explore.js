@@ -299,7 +299,9 @@
       emoji = typeof getMaterialEmoji === 'function' ? getMaterialEmoji(d.name) : '✨';
     }
     S.collected.push(label);
-    S.pops.push({ x: x, y: y, text: emoji + ' ' + label + (d.isRare ? ' ✨' : ''), t: 0, screen: true });
+    // 재료는 그림(mat-*.png)으로: 이모지를 빼고 그림을 앞에 그린다 (그림이 없으면 이모지로)
+    var pic = (!d.isWish && typeof window.matImage === 'function') ? window.matImage(d.name) : null;
+    S.pops.push({ x: x, y: y, text: (pic ? '' : emoji + ' ') + label.replace(/^[^\w가-힣\[]+/, '') + (d.isRare ? ' ✨' : ''), pic: pic, t: 0, screen: true });
   }
 
   // ── 매 프레임 ──
@@ -453,8 +455,17 @@
       c.font = '900 14px "Noto Sans KR",sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle';
       c.lineWidth = 4; c.strokeStyle = 'rgba(0,0,0,0.7)';
       var tx = clamp(p.x, 70, W - 70), ty = p.y - p.t * 40;
-      c.strokeText(p.text, tx, ty);
-      c.fillStyle = p.bad ? '#ff8a8a' : '#fff'; c.fillText(p.text, tx, ty);
+      if (p.pic && p.pic._ok) {
+        var tw2 = c.measureText(p.text).width, isz = 30, gap = 4, left = tx - (tw2 + isz + gap) / 2;
+        c.textAlign = 'left';
+        c.drawImage(p.pic, left, ty - isz / 2, isz, isz);
+        c.strokeText(p.text, left + isz + gap, ty);
+        c.fillStyle = p.bad ? '#ff8a8a' : '#fff'; c.fillText(p.text, left + isz + gap, ty);
+        c.textAlign = 'center';
+      } else {
+        c.strokeText(p.text, tx, ty);
+        c.fillStyle = p.bad ? '#ff8a8a' : '#fff'; c.fillText(p.text, tx, ty);
+      }
     });
     c.globalAlpha = 1;
 
