@@ -1085,6 +1085,14 @@
         if (!a) continue;
         var ok = false;
         try { ok = !!a.detect(); } catch (e) {}
+        // 챕터 이야기는 순서 상관없이: 먼저 한 일부터 이야기가 나옴 (길잡이·메인퀘스트 순서와 어긋나지 않게)
+        if (!ok && t.kind !== 'idol') {
+          for (var k = 0; k < t.quests.length; k++) {
+            var cand = t.quests[k];
+            if (qdone(cand.id)) continue;
+            try { if (cand.detect()) { a = cand; ok = true; break; } } catch (e) {}
+          }
+        }
         if (ok) {
           completeQuest(a.id, QUESTS[a.id]);
           enqueue(a.id, true);

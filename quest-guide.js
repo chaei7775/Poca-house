@@ -74,6 +74,10 @@
   // done(): 완료 판정 / go(): [가기] 눌렀을 때 이동 / target: 홈에서 반짝일 버튼
   var REWARD_MULT = 5;
   var STEPS = [
+    { id: 'alba', icon: '🍔', title: '알바로 첫 코인 벌기',
+      hint: '주머니가 텅 비었어요! 선물과 뽑기에 쓸 코인부터 벌어봐요. 🍔 알바하기 → 포카버거나 카페에서 게이지가 가운데 구간에 올 때 화면을 탭!',
+      done: function () { try { return albaDone > 0 || quest('tut_alba') || story('story_04'); } catch (e) { return false; } }, reward: 200,
+      go: function () { goTo('alba'); }, target: '.btn-alba' },
     { id: 'gacha', icon: '✨', title: '카드 1장 뽑기',
       hint: '🎟️ 뽑기권이 있어요! ✨ 카드 뽑기에서 첫 아이돌을 만나봐요. 첫 뽑기는 좋은 카드가 나와요.',
       done: function () { try { return owned.length >= 1 || quest('tut_gacha') || story('story_05'); } catch (e) { return false; } }, reward: 100,
@@ -88,10 +92,6 @@
       done: function () { return quest('tut_gift'); }, reward: 200,
       go: function () { if (!hasGift() && typeof window.openShop === 'function') window.openShop('gift'); else goTo('bond'); },
       target: '#nav-bond', noGiftTarget: '#nav-shop' },
-    { id: 'alba', icon: '🍔', title: '알바로 첫 코인 벌기',
-      hint: '선물과 뽑기에 쓸 코인을 벌어봐요. 🍔 알바하기 → 포카버거나 카페에서 게이지가 가운데 구간에 올 때 화면을 탭!',
-      done: function () { try { return albaDone > 0 || quest('tut_alba') || story('story_04'); } catch (e) { return false; } }, reward: 200,
-      go: function () { goTo('alba'); }, target: '.btn-alba' },
     { id: 'drink', icon: '🧃', title: '사과주스 마셔서 스태미나 채우기',
       hint: '🎒 가방 → 🧃 사과주스 → 사용하기. 스태미나(⚡)가 있어야 탐험을 나갈 수 있어요. 퀘스트를 깨면 주스를 계속 줘요!',
       done: function () { return quest('tut_drink'); }, reward: 200,
