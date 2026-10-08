@@ -198,6 +198,8 @@
   hookLater('giveGift', function () { flag('gift'); });
   hookLater('doRecombine', function () { flag('recombine'); });
   hookLater('useDrinkFromBag', function () { flag('drink'); });
+  // 어떤 경로로 가방 음료를 눌러도 '이미 가득 찼어요' 안내가 뜨면 드링크 사용으로 인정 (다른 파일이 useDrinkFromBag 을 덮어써도 동작)
+  hookLater('showBagToast', function (msg) { if (/스태미나가 이미 가득/.test(String(msg || ''))) { try { window.dispatchEvent(new Event('ph-drink-tried')); } catch (e) {} } });
   try { window.addEventListener('ph-drink-tried', function () { flag('drink'); }); } catch (e) {}   // 스태미나가 가득 차서 못 마신 경우도 완료
   hookLater('expandBag', function () { flag('bag'); });
   hookLater('startSpecialExplore', function () { flag('expedition'); });
