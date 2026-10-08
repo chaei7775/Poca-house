@@ -1608,7 +1608,7 @@ let playerLevel = parseInt(localStorage.getItem('ph_playerLevel') || '1');
 // 초반(Lv1~4)은 천천히: 한 번에 여러 레벨이 오르지 않게 (해금 콘텐츠가 한꺼번에 열리는 것 방지)
 const EARLY_EXP_REQ = { 1: 20, 2: 120, 3: 250, 4: 400 };
 // 레벨업 필요 경험치 배율 (1 = 원래, 0.5 = 절반). 숫자만 바꾸면 전체 레벨업 속도가 바뀜
-const EXP_REQ_MULT = 0.5;
+const EXP_REQ_MULT = 1;
 function getExpRequired(level) {
   return Math.max(1, Math.round((EARLY_EXP_REQ[level] || 20 * level * level) * EXP_REQ_MULT));
 }
