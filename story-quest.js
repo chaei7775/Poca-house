@@ -218,7 +218,7 @@
            'n:"이름이 불리면, 사람은 돌아온다."',
            'n:누가 썼는지는 알 수 없었다.']),
         q('s2_3', '전설의 섬', '🏝️ 신비의 섬을 열어보자.', 400, 50,
-          function () { return qdone('main_mystery') || anyGate(3); },
+          function () { return qdone('main_mystery') || localStorage.getItem('ph_mystery_seen') === '1'; },
           ['i:신비의 섬에 가봐. 거기에 네가 찾는 게 있을 거야.',
            'p:섬이라니, 지도에도 없는데.',
            'i:마음이 열려야 보이는 곳이래. 이제 네 앞에 나타날 거야.'], 'harin'),

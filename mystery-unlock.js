@@ -19,8 +19,7 @@
   function questPing() {
     try {
       if (typeof checkQuestProgress === 'function' && unlocked()) {
-        checkQuestProgress('affection_level_2');
-        checkQuestProgress('mystery_island_unlock');
+        checkQuestProgress('affection_level_2');   // (신비의 섬 퀘스트는 '열렸을 때'가 아니라 실제로 들어갔을 때 완료)
       }
     } catch (e) {}
   }

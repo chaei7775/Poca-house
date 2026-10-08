@@ -1902,7 +1902,6 @@ function checkAffectionLevelUp(charId, beforeInfo) {
     showBagToast(`💞 ${ch.name} ${after.stage} Lv.${after.level} 달성!`);
     if (after.totalExp >= MYSTERY_UNLOCK_EXP) {
       checkQuestProgress('affection_level_2');
-      checkQuestProgress('mystery_island_unlock');
     }
   }
 }
