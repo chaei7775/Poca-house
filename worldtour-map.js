@@ -5,7 +5,7 @@
 //  · 보스는 머리 위에 기술 이름이 뜨고 바닥에 붉은 예고가 떠요 → 피하기
 //      📸 몰카 촬영(부채꼴) · 🚗 미행 돌진(일직선) · 📞 전화 폭탄(원형 장판) · 🎁 수상한 선물(🎀 리본만 진짜)
 //      🧑‍🤝‍🧑 사생 부대 소환(졸개를 먼저 안 잡으면 보스 피해 30%) · 📡 도청기(느려짐 장판) · 📱 라이브 방송(광폭화: 안전지대)
-//  · 체력 70% / 40% / 10% 에서 페이즈가 바뀌고 기술이 늘어요. 제한시간 150초
+//  · 체력 70% / 40% / 10% 에서 페이즈가 바뀌고 기술이 늘어요. 제한시간 180초
 //  · 졸개가 쓰러지면 가끔 🎁 상자 → 걸어가서 주워요
 // 보상: 🧩 소원의 조각 · 🔨 강화석 · 🔹 재조합석 · 🔶 공방의 원석 · 🖼️ 프리미엄 조각 · 코인 · 카드 경험치
 // ✏️ 값 바꾸는 곳: 아래 [설정] 과 SKD(스킬 성능) / ATK·PHASE_POOL(보스 기술)
@@ -16,16 +16,16 @@
   var NEED_LEVEL = 35;       // 열리는 플레이어 레벨
   var STAMINA = 150;         // 입장 스태미나
   var DAILY = 3;             // 하루 보상 100% 횟수
-  var BOSS_HP = 4000;        // 보스 체력
-  var HEARTS = 4;            // 내 하트
+  var BOSS_HP = 2800;        // 보스 체력
+  var HEARTS = 5;            // 내 하트
   var LV_DMG = 0.02;         // 플레이어 레벨 1당 데미지 증가 (Lv.35 기준)
-  var WIN_COIN = 120000, WIN_EXP = 1900;
-  var PIECE_CHANCE = 0.75, PIECE_BONUS = 0.3;   // 프리미엄 조각
-  var WISH_WIN = 2, WISH_BONUS = 0.5;            // 소원의 조각 (기본 개수, 한 개 더 줄 확률)
-  var STONE_WIN = 1, STONE_BONUS = 0.5;           // 강화석 (기본 개수, 한 개 더 줄 확률)
-  var EPIC_STONE_CHANCE = 0.3;                   // 💠 에픽 재조합석 확률
-  var RECOMB_N = 2, ONGSTONE_N = 2;              // 🔹 재조합석 / 🔶 공방의 원석 개수
-  var LOSE_RATE = 0.6;       // 졌을 때: 깎은 비율 × 이 값 만큼의 보상
+  var WIN_COIN = 200000, WIN_EXP = 3000;
+  var PIECE_CHANCE = 0.9, PIECE_BONUS = 0.4;   // 프리미엄 조각
+  var WISH_WIN = 3, WISH_BONUS = 0.5;            // 소원의 조각 (기본 개수, 한 개 더 줄 확률)
+  var STONE_WIN = 2, STONE_BONUS = 0.5;           // 강화석 (기본 개수, 한 개 더 줄 확률)
+  var EPIC_STONE_CHANCE = 0.45;                   // 💠 에픽 재조합석 확률
+  var RECOMB_N = 3, ONGSTONE_N = 3;              // 🔹 재조합석 / 🔶 공방의 원석 개수
+  var LOSE_RATE = 0.8;       // 졌을 때: 깎은 비율 × 이 값 만큼의 보상
   var SK = [
     { id: 'highlight', lv: 20, icon: '🎤', name: '하이라이트' },
     { id: 'wink', lv: 25, icon: '💖', name: '윙크' },
@@ -57,16 +57,16 @@
     rose:      { range: 440, dmg: 200, cd: 4.2, aoe: true },
     finale:    { range: 520, dmg: 320, cd: 6.5, aoe: true, stun: 2 }
   };
-  var BOSS_R = 58, PLAYER_R = 20, SPEED = 175, TIME_LIMIT = 150, INV = 1.3;
+  var BOSS_R = 58, PLAYER_R = 20, SPEED = 175, TIME_LIMIT = 180, INV = 1.3;
   // 보스 기술 (name = 머리 위에 뜨는 이름 / warn = 예고 시간 초)
   var ATK = {
-    cam:   { name: '📸 몰카 촬영',   warn: 2.0 },
-    dash:  { name: '🚗 미행 돌진',   warn: 1.5 },
-    phone: { name: '📞 전화 폭탄',   warn: 2.0 },
-    gift:  { name: '🎁 수상한 선물', warn: 1.0 },
-    squad: { name: '🧑‍🤝‍🧑 사생 부대 소환', warn: 1.4 },
-    bug:   { name: '📡 도청기 설치', warn: 1.2 },
-    live:  { name: '📱 라이브 방송 켜기!', warn: 3.0 }
+    cam:   { name: '📸 몰카 촬영',   warn: 2.25 },
+    dash:  { name: '🚗 미행 돌진',   warn: 1.75 },
+    phone: { name: '📞 전화 폭탄',   warn: 2.25 },
+    gift:  { name: '🎁 수상한 선물', warn: 1.25 },
+    squad: { name: '🧑‍🤝‍🧑 사생 부대 소환', warn: 1.65 },
+    bug:   { name: '📡 도청기 설치', warn: 1.45 },
+    live:  { name: '📱 라이브 방송 켜기!', warn: 3.25 }
   };
   var PHASE_POOL = [['cam', 'dash'], ['cam', 'dash', 'phone', 'gift'], ['cam', 'dash', 'phone', 'gift', 'squad', 'bug'], ['live', 'cam', 'phone', 'dash']];
   var SAYS = ['오늘도 찍었다!', '내 사랑은 정당해!', '왜 도망가? 응원하는 건데!', '다 알고 있어, 네 스케줄!', '조금만 더 가까이…!'];
@@ -379,7 +379,11 @@
         items.push({ emoji: '🔹', name: '재조합석', cat: 'material', qty: RECOMB_N, desc: '카드 재조합에 필요한 재료' });
         items.push({ emoji: '🔶', name: '공방의 원석', cat: 'material', qty: ONGSTONE_N, desc: '굿즈 공방 제작 재료 · 탐험·원정에서 나와요' });
         if (Math.random() < EPIC_STONE_CHANCE) items.push({ emoji: '💠', name: '에픽 재조합석', cat: 'material', qty: 1, desc: 'SSR/UR 카드 재조합에 필요한 재료' });
-      } else { coin = Math.round(WIN_COIN * done * LOSE_RATE); exp = Math.round(WIN_EXP * done * LOSE_RATE); }
+      } else {
+        coin = Math.round(WIN_COIN * done * LOSE_RATE); exp = Math.round(WIN_EXP * done * LOSE_RATE);
+        if (done >= 0.3) { wish = 1; items.push({ emoji: '🔹', name: '재조합석', cat: 'material', qty: 1, desc: '카드 재조합에 필요한 재료' }); }   // 위로 보상
+        if (done >= 0.6) { stone = 1; wish = 2; }
+      }
       setTimeout(function () {
         wrap.remove();
         ctx.finish(ExpKit.mergeLoot({
@@ -398,7 +402,7 @@
     window.ExpKit.register({
       id: 'world_tour', bg: 'special-world_tour.jpg', name: '월드투어 스타디움', emoji: '🏟️', color: '#f472b6', needLevel: NEED_LEVEL, stamina: STAMINA, daily: DAILY,
       tagline: '탑뷰 보스전! 소원의 조각·강화석·재조합석', gearChance: 0.45, gearMin: 'great',
-      intro: ['무대에 <b>사생팬 보스</b>가 나타났어요! 화면을 <b>누르거나 끌면</b> 멤버가 걸어가요. 아래 <b>스킬 버튼</b>으로 보스를 공격해요 (사거리 안에서만 먹혀요).', '보스는 머리 위에 <b>기술 이름</b>이 뜨고, 바닥에 <b>붉은 예고</b>가 떠요. 맞기 전에 피하세요! ❤️는 4개예요. 📸 몰카(부채꼴) · 🚗 돌진(일직선) · 📞 전화 폭탄(원) · 🎁 수상한 선물(🎀 리본만 진짜)', '체력이 줄면 <b>페이즈</b>가 바뀌고 🧑‍🤝‍🧑 사생 부대(졸개를 먼저 안 잡으면 보스 피해 30%), 📡 도청기, 마지막엔 📱 <b>라이브 광폭화</b>(초록 안전지대로 대피!)가 나와요. 제한시간 150초.', '스킬은 <b>그 멤버가 배운 스킬</b>만 써요 (🔒는 스킬 상점에서 배우면 열려요). 광역 스킬일수록 사거리와 위력이 커요. 🎆 불꽃쇼는 보스를 2초 기절시켜요!', '졸개를 쓰러뜨리면 가끔 🎁 <b>상자</b>가 떨어져요 → 걸어가서 주워요. 보스를 쓰러뜨리면 🧩 <b>소원의 조각</b>, 🔨 <b>강화석</b>, 🔹 <b>재조합석</b>, 🔶 <b>원석</b>, <b>프리미엄 조각</b>, 가끔 💠 <b>에픽 재조합석</b>!'],
+      intro: ['무대에 <b>사생팬 보스</b>가 나타났어요! 화면을 <b>누르거나 끌면</b> 멤버가 걸어가요. 아래 <b>스킬 버튼</b>으로 보스를 공격해요 (사거리 안에서만 먹혀요).', '보스는 머리 위에 <b>기술 이름</b>이 뜨고, 바닥에 <b>붉은 예고</b>가 떠요. 맞기 전에 피하세요! ❤️는 5개예요. 📸 몰카(부채꼴) · 🚗 돌진(일직선) · 📞 전화 폭탄(원) · 🎁 수상한 선물(🎀 리본만 진짜)', '체력이 줄면 <b>페이즈</b>가 바뀌고 🧑‍🤝‍🧑 사생 부대(졸개를 먼저 안 잡으면 보스 피해 30%), 📡 도청기, 마지막엔 📱 <b>라이브 광폭화</b>(초록 안전지대로 대피!)가 나와요. 제한시간 180초.', '스킬은 <b>그 멤버가 배운 스킬</b>만 써요 (🔒는 스킬 상점에서 배우면 열려요). 광역 스킬일수록 사거리와 위력이 커요. 🎆 불꽃쇼는 보스를 2초 기절시켜요!', '졸개를 쓰러뜨리면 가끔 🎁 <b>상자</b>가 떨어져요 → 걸어가서 주워요. 보스를 쓰러뜨리면 🧩 <b>소원의 조각</b>, 🔨 <b>강화석</b>, 🔹 <b>재조합석</b>, 🔶 <b>원석</b>, <b>프리미엄 조각</b>, 가끔 💠 <b>에픽 재조합석</b>!'],
       play: play
     });
   }
