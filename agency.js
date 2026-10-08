@@ -55,8 +55,11 @@
     if (pity >= PITY_HARD - 1) return true;                 // 천장
     return rng() * 100 < debutChance(pity, picks, wish);
   }
-  function incomeMult(cid) {             // 히든카드 강화 배율 (enhance.js가 없으면 1배)
-    return (typeof window.getEnhanceIncomeMult === 'function') ? window.getEnhanceIncomeMult(cid) : 1;
+  var STAR_INCOME_MULT = 2;     // 🌟 드라마 촬영에서 탑스타가 된 캐릭터의 수익 배율
+  function isTopStar(cid) { try { var d = JSON.parse(localStorage.getItem('ph_drama') || '{}'); return !!(d.star && d.star[cid]); } catch (e) { return false; } }
+  function incomeMult(cid) {             // 히든카드 강화 배율 (enhance.js가 없으면 1배) × 탑스타 배율
+    var m = (typeof window.getEnhanceIncomeMult === 'function') ? window.getEnhanceIncomeMult(cid) : 1;
+    return m * (isTopStar(cid) ? STAR_INCOME_MULT : 1);
   }
   function claimable(debutTimes, now) {  // debutTimes: { charId: sinceMs }
     var sum = 0;
@@ -146,7 +149,7 @@
         (ch.img ? '<img src="' + ch.img + '" style="width:100%;height:100%;object-fit:cover;object-position:top;" onerror="this.outerHTML=\'' + ch.emoji + '\'">' : ch.emoji) + '</div>';
       var status, action;
       if (done) {
-        status = '<span style="color:#4ade80;font-weight:900;">✅ 데뷔 완료</span> <span style="color:#aaa;">· 🍔 ' + Math.round(INCOME_PER_HOUR * incomeMult(cid)).toLocaleString() + '/시간</span>';
+        status = '<span style="color:#4ade80;font-weight:900;">✅ 데뷔 완료</span> <span style="color:#aaa;">· 🍔 ' + Math.round(INCOME_PER_HOUR * incomeMult(cid)).toLocaleString() + '/시간</span>' + (isTopStar(cid) ? ' <span style="color:#ffd76a;font-weight:900;">🌟 탑스타 ×' + STAR_INCOME_MULT + '</span>' : '');
         action = '';
       } else if (!have) {
         status = '<span style="color:#888;">🔒 카드를 뽑아야 연습생이 돼요</span>';
