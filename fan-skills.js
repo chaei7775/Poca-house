@@ -675,7 +675,7 @@
   function buildBar(view) {
     var note = document.createElement('div');
     note.id = 'fs-note';
-    note.style.cssText = 'display:none;position:absolute;top:92px;left:10px;right:10px;z-index:30;background:rgba(26,26,46,.92);border:1.5px solid #FF6B9D;border-radius:14px;padding:8px 12px;color:#fff;font-size:12px;font-weight:900;text-align:center;pointer-events:none;';
+    note.style.cssText = 'display:none;position:absolute;bottom:158px;left:10px;right:10px;z-index:30;background:rgba(26,26,46,.92);border:1.5px solid #FF6B9D;border-radius:14px;padding:8px 12px;color:#fff;font-size:12px;font-weight:900;text-align:center;pointer-events:none;';
     view.appendChild(note);
 
     var bar = document.createElement('div');
