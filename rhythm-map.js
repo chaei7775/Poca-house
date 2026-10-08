@@ -159,7 +159,7 @@
   function reg() {
     if (!window.ExpKit) { setTimeout(reg, 100); return; }
     window.ExpKit.register({
-      id: 'rhythm_stage', name: '음악방송 리허설장', emoji: '🎧', color: '#a78bfa', needLevel: NEED_LEVEL, stamina: STAMINA, daily: DAILY,
+      id: 'rhythm_stage', bg: 'special-rhythm_stage.jpg', name: '음악방송 리허설장', emoji: '🎧', color: '#a78bfa', needLevel: NEED_LEVEL, stamina: STAMINA, daily: DAILY,
       tagline: '리듬에 맞춰 터치! 작곡 재료 파밍',
       intro: ['내려오는 <b>음표</b>가 아래 선에 닿을 때 그 줄을 <b>눌러요</b> (4줄).', '정확할수록 <b>PERFECT</b>! 점수가 높으면 랭크 S·A·B·C.', '랭크가 높을수록 🎼 <b>작곡 재료</b>가 많이 나와요. S 랭크는 <b>영감의불꽃</b>도 잘 나와요.', '한 곡은 약 45초. 코인과 카드 경험치도 받아요.'],
       play: play

@@ -151,7 +151,7 @@
   function reg() {
     if (!window.ExpKit) { setTimeout(reg, 100); return; }
     window.ExpKit.register({
-      id: 'world_tour', name: '월드투어 스타디움', emoji: '🏟️', color: '#f472b6', needLevel: NEED_LEVEL, stamina: STAMINA, daily: DAILY,
+      id: 'world_tour', bg: 'special-world_tour.jpg', name: '월드투어 스타디움', emoji: '🏟️', color: '#f472b6', needLevel: NEED_LEVEL, stamina: STAMINA, daily: DAILY,
       tagline: '광역 스킬 연속 응대! 프리미엄 조각·소원의 조각',
       intro: ['보스 머리 위에 뜨는 <b>스킬 순서</b>를 그대로 아래 버튼으로 눌러요.', '성공하면 보스 게이지가 깎여요. <b>연속 성공</b>할수록 데미지가 커져요!', '틀리거나 시간이 끝나면 ❤️가 깎여요 (5개). 단계가 오를수록 순서가 <b>3→4→5개</b>로 길어져요.', '쓸 수 있는 스킬은 <b>플레이어 레벨</b>로 정해져요: 🎤20 💖25 ✨30 🌹35 🎆40 (Lv.40이면 🎆 불꽃쇼가 들어간 줄은 데미지 ×1.4)', '보스를 쓰러뜨리면 <b>프리미엄 조각</b>·<b>소원의 조각</b>이 나와요.'],
       play: play

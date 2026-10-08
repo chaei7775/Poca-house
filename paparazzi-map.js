@@ -195,7 +195,7 @@
   function reg() {
     if (!window.ExpKit) { setTimeout(reg, 100); return; }
     window.ExpKit.register({
-      id: 'paparazzi_run', name: '파파라치 탈출', emoji: '🕵️', color: '#38bdf8', needLevel: NEED_LEVEL, stamina: STAMINA, daily: DAILY,
+      id: 'paparazzi_run', bg: 'special-paparazzi_run.jpg', name: '파파라치 탈출', emoji: '🕵️', color: '#38bdf8', needLevel: NEED_LEVEL, stamina: STAMINA, daily: DAILY,
       tagline: '카메라 시야를 피해 출구까지! 강화석·방지권',
       intro: ['화면을 <b>누른 채 끌면</b> 걸어가요. 맨 위 <b>🚪 출구</b>가 목표!', '파파라치의 <b>노란 시야</b>에 오래 있으면 📸 찰칵! <b>3번</b> 찍히면 실패예요.', '길 위의 🎁 <b>선물 상자</b>를 먹으면 코인이나 강화석이 나와요.', '스킬 버튼: 💖<b>윙크</b>(Lv.25) 가까운 카메라 정지 · ✨<b>폭죽</b>(Lv.30) 전부 정지 · 🌹<b>장미</b>(Lv.35) 오래 정지', '성공하면 <b>강화석</b>과 가끔 <b>방지권</b>이 나와요.'],
       play: play

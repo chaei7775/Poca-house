@@ -44,7 +44,7 @@
     ov.appendChild(root);
     var d = daily(cfg);
     var intro = document.createElement('div');
-    intro.style.cssText = 'position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:16px;overflow:auto;background:radial-gradient(circle at 50% 20%,' + cfg.color + '33,#0b0716 70%);';
+    intro.style.cssText = 'position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:16px;overflow:auto;background:linear-gradient(rgba(8,4,18,.78),rgba(8,4,18,.9)),url(' + IMG_BASE + (cfg.bg || 'map-fanrush.png') + ') center/cover;';
     intro.innerHTML = '<div style="width:100%;max-width:340px;text-align:center;">' +
       '<div style="font-size:46px;">' + cfg.emoji + '</div>' +
       '<div style="font-size:20px;font-weight:900;margin:4px 0 2px;">' + cfg.name + '</div>' +
