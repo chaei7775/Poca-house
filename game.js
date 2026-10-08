@@ -865,11 +865,13 @@ function tapBurgerIngredient() { const step = BURGER_MENUS[burgerMenuIdx].steps[
 function startBurgerGauge() {
   stopBurgerGauge();
   burgerGaugePos = 0; burgerGaugeDir = 1; burgerGaugeLocked = false;
-  function tick() {
+  let lastTs = 0;
+  function tick(ts) {
     const m = document.getElementById('burger-gauge-marker');
     if (!m) { burgerGaugeAnimId = null; return; }
-    // v0.2 밸런스: 속도 1.4 → 1.8
-    burgerGaugePos += burgerGaugeDir * 1.8;
+    // 속도는 '시간' 기준 (초당 108칸 = 60Hz 화면의 프레임당 1.8). 120Hz 폰에서도 같은 속도
+    const dt = lastTs ? Math.min(ts - lastTs, 50) : 16.67; lastTs = ts;
+    burgerGaugePos += burgerGaugeDir * 0.108 * dt;
     if (burgerGaugePos >= 100) { burgerGaugePos = 100; burgerGaugeDir = -1; }
     if (burgerGaugePos <= 0) { burgerGaugePos = 0; burgerGaugeDir = 1; }
     m.style.left = burgerGaugePos + '%';
@@ -968,10 +970,12 @@ function startCafeGaugeLoop() {
   cafeGaugePos = 0; cafeGaugeDir = 1; cafeGaugeLocked = false;
   cafeGaugeRunning = true;
   // v0.2 밸런스: 속도 1.4 → 1.8
-  const speed = 1.8;
-  function tick() {
+  const speed = 0.108;   // 칸/ms (60Hz 기준 프레임당 1.8과 같은 속도, 120Hz 폰에서도 동일)
+  let lastTs = 0;
+  function tick(ts) {
     if (cafeStep > 1) { stopCafeGauge(); return; }
-    cafeGaugePos += cafeGaugeDir * speed;
+    const dt = lastTs ? Math.min(ts - lastTs, 50) : 16.67; lastTs = ts;
+    cafeGaugePos += cafeGaugeDir * speed * dt;
     if (cafeGaugePos >= 100) { cafeGaugePos = 100; cafeGaugeDir = -1; }
     if (cafeGaugePos <= 0) { cafeGaugePos = 0; cafeGaugeDir = 1; }
     const m = document.getElementById('cafe-gauge-marker');
