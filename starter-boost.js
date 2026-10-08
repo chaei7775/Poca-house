@@ -7,7 +7,7 @@
   // ── 여기 숫자만 바꾸면 됨 ──
   var STARTER_STAMINA = 300;                 // 새 계정 시작 스태미나
   var DRINK_EMOJI = '🧃', DRINK_NAME = '사과주스';
-  var REWARDS = {                            // 퀘스트 조건 → 사과주스 개수 (1개 = 스태미나 +30)
+  var REWARDS = {                            // 퀘스트 조건 → 사과주스 개수 (1개 = 스태미나 +100)
     first_alba: 2,      // 첫 알바
     first_gacha: 3,     // 첫 카드 뽑기
     first_meet: 3,      // 첫 아이돌 만남/선물
@@ -41,7 +41,7 @@
       if (localStorage.getItem(FLAG) !== '1') return;
       var given = JSON.parse(localStorage.getItem(GIVEN) || '{}');
       if (given[cond]) return;
-      if (!addToBag(DRINK_EMOJI, DRINK_NAME, 'drink', n, '스태미나 +30 회복 음료')) return; // 가방이 꽉 차면 다음 기회에
+      if (!addToBag(DRINK_EMOJI, DRINK_NAME, 'drink', n, '스태미나 +100 회복 음료')) return; // 가방이 꽉 차면 다음 기회에
       given[cond] = 1;
       localStorage.setItem(GIVEN, JSON.stringify(given));
       setTimeout(function () {

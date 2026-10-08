@@ -1560,7 +1560,7 @@ async function saveNickname() {
 
 // ── 출석 시스템 (보상 → 가방으로) ──
 const ATTEND_REWARDS = {
-  1:  { emoji: '🎁', text: '코인 1000개 + 사과주스 3개', coins: 1000, items: [{ emoji:'🍎', name:'사과주스', type:'drink', qty:3, desc:'스태미나 +10 회복 음료' }] },
+  1:  { emoji: '🎁', text: '코인 1000개 + 사과주스 3개', coins: 1000, items: [{ emoji:'🍎', name:'사과주스', type:'drink', qty:3, desc:'스태미나 +100 회복 음료' }] },
   7:  { emoji: '🌟', text: '소원조각 1개 + 코인 500개', coins: 500, items: [{ emoji:'🧩', name:'소원의 조각', type:'wish', qty:1, desc:'100개 모으면 소원 완성!' }] },
   14: { emoji: '🎀', text: '코인 800개 + 스태미나 회복', coins: 800, items: [] },
   21: { emoji: '🎴', text: '프리미엄 선물권 + 코인 1000개', coins: 1000, items: [{ emoji:'🎴', name:'프리미엄 선물권', type:'gift', qty:1, desc:'어떤 캐릭터에게도 선물 가능한 특별 아이템' }] },
