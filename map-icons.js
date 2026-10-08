@@ -22,9 +22,31 @@
     ['특별 탐험', 'special'], ['팬덤 원정', 'fandom'], ['방송국 앞', 'broadcast'], ['팬미팅장', 'fanmeeting'], ['콘서트', 'concert'],
     ['천공성 유적', 'skyruins'], ['달빛 회랑', 'moonlit'], ['공방 지하', 'workshop']
   ].sort(function (a, b) { return b[0].length - a[0].length; });
-  var ROOTS = '#screen-map,#place-overlay';
+  var ROOTS = '#screen-map,#place-overlay,#stamina-floating';
   var EMO = /^(\s*)((?:\p{Extended_Pictographic}️?(?:‍\p{Extended_Pictographic}️?)*))\s*([^\s].*)$/u;
   var ONLY = /^\s*(?:\p{Extended_Pictographic}\uFE0F?(?:\u200D\p{Extended_Pictographic}\uFE0F?)*)\s*$/u;
+  // 글자 중간에 끼어 있는 작은 이모지 → 이미지 (파일이 없으면 이모지 그대로)
+  var INLINE = { '⚡': 'vip-bolt.png', '🧩': 'mat-wishpiece.png', '🖼️': 'mat-premiumpiece.png', '🖼': 'mat-premiumpiece.png' };
+  var INLINE_RE = /(🖼️|🖼|⚡|🧩)/;
+  var fileOk = {}, fileWait = {};
+  function probeFile(f) {
+    if (fileWait[f]) return; fileWait[f] = true;
+    var im = new Image(); im.onload = function () { fileOk[f] = true; schedule(); }; im.src = f;
+  }
+  function inline(t) {
+    var v = t.nodeValue; if (!v || !INLINE_RE.test(v)) return;
+    var parts = v.split(INLINE_RE), p = t.parentNode, did = false;
+    var frag = document.createDocumentFragment();
+    parts.forEach(function (part) {
+      var f = INLINE[part];
+      if (f && fileOk[f]) {
+        var img = document.createElement('img'); img.src = f; img.alt = ''; img.setAttribute('data-pin', 'inline');
+        img.style.cssText = 'width:1.2em;height:1.2em;object-fit:contain;vertical-align:-0.25em;pointer-events:none;';
+        frag.appendChild(img); did = true;
+      } else { if (f) probeFile(f); if (part) frag.appendChild(document.createTextNode(part)); }
+    });
+    if (did) p.replaceChild(frag, t);
+  }
   var ok = {}, bad = {}, waiting = {}, queued = false;
 
   function keyOf(text) { for (var i = 0; i < ICONS.length; i++) if (text.indexOf(ICONS[i][0]) !== -1) return ICONS[i][1]; return null; }
@@ -46,11 +68,13 @@
         var only = ONLY.exec(t.nodeValue), m = only ? null : EMO.exec(t.nodeValue), key, rest;
         if (m) { key = keyOf(m[3]); rest = m[3]; }
         else {   // 이모지만 따로 든 칸(팬덤 원정 목록 등): 옆 칸 글자로 찾는다
-          if (!only) return;
-          var host = p.nextElementSibling; if (!host) return;
+          if (!only) { inline(t); return; }
+          if (p.textContent.trim() !== t.nodeValue.trim()) { inline(t); return; }   // 이모지만 따로 든 칸일 때만
+          var host = p.nextElementSibling; if (!host) { inline(t); return; }
           key = keyOf((host.textContent || '').slice(0, 24)); rest = '';
+          if (!key) { inline(t); return; }
         }
-        if (!key || bad[key]) return;
+        if (!key || bad[key]) { inline(t); return; }
         if (!ok[key]) { probe(key); return; }
         var img = document.createElement('img');
         img.src = 'pin-' + key + '.png'; img.alt = ''; img.setAttribute('data-pin', key);
@@ -60,7 +84,7 @@
       });
     });
   }
-  function schedule() { if (queued) return; queued = true; (window.requestAnimationFrame || setTimeout)(scan); }
+  function schedule() { if (queued) return; queued = true; Promise.resolve().then(scan); }
 
   // 포카마을 지도 위의 장소 이름표: 검은 바탕 + 금색 글씨
   (function pinStyle() {
@@ -70,12 +94,18 @@
     (document.head || document.documentElement).appendChild(st);
   })();
 
+  function attach() {
+    Array.prototype.forEach.call(document.querySelectorAll(ROOTS), function (r) {
+      if (r.getAttribute('data-mi-obs')) return;
+      r.setAttribute('data-mi-obs', '1');
+      try { new MutationObserver(schedule).observe(r, { childList: true, subtree: true, characterData: true }); } catch (e) {}
+    });
+    schedule();
+  }
   function start() {
     if (!document.body) { setTimeout(start, 50); return; }
-    var roots = document.querySelectorAll(ROOTS);
-    if (!roots.length) { setTimeout(start, 200); return; }
-    Array.prototype.forEach.call(roots, function (r) { try { new MutationObserver(schedule).observe(r, { childList: true, subtree: true }); } catch (e) {} });
-    schedule();
+    attach();
+    setInterval(attach, 1500);   // 나중에 생기는 칸(스태미나 표시 등)도 붙잡기
   }
   window.__mapIcons = { ICONS: ICONS, scan: scan, ok: ok, bad: bad };
   start();
