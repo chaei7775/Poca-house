@@ -7,6 +7,7 @@
 (function () {
   'use strict';
   // ── 설정 ──
+  var BOX_EVERY = 15;         // 콤보 이만큼마다 팬이 🎁 상자를 던져요 (떨어지는 동안 눌러서 줍기)
   var NEED_LEVEL = 25;        // 열리는 플레이어 레벨
   var STAMINA = 90;           // 입장 스태미나
   var DAILY = 5;              // 하루 보상 100% 횟수 (넘으면 30%)
@@ -65,8 +66,12 @@
     var c = cv.getContext('2d');
     var notes = makeSong(ctx.level), total = notes.length;
     var LINE = H - 150, LW = W / 4;
-    var st = { t0: performance.now(), t: -1.2, perfect: 0, good: 0, miss: 0, combo: 0, best: 0, fx: [], flash: [0, 0, 0, 0], over: false, shake: 0 };
+    var st = { boxes: [], loot: [], t0: performance.now(), t: -1.2, perfect: 0, good: 0, miss: 0, combo: 0, best: 0, fx: [], flash: [0, 0, 0, 0], over: false, shake: 0 };
     var face = new Image(); face.crossOrigin = 'anonymous'; face.src = ctx.face;
+    var boxImg = new Image(); boxImg.crossOrigin = 'anonymous'; boxImg._try = 0;
+    boxImg.onload = function () { boxImg._ok = true; };
+    boxImg.onerror = function () { if (boxImg._try++ === 0) boxImg.src = ctx.imgBase + 'vip-box.png'; };
+    boxImg.src = ctx.imgBase + 'fx-box.png';
     var iconImgs = LANE_MATS.map(function (n) { try { return window.matImage ? window.matImage(n) : null; } catch (e) { return null; } });
     function hit(lane) {
       st.flash[lane] = 1;
@@ -76,10 +81,13 @@
       best.hit = bd <= PERFECT ? 1 : 2;
       if (best.hit === 1) st.perfect++; else st.good++;
       st.combo++; st.best = Math.max(st.best, st.combo);
+      if (st.combo > 0 && st.combo % BOX_EVERY === 0) st.boxes.push({ x: LW * (0.6 + Math.random() * 2.8), y: 70, vy: 2.4, got: 0 });   // 팬이 응원 상자를 던져요
       st.fx.push({ x: lane * LW + LW / 2, y: LINE, txt: best.hit === 1 ? 'PERFECT' : 'GOOD', col: best.hit === 1 ? '#ffe27a' : '#8be9ff', a: 1 });
     }
     cv.addEventListener('pointerdown', function (e) {
-      var r = cv.getBoundingClientRect(), x = (e.clientX - r.left) / r.width * W;
+      var r = cv.getBoundingClientRect(), x = (e.clientX - r.left) / r.width * W, y = (e.clientY - r.top) / r.height * H;
+      var bx = st.boxes.filter(function (b) { return !b.got && Math.hypot(b.x - x, b.y - y) < 40; })[0];
+      if (bx) { bx.got = 1; var l = ExpKit.rollLoot(); st.loot.push(l); st.fx.push({ x: bx.x, y: bx.y + 40, txt: l.txt, col: '#ffe27a', a: 1.6 }); e.preventDefault(); return; }
       hit(Math.max(0, Math.min(3, Math.floor(x / LW))));
       e.preventDefault();
     });
@@ -91,10 +99,10 @@
       cancelAnimationFrame(raf);
       setTimeout(function () {
         cv.remove();
-        ctx.finish({
+        ctx.finish(ExpKit.mergeLoot({
           win: g !== 'C', title: '랭크 ' + g, coin: COIN[g], exp: EXP[g], items: rollKinds(MATS_N[g], luck).concat(extraItems(g)),
-          summary: 'PERFECT ' + st.perfect + ' · GOOD ' + st.good + ' · MISS ' + st.miss + '<br>최대 콤보 ' + st.best + ' · 정확도 ' + Math.round(acc * 100) + '%'
-        });
+          summary: 'PERFECT ' + st.perfect + ' · GOOD ' + st.good + ' · MISS ' + st.miss + '<br>최대 콤보 ' + st.best + ' · 정확도 ' + Math.round(acc * 100) + '%<br>🎁 주운 상자 ' + st.loot.length + '개'
+        }, st.loot));
       }, 400);
     }
     var raf = 0;
@@ -143,6 +151,13 @@
         if (ii && ii._ok) c.drawImage(ii, bx - br * 0.7, by - br * 0.7, br * 1.4, br * 1.4);
         else { c.font = Math.round(br) + 'px sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillStyle = '#fff'; c.fillText(LANE_EMO[b], bx, by + 1); }
       }
+      // 팬이 던진 상자
+      st.boxes.forEach(function (b) {
+        if (b.got) return; b.y += b.vy;
+        if (boxImg._ok) c.drawImage(boxImg, b.x - 26, b.y - 26, 52, 52);
+        else { c.font = '40px sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('🎁', b.x, b.y); }
+      });
+      st.boxes = st.boxes.filter(function (b) { return !b.got && b.y < H + 40; });
       // 이펙트
       st.fx.forEach(function (f) { f.y -= 1.2; f.a -= 0.035; if (f.a > 0) { c.globalAlpha = f.a; c.fillStyle = f.col; c.font = '900 16px sans-serif'; c.textAlign = 'center'; c.fillText(f.txt, f.x, f.y - 30); c.globalAlpha = 1; } });
       st.fx = st.fx.filter(function (f) { return f.a > 0; });
@@ -169,7 +184,7 @@
     window.ExpKit.register({
       id: 'rhythm_stage', bg: 'special-rhythm_stage.jpg', name: '음악방송 리허설장', emoji: '🎧', color: '#a78bfa', needLevel: NEED_LEVEL, stamina: STAMINA, daily: DAILY,
       tagline: '리듬 터치! 작곡 재료·재조합석·필름',
-      intro: ['내려오는 <b>음표</b>가 아래 선에 닿을 때 그 줄을 <b>눌러요</b> (4줄).', '정확할수록 <b>PERFECT</b>! 점수가 높으면 랭크 S·A·B·C.', '랭크가 높을수록 🎼 <b>작곡 재료</b>가 많이 나와요. S 랭크는 <b>영감의불꽃</b>도 잘 나와요.', '🔹 <b>재조합석</b>과 🎞️ <b>필름</b>도 랭크에 따라 같이 나와요.', '한 곡은 약 45초. 코인과 카드 경험치도 받아요.'],
+      intro: ['내려오는 <b>음표</b>가 아래 선에 닿을 때 그 줄을 <b>눌러요</b> (4줄).', '정확할수록 <b>PERFECT</b>! 점수가 높으면 랭크 S·A·B·C.', '랭크가 높을수록 🎼 <b>작곡 재료</b>가 많이 나와요. S 랭크는 <b>영감의불꽃</b>도 잘 나와요.', '🔹 <b>재조합석</b>과 🎞️ <b>필름</b>도 랭크에 따라 같이 나와요.', '콤보 15마다 팬이 🎁 <b>응원 상자</b>를 던져요! 떨어질 때 <b>눌러서</b> 주워요.', '한 곡은 약 45초. 코인과 카드 경험치도 받아요.'],
       play: play
     });
   }

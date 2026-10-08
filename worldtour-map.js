@@ -39,14 +39,14 @@
     var root = ctx.root, lv = ctx.level, imgBase = ctx.imgBase;
     var avail = SK.filter(function (s) { return lv >= s.lv; });
     var lvMul = 1 + Math.max(0, lv - 35) * LV_DMG;
-    var S = { hp: BOSS_HP, hearts: HEARTS, combo: 0, best: 0, chains: 0, seq: [], pos: 0, left: 0, total: 0, over: false, lock: false };
+    var S = { loot: [], hp: BOSS_HP, hearts: HEARTS, combo: 0, best: 0, chains: 0, seq: [], pos: 0, left: 0, total: 0, over: false, lock: false };
     var wrap = document.createElement('div');
     wrap.style.cssText = 'position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;background:radial-gradient(circle at 50% 25%,#3b1d6e,#0b0716 72%);overflow:hidden;font-family:\'Noto Sans KR\',sans-serif;';
     wrap.innerHTML =
       '<style>@keyframes wtShake{0%,100%{transform:translateX(0)}25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}' +
       '@keyframes wtHit{0%{transform:scale(1)}40%{transform:scale(1.12) rotate(-3deg)}100%{transform:scale(1)}}' +
       '@keyframes wtUp{0%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(-46px)}}' +
-      '@keyframes wtPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.14)}}</style>' +
+      '@keyframes wtFall{0%{transform:translateY(-70px);opacity:0}100%{transform:translateY(0);opacity:1}}@keyframes wtPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.14)}}</style>' +
       '<div style="width:100%;padding:12px 14px 6px;box-sizing:border-box;">' +
         '<div style="display:flex;justify-content:space-between;align-items:center;font-size:14px;font-weight:900;color:#fff;"><span>🏟️ 월드투어 스타디움</span><span id="wt-hearts" style="font-size:16px;"></span></div>' +
         '<div style="margin-top:8px;height:16px;border-radius:8px;background:rgba(255,255,255,.14);overflow:hidden;border:1px solid rgba(255,255,255,.25);"><div id="wt-hp" style="height:100%;width:100%;background:linear-gradient(90deg,#f43f5e,#f59e0b);transition:width .35s;"></div></div>' +
@@ -91,6 +91,23 @@
       drawSeq(); drawHud();
     }
     function float(t, col) { var d = q('wt-dmg'); d.style.color = col || '#ffe27a'; d.textContent = t; d.style.animation = 'none'; void d.offsetWidth; d.style.animation = 'wtUp .8s ease-out forwards'; }
+    // 🎁 팬이 만족하면 상자를 떨어뜨려요 (눌러서 줍기, 몇 초 뒤 사라짐)
+    function dropBox() {
+      if (S.over) return;
+      var d = document.createElement('div');
+      var side = Math.random() < 0.5 ? 0 : 1, x = side ? 62 + Math.random() * 14 : 10 + Math.random() * 14;
+      d.style.cssText = 'position:absolute;top:150px;left:' + x + '%;width:54px;height:62px;z-index:8;cursor:pointer;text-align:center;animation:wtFall .55s ease-in;';
+      d.innerHTML = ExpKit.boxImgHtml(50);
+      wrap.appendChild(d);
+      var gone = setTimeout(function () { d.remove(); }, 5200);
+      d.addEventListener('pointerdown', function (e) {
+        e.preventDefault(); if (d.__got) return; d.__got = true; clearTimeout(gone);
+        var l = ExpKit.rollLoot(); S.loot.push(l);
+        d.innerHTML = '<div style="font-size:11px;font-weight:900;color:#ffe27a;text-shadow:0 1px 4px #000;white-space:nowrap;margin-left:-28px;animation:wtUp .9s ease-out forwards;">' + l.txt + '</div>';
+        setTimeout(function () { d.remove(); }, 900);
+        try { if (window.pocaSfx && window.pocaSfx.play) window.pocaSfx.play('reward'); } catch (x) {}
+      });
+    }
     function bossAttack(why) {
       S.hearts--; S.combo = 0;
       var bw = q('wt-boss'); bw.style.animation = 'none'; void bw.offsetWidth; bw.style.animation = 'wtShake .35s';
@@ -116,6 +133,7 @@
         float('-' + dmg);
         q('wt-say').textContent = S.combo >= 3 ? '🔥 연속 응대! 팬들이 열광해요' : '성공! 팬이 만족해요';
         drawHud();
+        if (Math.random() < 0.7) dropBox();   // 팬이 만족하면 상자를 떨어뜨림
         if (S.hp <= 0) return end(true);
         S.lock = true; setTimeout(newSeq, 350);
       }
@@ -143,10 +161,10 @@
       } else { coin = Math.round(WIN_COIN * done * LOSE_RATE); exp = Math.round(WIN_EXP * done * LOSE_RATE); }
       setTimeout(function () {
         wrap.remove();
-        ctx.finish({
+        ctx.finish(ExpKit.mergeLoot({
           win: win, title: win ? '월드투어 대성공!' : '다음엔 꼭!', coin: coin, exp: exp, items: items, stone: stone, wish: wish,
-          summary: win ? '최대 ' + S.best + '연속 · 성공한 줄 ' + S.chains + '번 · 남은 하트 ' + S.hearts : '보스 체력을 ' + Math.round(done * 100) + '% 깎았어요 (성공 ' + S.chains + '번)'
-        });
+          summary: (win ? '최대 ' + S.best + '연속 · 성공한 줄 ' + S.chains + '번 · 남은 하트 ' + S.hearts : '보스 체력을 ' + Math.round(done * 100) + '% 깎았어요 (성공 ' + S.chains + '번)') + '<br>🎁 주운 상자 ' + S.loot.length + '개'
+        }, S.loot));
       }, 700);
     }
     newSeq();
@@ -158,7 +176,7 @@
     window.ExpKit.register({
       id: 'world_tour', bg: 'special-world_tour.jpg', name: '월드투어 스타디움', emoji: '🏟️', color: '#f472b6', needLevel: NEED_LEVEL, stamina: STAMINA, daily: DAILY,
       tagline: '스킬 연속 응대! 소원의 조각·강화석·재조합석',
-      intro: ['보스 머리 위에 뜨는 <b>스킬 순서</b>를 그대로 아래 버튼으로 눌러요.', '성공하면 보스 게이지가 깎여요. <b>연속 성공</b>할수록 데미지가 커져요!', '틀리거나 시간이 끝나면 ❤️가 깎여요 (5개). 단계가 오를수록 순서가 <b>3→4→5개</b>로 길어져요.', '쓸 수 있는 스킬은 <b>플레이어 레벨</b>로 정해져요: 🎤20 💖25 ✨30 🌹35 🎆40 (Lv.40이면 🎆 불꽃쇼가 들어간 줄은 데미지 ×1.4)', '보스를 쓰러뜨리면 🧩 <b>소원의 조각</b>, 🔨 <b>강화석</b>, 🔹 <b>재조합석</b>, 🔶 <b>원석</b>, <b>프리미엄 조각</b>이 나와요. 가끔 💠 <b>에픽 재조합석</b>도!'],
+      intro: ['보스 머리 위에 뜨는 <b>스킬 순서</b>를 그대로 아래 버튼으로 눌러요.', '성공하면 팬이 만족해서 🎁 <b>상자를 떨어뜨려요</b>! 눌러서 주워요 (몇 초 뒤 사라져요). 보스 게이지도 깎여요. <b>연속 성공</b>할수록 데미지가 커져요!', '틀리거나 시간이 끝나면 ❤️가 깎여요 (5개). 단계가 오를수록 순서가 <b>3→4→5개</b>로 길어져요.', '쓸 수 있는 스킬은 <b>플레이어 레벨</b>로 정해져요: 🎤20 💖25 ✨30 🌹35 🎆40 (Lv.40이면 🎆 불꽃쇼가 들어간 줄은 데미지 ×1.4)', '보스를 쓰러뜨리면 🧩 <b>소원의 조각</b>, 🔨 <b>강화석</b>, 🔹 <b>재조합석</b>, 🔶 <b>원석</b>, <b>프리미엄 조각</b>이 나와요. 가끔 💠 <b>에픽 재조합석</b>도!'],
       play: play
     });
   }

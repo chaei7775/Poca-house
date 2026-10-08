@@ -193,9 +193,47 @@
     })();
   }
 
+
+  // ── 🎁 팬이 떨어뜨리는 상자 (맵 안에서 줍는 보너스) ──
+  // 맵 파일에서: var loot = ExpKit.rollLoot(); → loot.txt 를 보여주고, 끝날 때 res = ExpKit.mergeLoot(res, [loot, ...])
+  var LOOT = [
+    { w: 40, f: function () { var c = 3000 + Math.floor(Math.random() * 5001); return { txt: '🍔 코인 +' + fmt(c), coin: c }; } },
+    { w: 15, f: function () { return { txt: '🔶 공방의 원석 ×1', item: { emoji: '🔶', name: '공방의 원석', cat: 'material', qty: 1, desc: '굿즈 공방 제작 재료 · 탐험·원정에서 나와요' } }; } },
+    { w: 12, f: function () { return { txt: '🔹 재조합석 ×1', item: { emoji: '🔹', name: '재조합석', cat: 'material', qty: 1, desc: '카드 재조합에 필요한 재료' } }; } },
+    { w: 10, f: function () { return { txt: '🎞️ 필름 ×1', item: { emoji: '🎞️', name: '필름', cat: 'film', qty: 1, desc: '시크릿 포토랩 현상 재료' } }; } },
+    { w: 8, f: function () { return { txt: '🧪 현상액 ×1', item: { emoji: '🧪', name: '현상액', cat: 'film', qty: 1, desc: '포토랩 옵션 강화 재료' } }; } },
+    { w: 8, f: function () { return { txt: '🔨 강화석 ×1', stone: 1 }; } },
+    { w: 5, f: function () { return { txt: '🧩 소원의 조각 ×1', wish: 1 }; } },
+    { w: 2, f: function () { return { txt: '🛡️ 방지권 ×1', protect: 1 }; } }
+  ];
+  function rollLoot() {
+    var t = 0; LOOT.forEach(function (l) { t += l.w; });
+    var r = Math.random() * t;
+    for (var i = 0; i < LOOT.length; i++) { if (r < LOOT[i].w) return LOOT[i].f(); r -= LOOT[i].w; }
+    return LOOT[0].f();
+  }
+  function mergeLoot(res, loots) {
+    res = res || {}; res.items = (res.items || []).slice();
+    (loots || []).forEach(function (l) {
+      if (l.coin) res.coin = (res.coin || 0) + l.coin;
+      if (l.stone) res.stone = (res.stone || 0) + l.stone;
+      if (l.wish) res.wish = (res.wish || 0) + l.wish;
+      if (l.protect) res.protect = (res.protect || 0) + l.protect;
+      if (l.item) {
+        var ex = res.items.filter(function (i) { return i.name === l.item.name; })[0];
+        if (ex) ex.qty += l.item.qty; else res.items.push({ emoji: l.item.emoji, name: l.item.name, cat: l.item.cat, qty: l.item.qty, desc: l.item.desc });
+      }
+    });
+    return res;
+  }
+  // 상자 그림(HTML). 새 그림(fx-box.png)이 있으면 그걸, 없으면 VIP 상자, 그것도 없으면 이모지
+  function boxImgHtml(px) {
+    return '<img src="' + IMG_BASE + 'fx-box.png" style="width:' + px + 'px;height:' + px + 'px;object-fit:contain;" onerror="if(!this.__t){this.__t=1;this.src=\'' + IMG_BASE + 'vip-box.png\';}else{this.outerHTML=\'<span style=&quot;font-size:' + Math.round(px * 0.8) + 'px;&quot;>🎁</span>\'}">';
+  }
+
   window.ExpKit = {
     register: function (cfg) { REG[cfg.id] = cfg; ORDER.push(cfg.id); install(cfg); },
     enter: function (id, charId) { return enter(REG[id], charId); },
-    get: function (id) { return REG[id]; }, IMG_BASE: IMG_BASE, plv: plv
+    get: function (id) { return REG[id]; }, IMG_BASE: IMG_BASE, plv: plv, rollLoot: rollLoot, mergeLoot: mergeLoot, boxImgHtml: boxImgHtml
   };
 })();
