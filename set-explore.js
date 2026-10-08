@@ -41,6 +41,13 @@
   // 소품이 나타나는 바닥 범위 (이미지 좌표)
   var SPAWN = { x0: 70, x1: 954, y0: 1110, y1: 1400 };
   var PROP_EMOJI = ['🎬', '📦', '🪴', '🎞️', '💡', '🎀', '🎭', '📸'];
+  // 소품 그림 (prop-*.png). 그림이 아직 안 불러와졌으면 위 이모지로 대신 그린다.
+  var PROP_PICS = ['clap', 'crate', 'plant', 'reel', 'lamp', 'ribbon', 'mask', 'camera'];   // PROP_EMOJI 와 같은 순서
+  var PROP_IMG = {};
+  function propImg(key) {
+    if (!PROP_IMG[key]) { var im = new Image(); im.onload = function () { im._ok = true; }; im.src = (typeof B !== 'undefined' ? B : '') + 'prop-' + key + '.png'; PROP_IMG[key] = im; }
+    return PROP_IMG[key];
+  }
 
   // ════════ 순수 로직 (화면 없이도 테스트 가능) ════════
   var POOLS = {
@@ -151,8 +158,12 @@
     }
     S.props.push({
       type: type, x: x, y: y, sx: x, sy: y, drag: false, born: S.t, ph: Math.random() * 6,
-      emoji: type === 'gold' ? '🌟' : (type === 'ng' ? '💥' : PROP_EMOJI[Math.floor(Math.random() * PROP_EMOJI.length)])
+      emoji: '', pic: ''
     });
+    var np = S.props[S.props.length - 1];
+    if (type === 'gold') { np.emoji = '🌟'; np.pic = 'gold'; }
+    else if (type === 'ng') { np.emoji = '💥'; np.pic = 'ng'; }
+    else { var pi = Math.floor(Math.random() * PROP_EMOJI.length); np.emoji = PROP_EMOJI[pi]; np.pic = PROP_PICS[pi]; }
   }
 
   // ── 입력 ──
@@ -367,8 +378,9 @@
       roundRect(c, -size / 2, -size / 2, size, size, 12); c.fill();
       c.lineWidth = 3; c.strokeStyle = p.type === 'gold' ? '#FFB800' : (p.type === 'ng' ? '#ff5a6a' : '#e6b87a');
       roundRect(c, -size / 2, -size / 2, size, size, 12); c.stroke();
-      c.font = (p.drag ? 34 : 30) + 'px sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle';
-      c.fillStyle = '#000'; c.fillText(p.emoji, 0, 2);
+      var pim = p.pic ? propImg(p.pic) : null;
+      if (pim && pim._ok) { var isz = size * 0.86; c.drawImage(pim, -isz / 2, -isz / 2, isz, isz); }
+      else { c.font = (p.drag ? 34 : 30) + 'px sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillStyle = '#000'; c.fillText(p.emoji, 0, 2); }
       c.restore();
     });
 
