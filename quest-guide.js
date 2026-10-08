@@ -97,7 +97,7 @@
       done: function () { return quest('tut_drink'); }, reward: 200,
       go: function () { goTo('bag'); }, target: '#nav-bag' },
     { id: 'concert', icon: '🎤', title: '첫 공연 · 선배의 무대',
-      hint: '플레이어 Lv.5가 되면 탑스타 세연 선배가 무대에 초대해요! 팬 하트를 가득 채우면 🎁 7일 체험 히든카드를 선물로 줘요. 홈의 🎤 버튼을 눌러요.',
+      hint: '플레이어 Lv.5 이상이고 첫 데뷔를 하고 나면 탑스타 세연 선배가 무대에 초대해요! 팬 하트를 가득 채우면 🎁 7일 체험 히든카드를 선물로 줘요. 홈의 🎤 버튼을 눌러요.',
       when: function () { try { return Number(playerLevel) >= 5; } catch (e) { return false; } },
       done: function () { try { return !!localStorage.getItem('ph_trialCard'); } catch (e) { return false; } }, reward: 600,
       go: function () { if (typeof window.startConcertTutorial === 'function') window.startConcertTutorial(); else goTo('home'); }, target: '#concert-tut-btn' },
