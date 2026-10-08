@@ -317,6 +317,8 @@
   STEPS.forEach(function (st) { if (st.reward) st.reward = st.reward * REWARD_MULT; });   // 길잡이 보상 배율 (코인)
 
   function currentIndex() {
+    // 원정에 한 번이라도 들어갔으면 회복약 퀘스트를 앞순서와 상관없이 바로 보여준다 (원정을 일찍 간 사람도 놓치지 않게)
+    for (var k = 0; k < STEPS.length; k++) { if (STEPS[k].id === 'potion') { if (STEPS[k].when() && !STEPS[k].done()) return k; break; } }
     for (var i = 0; i < STEPS.length; i++) { if (STEPS[i].when && !STEPS[i].when()) continue; if (!STEPS[i].done()) return i; }
     return -1;
   }
