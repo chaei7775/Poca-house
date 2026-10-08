@@ -14,12 +14,12 @@
   var NEED_LEVEL = 35;       // 열리는 플레이어 레벨
   var STAMINA = 150;         // 입장 스태미나
   var DAILY = 3;             // 하루 보상 100% 횟수
-  var BOSS_HP = 700;         // 보스 체력
-  var HEARTS = 5;            // 내 하트
+  var BOSS_HP = 900;         // 보스 체력
+  var HEARTS = 4;            // 내 하트
   var BASE_DMG = 60;         // 한 줄 성공 기본 데미지
   var COMBO_BONUS = 0.18;    // 연속 성공 1회당 데미지 증가
   var LV_DMG = 0.02;         // 플레이어 레벨 1당 데미지 증가 (Lv.35 기준)
-  var PHASES = [ { len: 3, sec: 6.5 }, { len: 4, sec: 6 }, { len: 5, sec: 5.5 } ];   // 보스 체력 1/3 구간마다 바뀜
+  var PHASES = [ { len: 4, sec: 6, show: 9 }, { len: 5, sec: 5, show: 3 }, { len: 6, sec: 4.5, show: 2 } ];   // 보스 체력 1/3 구간마다 바뀜 (len=팬 수, sec=제한시간, show=미리 보이는 팬 수)
   var WIN_COIN = 120000, WIN_EXP = 1900;
   var PIECE_CHANCE = 0.75, PIECE_BONUS = 0.3;   // 프리미엄 조각
   var WISH_WIN = 2, WISH_BONUS = 0.5;            // 소원의 조각 (기본 개수, 한 개 더 줄 확률)
@@ -35,12 +35,25 @@
     { id: 'finale', lv: 40, icon: '🎆', name: '불꽃쇼' }
   ];
 
+  // 스킬 목록: 팬 스킬 상점의 실제 스킬 (그 멤버가 배운 것만 누를 수 있고, 레벨은 됐지만 못 배운 건 🔒)
+  function skillList(cid, lv) {
+    var api = window.__fanSkillsAPI;
+    if (!api || !api.SKILLS) return { all: SK.filter(function (s) { return lv >= s.lv; }).map(function (s) { return { id: s.id, icon: s.icon, name: s.name, ok: true }; }) };
+    return { all: api.SKILLS.filter(function (k) { return lv >= (k.useLv || 1); }).map(function (k) {
+      var ok = true; try { ok = !!api.hasSkill(cid, k.id); } catch (e) {}
+      return { id: k.id, icon: k.icon, name: k.short || k.name, ok: ok };
+    }) };
+  }
+  var FAN_IMGS = 10;
+
   function play(ctx) {
     var root = ctx.root, lv = ctx.level, imgBase = ctx.imgBase;
-    var avail = SK.filter(function (s) { return lv >= s.lv; });
+    var SL = skillList(ctx.charId, lv).all;
+    var avail = SL.filter(function (s) { return s.ok; });
+    if (avail.length < 2) avail = SL.slice(0, 2);
     var lvMul = 1 + Math.max(0, lv - 35) * LV_DMG;
     function gfs(k) { try { return window.FanGear ? window.FanGear.sum(ctx.charId, k) : 0; } catch (e) { return 0; } }   // 🎀 소품 효과
-    var S = { forgive: gfs('forgive'), loot: [], hp: BOSS_HP, hearts: HEARTS, combo: 0, best: 0, chains: 0, seq: [], pos: 0, left: 0, total: 0, over: false, lock: false };
+    var S = { forgive: gfs('forgive'), loot: [], hp: BOSS_HP, hearts: HEARTS, combo: 0, best: 0, chains: 0, seq: [], fans: [], pos: 0, left: 0, total: 0, over: false, lock: false };
     var wrap = document.createElement('div');
     wrap.style.cssText = 'position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;background:radial-gradient(circle at 50% 25%,#3b1d6e,#0b0716 72%);overflow:hidden;font-family:\'Noto Sans KR\',sans-serif;';
     wrap.innerHTML =
@@ -55,39 +68,55 @@
       '<div id="wt-boss" style="position:relative;margin-top:6px;width:170px;height:170px;display:flex;align-items:center;justify-content:center;">' +
         '<img id="wt-boss-img" src="' + imgBase + 'rfan-boss.png" style="max-width:100%;max-height:100%;object-fit:contain;filter:drop-shadow(0 0 16px rgba(255,120,200,.55));" onerror="this.outerHTML=\'<div style=&quot;font-size:96px;&quot;>👑</div>\'">' +
         '<div id="wt-dmg" style="position:absolute;left:0;right:0;top:20px;text-align:center;font-size:30px;font-weight:900;color:#ffe27a;text-shadow:0 2px 6px #000;pointer-events:none;"></div></div>' +
-      '<div style="font-size:12px;color:#ffd1da;margin:2px 0 6px;" id="wt-say">대표 팬이 외치는 순서대로 눌러요!</div>' +
-      '<div id="wt-seq" style="display:flex;gap:7px;justify-content:center;min-height:56px;"></div>' +
+      '<div style="font-size:12px;color:#ffd1da;margin:2px 0 6px;" id="wt-say">맨 앞 팬부터 원하는 스킬을 눌러요!</div>' +
+      '<div id="wt-seq" style="display:flex;gap:4px;justify-content:center;align-items:flex-end;min-height:96px;width:96%;"></div>' +
       '<div style="width:78%;max-width:300px;height:8px;border-radius:4px;background:rgba(255,255,255,.14);margin:10px 0 8px;overflow:hidden;"><div id="wt-time" style="height:100%;width:100%;background:#6ee7b7;"></div></div>' +
       '<div style="flex:1;"></div>' +
       '<div id="wt-btns" style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;padding:0 12px 22px;"></div>';
     root.appendChild(wrap);
     var q = function (id) { return wrap.querySelector('#' + id); };
-    avail.forEach(function (s) {
-      var b = document.createElement('button'); b.dataset.id = s.id;
-      b.style.cssText = 'width:' + (avail.length > 4 ? 62 : 72) + 'px;height:' + (avail.length > 4 ? 72 : 82) + 'px;border-radius:18px;border:2px solid #fff;background:linear-gradient(160deg,#6d28d9,#3b0764);color:#fff;font-size:28px;cursor:pointer;font-family:inherit;line-height:1.1;';
-      b.innerHTML = s.icon + '<div style="font-size:10px;font-weight:900;margin-top:3px;">' + s.name + '</div>';
-      b.addEventListener('pointerdown', function (e) { e.preventDefault(); press(s.id, b); });
-      q('wt-btns').appendChild(b);
-    });
+    var BW = SL.length > 7 ? 40 : SL.length > 5 ? 46 : 56;
+    function buildBtns(shuffle) {
+      var box = q('wt-btns'); box.innerHTML = '';
+      var list = SL.slice(); if (shuffle) list.sort(function () { return Math.random() - 0.5; });
+      list.forEach(function (s) {
+        var b = document.createElement('button'); b.dataset.id = s.id;
+        var locked = !s.ok;
+        b.style.cssText = 'width:' + BW + 'px;height:' + (BW + 18) + 'px;border-radius:14px;border:2px solid ' + (locked ? 'rgba(255,255,255,.25)' : '#fff') + ';background:' + (locked ? 'rgba(255,255,255,.08)' : 'linear-gradient(160deg,#6d28d9,#3b0764)') + ';color:#fff;font-size:' + Math.round(BW * 0.48) + 'px;font-weight:900;cursor:pointer;touch-action:manipulation;padding:0;' + (locked ? 'opacity:.55;' : '');
+        b.innerHTML = (locked ? '🔒' : s.icon) + '<div style="font-size:9px;font-weight:900;margin-top:2px;line-height:1.1;">' + s.name + '</div>';
+        b.addEventListener('pointerdown', function (e) {
+          e.preventDefault();
+          if (locked) { q('wt-say').textContent = '🔒 ' + s.name + ' — 더보기 > 💖 팬 스킬 상점에서 배우면 쓸 수 있어요'; return; }
+          press(s.id, b);
+        });
+        box.appendChild(b);
+      });
+    }
+    buildBtns(false);
     function phase() { var r = S.hp / BOSS_HP; return r > 0.66 ? 0 : r > 0.33 ? 1 : 2; }
     function drawHud() {
       var h = ''; for (var i = 0; i < HEARTS; i++) h += i < S.hearts ? '❤️' : '🖤';
       q('wt-hearts').innerHTML = h;
       q('wt-hp').style.width = Math.max(0, S.hp / BOSS_HP * 100) + '%';
-      q('wt-phase').textContent = (phase() + 1) + '단계 · ' + PHASES[phase()].len + '개 순서';
+      q('wt-phase').textContent = (phase() + 1) + '단계 · 팬 ' + PHASES[phase()].len + '명';
       q('wt-combo').innerHTML = S.combo >= 2 ? '🔥 ' + S.combo + '연속!' : '';
     }
+    function skillOf(id) { return SL.filter(function (x) { return x.id === id; })[0] || { icon: '?', name: '' }; }
     function drawSeq() {
+      var ph = PHASES[phase()];
       q('wt-seq').innerHTML = S.seq.map(function (id, i) {
-        var s = SK.filter(function (x) { return x.id === id; })[0], done = i < S.pos, cur = i === S.pos;
-        return '<div style="width:50px;height:54px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:28px;' +
-          'background:' + (done ? 'rgba(110,231,183,.35)' : 'rgba(255,255,255,.12)') + ';border:2px solid ' + (done ? '#6ee7b7' : cur ? '#ffe27a' : 'rgba(255,255,255,.3)') + ';' +
-          (cur ? 'animation:wtPulse .7s infinite;' : '') + (done ? 'opacity:.7;' : '') + '">' + s.icon + '</div>';
+        var done = i < S.pos, cur = i === S.pos, vis = i - S.pos < ph.show;
+        var fan = S.fans[i];
+        var icon = done ? '💗' : (vis ? skillOf(id).icon : '❓');
+        return '<div style="display:flex;flex-direction:column;align-items:center;width:' + Math.floor(100 / S.seq.length) + '%;max-width:62px;opacity:' + (done ? '.35' : '1') + ';' + (cur ? 'animation:wtPulse .7s infinite;' : '') + '">' +
+          '<div style="min-width:30px;height:28px;padding:0 4px;box-sizing:border-box;border-radius:12px;background:' + (cur ? '#ffe27a' : 'rgba(255,255,255,.92)') + ';display:flex;align-items:center;justify-content:center;font-size:17px;margin-bottom:2px;position:relative;">' + icon + '<span style="position:absolute;bottom:-5px;left:50%;margin-left:-4px;width:8px;height:8px;background:' + (cur ? '#ffe27a' : 'rgba(255,255,255,.92)') + ';transform:rotate(45deg);"></span></div>' +
+          '<img src="' + imgBase + 'rfan-' + fan + '.png" style="width:' + (cur ? 54 : 44) + 'px;height:' + (cur ? 54 : 44) + 'px;object-fit:contain;' + (cur ? 'filter:drop-shadow(0 0 8px #ffe27a);' : '') + (done ? 'transform:translateY(-14px);' : '') + 'transition:all .25s;" onerror="this.outerHTML=\'<div style=&quot;font-size:30px;&quot;>🧑‍🎤</div>\'"></div>';
       }).join('');
     }
     function newSeq() {
       var p = PHASES[phase()];
-      S.seq = []; for (var i = 0; i < p.len; i++) S.seq.push(avail[Math.floor(Math.random() * avail.length)].id);
+      S.seq = []; S.fans = []; for (var i = 0; i < p.len; i++) { S.seq.push(avail[Math.floor(Math.random() * avail.length)].id); S.fans.push(1 + Math.floor(Math.random() * FAN_IMGS)); }
+      if (phase() === 2) buildBtns(true);   // 3단계: 버튼 위치가 매번 바뀜
       S.pos = 0; S.total = p.sec * (1 + gfs('reach') / 100); S.left = S.total; S.lock = false;   // 🎀 사거리 소품 = 제한시간 늘림
       drawSeq(); drawHud();
     }
@@ -135,7 +164,7 @@
         S.hp = Math.max(0, S.hp - dmg);
         var img = q('wt-boss-img') || q('wt-boss'); img.style.animation = 'none'; void img.offsetWidth; img.style.animation = 'wtHit .3s';
         float('-' + dmg);
-        q('wt-say').textContent = S.combo >= 3 ? '🔥 연속 응대! 팬들이 열광해요' : '성공! 팬이 만족해요';
+        q('wt-say').textContent = S.combo >= 3 ? '🔥 연속 응대! 팬들이 열광해요' : '성공! 팬들이 만족해요';
         drawHud();
         if (Math.random() < Math.min(1, 0.7 * (window.FanGear ? window.FanGear.mult(ctx.charId, 'box') : 1))) dropBox();   // 🎀 소품: 상자 확률   // 팬이 만족하면 상자를 떨어뜨림
         if (S.hp <= 0) return end(true);
@@ -179,8 +208,8 @@
     if (!window.ExpKit) { setTimeout(reg, 100); return; }
     window.ExpKit.register({
       id: 'world_tour', bg: 'special-world_tour.jpg', name: '월드투어 스타디움', emoji: '🏟️', color: '#f472b6', needLevel: NEED_LEVEL, stamina: STAMINA, daily: DAILY,
-      tagline: '스킬 연속 응대! 소원의 조각·강화석·재조합석', gearChance: 0.45, gearMin: 'great',
-      intro: ['보스 머리 위에 뜨는 <b>스킬 순서</b>를 그대로 아래 버튼으로 눌러요.', '성공하면 팬이 만족해서 🎁 <b>상자를 떨어뜨려요</b>! 눌러서 주워요 (몇 초 뒤 사라져요). 보스 게이지도 깎여요. <b>연속 성공</b>할수록 데미지가 커져요!', '틀리거나 시간이 끝나면 ❤️가 깎여요 (5개). 단계가 오를수록 순서가 <b>3→4→5개</b>로 길어져요.', '쓸 수 있는 스킬은 <b>플레이어 레벨</b>로 정해져요: 🎤20 💖25 ✨30 🌹35 🎆40 (Lv.40이면 🎆 불꽃쇼가 들어간 줄은 데미지 ×1.4)', '보스를 쓰러뜨리면 🧩 <b>소원의 조각</b>, 🔨 <b>강화석</b>, 🔹 <b>재조합석</b>, 🔶 <b>원석</b>, <b>프리미엄 조각</b>이 나와요. 가끔 💠 <b>에픽 재조합석</b>도!'],
+      tagline: '팬들의 스킬 요청 연속 응대! 소원의 조각·강화석·재조합석', gearChance: 0.45, gearMin: 'great',
+      intro: ['무대 앞에 <b>팬들이 줄을 서요</b>. 팬마다 머리 위 말풍선에 원하는 <b>스킬</b>이 떠요. 맨 앞(노란 말풍선) 팬부터 순서대로 맞는 스킬 버튼을 눌러요.', '다 응대하면 팬들이 만족해서 🎁 <b>상자를 떨어뜨려요</b>! 눌러서 주워요 (몇 초 뒤 사라져요). 대표 팬 게이지도 깎여요. <b>연속 성공</b>할수록 데미지가 커져요!', '틀리거나 시간이 끝나면 ❤️가 깎여요 (4개). 단계가 오를수록 팬이 <b>4→5→6명</b>으로 늘고, 뒷줄 팬의 요청이 <b>❓로 가려지고</b>, 3단계에선 <b>버튼 위치가 매번 바뀌어요</b>.', '버튼은 <b>그 멤버가 배운 스킬</b>만 쓸 수 있어요 (레벨은 됐는데 못 배운 건 🔒). 스킬 상점에서 배우면 쓸 수 있는 스킬이 늘어요. 🎆 불꽃쇼가 들어간 줄은 데미지 ×1.4!', '대표 팬을 쓰러뜨리면 🧩 <b>소원의 조각</b>, 🔨 <b>강화석</b>, 🔹 <b>재조합석</b>, 🔶 <b>원석</b>, <b>프리미엄 조각</b>이 나와요. 가끔 💠 <b>에픽 재조합석</b>도!'],
       play: play
     });
   }
