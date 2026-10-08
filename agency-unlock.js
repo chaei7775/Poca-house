@@ -1,8 +1,8 @@
-// 🎤 기획사 해금 조건을 "플레이어 레벨 7"으로 (다른 기능의 해금 조건은 그대로)
+// 🎤 기획사 해금 조건을 "플레이어 레벨 5"로 (다른 기능의 해금 조건은 그대로)
 // 등록: loader.js NEW_CONTENT_FILES 에 'agency-unlock.js' (pocalevel.js, agency.js 뒤)
 (function () {
   'use strict';
-  var NEED = 7;
+  var NEED = 5;
   function install() {
     if (typeof window.isPocaHouseFeatureUnlocked !== 'function') return false;
     if (window.isPocaHouseFeatureUnlocked.__agencyLv) return true;
