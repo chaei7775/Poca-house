@@ -17,11 +17,14 @@
     ['촬영장 가기', 'shoot'], ['낚시하기', 'fishing'], ['스타일링', 'styling'], ['연습실', 'practice'],
     ['팬클럽 의뢰소', 'fanclub'], ['기획사', 'agency'], ['음원차트', 'chart'], ['방 꾸미기', 'deco'], ['잡화점', 'giftshop'], ['가구샵', 'furniture'],
     // 특별탐험 · 팬덤원정
+    ['등교시키기', 'schoolgames'], ['굿즈 공방', 'goodsworks'], ['작곡 스튜디오', 'studioexp'], ['작곡 테이블', 'compose'], ['소원의 샘', 'spring'],
+    ['CF 촬영', 'cf'], ['드라마 촬영', 'drama'], ['공항 입국장', 'airport'], ['VIP 게이트', 'vipgate'], ['팬카페', 'fancafe'], ['분양소', 'kennel'], ['공연장', 'concert'],
     ['특별 탐험', 'special'], ['팬덤 원정', 'fandom'], ['방송국 앞', 'broadcast'], ['팬미팅장', 'fanmeeting'], ['콘서트', 'concert'],
     ['천공성 유적', 'skyruins'], ['달빛 회랑', 'moonlit'], ['공방 지하', 'workshop']
   ].sort(function (a, b) { return b[0].length - a[0].length; });
   var ROOTS = '#screen-map,#place-overlay';
   var EMO = /^(\s*)((?:\p{Extended_Pictographic}️?(?:‍\p{Extended_Pictographic}️?)*))\s*([^\s].*)$/u;
+  var ONLY = /^\s*(?:\p{Extended_Pictographic}\uFE0F?(?:\u200D\p{Extended_Pictographic}\uFE0F?)*)\s*$/u;
   var ok = {}, bad = {}, waiting = {}, queued = false;
 
   function keyOf(text) { for (var i = 0; i < ICONS.length; i++) if (text.indexOf(ICONS[i][0]) !== -1) return ICONS[i][1]; return null; }
@@ -40,14 +43,20 @@
       while ((n = w.nextNode())) nodes.push(n);
       nodes.forEach(function (t) {
         var p = t.parentNode; if (!p || /^(SCRIPT|STYLE)$/.test(p.nodeName)) return;
-        var m = EMO.exec(t.nodeValue); if (!m) return;
-        var key = keyOf(m[3]); if (!key || bad[key]) return;
+        var only = ONLY.exec(t.nodeValue), m = only ? null : EMO.exec(t.nodeValue), key, rest;
+        if (m) { key = keyOf(m[3]); rest = m[3]; }
+        else {   // 이모지만 따로 든 칸(팬덤 원정 목록 등): 옆 칸 글자로 찾는다
+          if (!only) return;
+          var host = p.nextElementSibling; if (!host) return;
+          key = keyOf((host.textContent || '').slice(0, 24)); rest = '';
+        }
+        if (!key || bad[key]) return;
         if (!ok[key]) { probe(key); return; }
         var img = document.createElement('img');
         img.src = 'pin-' + key + '.png'; img.alt = ''; img.setAttribute('data-pin', key);
         img.style.cssText = 'width:1.45em;height:1.45em;object-fit:contain;vertical-align:-0.35em;margin-right:4px;pointer-events:none;';
         p.insertBefore(img, t);
-        t.nodeValue = m[3];
+        if (m) t.nodeValue = m[3]; else { img.style.marginRight = '0'; p.removeChild(t); }
       });
     });
   }
