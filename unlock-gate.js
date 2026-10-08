@@ -60,8 +60,16 @@
   function lockedRule(el) {          // 누른 곳에서 위로 최대 4단계까지 올라가며 짧은 버튼 글자에서 찾음
     for (var n = 0, e = el; e && e !== document.body && n < 5; e = e.parentElement, n++) {
       if (e.id === 'first-hidden-pop' || e.closest && e.closest('#unlock-gate-pop')) return null;
-      var r = attrRule(e) || ruleFor(e.textContent);
+      var r = attrRule(e);
+      if (!r) {
+        // 버튼처럼 눌리는 칸의 글자만 본다. (예전엔 [알바하기]+[스케줄 가기]를 감싼 상자 글자까지 읽어서, 알바하기를 눌러도 "스케줄 가기 잠김"이 떴음)
+        var btnLike = e.tagName === 'BUTTON' || e.tagName === 'A' || (e.getAttribute && (e.getAttribute('onclick') || e.getAttribute('role') === 'button'));
+        if (btnLike) r = ruleFor(e.textContent);
+        else if (n === 0) r = ruleFor(e.textContent);   // 눌린 자리 자체(글자 한 조각)는 그대로 확인
+        else continue;
+      }
       if (r) return plv() < r.lv ? r : null;
+      if (e.tagName === 'BUTTON') return null;   // 버튼인데 규칙이 없으면 더 올라가지 않음 (바깥 상자 오인 방지)
     }
     return null;
   }
