@@ -347,7 +347,7 @@
           }).join('');
         }
         h += e ? '<div data-n="' + g.id + '_' + t.id + '" style="cursor:pointer;background:rgba(255,184,107,.28);border:1.5px solid ' + ACC + ';border-radius:9px;padding:6px 2px;text-align:center;font-size:10px;font-weight:900;color:#fff;line-height:1.3;">✔<br>' + esc(e.title) + '</div>'
-          : (hint ? '<div data-hint="' + g.id + '_' + t.id + '" style="cursor:pointer;background:rgba(255,184,107,.1);border:1.5px dashed ' + ACC + ';border-radius:9px;padding:5px 2px;text-align:center;font-size:10px;line-height:1.3;color:#ffd9a8;">단서<br>' + hint + '</div>'
+          : (hint ? '<div data-hint="' + g.id + '_' + t.id + '" style="cursor:pointer;background:rgba(255,184,107,.1);border:1.5px dashed ' + ACC + ';border-radius:9px;padding:5px 2px;text-align:center;font-size:10px;line-height:1.3;color:#ffd9a8;font-weight:900;">📒 단서<br><span style="font-size:9px;font-weight:700;color:#e6c9a6;">눌러보기</span></div>'
           : '<div style="background:rgba(255,255,255,.06);border:1.5px dashed rgba(255,255,255,.18);border-radius:9px;padding:10px 2px;text-align:center;font-size:12px;color:#8b7b6a;">???</div>');
       });
       h += '</div>';
