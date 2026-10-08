@@ -130,7 +130,7 @@ function showBagItemDetail(idx) {
   if (isDrink) actionBtn = `<button onclick="useDrinkFromBag(${idx});document.getElementById('bag-detail-overlay').remove();" style="width:100%;padding:12px;background:linear-gradient(135deg,#60a5fa,#C084FC);border:none;border-radius:12px;color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;margin-bottom:8px;">🥤 사용하기</button>`;
   if (isCloth) {
     const cloth = (typeof CLOTH_ITEMS !== 'undefined') ? CLOTH_ITEMS.find(c => c.id === item.clothId || c.name === item.name || c.name === item.name.replace(/^✨\s*/, '')) : null;
-    if (cloth) actionBtn = `<button onclick="document.getElementById('bag-detail-overlay').remove();openClothDetail('${cloth.id}', ${JSON.stringify(item.name).replace(/"/g, '&quot;')});" style="width:100%;padding:12px;background:linear-gradient(135deg,#FF6B9D,#C084FC);border:none;border-radius:12px;color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;margin-bottom:8px;">👗 착용/정보 보기</button>`;
+    if (cloth) actionBtn = `<button onclick="document.getElementById('bag-detail-overlay').remove();if(typeof openClothesEquip==='function')openClothesEquip();" style="width:100%;padding:12px;background:linear-gradient(135deg,#FF6B9D,#C084FC);border:none;border-radius:12px;color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;margin-bottom:8px;">👗 옷장에서 입히기</button>`;
   }
   overlay.innerHTML = `<div style="background:linear-gradient(135deg,#1a1a2e,#2d1b4e);border:2px solid #FF6B9D;border-radius:20px;padding:28px 24px;text-align:center;width:85%;max-width:300px;"><div style="font-size:52px;margin-bottom:8px;">${(isCloth && item.img) ? `<img src="${item.img}" style="width:120px;height:120px;object-fit:contain;" onerror="this.outerHTML='${item.emoji}'">` : item.emoji}</div><div style="font-size:18px;font-weight:900;color:#fff;margin-bottom:4px;">${item.name}</div><div style="font-size:12px;color:#aaa;margin-bottom:4px;">${item.desc}</div><div style="font-size:14px;color:#FFD700;font-weight:700;margin-bottom:20px;">보유: ${item.qty}개</div>${actionBtn}<button onclick="document.getElementById('bag-detail-overlay').remove()" style="width:100%;padding:11px;background:rgba(255,255,255,0.08);border:none;border-radius:12px;color:#aaa;font-size:13px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">닫기</button></div>`;
   document.body.appendChild(overlay);
@@ -2134,6 +2134,7 @@ function normalizeClothBagItems() {
 }
 
 function getEquippedStats() {
+  return {}; // 옷은 내 집 옷장(의상실)에서 멤버에게 입혀야 효과 적용 — 플레이어 직접 착용 효과 없음
   if (!equippedCloth) return {};
   let clothId = equippedCloth;
   let statValOverride = null;
@@ -2240,7 +2241,7 @@ function openClothDetail(clothId, itemName) {
     <div style="font-size:13px;color:#FFD700;margin-bottom:16px;">${displayDesc}</div>
     ${isOwned ? (isEquipped ?
       `<button onclick="unequipCloth();document.getElementById('cloth-detail-overlay').remove();" style="width:100%;padding:12px;background:rgba(255,255,255,0.1);border:1.5px solid #aaa;border-radius:12px;color:#aaa;font-size:14px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;margin-bottom:8px;">벗기</button>` :
-      `<button onclick="equipCloth('${clothId}', ${JSON.stringify(itemName).replace(/"/g, '&quot;')});document.getElementById('cloth-detail-overlay').remove();" style="width:100%;padding:12px;background:linear-gradient(135deg,#FF6B9D,#C084FC);border:none;border-radius:12px;color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;margin-bottom:8px;">착용하기 👗</button>`) : ''}
+      `<button onclick="document.getElementById('cloth-detail-overlay').remove();if(typeof openClothesEquip==='function')openClothesEquip();"/g, '&quot;')});document.getElementById('cloth-detail-overlay').remove();" style="width:100%;padding:12px;background:linear-gradient(135deg,#FF6B9D,#C084FC);border:none;border-radius:12px;color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;margin-bottom:8px;">👗 옷장에서 입히기</button>`) : ''}
     <button onclick="document.getElementById('cloth-detail-overlay').remove()" style="width:100%;padding:11px;background:rgba(255,255,255,0.08);border:none;border-radius:12px;color:#aaa;font-size:13px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">닫기</button>
   </div>`;
   document.body.appendChild(overlay);
@@ -2356,7 +2357,7 @@ function openSewingWorkshop() {
   }).join('');
   overlay.innerHTML = `<div style="padding:18px 16px 90px;max-width:430px;width:100%;margin:0 auto;">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
-      <div><div style="font-size:20px;font-weight:900;color:#fff;">🧵 재봉 작업대</div><div style="font-size:12px;color:#aaa;margin-top:2px;">대성공 3% · 성공 77% · 실패 20%</div></div>
+      <div><div style="font-size:20px;font-weight:900;color:#fff;">🧵 재봉 작업대</div><div style="font-size:12px;color:#aaa;margin-top:2px;">대성공 3% · 성공 77% · 실패 20%</div><div style="font-size:11px;color:#C084FC;margin-top:3px;">👗 만든 옷은 내 집 옷장(더보기 &gt; 의상실)에서 입혀요</div></div>
       <button onclick="document.getElementById('sewing-workshop-overlay').remove()" style="background:rgba(255,255,255,0.1);border:none;border-radius:10px;color:#fff;padding:8px 12px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">닫기</button>
     </div>
     <div style="display:flex;flex-direction:column;gap:10px;">${listHtml}</div>
@@ -2443,7 +2444,7 @@ function craftCloth(clothId) {
     addClothToBag(cloth, isGreat);
     checkQuestProgress('first_craft');
     const statText = getClothDisplayDesc(cloth, { statVal: cloth.statVal + (isGreat ? 1 : 0) });
-    showSewingResult(isGreat ? '대성공!' : '성공!', `${isGreat ? '✨ ' : ''}${cloth.name} 획득!<br>${statText}`, isGreat ? '✨👗✨' : '👗✨', isGreat ? '#FFD700' : '#C084FC', cloth.img);
+    showSewingResult(isGreat ? '대성공!' : '성공!', `${isGreat ? '✨ ' : ''}${cloth.name} 획득!<br>${statText}<br><span style="font-size:12px;color:#C084FC;">👗 옷은 내 집 <b>옷장</b>(더보기 &gt; 의상실)에서 멤버에게 입혀요!</span>`, isGreat ? '✨👗✨' : '👗✨', isGreat ? '#FFD700' : '#C084FC', cloth.img);
   }
   const recipeOverlay = document.getElementById('sewing-recipe-overlay');
   if (recipeOverlay) recipeOverlay.remove();
