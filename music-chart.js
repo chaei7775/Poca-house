@@ -88,6 +88,7 @@
     if (!s.last) s.last = {};                                  // 어제 순위 { id: rank }
     if (typeof s.pending !== 'number') s.pending = 0;          // 아직 안 받은 정산 코인
     if (!Array.isArray(s.news)) s.news = [];                   // 화면에서 한 번씩 보여줄 소식
+    if (!Array.isArray(s.stage)) s.stage = [];                // 음방 활동(일정) 뒤 아직 안 한 무대 미니게임
     if (!s.stats) s.stats = { ones: 0, trophies: 0, peak: 101, first: false, shows: 0, scandalOk: 0 };
     if (typeof s.lastEv !== 'number') s.lastEv = -99;
     if (s.lastDay === undefined) s.lastDay = null;
@@ -346,6 +347,33 @@
     save(s); return out;
   }
 
+  // ════════ 음방 활동(기획사 일정) ════════
+  var STAGE_BASE_MOD = 3, STAGE_COIN = 20000, STAGE_COIN_STAR = 20000, STAGE_MOD = 4, STAGE_MOD_STAR = 2;
+  function hasSong(cid) { return load().songs.some(function (x) { return !x.over && x.cid === cid; }); }
+  function bestSong(s, cid) { return s.songs.filter(function (x) { return !x.over && x.cid === cid; }).sort(function (a, b) { return (a.rank || 101) - (b.rank || 101); })[0]; }
+  // 일정 날 정산 때: 곡에 기본 점수를 주고, 무대 미니게임을 기다리는 목록에 올림
+  function musicSettle(cid, quality) {
+    var s = load(), sg = bestSong(s, cid); if (!sg) return false;
+    sg.mods.push({ v: STAGE_BASE_MOD, d: 2, d0: 2, n: '음방 활동' });
+    s.stage.push({ id: 'st' + Date.now() + cid, cid: cid, q: quality || 'good', day: gameDay(), sid: sg.id });
+    if (s.stage.length > 6) s.stage = s.stage.slice(-6);
+    save(s); return true;
+  }
+  function pendingStage(cid) { return load().stage.filter(function (x) { return !cid || x.cid === cid; })[0] || null; }
+  // stars 0~5 (라운드 0~3 + 퍼펙트 게이지 0~2)
+  function musicStageDone(id, stars) {
+    var s = load(), i = -1; s.stage.forEach(function (x, k) { if (x.id === id) i = k; });
+    if (i < 0) return null;
+    var st = s.stage.splice(i, 1)[0], sg = s.songs.filter(function (x) { return x.id === st.sid; })[0] || bestSong(s, st.cid);
+    stars = clamp(Math.round(stars), 0, 5);
+    var coinsGain = STAGE_COIN + STAGE_COIN_STAR * stars, boost = STAGE_MOD + STAGE_MOD_STAR * stars, gain = 0;
+    if (sg) { sg.mods.push({ v: boost, d: 3, d0: 3, n: '음방 무대' }); }
+    if (stars >= 5) { try { if (window.__fancafeViral) { var vr = window.__fancafeViral(st.cid); gain = (vr && vr.gain) || 0; } } catch (e) {} }
+    s.stats.stages = (s.stats.stages || 0) + 1;
+    save(s); addCoins(coinsGain);
+    return { coins: coinsGain, boost: boost, fans: gain, stars: stars, cid: st.cid };
+  }
+
   // ════════ 정산 받기 ════════
   function claimPending() { var s = load(), n = s.pending; if (n > 0) { s.pending = 0; save(s); addCoins(n); } return n; }
 
@@ -371,6 +399,7 @@
 
   window.__chart = {
     load: load, save: save, tick: tick, chartAt: chartAt, hourRanks: hourRanks, parts: parts, powerOf: powerOf, nowHour: nowHour,
+    hasSong: hasSong, musicSettle: musicSettle, pendingStage: pendingStage, musicStageDone: musicStageDone,
     canStream: canStream, applyStream: applyStream, spendStreamStamina: spendStreamStamina, STREAM_STAMINA: STREAM_STAMINA,
     resolveScandal: resolveScandal, runShow: runShow, encoreReward: encoreReward, claimPending: claimPending, payFor: payFor,
     trendGenre: trendGenre, genreName: genreName, members: members, gameDay: gameDay, processDay: processDay, syncSongs: syncSongs,

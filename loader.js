@@ -103,6 +103,7 @@ const NEW_CONTENT_FILES = [
   'hidden-effects.js',
   'music-chart.js',
   'music-chart-ui.js',
+  'music-stage.js',
   'manager.js',
   'manager-events.js',
   'road-manager.js',

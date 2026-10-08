@@ -36,7 +36,7 @@
   var PRICE_COIN = { '무료': 0, '하': 300, '중': 2000, '상': 6000 };   // 음식 가격(코인)
   var SNEAK_CHANCE = 0.35;       // 촬영 앞에 몰래 먹는 음식을 먹었을 때 들킬 확률
   var SNEAK_V = 4, SNEAK_M = 3;  // 들켰을 때 추가로 깎이는 비주얼 / 기분
-  var EVENT_PAY = { drama: 30000, comeback: 50000, rest: 0 };           // 일정 날 정산금(컨디션 '좋음' 기준)
+  var EVENT_PAY = { drama: 30000, comeback: 50000, music: 40000, rest: 0 };           // 일정 날 정산금(컨디션 '좋음' 기준)
   var QUALITY = {                                                       // 컨디션 점수 → 등급
     perfect: { min: 75, mult: 1.5, label: '완벽했어요!', emoji: '💯' },
     good:    { min: 55, mult: 1.0, label: '좋았어요',     emoji: '👍' },
@@ -89,10 +89,11 @@
   var PHASES = {
     shoot:    { label: '🎬 촬영 앞',   desc: '식단 관리 중 · 비주얼 효과 ×1.5', color: '#ffcf4a' },
     comeback: { label: '🎤 컴백 앞',   desc: '체력 효과 ×1.5',                  color: '#ff7aa8' },
+    music:    { label: '📺 음방 앞',   desc: '비주얼·기분 효과 ×1.3',           color: '#ff5d8f' },
     rest:     { label: '😴 휴식기',    desc: '기분 효과 ×2',                    color: '#7fd1ae' },
     normal:   { label: '📅 일반 활동기', desc: '보통 식사',                      color: '#aab4d6' }
   };
-  var TYPE_LABEL = { drama: '🎥 드라마 촬영', comeback: '🎤 컴백 무대', rest: '😴 휴식기' };
+  var TYPE_LABEL = { drama: '🎥 드라마 촬영', comeback: '🎤 컴백 무대', music: '📺 음악방송 활동', rest: '😴 휴식기' };
   var WEEK = ['월', '화', '수', '목', '금', '토', '일'];
 
   var LINES = {
@@ -164,6 +165,7 @@
     if (!sc) return 'normal';
     if (sc.type === 'drama' && day < sc.day && sc.day - day <= PREP_DAYS) return 'shoot';
     if (sc.type === 'comeback' && day < sc.day && sc.day - day <= PREP_DAYS) return 'comeback';
+    if (sc.type === 'music' && day < sc.day && sc.day - day <= PREP_DAYS) return 'music';
     if (sc.type === 'rest' && day >= sc.day && day < sc.day + REST_DAYS) return 'rest';
     return 'normal';
   }
@@ -172,6 +174,7 @@
     var v = food.v, s = food.s, m = food.m;
     if (phase === 'shoot') { v = v * 1.5; if (m < 0) m = m * 1.5; }
     else if (phase === 'comeback') { s = s * 1.5; }
+    else if (phase === 'music') { v = v * 1.3; if (m > 0) m = m * 1.3; }
     else if (phase === 'rest') { m = m * 2; }
     var meta = CH[cid] || { like: [], dislike: [] };
     var like = meta.like.indexOf(food.id) !== -1, dislike = meta.dislike.indexOf(food.id) !== -1;
@@ -222,7 +225,7 @@
       var cd = mealDelta(cid, CATERING, 'shoot');
       applyDeltas(stat, cd); catering = cd;
     }
-    var w = sc.type === 'drama' ? { v: 0.5, m: 0.3, s: 0.2 } : { s: 0.5, m: 0.3, v: 0.2 };
+    var w = sc.type === 'drama' ? { v: 0.5, m: 0.3, s: 0.2 } : sc.type === 'music' ? { v: 0.4, m: 0.4, s: 0.2 } : { s: 0.5, m: 0.3, v: 0.2 };
     var score = stat.v * w.v + stat.s * w.s + stat.m * w.m;
     var q = qualityOf(score);
     var pay = Math.round((EVENT_PAY[sc.type] || 0) * QUALITY[q].mult / 100) * 100;
@@ -261,6 +264,7 @@
       var off = day - st.day;
       if (off < BOOK_MIN || off > BOOK_MAX) return false;
     }
+    if (type === 'music' && !(window.__chart && window.__chart.hasSong && window.__chart.hasSong(cid))) return false;   // 차트에 곡이 있어야 음방 활동 가능
     st.sched[cid] = { type: type, day: day };
     return true;
   }
@@ -398,7 +402,7 @@
         if (sc.type === 'rest') {
           if (d >= sc.day && d < sc.day + REST_DAYS) marks += '<div title="휴식">😴<span style="font-size:9px;">' + nm + '</span></div>';
         } else if (sc.day === d) {
-          marks += '<div>' + (sc.type === 'drama' ? '🎥' : '🎤') + '<span style="font-size:9px;">' + nm + '</span></div>';
+          marks += '<div>' + (sc.type === 'drama' ? '🎥' : sc.type === 'music' ? '📺' : '🎤') + '<span style="font-size:9px;">' + nm + '</span></div>';
         }
       });
       cells += '<div style="flex:1;min-width:0;text-align:center;border-radius:10px;padding:6px 2px;background:' + (i === 0 ? 'rgba(255,207,74,0.22)' : 'rgba(255,255,255,0.06)') + ';border:1px solid ' + (i === 0 ? '#ffcf4a' : 'rgba(255,255,255,0.1)') + ';">' +
@@ -692,14 +696,17 @@
         '<div style="font-size:14px;font-weight:900;color:#fff;">' + q.emoji + ' ' + esc(c.name) + ' · ' + TYPE_LABEL[e.type] + '</div>' +
         '<div style="font-size:12px;color:#cfd3ee;margin-top:4px;line-height:1.6;">컨디션 ' + e.score + '점 · ' + q.label +
         (e.catering ? '<br>🎬 촬영장 케이터링 도시락을 먹고 촬영에 들어갔어요' : '') + '</div>' +
-        '<div style="font-size:13px;font-weight:900;color:#ffe08a;margin-top:4px;">정산금 +' + e.pay.toLocaleString() + '코인</div></div>';
+        '<div style="font-size:13px;font-weight:900;color:#ffe08a;margin-top:4px;">정산금 +' + e.pay.toLocaleString() + '코인</div>' +
+        (e.type === 'music' ? '<button data-stage="' + e.cid + '" data-q="' + e.quality + '" style="' + BTN + 'width:100%;margin-top:8px;padding:10px;background:linear-gradient(135deg,#ff5d8f,#a855f7);color:#fff;font-size:13px;">🎙️ 음방 무대 올라가기 (미니게임)</button>' : '') + '</div>';
     }).join('');
+    events.forEach(function (e) { if (e.type === 'music') { try { if (window.__chart && window.__chart.musicSettle) window.__chart.musicSettle(e.cid, e.quality); } catch (x) {} } });
     ov.innerHTML = '<div style="width:100%;max-width:360px;background:linear-gradient(160deg,#1b1330,#2a1745);border:1.5px solid #C084FC;border-radius:20px;padding:18px;text-align:center;">' +
       '<div style="font-size:18px;font-weight:900;color:#fff;margin-bottom:12px;">📅 일정 결과</div>' + rows +
       '<div style="font-size:14px;font-weight:900;color:#ffd700;margin:8px 0 14px;">합계 +' + total.toLocaleString() + '코인</div>' +
       '<button id="meal-event-ok" style="' + BTN + 'width:100%;padding:12px;background:linear-gradient(135deg,#FF6B9D,#C084FC);color:#fff;font-size:14px;">확인</button></div>';
     document.body.appendChild(ov);
     ov.querySelector('#meal-event-ok').onclick = function () { ov.remove(); };
+    ov.querySelectorAll('[data-stage]').forEach(function (b) { b.onclick = function () { ov.remove(); try { if (window.openMusicStage) window.openMusicStage(b.getAttribute('data-stage'), b.getAttribute('data-q')); } catch (x) {} }; });
   }
 
   // ── 일정 잡기 ──
@@ -727,6 +734,7 @@
       '<div style="font-size:17px;font-weight:900;color:#fff;text-align:center;margin-bottom:12px;">' + esc(c.name) + ' 일정 잡기</div>' +
       section('🎥 드라마 촬영', PREP_DAYS + '일 전부터 식단 관리 모드 (비주얼 효과 ×1.5). 촬영 날 컨디션에 따라 정산금을 받아요.', dateButtons('drama')) +
       section('🎤 컴백 무대', PREP_DAYS + '일 전부터 체력 효과 ×1.5. 무대 날 컨디션에 따라 정산금을 받아요.', dateButtons('comeback')) +
+      section('📺 음악방송 활동', (window.__chart && window.__chart.hasSong && window.__chart.hasSong(cid) ? PREP_DAYS + '일 전부터 비주얼·기분 효과 ×1.3. 활동 날 컨디션에 따라 정산금을 받고, 🎙️ 무대 미니게임으로 차트 점수·보너스를 더 받아요.' : '<span style="color:#fca5a5;">이 아이돌의 곡이 음원차트에 있어야 잡을 수 있어요. (작곡 테이블 → 정규 앨범 타이틀곡)</span>'), (window.__chart && window.__chart.hasSong && window.__chart.hasSong(cid)) ? dateButtons('music') : '') +
       section('😴 휴식기', '내일부터 ' + REST_DAYS + '일 동안 기분 효과 ×2. 맛있는 걸 마음껏 먹일 수 있어요.',
         '<button data-type="rest" data-day="' + (st.day + 1) + '" style="' + BTN + 'padding:8px 12px;background:rgba(255,255,255,0.1);color:#fff;font-size:12px;">내일부터 ' + REST_DAYS + '일</button>') +
       '<button id="meal-book-close" style="' + BTN + 'width:100%;padding:11px;background:rgba(255,255,255,0.12);color:#fff;font-size:13px;">닫기</button></div>';

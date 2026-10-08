@@ -258,6 +258,10 @@
     out += '<div style="display:flex;gap:8px;margin:8px 0;"><div style="flex:1;background:rgba(255,255,255,.06);border-radius:12px;padding:10px;"><div style="font-size:11px;color:#8b8fa8;">🏆 1위 트로피</div><div style="font-size:22px;font-weight:900;color:' + GOLD + ';">' + (ST.trophies || 0) + '</div></div>' +
       '<div style="flex:1;background:rgba(255,255,255,.06);border-radius:12px;padding:10px;"><div style="font-size:11px;color:#8b8fa8;">🎤 출전</div><div style="font-size:22px;font-weight:900;color:#fff;">' + (ST.shows || 0) + '</div></div>' +
       '<div style="flex:1;background:rgba(255,255,255,.06);border-radius:12px;padding:10px;"><div style="font-size:11px;color:#8b8fa8;">👑 차트 1위</div><div style="font-size:22px;font-weight:900;color:#fff;">' + (ST.ones || 0) + '일</div></div></div>';
+    if (s.stage && s.stage.length) {
+      out += '<div style="background:linear-gradient(135deg,rgba(255,93,143,.2),rgba(168,85,247,.16));border:1px solid ' + ACC + '88;border-radius:16px;padding:12px;margin:8px 0;text-align:left;"><div style="font-size:14px;font-weight:900;color:#fff;margin-bottom:6px;">🎙️ 음방 활동 무대가 기다려요 (' + s.stage.length + ')</div>' +
+        s.stage.map(function (x) { return '<button data-stage="' + x.cid + '" data-q="' + x.q + '" style="' + BTN + 'width:100%;margin-top:5px;padding:11px;background:linear-gradient(135deg,' + ACC + ',#a855f7);color:#fff;">' + esc(nameOf(x.cid)) + ' · 무대 미니게임 시작</button>'; }).join('') + '</div>';
+    }
     if (s.show && !s.show.done) {
       var sg = s.songs.filter(function (x) { return x.id === s.show.sid; })[0];
       out += '<div style="background:linear-gradient(135deg,rgba(255,93,143,.22),rgba(168,85,247,.2));border:1px solid ' + ACC + ';border-radius:16px;padding:14px;margin:8px 0;"><div>' + ico('chart-show.png', '🎤', 64) + '</div><div style="font-size:16px;font-weight:900;color:#fff;margin:4px 0;">오늘 음악방송 1위 후보!</div><div style="font-size:12px;color:#ddd;margin-bottom:10px;">' + (sg ? esc(sg.title) + ' · ' + esc(nameOf(sg.cid)) + ' (차트 ' + sg.rank + '위)' : '') + '</div><button id="show-go" style="' + BTN + 'width:100%;padding:14px;background:linear-gradient(135deg,' + ACC + ',#a855f7);color:#fff;font-size:15px;">🎙️ 무대 올라가기</button></div>';
@@ -267,10 +271,10 @@
     } else {
       out += '<div style="background:rgba(255,255,255,.06);border-radius:14px;padding:12px;margin:8px 0;font-size:13px;color:#ddd;line-height:1.7;">오늘은 음악방송이 없어요.<br>다음 음악방송: <b style="color:#fff;">DAY ' + nextShowDay(day + 1) + '</b></div>';
     }
-    out += '<div style="font-size:12px;color:#8b8fa8;line-height:1.7;background:rgba(255,255,255,.04);border-radius:12px;padding:10px 12px;text-align:left;">• 음악방송은 <b>금·토·일</b>(게임 DAY%7 = 5·6·0)에 열려요<br>• 차트 <b>3위 안</b>이어야 출전할 수 있어요<br>• 1위 후보 두 팀이 점수 대결! 이기면 <b>코인 ' + fmt(C().CFG.WIN_PAY) + ' + 소원의 조각 ' + C().CFG.SHOW_WISH + '</b><br>• 1위를 하면 <b>앵콜 무대</b> 미니게임! 3번 다 성공하면 <b>🏆 1위 기념 포토카드</b></div>';
+    out += '<div style="font-size:12px;color:#8b8fa8;line-height:1.7;background:rgba(255,255,255,.04);border-radius:12px;padding:10px 12px;text-align:left;">• 📺 <b>음악방송 활동</b>은 기획사 일정표(식사·일정)에서 드라마처럼 날짜를 잡아요. 활동 날 무대 미니게임을 하면 차트 점수가 올라가요<br>• 음악방송은 <b>금·토·일</b>(게임 DAY%7 = 5·6·0)에 열려요<br>• 차트 <b>3위 안</b>이어야 출전할 수 있어요<br>• 1위 후보 두 팀이 점수 대결! 이기면 <b>코인 ' + fmt(C().CFG.WIN_PAY) + ' + 소원의 조각 ' + C().CFG.SHOW_WISH + '</b><br>• 1위를 하면 <b>앵콜 무대</b> 미니게임! 3번 다 성공하면 <b>🏆 1위 기념 포토카드</b></div>';
     return out;
   }
-  function bindShow(s) { var b = $('show-go'); if (b) b.onclick = startShow; }
+  function bindShow(s) { var b = $('show-go'); if (b) b.onclick = startShow; document.querySelectorAll('[data-stage]').forEach(function (el) { el.onclick = function () { if (window.openMusicStage) window.openMusicStage(el.getAttribute('data-stage'), el.getAttribute('data-q')); else toast('무대를 불러오지 못했어요'); }; }); }
 
   function startShow() {
     var res = C().runShow(); if (!res) { toast('지금은 출전할 수 없어요'); return; }
@@ -345,5 +349,5 @@
     };
   });
 
-  window.__chartUi = { open: openChart, startStream: startStream, startShow: startShow, encore: encore, explainFlow: explainFlow, showNews: showNews };
+  window.__chartUi = { refresh: render, open: openChart, startStream: startStream, startShow: startShow, encore: encore, explainFlow: explainFlow, showNews: showNews };
 })();
