@@ -266,6 +266,7 @@
     }
     if (type === 'music' && !(window.__chart && window.__chart.hasSong && window.__chart.hasSong(cid))) return false;   // 차트에 곡이 있어야 음방 활동 가능
     st.sched[cid] = { type: type, day: day };
+    if (type === 'music') { try { localStorage.setItem('ph_musicBooked', '1'); } catch (e) {} }   // 퀘스트용: 음방 일정 잡아본 적 있음
     return true;
   }
 
