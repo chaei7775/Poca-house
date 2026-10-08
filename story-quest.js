@@ -1055,7 +1055,7 @@
   function pump() {
     if (showing || !storyQueue.length) return;
     // 다른 풀스크린(드라마 촬영 등) 중에는 기다림
-    var busy = document.getElementById('drama-root') || document.querySelector('#meal-eat-overlay, #concert-overlay, #concert-tut-pop, #concert-pick, #stage-overlay, #mystery-overlay, #explore-overlay, #bc-view, #fishing-overlay, #set-overlay');   // 공연·무대 중에도 기다림
+    var busy = document.getElementById('drama-root') || document.querySelector('#meal-eat-overlay, #concert-overlay, #concert-tut-pop, #concert-pick, #stage-overlay, #mystery-overlay, #explore-overlay, #bc-view, #fishing-overlay, #set-overlay, #beauty-overlay');   // 공연·무대 중에도 기다림
     if (busy) { setTimeout(pump, 2000); return; }
     var it = storyQueue.shift();
     openStory(BYID[it.id], it.reward);

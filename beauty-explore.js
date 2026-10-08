@@ -57,6 +57,35 @@
     { icon: '✨', name: '스프레이', tip: '꾹 눌러서 게이지를 채워요! ✨' }
   ];
 
+  // 도구 그림 (beauty-*.png). 그림이 아직 안 불러와졌으면 이모지로 대신 그린다.
+  var PIC_KEYS = ['dryer', 'puff', 'spray', 'sparkle', 'ng'];
+  var PIC_EMOJI = { dryer: '💨', puff: '💄', spray: '✨', sparkle: '✨', ng: '💥' };
+  var STAGE_PIC = ['dryer', 'puff', 'spray'];
+  var PICS = {};
+  function pic(key) {
+    if (!PICS[key]) { var im = new Image(); im.onload = function () { im._ok = true; }; im.src = (typeof B !== 'undefined' ? B : '') + 'beauty-' + key + '.png'; PICS[key] = im; }
+    return PICS[key];
+  }
+  function drawPic(c, key, x, y, size, flip) {
+    var im = pic(key);
+    if (im && im._ok) {
+      c.save(); c.translate(x, y); if (flip) c.scale(-1, 1);
+      c.drawImage(im, -size / 2, -size / 2, size, size); c.restore();
+    } else { c.font = Math.round(size * 0.7) + 'px sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillStyle = '#000'; c.fillText(PIC_EMOJI[key] || '', x, y); }
+  }
+  // 그림 + 글자를 가운데 정렬로 (글꼴은 부르기 전에 정해 둔다). stroke=true면 글자에 테두리
+  function drawLabel(c, key, text, cx, cy, size, stroke) {
+    var im = pic(key), ok = im && im._ok, tw = c.measureText(text).width, gap = 4, total = ok ? size + gap + tw : tw;
+    var left = cx - total / 2;
+    c.textAlign = 'left'; c.textBaseline = 'middle';
+    var tx = left;
+    if (ok) { c.drawImage(im, left, cy - size / 2, size, size); tx = left + size + gap; }
+    else { text = (PIC_EMOJI[key] || '') + ' ' + text; tx = cx - c.measureText(text).width / 2; }
+    if (stroke) c.strokeText(text, tx, cy);
+    c.fillText(text, tx, cy);
+    c.textAlign = 'center';
+  }
+
   // ════════ 순수 로직 (화면 없이도 테스트 가능) ════════
   var POOLS = {
     normal: ['반짝이는조개', '달빛모래', '별빛모래', '맑은샘물'],
@@ -486,8 +515,7 @@
         c.beginPath(); c.moveTo(px - 30 + ph * 80, yy); c.lineTo(px - 30 + ph * 80 + len, yy - 6 + Math.sin(S.t * 9 + i) * 6); c.stroke();
       }
       c.restore();
-      c.font = '38px sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillStyle = '#000';
-      c.fillText('🌬️', px, py - 44);
+      drawPic(c, 'dryer', px, py - 46, 62, true);
     }
     if (S.stage === 1) {
       var R = hitR();
@@ -503,8 +531,7 @@
         c.beginPath(); c.arc(sp[0], sp[1], R * (0.45 + 0.1 * pulse), 0, 6.3); c.stroke();
         c.lineWidth = 3; c.strokeStyle = ng ? 'rgba(255,120,120,0.9)' : 'rgba(255,215,0,0.9)';   // 남은 시간 링
         c.beginPath(); c.arc(sp[0], sp[1], R * 0.78, -Math.PI / 2, -Math.PI / 2 + 6.283 * Math.max(0, 1 - k)); c.stroke();
-        c.font = '22px sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillStyle = '#000';
-        c.fillText(ng ? '💥' : '✨', sp[0], sp[1] + 1);
+        drawPic(c, ng ? 'ng' : 'sparkle', sp[0], sp[1] + 1, ng ? 34 : 32, false);
       });
     }
     if (S.stage === 2) {
@@ -513,7 +540,7 @@
         c.fillStyle = 'rgba(255,255,255,' + (0.7 * a) + ')';
         c.beginPath(); c.arc(m.x, m.y, 3 + 5 * (1 - a), 0, 6.3); c.fill();
       });
-      if (S.ptr) { c.font = '38px sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillStyle = '#000'; c.fillText('🧴', S.ptr.x, S.ptr.y - 44); }
+      if (S.ptr) drawPic(c, 'spray', S.ptr.x, S.ptr.y - 46, 62, false);
     }
   }
 
@@ -529,7 +556,7 @@
     if (tw > 0.01) { roundRect(c, 114, 22, (W - 112 - 90 - 4) * tw, 12, 6); c.fill(); }
     c.fillStyle = 'rgba(0,0,0,0.5)'; roundRect(c, W - 76, 10, 66, 36, 18); c.fill();
     c.fillStyle = S.perfect ? '#fff' : '#ffb0b0'; c.font = '700 13px "Noto Sans KR",sans-serif';
-    c.fillText('💄 ' + Math.min(3, S.stage + 1) + '/3', W - 43, 28);
+    drawLabel(c, 'puff', Math.min(3, S.stage + 1) + '/3', W - 43, 28, 22, false);
 
     // 단계 표시줄
     var cw = 84, gx = (W - cw * 3 - 12) / 2;
@@ -538,7 +565,8 @@
       c.fillStyle = on ? 'rgba(255,140,200,0.92)' : (done ? 'rgba(120,200,140,0.8)' : 'rgba(0,0,0,0.45)');
       roundRect(c, gx + i * (cw + 6), 54, cw, 26, 13); c.fill();
       c.fillStyle = '#fff'; c.font = '700 12px "Noto Sans KR",sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle';
-      c.fillText((done ? '✔ ' : STAGES[i].icon + ' ') + STAGES[i].name, gx + i * (cw + 6) + cw / 2, 67);
+      if (done) c.fillText('✔ ' + STAGES[i].name, gx + i * (cw + 6) + cw / 2, 67);
+      else drawLabel(c, STAGE_PIC[i], STAGES[i].name, gx + i * (cw + 6) + cw / 2, 67, 20, false);
     }
 
     // 안내 문구
@@ -553,14 +581,14 @@
     // 얼굴 아래 진행 막대 (손가락이 가리지 않는 위치)
     if (S.stage < 3) {
       var bw = Math.min(W - 60, f[2] * 1.3), bx = (W - bw) / 2, by = f[1] + f[2] * 0.62, ratio = 0, label = '';
-      if (S.stage === 0) { ratio = S.sweep.passes / DRY_NEED; label = '💨 ' + S.sweep.passes + '/' + DRY_NEED; }
-      else if (S.stage === 1) { ratio = S.hits / PUFF_NEED; label = '💄 ' + S.hits + '/' + PUFF_NEED; }
-      else { ratio = (S.rounds + S.gauge) / SPRAY_ROUNDS; label = '✨ ' + S.rounds + '/' + SPRAY_ROUNDS + (S.holding ? ' 치이이익…' : ''); }
+      if (S.stage === 0) { ratio = S.sweep.passes / DRY_NEED; label = S.sweep.passes + '/' + DRY_NEED; }
+      else if (S.stage === 1) { ratio = S.hits / PUFF_NEED; label = S.hits + '/' + PUFF_NEED; }
+      else { ratio = (S.rounds + S.gauge) / SPRAY_ROUNDS; label = S.rounds + '/' + SPRAY_ROUNDS + (S.holding ? ' 치이이익…' : ''); }
       c.fillStyle = 'rgba(0,0,0,0.5)'; roundRect(c, bx, by, bw, 22, 11); c.fill();
       c.fillStyle = S.stage === 2 ? '#bde0ff' : '#ffb0d8';
       if (ratio > 0.01) { roundRect(c, bx + 2, by + 2, (bw - 4) * Math.min(1, ratio), 18, 9); c.fill(); }
       c.fillStyle = '#fff'; c.font = '700 12px "Noto Sans KR",sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle';
-      c.fillText(label, W / 2, by + 11);
+      drawLabel(c, STAGE_PIC[S.stage], label, W / 2, by + 11, 18, false);
     }
 
     // 단계가 바뀔 때 크게 나오는 안내
@@ -569,8 +597,8 @@
       c.globalAlpha = Math.max(0, Math.min(1, a));
       c.font = '900 30px "Noto Sans KR",sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle';
       c.lineWidth = 8; c.strokeStyle = 'rgba(70,0,50,0.85)'; c.lineJoin = 'round';
-      var ty = H * 0.72, txt = (S.stage + 1) + '단계  ' + STAGES[S.stage].icon + ' ' + STAGES[S.stage].name;
-      c.strokeText(txt, W / 2, ty); c.fillStyle = '#fff'; c.fillText(txt, W / 2, ty);
+      var ty = H * 0.72, txt = (S.stage + 1) + '단계  ' + STAGES[S.stage].name;
+      c.fillStyle = '#fff'; drawLabel(c, STAGE_PIC[S.stage], txt, W / 2, ty, 44, true);
       c.globalAlpha = 1;
     }
   }
