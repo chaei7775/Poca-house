@@ -102,6 +102,7 @@
   })(0);
   // 드링크: 가방의 1개/5개/10개/가득 버튼(drink-bulk.js)은 기존 드링크 퀘스트 감지를 거치지 않아서,
   // "스태미나 +N" 알림이 뜨면 우리가 직접 알려줌
+  try { window.addEventListener('ph-drink-tried', function () { flag('drank'); if (typeof checkQuestProgress === 'function') checkQuestProgress('q2_drink'); }); } catch (e) {}
   (function watchDrink(tries) {
     if (typeof window.showBagToast !== 'function') { if (tries < 100) setTimeout(function () { watchDrink(tries + 1); }, 100); return; }
     var orig = window.showBagToast;

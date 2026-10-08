@@ -198,6 +198,7 @@
   hookLater('giveGift', function () { flag('gift'); });
   hookLater('doRecombine', function () { flag('recombine'); });
   hookLater('useDrinkFromBag', function () { flag('drink'); });
+  try { window.addEventListener('ph-drink-tried', function () { flag('drink'); }); } catch (e) {}   // 스태미나가 가득 차서 못 마신 경우도 완료
   hookLater('expandBag', function () { flag('bag'); });
   hookLater('startSpecialExplore', function () { flag('expedition'); });
   hookLater('showWishCrystalEarned', function () { flag('crystal'); });
