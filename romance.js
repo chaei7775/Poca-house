@@ -38,6 +38,27 @@
       { id: 'c', min: 550, t: '여왕의 약점', s: ['오늘 밤 넌 내게서 벗어날 수 없다고 했지.', '사실 반대야. 내가 널 못 놓겠어.'], q: '아라가 처음으로 시선을 피한다. "...이런 말 하는 나, 싫어?"', o: [['좋아요, 더 말해 줘요', '욕심쟁이. ...좋아해. 이제 만족해?', 3], ['저도 놓고 싶지 않아요', '그럼 약속해. 내 무대 끝까지 객석 맨 앞.', 3], ['약점이 있어서 더 좋아요', '약점 잡았다고 좋아하지 마. ...네 것이니까.', 2]] }
     ]
   };
+  // 멤버가 좋아하는 옷 (입고 있으면 이벤트에서 반응 + 두근 +1) / 옷의 💓두근 % = 두근 +1 확률(x5)
+  var FAV = {
+    minjun: [['star-blazer', 'moon-hoodie'], '그 옷… 잘 어울린다. 괜히 눈이 가네.'],
+    sion: [['crystal-jumper', 'moon-jeans'], '오늘 옷, 내 취향이야. …아니, 뭐 그냥 그렇다고.'],
+    doyun: [['crystal-jacket', 'crystal-pants'], '옷 잘 골랐네. 내 눈에만 보이게 입었으면 좋겠는데.'],
+    harin: [['cloud-dress', 'moon-hoodie'], '오늘은 달빛 같아. …오래 보고 싶어서 말이 안 나와.'],
+    yuna: [['cherry-blouse', 'cherry-skirt'], '와, 그 옷 봄 같아! 나 지금 심장이 먼저 대답해 버렸어!'],
+    ara: [['crystal-skirt', 'cloud-shorts'], '그 옷, 나 말고 다른 사람 앞에선 입지 마. …명령이야.']
+  };
+  function worn(cid) {
+    var out = [];
+    try { var e = (window.__clothesEquip.load() || {})[cid] || {}; ['top', 'bottom', 'dress'].forEach(function (s) { if (e[s]) out.push(e[s].id); }); } catch (x) {}
+    return out;
+  }
+  function boost(cid, pt) {          // → {pt, notes[]}
+    var notes = [], w = worn(cid), f = FAV[cid];
+    if (pt < 3 && f && w.some(function (id) { return f[0].indexOf(id) >= 0; })) { pt++; notes.push(f[1]); }
+    var h = 0; try { h = window.__clothesEquip.heart(cid); } catch (x) {}
+    if (pt < 3 && h > 0 && Math.random() * 100 < h * 5) { pt++; notes.push('💓 의상 효과로 두근이 더 커졌어!'); }
+    return { pt: pt, notes: notes };
+  }
   var NAMES = { minjun: '민준', sion: '시온', doyun: '도윤', harin: '하린', yuna: '윤아', ara: '아라' };
   var KEY = 'ph_romance';
   function load() { try { return JSON.parse(localStorage.getItem(KEY) || '{}'); } catch (e) { return {}; } }
@@ -73,7 +94,13 @@
       ev.o.forEach(function (o, i) { h += '<button data-i="' + i + '" style="display:block;width:100%;margin-bottom:8px;padding:12px;background:rgba(255,255,255,.1);border:1px solid #FF6B9D66;border-radius:12px;color:#fff;font-size:14px;font-family:inherit;">' + o[0] + '</button>'; });
       box.innerHTML = h;
       Array.prototype.forEach.call(box.querySelectorAll('button'), function (b) {
-        b.onclick = function () { var o = ev.o[+b.getAttribute('data-i')]; say(o[1], nm, function () { finish(o[2]); }); };
+        b.onclick = function () {
+          var o = ev.o[+b.getAttribute('data-i')], bo = boost(cid, o[2]);
+          say(o[1], nm, function () {
+            var n = bo.notes.slice();
+            (function more() { if (!n.length) return finish(bo.pt); var t = n.shift(); say(t, t.indexOf('💓') === 0 ? '✨' : nm, more); })();
+          });
+        };
       });
     }
     function finish(pt) {

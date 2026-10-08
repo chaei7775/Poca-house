@@ -16,13 +16,13 @@
   // ── 설정 ──
   var KEY = 'ph_clothesEquip';
   var DRESS_MULT = 2.5;     // 원피스 효과 배수 (상의+하의를 따로 입는 것보다 조금 더 크게)
-  var CAP = 10;             // 캐릭터 의상으로 얻는 스탯 합계 상한(%) — 너무 빨리 세지는 걸 막음
+  var CAP = 12;             // 캐릭터 의상으로 얻는 스탯 합계 상한(%) — 너무 빨리 세지는 걸 막음
   var ACC = '#C084FC';
   // 종류 분류 (id 기준). 목록에 없는 새 옷은 이름으로 추측.
   var DRESS_IDS = ['cloud-dress', 'star-dress'];
   var BOTTOM_IDS = ['cherry-skirt', 'crystal-skirt', 'crystal-pants', 'cloud-skirt', 'cloud-shorts', 'moon-jeans'];
   var TOP_IDS = ['cherry-blouse', 'crystal-jacket', 'crystal-jumper', 'cloud-jacket', 'star-blazer', 'moon-hoodie'];
-  var STAT_LABEL = { coin: '알바 코인', luck: '행운·희귀재료', affection: '호감도', study: '수업 점수', charm: '매력' };
+  var STAT_LABEL = { coin: '알바 코인', luck: '행운·희귀재료', affection: '호감도', heart: '두근', study: '수업 점수', charm: '매력' };
 
   // ── 공통 ──
   function $(id) { return document.getElementById(id); }
@@ -66,6 +66,10 @@
     return kindOf(p.id) === 'dress' ? r1(v * DRESS_MULT) : v;
   }
   function pieceStat(p) { var c = clothDef(p.id); return c ? c.stat : null; }
+  function pieceHeart(p) {          // 💓 두근 (설렘 이벤트용) — 원피스는 배수 적용
+    var c = clothDef(p.id); if (!c || c.stat2 !== 'heart') return 0;
+    return kindOf(p.id) === 'dress' ? r1(c.val2 * DRESS_MULT) : c.val2;
+  }
   function piecesOf(d, cid) {      // 그 캐릭터가 입고 있는 옷 조각들 [{slot, p}]
     var e = (d && d[cid]) || {}, out = [];
     ['top', 'bottom', 'dress'].forEach(function (s) { if (e[s]) out.push({ slot: s, p: e[s] }); });
@@ -78,6 +82,7 @@
     piecesOf(d || load(), cid).forEach(function (x) {
       var s = pieceStat(x.p); if (!s) return;
       t[s] = r1((t[s] || 0) + pieceVal(x.p));
+      var h = pieceHeart(x.p); if (h) t.heart = r1((t.heart || 0) + h);
     });
     return t;
   }
@@ -189,7 +194,8 @@
   }
   function effText(p) {
     var s = pieceStat(p); if (!s) return '';
-    return (STAT_LABEL[s] || s) + ' +' + pieceVal(p) + '%';
+    var h = pieceHeart(p);
+    return (STAT_LABEL[s] || s) + ' +' + pieceVal(p) + '%' + (h ? ' · 💓두근 +' + h + '%' : '');
   }
   function thumb(p, size) {
     var c = clothDef(p.id);
@@ -235,7 +241,7 @@
     var sum = '<div style="background:rgba(192,132,252,.12);border:1px solid ' + ACC + ';border-radius:12px;padding:10px;font-size:12px;margin-bottom:12px;line-height:1.75;">' +
       '<b style="color:#C084FC;">모든 캐릭터 의상 합산</b> <span style="color:#789;">(스탯마다 상한 ' + CAP + '%)</span><br>' +
       statKeys.map(function (k) { return (STAT_LABEL[k]) + ' +' + Math.min(CAP, all[k] || 0) + '%'; }).join(' · ') +
-      '<div style="margin-top:6px;"><b style="color:#FF6B9D;">' + (ch0.name || '') + ' 전용</b> <span style="color:#789;">(이 캐릭터에게 선물할 때만)</span><br>호감도 +' + Math.min(CAP, mine.affection || 0) + '%</div></div>';
+      '<div style="margin-top:6px;"><b style="color:#FF6B9D;">' + (ch0.name || '') + ' 전용</b> <span style="color:#789;">(이 캐릭터에게 선물할 때만)</span><br>호감도 +' + Math.min(CAP, mine.affection || 0) + '% · 💓두근 +' + Math.min(CAP, mine.heart || 0) + '% <span style="color:#789;">(설렘 이벤트)</span></div></div>';
 
     // 아래 목록
     var list = '';
@@ -275,7 +281,7 @@
   }
 
   window.openClothesEquip = open;
-  window.__clothesEquip = { equip: equip, unequip: unequip, bonus: bonus, allTotals: allTotals, charTotals: charTotals, kindOf: kindOf, load: load, CAP: CAP, DRESS_MULT: DRESS_MULT };
+  window.__clothesEquip = { heart: function (cid) { return Math.min(CAP, charTotals(cid).heart || 0); }, equip: equip, unequip: unequip, bonus: bonus, allTotals: allTotals, charTotals: charTotals, kindOf: kindOf, load: load, CAP: CAP, DRESS_MULT: DRESS_MULT };
 
   // ── 기존 능력치 계산에 끼워 넣기 ──
   function whenReady(test, fn) {
