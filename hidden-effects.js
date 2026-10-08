@@ -24,7 +24,7 @@
   var MAX_MULT = 10;          // 초월 3단계 완료 시 기본값의 몇 배
   var MAX_PROGRESS = 43;      // 초월 3단계 완료(+10강) = 3×11 + 10
   // 효과 종류별 상한 (단위는 %, 소원조각은 %p)
-  var CAPS = { coin: 100, luck: 15, affection: 50, study: 50, stamina: 50, wish: 2, great: 40, exp: 100, time: 5, npc: 3, mat: 3 };
+  var CAPS = { coin: 100, luck: 15, affection: 50, study: 30, stamina: 50, wish: 2, great: 40, exam: 20, exp: 100, time: 5, npc: 3, mat: 3 };
   // 카드별 효과: stat 은 위 종류 / v = 카드 그림의 기본값 / live=false 면 아직 연결 안 됨
   var FX = {
     hidden_minjun_rare: [{ stat: 'coin', v: 6, label: '알바 코인' }],
@@ -35,8 +35,8 @@
     hidden_yuna_epic:   [{ stat: 'luck', v: 1, label: '희귀재료 획득' }, { stat: 'affection', v: 1, label: 'NPC 호감도 획득' }],
     hidden_harin_rare:  [{ stat: 'wish', v: 0.5, label: '소원조각 획득' }],
     hidden_harin_epic:  [{ stat: 'wish', v: 0.8, label: '소원조각 획득' }, { stat: 'npc', v: 1, label: '희귀 NPC 조우율' }],
-    hidden_doyun_rare:  [{ stat: 'exam', v: 5, label: '시험 등급 상승', live: false }],
-    hidden_doyun_epic:  [{ stat: 'exam', v: 10, label: '시험 등급 상승', live: false }, { stat: 'study', v: 5, label: '수업 점수', live: false }],
+    hidden_doyun_rare:  [{ stat: 'exam', v: 5, label: '시험 등급 상승' }],
+    hidden_doyun_epic:  [{ stat: 'exam', v: 10, label: '시험 등급 상승' }, { stat: 'study', v: 5, label: '수업 점수' }],
     hidden_ara_rare:    [{ stat: 'great', v: 3, label: '제작 대성공 확률' }],
     hidden_ara_epic:    [{ stat: 'great', v: 3, label: '제작 대성공 확률' }, { stat: 'mat', v: 2, label: '제작 재료 소모', neg: true }]
   };
@@ -127,6 +127,31 @@
       finally { SEWING_RATES.great = g; SEWING_RATES.success = s; }
     };
   });
+
+  // 5-1) 수업 점수 +N% : 연성고등학교 과목 점수를 저장할 때 곱함(100점 상한). 의상의 '수업 점수' 효과도 같이 적용됨
+  whenReady(function () { return typeof window.setSchoolScore === 'function'; }, function () {
+    var orig = window.setSchoolScore;
+    window.setSchoolScore = function (subject, score) {
+      try {
+        var b = Number(window.getEquippedStat('study')) || 0;
+        if (b > 0 && typeof score === 'number') score = Math.min(100, Math.round(score * (1 + b / 100)));
+      } catch (e) {}
+      return orig.call(this, subject, score);
+    };
+  });
+  // 결과 팝업에 보이는 점수도 같은 보너스를 적용해서 저장된 점수와 맞춤
+  whenReady(function () { return typeof window.showSchoolResult === 'function'; }, function () {
+    var orig = window.showSchoolResult;
+    window.showSchoolResult = function (title, score, sub) {
+      try {
+        var b = Number(window.getEquippedStat('study')) || 0;
+        if (b > 0 && typeof score === 'number') { score = Math.min(100, Math.round(score * (1 + b / 100))); sub = (sub || '') + ' · 수업 점수 보너스 +' + b + '%'; }
+      } catch (e) {}
+      return orig.call(this, title, score, sub);
+    };
+  });
+  // 5-2) 시험 등급 상승 +N% : 성적표 평균에 곱함 (game.js finishSchoolReport 가 불러감)
+  window.__hfxExamBonus = function () { try { return totals().exam || 0; } catch (e) { return 0; } };
 
   // 5) 알바 경험치 +N% : 알바를 1번 끝낼 때마다(albaDone 증가) 기본 경험치 15의 N%를 더 줌 (소수는 모아서)
   var _albaLast = null, _expCarry = 0;

@@ -3000,7 +3000,7 @@ function finishSchoolReport() {
   const scores = getSchoolScores();
   const vals = [scores.korean, scores.memory, scores.pe];
   if (!vals.every(v => typeof v === 'number')) { showBagToast('세 과목을 모두 완료해야 해요!'); return; }
-  const avg = Math.round(vals.reduce((a,b)=>a+b,0) / vals.length);
+  const avg = Math.min(100, Math.round(vals.reduce((a,b)=>a+b,0) / vals.length * (1 + (typeof window.__hfxExamBonus === 'function' ? window.__hfxExamBonus() : 0) / 100)));   // 히든카드(도윤) 시험 등급 보너스
   let rank = 'C', starReward = 0, fragmentReward = 5;
   if (avg >= 90) { rank = 'S'; starReward = 1; fragmentReward = 5; }
   else if (avg >= 80) { rank = 'A'; fragmentReward = 10; }
