@@ -1287,7 +1287,9 @@
         sec.insertBefore(b, pad);
       }
       var eb = $('vr-entry-btn');
-      if (eb) {   // 레벨이 모자라면 흐리게 + 🔒 표시
+      if (eb) {
+        var lastEl = sec && sec.lastElementChild;   // 맨 아래(빈칸 바로 앞)로 계속 내려둔다
+        if (lastEl && lastEl !== eb && eb.nextElementSibling !== lastEl) sec.insertBefore(eb, lastEl);   // 레벨이 모자라면 흐리게 + 🔒 표시
         var lk = plv() < NEED_LEVEL, tg = eb.querySelector('span:nth-child(2) > span');
         if (lk) eb.style.opacity = '.55'; else if (eb.style.opacity === '0.55') eb.style.opacity = '';
         if (tg) tg.textContent = lk ? '🔒 Lv.' + NEED_LEVEL : 'NEW';
