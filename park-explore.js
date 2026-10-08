@@ -99,7 +99,7 @@
     bg.onload = function () { if (S) S.bgOk = true; };
     resize();
     for (var i = 0; i < 16; i++) S.petals.push({ x: Math.random() * S.W, y: Math.random() * S.H, vx: 10 + Math.random() * 20, vy: 20 + Math.random() * 30, rot: Math.random() * 6, vr: (Math.random() - 0.5) * 3, r: 3 + Math.random() * 3 });
-    say('나비를 탭해서 잡아봐요! 🦋 (헛탭하면 놀라서 도망가요)', 4);
+    say('나비를 탭해서 잡아봐요! (헛탭하면 놀라서 도망가요)', 4);
 
     window.addEventListener('resize', resize);
     canvas.addEventListener('pointerdown', onDown);
@@ -152,7 +152,7 @@
     if (b.state === 'leave') {
       b.hd = -Math.PI / 2 + Math.sin(b.phase * 2) * 0.4;
       b.x += Math.cos(b.hd) * 140 * dt; b.y += Math.sin(b.hd) * 140 * dt;
-      if (b.y < -50) { b.gone = true; S.resolved++; S.pops.push({ x: Math.max(70, Math.min(S.W - 70, b.x)), y: 80, text: '🦋 날아갔어요', t: 0, dim: true }); }
+      if (b.y < -50) { b.gone = true; S.resolved++; S.pops.push({ x: Math.max(70, Math.min(S.W - 70, b.x)), y: 80, text: '날아갔어요', t: 0, dim: true }); }
       return;
     }
     if (b.state === 'rest') {
@@ -236,7 +236,9 @@
       emoji = typeof getMaterialEmoji === 'function' ? getMaterialEmoji(d.name) : '✨';
     }
     S.collected.push(label);
-    S.pops.push({ x: b.x, y: b.y - 20, text: emoji + ' ' + label + (d.isRare ? ' ✨' : ''), t: 0 });
+    // 재료는 그림(mat-*.png)으로: 이모지를 빼고 그림을 앞에 그린다 (그림이 없으면 이모지로)
+    var mpic = (!d.isWish && typeof window.matImage === 'function') ? window.matImage(d.name) : null;
+    S.pops.push({ x: b.x, y: b.y - 20, text: (mpic ? '' : emoji + ' ') + label.replace(/^[^\w가-힣\[]+/, '') + (d.isRare ? ' ✨' : ''), pic: mpic, t: 0 });
     for (var i = 0; i < 12; i++) S.sparks.push({ x: b.x, y: b.y, vx: (Math.random() - 0.5) * 220, vy: (Math.random() - 0.5) * 220, life: 0.5 + Math.random() * 0.3, col: b.col[Math.floor(Math.random() * 2)] });
     if (navigator.vibrate) { try { navigator.vibrate(30); } catch (e) {} }
   }
@@ -275,10 +277,22 @@
     S.raf = requestAnimationFrame(loop);
   }
 
-  function drawButterfly(c, b) {
+  // 결과창용 나비 그림 (게임에서 날아다니는 나비와 같은 모양을 한 번 그려서 이미지로)
+  var BFLY_URL = '';
+  function bflyIcon() {
+    if (BFLY_URL) return BFLY_URL;
+    try {
+      var cv = document.createElement('canvas'); cv.width = cv.height = 112;
+      var cx = cv.getContext('2d');
+      drawButterfly(cx, { x: 56, y: 58, hd: -Math.PI / 2, state: 'rest', phase: 0.35, rare: false, col: ['#ff9ccf', '#c084fc'] }, 2.0);
+      BFLY_URL = cv.toDataURL('image/png');
+    } catch (e) { BFLY_URL = ''; }
+    return BFLY_URL;
+  }
+  function drawButterfly(c, b, scale) {
     var flap = b.state === 'rest' ? 0.55 + 0.25 * Math.sin(b.phase * 4) : 0.25 + 0.75 * Math.abs(Math.sin(b.phase * (b.state === 'flee' ? 26 : 16)));
     var ang = b.state === 'rest' ? -Math.PI / 2 : b.hd + Math.PI / 2;
-    var sz = b.rare ? 19 : 16;
+    var sz = (b.rare ? 19 : 16) * (scale || 1);
     c.save(); c.translate(b.x, b.y); c.rotate(ang);
     if (b.rare) {   // 금빛 나비 빛
       var g = c.createRadialGradient(0, 0, 2, 0, 0, 34);
@@ -330,8 +344,14 @@
       c.font = '900 14px "Noto Sans KR",sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle';
       c.lineWidth = 4; c.strokeStyle = 'rgba(0,0,0,0.65)';
       var tx = Math.max(70, Math.min(W - 70, p.x)), ty = p.y - p.t * 40;
-      c.strokeText(p.text, tx, ty);
-      c.fillStyle = p.dim ? '#ddd' : '#fff'; c.fillText(p.text, tx, ty);
+      c.fillStyle = p.dim ? '#ddd' : '#fff';
+      if (p.pic && p.pic._ok) {
+        var tw2 = c.measureText(p.text).width, isz = 30, gap = 4, left = tx - (tw2 + isz + gap) / 2;
+        c.textAlign = 'left';
+        c.drawImage(p.pic, left, ty - isz / 2, isz, isz);
+        c.strokeText(p.text, left + isz + gap, ty); c.fillText(p.text, left + isz + gap, ty);
+        c.textAlign = 'center';
+      } else { c.strokeText(p.text, tx, ty); c.fillText(p.text, tx, ty); }
     });
     c.globalAlpha = 1;
 
@@ -345,7 +365,9 @@
     if (tw > 0.01) { roundRect(c, 114, 22, (W - 112 - 90 - 4) * tw, 12, 6); c.fill(); }
     c.fillStyle = 'rgba(0,0,0,0.5)'; roundRect(c, W - 76, 10, 66, 36, 18); c.fill();
     c.fillStyle = '#fff'; c.font = '700 13px "Noto Sans KR",sans-serif';
-    c.fillText('🦋 ' + S.collected.length + '/' + S.total, W - 43, 28);
+    var hudTxt = S.collected.length + '/' + S.total, hw = c.measureText(hudTxt).width;
+    drawButterfly(c, { x: W - 60, y: 28, hd: -Math.PI / 2, state: 'fly', phase: S.t * 0.4, rare: false, col: ['#ff9ccf', '#c084fc'] }, 0.62);
+    c.textAlign = 'left'; c.fillText(hudTxt, W - 46, 28); c.textAlign = 'center';
 
     if (S.msgT > 0 && S.msg) {
       c.font = '700 14px "Noto Sans KR",sans-serif';
@@ -381,7 +403,7 @@
     S = null;
     ov.innerHTML = '<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.78);">' +
       '<div style="background:linear-gradient(135deg,#1a1a2e,#2d1b4e);border:2px solid #FF6B9D;border-radius:20px;padding:26px 22px;text-align:center;width:85%;max-width:300px;">' +
-      '<div style="font-size:36px;margin-bottom:6px;">🦋</div>' +
+      '<div style="margin-bottom:6px;"><img src="' + bflyIcon() + '" alt="" style="width:56px;height:56px;"></div>' +
       '<div style="font-size:18px;font-weight:900;color:#fff;margin-bottom:8px;">나비 잡기 끝!</div>' +
       '<div style="font-size:12px;color:#aaa;margin-bottom:8px;">스태미나 -' + STAMINA_COST + ' (잔여: ' + left + ')</div>' +
       '<div style="font-size:14px;color:#FFD700;line-height:1.7;margin-bottom:16px;">' + list + '</div>' +
