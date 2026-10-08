@@ -106,8 +106,8 @@
     rng = rng || Math.random;
     var missing = rc.filter(function (x) { return ids.indexOf(x) === -1; }), extra = ids.filter(function (x) { return rc.indexOf(x) === -1; });
     var pick = function (arr) { return kindById(arr[Math.floor(rng() * arr.length)]); };
-    if (missing.length) { var k = pick(missing); return '💡 힌트: ' + k.emoji + ' <b>' + k.name + '</b>' + josa(k.name, '이', '가') + ' 들어가요!'; }
-    if (extra.length) { var e = pick(extra); return '💡 힌트: ' + e.emoji + ' <b>' + e.name + '</b>' + josa(e.name, '은', '는') + ' 안 들어가는 것 같아요'; }
+    if (missing.length) { var k = pick(missing); return '💡 힌트: ' + mi(k, 16) + ' <b>' + k.name + '</b>' + josa(k.name, '이', '가') + ' 들어가요!'; }
+    if (extra.length) { var e = pick(extra); return '💡 힌트: ' + mi(e, 16) + ' <b>' + e.name + '</b>' + josa(e.name, '은', '는') + ' 안 들어가는 것 같아요'; }
     return '';
   }
   // 고른 재료(id 배열) → 결과. ok=false 면 reason(힌트). items = 가방 목록(부족한 재료 확인용, 없으면 확인 생략)
@@ -322,7 +322,7 @@
       var r = compose(sel);
       if (r.ok) {
         sfx('reward'); ST.sel = {}; closePop(); try { releasePopup(r); } catch (e) {}
-        ST.msg = '🎶 〈' + esc(r.title) + '〉 발매! ' + r.tier.emoji + ' ' + r.tier.name + ' · 장르 <b>' + r.genre.name + '</b>' + (r.isNew ? '<br>✨ 작곡노트에 새로 등록됐어요!' : '<br>이미 노트에 있는 곡이에요 (앨범은 가방에 들어왔어요)');
+        ST.msg = '🎶 〈' + esc(r.title) + '〉 발매! ' + ti(r.tier, 16) + ' ' + r.tier.name + ' · 장르 <b>' + r.genre.name + '</b>' + (r.isNew ? '<br>✨ 작곡노트에 새로 등록됐어요!' : '<br>이미 노트에 있는 곡이에요 (앨범은 가방에 들어왔어요)');
         render();
       } else { sfx('concertDrop'); pop.setAttribute('data-msg', '❌ ' + r.reason); renderPop(); }
     };
@@ -341,8 +341,10 @@
         var e = note[g.id + '_' + t.id];
         var prev = ti > 0 ? TIERS.slice().reverse()[ti - 1] : null, hint = '';
         if (!e && prev && note[g.id + '_' + prev.id]) {          // 앞 등급을 찾았으면 이 등급 재료의 분류 모양만 알려준다
-          var CI = { score: '🎼', note: '🎵', inst: '🎸', lyric: '📝', spark: '💡', gear: '🎚️' };
-          hint = RECIPES[g.id][t.id].map(function (id) { var k = kindById(id); return k ? (CI[k.cat] || '❔') : '❔'; }).sort().join('');
+          var CI = { score: 'scr', note: 'n4', inst: 'gtr', lyric: 'lyr', spark: 'spk', gear: 'mix' };   // 분류 대표 재료 그림
+          hint = RECIPES[g.id][t.id].map(function (id) { var k = kindById(id); return k ? k.cat : '?'; }).sort().map(function (c) {
+            var rk = CI[c] && kindById(CI[c]); return rk ? mi(rk, 18) : '❔';
+          }).join('');
         }
         h += e ? '<div data-n="' + g.id + '_' + t.id + '" style="cursor:pointer;background:rgba(255,184,107,.28);border:1.5px solid ' + ACC + ';border-radius:9px;padding:6px 2px;text-align:center;font-size:10px;font-weight:900;color:#fff;line-height:1.3;">✔<br>' + esc(e.title) + '</div>'
           : (hint ? '<div style="background:rgba(255,184,107,.1);border:1.5px dashed ' + ACC + ';border-radius:9px;padding:5px 2px;text-align:center;font-size:10px;line-height:1.3;color:#ffd9a8;">단서<br>' + hint + '</div>'
@@ -358,7 +360,7 @@
       el.onclick = function () {
         var e = loadNote()[el.getAttribute('data-n')], box = document.getElementById('cp-recipe'); if (!e || !box) return;
         box.innerHTML = '<div style="background:rgba(255,255,255,.1);border-radius:12px;padding:10px 12px;font-size:12px;color:#fff;line-height:1.7;"><b>〈' + esc(e.title) + '〉</b> 에 쓴 재료<br>' +
-          e.ids.map(function (id) { var k = kindById(id); return k ? k.emoji + ' ' + k.name : ''; }).join(' · ') + '</div>';
+          e.ids.map(function (id) { var k = kindById(id); return k ? mi(k, 16) + ' ' + k.name : ''; }).join(' · ') + '</div>';
       };
     });
   }
