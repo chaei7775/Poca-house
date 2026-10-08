@@ -624,7 +624,8 @@ function resolveSpecialCapture(success) {
   }
 
   let gotJaptem = false, japtemItem = null;
-  if (Math.random() < 0.9) {
+  const JAPTEM_DROP = 0;   // 특별탐험 재료(은빛 깃털 등) 드랍 확률 — 0 = 더 이상 안 나옴 (예전 값 0.9)
+  if (Math.random() < JAPTEM_DROP) {
     gotJaptem = true;
     japtemItem = SPECIAL_JAPTEM[Math.floor(Math.random() * SPECIAL_JAPTEM.length)];
     if (typeof addToBag === 'function') addToBag(japtemItem.emoji, japtemItem.name, 'material', 1, '특별탐험 재료');
