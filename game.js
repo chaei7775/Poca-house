@@ -783,23 +783,23 @@ function showMacroWarning(msg) {
 // ── 버거 알바 ──
 const BURGER_MENUS = [
   { name: '🍔 포카 하트버거', steps: [
-    { label: '빵', emoji: '🍞', pos: { left: '72%', top: '30%' }, hint: '빵을 꺼내주세요' },
-    { label: '패티', emoji: '🥩', pos: { left: '22%', top: '38%' }, hint: '패티 굽기!', gauge: true },
-    { label: '치즈', emoji: '🧀', pos: { left: '70%', top: '50%' }, hint: '치즈를 올려요' },
-    { label: '양상추', emoji: '🥬', pos: { left: '62%', top: '46%' }, hint: '양상추 추가' },
-    { label: '토마토', emoji: '🍅', pos: { left: '65%', top: '50%' }, hint: '토마토 추가' },
-    { label: '소스', emoji: '🧴', pos: { left: '42%', top: '28%' }, hint: '소스 뿌리기' },
-    { label: '빵(뚜껑)', emoji: '🍞', pos: { left: '72%', top: '30%' }, hint: '뚜껑 덮기!' },
+    { label: '빵', emoji: '🍞', pos: { left: '76%', top: '33%' }, hint: '빵을 꺼내주세요' },
+    { label: '패티', emoji: '🥩', pos: { left: '25%', top: '40%' }, hint: '패티 굽기!', gauge: true },
+    { label: '치즈', emoji: '🧀', pos: { left: '73.5%', top: '48%' }, hint: '치즈를 올려요' },
+    { label: '양상추', emoji: '🥬', pos: { left: '63%', top: '43.5%' }, hint: '양상추 추가' },
+    { label: '토마토', emoji: '🍅', pos: { left: '69.5%', top: '46%' }, hint: '토마토 추가' },
+    { label: '소스', emoji: '🧴', pos: { left: '39%', top: '35%' }, hint: '소스 뿌리기' },
+    { label: '빵(뚜껑)', emoji: '🍞', pos: { left: '76%', top: '33%' }, hint: '뚜껑 덮기!' },
   ]},
   { name: '🥓 치즈 베이컨버거', steps: [
-    { label: '빵', emoji: '🍞', pos: { left: '72%', top: '30%' }, hint: '빵을 꺼내주세요' },
-    { label: '패티', emoji: '🥩', pos: { left: '22%', top: '38%' }, hint: '패티 굽기!', gauge: true },
-    { label: '베이컨', emoji: '🥓', pos: { left: '42%', top: '28%' }, hint: '베이컨 추가' },
-    { label: '치즈', emoji: '🧀', pos: { left: '70%', top: '50%' }, hint: '치즈 1장' },
-    { label: '치즈', emoji: '🧀', pos: { left: '70%', top: '50%' }, hint: '치즈 2장!' },
-    { label: '피클', emoji: '🥒', pos: { left: '62%', top: '46%' }, hint: '피클 추가' },
-    { label: '소스', emoji: '🧴', pos: { left: '42%', top: '28%' }, hint: '소스 뿌리기' },
-    { label: '빵(뚜껑)', emoji: '🍞', pos: { left: '72%', top: '30%' }, hint: '뚜껑 덮기!' },
+    { label: '빵', emoji: '🍞', pos: { left: '76%', top: '33%' }, hint: '빵을 꺼내주세요' },
+    { label: '패티', emoji: '🥩', pos: { left: '25%', top: '40%' }, hint: '패티 굽기!', gauge: true },
+    { label: '베이컨', emoji: '🥓', pos: { left: '34%', top: '40%' }, hint: '베이컨 추가' },
+    { label: '치즈', emoji: '🧀', pos: { left: '73.5%', top: '48%' }, hint: '치즈 1장' },
+    { label: '치즈', emoji: '🧀', pos: { left: '73.5%', top: '48%' }, hint: '치즈 2장!' },
+    { label: '피클', emoji: '🥒', pos: { left: '66.5%', top: '45%' }, hint: '피클 추가' },
+    { label: '소스', emoji: '🧴', pos: { left: '39%', top: '35%' }, hint: '소스 뿌리기' },
+    { label: '빵(뚜껑)', emoji: '🍞', pos: { left: '76%', top: '33%' }, hint: '뚜껑 덮기!' },
   ]}
 ];
 let burgerStep = 0, burgerMenuIdx = -1, burgerGaugePos = 0, burgerGaugeDir = 1, burgerStack = [];
