@@ -1074,6 +1074,7 @@
     return true;
   }
 
+  var seenTrue = {};   // 퀘스트별 '조건이 처음 채워진 시각'
   function tick() {
     try {
       sampleMeal();
@@ -1086,13 +1087,19 @@
         if (!a) continue;
         var ok = false;
         try { ok = !!a.detect(); } catch (e) {}
-        // 챕터 이야기는 순서 상관없이: 먼저 한 일부터 이야기가 나옴 (길잡이·메인퀘스트 순서와 어긋나지 않게)
-        if (!ok && t.kind !== 'idol') {
+        // 챕터 이야기는 순서 상관없이, '먼저 한 행동'부터 (목록 순서가 아니라 조건이 먼저 채워진 순서)
+        if (t.kind !== 'idol') {
+          var best = ok ? a : null, bt = ok ? (seenTrue[a.id] || (seenTrue[a.id] = Date.now())) : 1e18;
           for (var k = 0; k < t.quests.length; k++) {
             var cand = t.quests[k];
             if (qdone(cand.id)) continue;
-            try { if (cand.detect()) { a = cand; ok = true; break; } } catch (e) {}
+            var cok = false;
+            try { cok = !!cand.detect(); } catch (e) {}
+            if (!cok) continue;
+            var ct = seenTrue[cand.id] || (seenTrue[cand.id] = Date.now());
+            if (ct < bt) { best = cand; bt = ct; }
           }
+          if (best) { a = best; ok = true; }
         }
         if (ok) {
           completeQuest(a.id, QUESTS[a.id]);
