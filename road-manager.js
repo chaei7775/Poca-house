@@ -171,12 +171,15 @@
     var j = job(); if (!j) return renderIdle();
     ov.innerHTML = '<div style="' + BOX + '">' + header() +
       '<div style="text-align:center;background:rgba(255,255,255,.06);border:1.5px solid rgba(255,255,255,.15);border-radius:16px;padding:22px 14px;">' +
-      '<div style="font-size:44px;animation:rmDrive 1.2s ease-in-out infinite alternate;">🚗💨</div>' +
+      '<div style="position:relative;height:96px;overflow:hidden;margin-bottom:2px;">' +
+        '<img src="road-van.png?v=1" style="position:absolute;left:calc(50% - 66px);top:6px;height:66px;animation:rmBob .5s ease-in-out infinite alternate;" alt="">' +
+        '<div style="position:absolute;left:0;right:0;bottom:8px;height:3px;background:repeating-linear-gradient(90deg,rgba(255,255,255,.45) 0 18px,transparent 18px 36px);animation:rmRoad .5s linear infinite;"></div>' +
+      '</div>' +
       '<div style="font-size:14px;font-weight:900;margin:8px 0 2px;">' + esc(titleOf(j.map)) + '로 달리는 중</div>' +
       '<div id="rm-left" style="font-size:22px;font-weight:900;color:' + ACC + ';margin:6px 0 10px;"></div>' +
       '<div style="height:10px;border-radius:5px;background:rgba(255,255,255,.12);overflow:hidden;"><div id="rm-bar" style="height:100%;width:0;background:linear-gradient(90deg,' + ACC + ',#3b82f6);"></div></div>' +
       '<div style="font-size:11px;color:#aaa;margin-top:10px;line-height:1.6;">앱을 꺼도 괜찮아요. 시간이 되면 돌아와서 알려줘요.</div></div></div>' +
-      '<style>@keyframes rmDrive{from{transform:translateX(-14px)}to{transform:translateX(14px)}}</style>';
+      '<style>@keyframes rmBob{from{transform:translateY(0)}to{transform:translateY(-3px)}}@keyframes rmRoad{from{background-position:0 0}to{background-position:-36px 0}}@keyframes rmSmoke{0%{opacity:.9;transform:translateX(0) scale(.6)}100%{opacity:0;transform:translateX(-34px) scale(1.15)}}</style>';
     bindClose(ov);
     if (tickTimer) clearInterval(tickTimer);
     function upd() {
