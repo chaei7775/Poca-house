@@ -99,26 +99,53 @@
       if (typeof saveAll === 'function') saveAll();
     } catch (e) { console.error('[xk]', e); }
 
-    var rows = [];
-    if (coin > 0) rows.push('<div>🍔 코인 <b style="color:#ffd76a;">+' + fmt(coin) + '</b></div>');
-    if (exp > 0) rows.push('<div>⭐ 카드 경험치 <b style="color:#ffd76a;">+' + fmt(exp) + '</b></div>');
-    items.forEach(function (it) { if (!it.lost) rows.push('<div style="display:flex;align-items:center;gap:6px;justify-content:center;">' + itemIcon(it, 22) + ' ' + it.name + ' <b style="color:#ffd76a;">×' + it.qty + '</b></div>'); });
-    if (stone > 0) rows.push('<div>🔨 강화석 <b style="color:#ffd76a;">×' + stone + '</b></div>');
-    if (protect > 0) rows.push('<div>🛡️ 방지권 <b style="color:#ffd76a;">×' + protect + '</b></div>');
-    if (wish > 0) rows.push('<div>🧩 소원의 조각 <b style="color:#ffd76a;">×' + wish + '</b></div>');
-    if (!rows.length) rows.push('<div style="color:#bbb;">받은 보상이 없어요</div>');
+    // 🎁 보상은 상자로 나와요: 상자를 하나씩 눌러서 열어요 (이미 지급은 끝났고, 여기는 보여주기만 해요)
+    var IB = IMG_BASE, entries = [];
+    function ic(file, emo) { return '<img src="' + IB + file + '" style="width:30px;height:30px;object-fit:contain;" onerror="this.outerHTML=\'<span style=&quot;font-size:26px;&quot;>' + emo + '</span>\'">'; }
+    if (coin > 0) entries.push({ ic: ic('vip-coin.png', '🍔'), t: '코인', n: '+' + fmt(coin) });
+    if (exp > 0) entries.push({ ic: ic('vip-exp.png', '⭐'), t: '카드 경험치', n: '+' + fmt(exp) });
+    items.forEach(function (it) { if (!it.lost) entries.push({ ic: itemIcon(it, 30), t: it.name, n: '×' + it.qty }); });
+    if (stone > 0) entries.push({ ic: '<span style="font-size:26px;">🔨</span>', t: '강화석', n: '×' + stone });
+    if (protect > 0) entries.push({ ic: '<span style="font-size:26px;">🛡️</span>', t: '방지권', n: '×' + protect });
+    if (wish > 0) entries.push({ ic: '<span style="font-size:26px;">🧩</span>', t: '소원의 조각', n: '×' + wish });
+    var boxes = entries.map(function (e, i) {
+      return '<div class="xk-box" data-i="' + i + '" style="cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;height:92px;">' +
+        '<div class="xk-bx" style="height:56px;display:flex;align-items:center;justify-content:center;animation:xkBob 1.2s ease-in-out ' + (i % 3) * 0.15 + 's infinite;">' +
+        '<img src="' + IB + 'vip-box.png" style="width:54px;height:54px;object-fit:contain;" onerror="this.outerHTML=\'<span style=&quot;font-size:42px;&quot;>🎁</span>\'"></div>' +
+        '<div class="xk-lb" style="font-size:11px;font-weight:900;line-height:1.25;text-align:center;margin-top:2px;color:#cbb8ff;">눌러서 열기</div></div>';
+    }).join('');
     var box = document.createElement('div');
     box.style.cssText = 'position:absolute;inset:0;z-index:5;background:rgba(6,3,14,.9);display:flex;align-items:center;justify-content:center;padding:18px;overflow:auto;' + FONT;
-    box.innerHTML = '<div style="width:100%;max-width:320px;text-align:center;background:linear-gradient(160deg,#241547,#120a26);border:2px solid ' + cfg.color + ';border-radius:20px;padding:22px 18px;">' +
+    box.innerHTML = '<style>@keyframes xkBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}@keyframes xkPop{0%{transform:scale(.3);opacity:0}60%{transform:scale(1.25)}100%{transform:scale(1);opacity:1}}</style>' +
+      '<div style="width:100%;max-width:330px;text-align:center;background:linear-gradient(160deg,#241547,#120a26);border:2px solid ' + cfg.color + ';border-radius:20px;padding:20px 16px;">' +
       '<div style="font-size:40px;">' + (res.win ? '🏆' : '😢') + '</div>' +
       '<div style="font-size:19px;font-weight:900;margin:4px 0;">' + (res.title || (res.win ? '성공!' : '아쉬워요')) + '</div>' +
       '<div style="font-size:12px;color:#d9ccff;margin-bottom:10px;line-height:1.6;">' + (res.summary || '') + '</div>' +
-      '<div style="background:rgba(255,255,255,.07);border-radius:12px;padding:10px;font-size:13px;line-height:1.9;margin-bottom:10px;">' + rows.join('') + '</div>' +
+      (entries.length ? '<div style="font-size:12px;color:#ffd76a;font-weight:900;margin-bottom:6px;">🎁 상자 <span id="xk-left">' + entries.length + '</span>개 · 눌러서 하나씩 열어봐요!</div>' +
+        '<div id="xk-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;background:rgba(255,255,255,.06);border-radius:14px;padding:10px 6px;margin-bottom:8px;">' + boxes + '</div>' +
+        '<button id="xk-all" style="width:100%;padding:8px;margin-bottom:10px;border:none;border-radius:10px;background:rgba(255,255,255,.12);color:#ddd;font-size:12px;cursor:pointer;' + FONT + '">한꺼번에 열기</button>'
+        : '<div style="color:#bbb;margin:12px 0;">받은 보상이 없어요</div>') +
       (rate < 1 ? '<div style="font-size:11px;color:#ffb4b4;margin-bottom:8px;">오늘 보상 횟수를 넘겨서 ' + Math.round(rate * 100) + '%만 받았어요</div>' : '') +
       (bagFull ? '<div style="font-size:11px;color:#ffb4b4;margin-bottom:8px;">가방이 가득 차서 일부 재료를 못 받았어요</div>' : '') +
       '<button id="xk-again" style="width:100%;padding:13px;margin-bottom:8px;border:none;border-radius:12px;background:linear-gradient(135deg,' + cfg.color + ',#8b5cf6);color:#fff;font-size:15px;font-weight:900;cursor:pointer;' + FONT + '">한 번 더 (⚡ ' + cfg.stamina + ')</button>' +
       '<button id="xk-out" style="width:100%;padding:11px;border:none;border-radius:12px;background:rgba(255,255,255,.1);color:#ccc;font-size:14px;cursor:pointer;' + FONT + '">나가기</button></div>';
     root.appendChild(box);
+    var left = entries.length;
+    function openBox(el) {
+      if (!el || el.getAttribute('data-open')) return;
+      var e = entries[Number(el.getAttribute('data-i'))]; if (!e) return;
+      el.setAttribute('data-open', '1');
+      var bx = el.querySelector('.xk-bx'), lb = el.querySelector('.xk-lb');
+      bx.style.animation = 'xkPop .45s ease-out';
+      bx.innerHTML = e.ic.replace('width:30px;height:30px', 'width:46px;height:46px');
+      lb.style.color = '#fff'; lb.innerHTML = e.t + '<br><span style="color:#ffd76a;">' + e.n + '</span>';
+      left--; var lf = $('xk-left'); if (lf) lf.textContent = left;
+      if (left <= 0) { var al = $('xk-all'); if (al) al.style.display = 'none'; }
+      try { if (window.pocaSfx && window.pocaSfx.play) window.pocaSfx.play('reward'); } catch (x) {}
+    }
+    Array.prototype.forEach.call(box.querySelectorAll('.xk-box'), function (el) { el.onclick = function () { openBox(el); }; });
+    var allBtn = $('xk-all');
+    if (allBtn) allBtn.onclick = function () { Array.prototype.forEach.call(box.querySelectorAll('.xk-box'), function (el, i) { setTimeout(function () { openBox(el); }, i * 120); }); };
     $('xk-out').onclick = function () { root.remove(); };
     $('xk-again').onclick = function () { root.remove(); enter(cfg, charId, true); };
   }
