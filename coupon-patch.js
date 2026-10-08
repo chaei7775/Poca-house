@@ -23,6 +23,12 @@
       ],
       message: '🎁 재조합석 쿠폰!\n\n🔹 재조합석 100개'
     },
+    'EPIC100': {
+      items: [
+        { emoji: '💠', name: '에픽 재조합석', type: 'material', qty: 100, desc: 'SSR/UR 카드 재조합에 필요한 재료' }
+      ],
+      message: '🎁 에픽 재조합석 쿠폰!\n\n💠 에픽 재조합석 100개'
+    },
     'WELCOME': {
       gold: 300000,
       items: [
