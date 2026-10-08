@@ -16,15 +16,15 @@
   var NEED_LEVEL = 35;       // 열리는 플레이어 레벨
   var STAMINA = 150;         // 입장 스태미나
   var DAILY = 3;             // 하루 보상 100% 횟수
-  var BOSS_HP = 2800;        // 보스 체력
+  var BOSS_HP = 4000;        // 보스 체력
   var HEARTS = 5;            // 내 하트
   var LV_DMG = 0.02;         // 플레이어 레벨 1당 데미지 증가 (Lv.35 기준)
-  var WIN_COIN = 200000, WIN_EXP = 3000;
-  var PIECE_CHANCE = 0.9, PIECE_BONUS = 0.4;   // 프리미엄 조각
-  var WISH_WIN = 3, WISH_BONUS = 0.5;            // 소원의 조각 (기본 개수, 한 개 더 줄 확률)
-  var STONE_WIN = 2, STONE_BONUS = 0.5;           // 강화석 (기본 개수, 한 개 더 줄 확률)
-  var EPIC_STONE_CHANCE = 0.45;                   // 💠 에픽 재조합석 확률
-  var RECOMB_N = 3, ONGSTONE_N = 3;              // 🔹 재조합석 / 🔶 공방의 원석 개수
+  var WIN_COIN = 400000, WIN_EXP = 6000;
+  var PIECE_CHANCE = 1.0, PIECE_BONUS = 0.6;   // 프리미엄 조각
+  var WISH_WIN = 5, WISH_BONUS = 0.5;            // 소원의 조각 (기본 개수, 한 개 더 줄 확률)
+  var STONE_WIN = 3, STONE_BONUS = 0.5;           // 강화석 (기본 개수, 한 개 더 줄 확률)
+  var EPIC_STONE_CHANCE = 0.7;                   // 💠 에픽 재조합석 확률
+  var RECOMB_N = 5, ONGSTONE_N = 5;              // 🔹 재조합석 / 🔶 공방의 원석 개수
   var LOSE_RATE = 0.8;       // 졌을 때: 깎은 비율 × 이 값 만큼의 보상
   var SK = [
     { id: 'highlight', lv: 20, icon: '🎤', name: '하이라이트' },
