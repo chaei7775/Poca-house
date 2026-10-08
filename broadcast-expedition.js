@@ -400,6 +400,7 @@
       var sp = b.querySelector('.bc-pq'); if (sp) sp.textContent = 'x' + q;
       b.style.opacity = q > 0 ? '1' : '.5';
     });
+    try { autoUiRefresh(); } catch (e) {}   // 처음 입장할 때 자동 회복 글씨·퍼센트가 비어 있던 것 (칸이 화면에 붙기 전에 한 번만 채워서 그랬음)
   }
   function usePotion(id, auto) {
     var po = potionById(id);
@@ -1247,7 +1248,7 @@
     hud();
     fillNormals();
     var bn = engAll().cheer;
-    banner(bn ? String(bn) : (MAP.encore ? ('🎤 이벤트 ' + ENCORE_N + '번을 채우면 앵콜 스테이지가 열려요! (1번에 ⚡' + staminaCost() + ')') : ('❗를 찾아 걸어가 보세요! 이벤트 1번에 ⚡' + staminaCost())));
+    banner(bn ? String(bn) : (MAP.encore ? ('🎤 이벤트 ' + ENCORE_N + '번을 채우면 앵콜 스테이지가 열려요! (1번에 ⚡' + staminaCost() + ')') : ('팬을 찾아 걸어가 보세요! 응대 1번에 ⚡' + staminaCost())));
     S.raf = requestAnimationFrame(tick);
     if (MAP.encore && S.done >= ENCORE_N) openEncore();
   }

@@ -607,7 +607,7 @@
     if ((F.cd[id] || 0) > now) return null;
     var mlv = mLv(id), reachM = sk.reach * (1 + 0.05 * mlv) * gm(F.cid, 'reach');          // 숙련 Lv마다 사거리 +5% · 🎀 소품 사거리
     var fan = nearestTarget(reachM);
-    if (!fan) { toast(bcHook() ? '가까이에 이벤트가 없어요! ❗ 쪽으로 걸어가 봐요 (눌러서 닿기 전까지만)' : '가까이에 팬이 없어요! 팬 쪽으로 걸어가 봐요'); return null; }
+    if (!fan) { toast(bcHook() ? '가까이에 팬이 없어요! 팬 쪽으로 걸어가 봐요 (닿기 전에 스킬을 써요)' : '가까이에 팬이 없어요! 팬 쪽으로 걸어가 봐요'); return null; }
     var me = playerPos();
     var hk = bcHook();
     if (fan.ev && !hk.canResolve(fan.ev)) return null;                // 스태미나 부족 등
@@ -747,7 +747,7 @@
     }
     var t;
     if (near) { var no = near.ev || near, nk = no.fsSeq && skillById(no.fsSeq[no.fsStep]); t = '💬 ' + near.emoji + ' ' + near.name + ' 앞! ' + (nk ? nk.icon + ' 차례 · ' : '') + '게이지 ' + Math.min(100, no.fsGauge || 0) + '% (광역은 아무 칸이나 채워요)'; }
-    else if (bcHook()) t = '❗ 이벤트 가까이 가서 스킬을 써봐요 (닿으면 미니게임이 열려요)';
+    else if (bcHook()) t = '💖 팬 가까이 가서 스킬을 써봐요 (닿으면 미니게임이 열려요)';
     else if (F.fans.length) t = '👀 팬이 기다리고 있어요! 가까이 걸어가요';
     else t = '✨ 이벤트가 끝나면 팬이 찾아와요';
     if (F.hint.textContent !== t) F.hint.textContent = t;
@@ -779,7 +779,7 @@
       });
       F.obs.observe(view, { childList: true });
     } catch (e) {}
-    showNote(bcHook() ? '💖 이벤트 머리 위에 뜬 스킬을 그대로 써요! 가까이 가서 스킬 버튼을 눌러요 (틀리면 실패)' : '💖 이벤트가 끝나면 팬이 찾아와요! 가까이 가서 스킬을 써봐요');
+    showNote(bcHook() ? '💖 팬 머리 위에 뜬 스킬을 그대로 써요! 가까이 가서 스킬 버튼을 눌러요 (틀리면 실패)' : '💖 이벤트가 끝나면 팬이 찾아와요! 가까이 가서 스킬을 써봐요');
     refreshBar();
   }
 
