@@ -72,4 +72,16 @@
     } catch (e) {}
     return r;
   };
+
+  // 인연 화면에서 아이돌 카드를 눌러 상세를 여는 것 = '처음 만나는 인연' (선물 전에 먼저 완료)
+  // (giveGift 가 상세를 다시 그릴 때도 불리므로, 처음 한 번만 판정)
+  var _origDetail = window.openBondDetail;
+  if (typeof _origDetail === 'function' && !_origDetail.__metHooked) {
+    window.openBondDetail = function () {
+      var r = _origDetail.apply(this, arguments);
+      try { if (typeof checkQuestProgress === 'function') checkQuestProgress('first_meet'); } catch (e) {}
+      return r;
+    };
+    window.openBondDetail.__metHooked = true;
+  }
 })();
