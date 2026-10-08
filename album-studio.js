@@ -347,7 +347,7 @@
           }).join('');
         }
         h += e ? '<div data-n="' + g.id + '_' + t.id + '" style="cursor:pointer;background:rgba(255,184,107,.28);border:1.5px solid ' + ACC + ';border-radius:9px;padding:6px 2px;text-align:center;font-size:10px;font-weight:900;color:#fff;line-height:1.3;">✔<br>' + esc(e.title) + '</div>'
-          : (hint ? '<div style="background:rgba(255,184,107,.1);border:1.5px dashed ' + ACC + ';border-radius:9px;padding:5px 2px;text-align:center;font-size:10px;line-height:1.3;color:#ffd9a8;">단서<br>' + hint + '</div>'
+          : (hint ? '<div data-hint="' + g.id + '_' + t.id + '" style="cursor:pointer;background:rgba(255,184,107,.1);border:1.5px dashed ' + ACC + ';border-radius:9px;padding:5px 2px;text-align:center;font-size:10px;line-height:1.3;color:#ffd9a8;">단서<br>' + hint + '</div>'
           : '<div style="background:rgba(255,255,255,.06);border:1.5px dashed rgba(255,255,255,.18);border-radius:9px;padding:10px 2px;text-align:center;font-size:12px;color:#8b7b6a;">???</div>');
       });
       h += '</div>';
@@ -355,7 +355,39 @@
     h += '<div id="cp-recipe" style="margin-top:10px;"></div>';
     return h;
   }
+  // 🔍 단서 칸을 누르면 뜨는 팝업: 그 칸 곡에 들어가는 재료 '분류'별 개수
+  var CAT_NAME = { score: '악보', note: '음표', inst: '악기', lyric: '가사', spark: '영감', gear: '장비' };
+  var CAT_REP = { score: 'scr', note: 'n4', inst: 'gtr', lyric: 'lyr', spark: 'spk', gear: 'mix' };
+  function hintPopup(key) {
+    var gid = key.split('_')[0], tid = key.split('_')[1], g = GENRES.filter(function (x) { return x.id === gid; })[0], t = tierById(tid);
+    if (!g || !t) return;
+    var cnt = {}, order = [];
+    RECIPES[gid][tid].forEach(function (id) { var k = kindById(id); if (!k) return; if (!cnt[k.cat]) { cnt[k.cat] = 0; order.push(k.cat); } cnt[k.cat]++; });
+    order.sort();
+    var rows = order.map(function (c) {
+      var rk = kindById(CAT_REP[c]);
+      return '<div style="display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.08);border-radius:12px;padding:8px 12px;">' +
+        '<div style="width:38px;text-align:center;">' + (rk ? mi(rk, 32) : '❔') + '</div>' +
+        '<div style="flex:1;font-size:14px;font-weight:900;color:#fff;">' + (CAT_NAME[c] || c) + ' 재료</div>' +
+        '<div style="font-size:16px;font-weight:900;color:#FFD700;">' + cnt[c] + '개</div></div>';
+    }).join('');
+    var old = document.getElementById('cp-hint-pop'); if (old) old.remove();
+    var pop = document.createElement('div'); pop.id = 'cp-hint-pop';
+    pop.style.cssText = 'position:fixed;inset:0;z-index:1100;background:rgba(6,3,2,.8);display:flex;align-items:center;justify-content:center;padding:20px;font-family:\'Noto Sans KR\',sans-serif;';
+    pop.innerHTML = '<div style="width:100%;max-width:320px;background:linear-gradient(160deg,#2a1c14,#1a110c);border:2px solid ' + ACC + ';border-radius:20px;padding:20px 18px;">' +
+      '<div style="text-align:center;font-size:17px;font-weight:900;color:#fff;margin-bottom:4px;">📒 단서</div>' +
+      '<div style="text-align:center;font-size:12px;color:#ffd9a8;margin-bottom:12px;">' + ti(t, 18) + ' ' + t.name + ' · 재료 <b>' + RECIPES[gid][tid].length + '종류</b>가 들어가요</div>' +
+      '<div style="display:flex;flex-direction:column;gap:7px;">' + rows + '</div>' +
+      '<div style="font-size:11px;color:#c9b8a4;line-height:1.6;margin:12px 0;text-align:center;">분류별 개수만 알려줘요.<br>어떤 재료인지는 직접 조합해서 찾아봐요!</div>' +
+      '<button id="cp-hint-x" style="width:100%;padding:12px;border:none;border-radius:12px;background:linear-gradient(135deg,#ffb86b,#ff9a4a);color:#fff;font-size:14px;font-weight:900;font-family:inherit;cursor:pointer;">확인</button></div>';
+    pop.onclick = function (e) { if (e.target === pop) pop.remove(); };
+    document.body.appendChild(pop);
+    document.getElementById('cp-hint-x').onclick = function () { pop.remove(); };
+  }
   function bindNote() {
+    Array.prototype.forEach.call(document.querySelectorAll('[data-hint]'), function (el) {
+      el.onclick = function () { hintPopup(el.getAttribute('data-hint')); };
+    });
     Array.prototype.forEach.call(document.querySelectorAll('[data-n]'), function (el) {
       el.onclick = function () {
         var e = loadNote()[el.getAttribute('data-n')], box = document.getElementById('cp-recipe'); if (!e || !box) return;
