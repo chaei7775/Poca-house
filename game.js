@@ -1609,8 +1609,11 @@ let playerLevel = parseInt(localStorage.getItem('ph_playerLevel') || '1');
 const EARLY_EXP_REQ = { 1: 20, 2: 120, 3: 250, 4: 400 };
 // 레벨업 필요 경험치 배율 (1 = 원래, 0.5 = 절반). 숫자만 바꾸면 전체 레벨업 속도가 바뀜
 const EXP_REQ_MULT = 1;
+// 초반 구간(Lv.2 → Lv.5 도달까지, 즉 Lv.2·3·4 의 필요량)만 따로 깎는 배율: 0.3 = 70% 줄임. 1 = 원래대로
+const EARLY_EXP_CUT_FROM = 2, EARLY_EXP_CUT_TO = 4, EARLY_EXP_CUT_MULT = 0.3;
 function getExpRequired(level) {
-  return Math.max(1, Math.round((EARLY_EXP_REQ[level] || 20 * level * level) * EXP_REQ_MULT));
+  const cut = (level >= EARLY_EXP_CUT_FROM && level <= EARLY_EXP_CUT_TO) ? EARLY_EXP_CUT_MULT : 1;
+  return Math.max(1, Math.round((EARLY_EXP_REQ[level] || 20 * level * level) * EXP_REQ_MULT * cut));
 }
 
 function addPlayerExp(amount) {
