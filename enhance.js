@@ -43,8 +43,8 @@
   var GRADE_WEIGHT = { '레어히든': 1, '에픽히든': 1 };                          // 멤버 수익 배율에 반영하는 비율
   var SPECIAL_STAMINA = 30;                                                   // 특별탐험 한 번(탐험하기)에 드는 스태미나
   var DROP = {                                                                // 특별탐험 촬영 성공 시 드랍 확률 (1 = 100%)
-    normal:  { stone: 0.035, protect: 0.015, trans: 0 },
-    variant: { stone: 0.20,  protect: 0.10,  trans: 0.07 }
+    normal:  { stone: 0, protect: 0, trans: 0 },       // 옛 생물 잡기 특별탐험은 더 이상 강화 재료가 안 나옴 (팬덤 원정으로 이동)
+    variant: { stone: 0, protect: 0, trans: 0 }        // (예전 값: 일반 3.5%/1.5%/0 · 변종 20%/10%/7%)
   };
   var STORAGE_KEY = 'ph_enhance';
 
