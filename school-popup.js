@@ -8,9 +8,9 @@
 (function () {
   'use strict';
   var SUBJ = [
-    { k: 'korean', icon: '📚', name: '국어', game: '받아쓰기', desc: '선생님이 읽어주는 단어를 맞게 고르기', start: 'startDictationGame' },
-    { k: 'memory', icon: '🧠', name: '수학', game: '암기카드', desc: '9장 카드의 위치를 기억해서 짝 맞추기', start: 'startMemoryCardGame' },
-    { k: 'pe',     icon: '🏃', name: '체육', game: '칸밟기',   desc: '12칸 중 초록칸 6개를 기억해서 밟기', start: 'startStepTileGame' }
+    { k: 'korean', icon: '📚', img: 'school-korean.png', name: '국어', game: '받아쓰기', desc: '선생님이 읽어주는 단어를 맞게 고르기', start: 'startDictationGame' },
+    { k: 'memory', icon: '🧠', img: 'school-math.png', name: '수학', game: '암기카드', desc: '9장 카드의 위치를 기억해서 짝 맞추기', start: 'startMemoryCardGame' },
+    { k: 'pe',     icon: '🏃', img: 'school-pe.png', name: '체육', game: '칸밟기',   desc: '12칸 중 초록칸 6개를 기억해서 밟기', start: 'startStepTileGame' }
   ];
   var FONT = "font-family:'Noto Sans KR',sans-serif;";
 
@@ -40,6 +40,10 @@
       '<button onclick="__schoolPop.close()" style="position:absolute;top:10px;right:10px;z-index:3;width:34px;height:34px;border:none;border-radius:50%;background:rgba(0,0,0,.28);color:#fff;font-size:16px;font-weight:900;cursor:pointer;">✕</button>' + inner + '</div>';
     el.style.display = 'flex';
     var ov = document.getElementById('school-overlay'); if (ov) ov.style.display = 'none';
+  }
+  // 아이콘 이미지(없으면 이모지로 대체)
+  function ico(img, emoji, px) {
+    return '<img src="' + img + '" alt="" style="width:' + px + 'px;height:' + px + 'px;object-fit:contain;display:block;" onerror="this.outerHTML=\'<span style=&quot;font-size:' + Math.round(px * 0.6) + 'px;line-height:1;&quot;>' + emoji + '</span>\'">';
   }
   function chip(t) { return '<span style="background:rgba(255,255,255,.25);border-radius:14px;padding:4px 10px;font-size:12px;font-weight:900;color:#fff;">' + t + '</span>'; }
   function bigBtn(label, onclick, bg, dis) {
@@ -87,7 +91,7 @@
       else { right = '<div style="font-size:22px;flex-shrink:0;">🔒</div>'; border = '#e2e8f0'; bg = '#f8fafc'; op = .6; }
       var clickable = cur && !noTicket;
       return '<button ' + (clickable ? 'onclick="__schoolPop.go(\'' + s.k + '\')"' : 'disabled') + ' style="display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:14px 14px;margin-bottom:10px;border:2.5px solid ' + border + ';background:' + bg + ';border-radius:20px;opacity:' + op + ';cursor:' + (clickable ? 'pointer' : 'default') + ';' + (cur ? 'animation:sp-pulse 1.6s infinite;' : '') + '">' +
-        '<div style="width:46px;height:46px;border-radius:14px;background:' + (done ? '#dcfce7' : '#eff6ff') + ';display:flex;align-items:center;justify-content:center;font-size:27px;flex-shrink:0;">' + s.icon + '</div>' +
+        '<div style="width:58px;height:58px;border-radius:16px;background:' + (done ? '#dcfce7' : '#eff6ff') + ';display:flex;align-items:center;justify-content:center;flex-shrink:0;">' + ico(s.img, s.icon, 50) + '</div>' +
         '<div style="flex:1;min-width:0;"><div style="font-size:12px;font-weight:900;color:#94a3b8;">' + (i + 1) + '교시</div><div style="font-size:17px;font-weight:900;color:#0f172a;">' + s.name + ' · ' + s.game + '</div><div style="font-size:12px;color:#64748b;line-height:1.4;margin-top:1px;word-break:keep-all;">' + s.desc + '</div></div>' + right + '</button>';
     }).join('');
 
@@ -96,7 +100,7 @@
 
     var report;
     if (cd.report) report = bigBtn('📋 오늘 성적표는 받았어요 ✅', '', '', true);
-    else if (allDone) report = bigBtn('📋 성적표 받기', '__schoolPop.report()', 'linear-gradient(135deg,#F59E0B,#FF6B9D)');
+    else if (allDone) report = bigBtn(ico('school-report.png','📋',26).replace('display:block','display:inline-block;vertical-align:middle;margin-right:6px') + '성적표 받기', '__schoolPop.report()', 'linear-gradient(135deg,#F59E0B,#FF6B9D)');
     else report = bigBtn('📋 세 과목을 모두 마치면 성적표를 받아요', '', '', true);
 
     showPop(head + bar + '<div style="padding:12px 18px 20px;">' + notice + steps + '<div style="margin-top:4px;">' + report + '</div></div>');
@@ -107,12 +111,13 @@
     normalizeSchoolDaily();
     var scores = getSchoolScores(), cd = getSchoolCardDaily();
     var next = nextSubject(scores, cd);
+    var curImg = /국어|받아쓰기/.test(title) ? 'school-korean.png' : /암기|수학/.test(title) ? 'school-math.png' : 'school-pe.png';
     var stars = score >= 90 ? '⭐⭐⭐' : score >= 70 ? '⭐⭐' : '⭐';
     var msg = score >= 90 ? '완벽해요! 🎉' : score >= 70 ? '잘했어요! 👏' : '조금 아쉬워요, 다음엔 더 잘할 수 있어요!';
     var action = next
-      ? bigBtn('다음 수업 · ' + next.name + ' ' + next.icon + ' ▶', "__schoolPop.go('" + next.k + "')", 'linear-gradient(135deg,#60a5fa,#C084FC)')
+      ? bigBtn('다음 수업 · ' + next.name + ' ▶', "__schoolPop.go('" + next.k + "')", 'linear-gradient(135deg,#60a5fa,#C084FC)')
       : bigBtn('📋 성적표 받으러 가기', '__schoolPop.report()', 'linear-gradient(135deg,#F59E0B,#FF6B9D)');
-    showPop('<div style="background:linear-gradient(135deg,#60a5fa,#C084FC);border-radius:28px 28px 0 0;padding:22px 18px;text-align:center;color:#fff;"><div style="font-size:17px;font-weight:900;">' + title + '</div></div>' +
+    showPop('<div style="background:linear-gradient(135deg,#60a5fa,#C084FC);border-radius:28px 28px 0 0;padding:22px 18px;text-align:center;color:#fff;"><div style="display:flex;justify-content:center;">' + ico(curImg, '🎓', 64) + '</div><div style="font-size:17px;font-weight:900;margin-top:4px;">' + title + '</div></div>' +
       '<div style="padding:24px 20px 20px;text-align:center;">' +
       '<div style="font-size:30px;letter-spacing:4px;margin-bottom:2px;">' + stars + '</div>' +
       '<div style="font-size:68px;font-weight:900;color:#F59E0B;line-height:1.05;">' + score + '<span style="font-size:20px;color:#94a3b8;margin-left:3px;">점</span></div>' +
@@ -152,7 +157,7 @@
           var inner = c.cloneNode(true);
           inner.style.cssText = 'padding:28px 20px 22px;text-align:center;';
           var btn = inner.querySelector('button'); if (btn) btn.setAttribute('onclick', '__schoolPop.hub()');
-          showPop('<div style="background:linear-gradient(135deg,#F59E0B,#FF6B9D);border-radius:28px 28px 0 0;padding:20px 18px;text-align:center;color:#fff;font-size:18px;font-weight:900;">📋 오늘의 성적표</div>' + inner.outerHTML);
+          showPop('<div style="background:linear-gradient(135deg,#F59E0B,#FF6B9D);border-radius:28px 28px 0 0;padding:20px 18px;text-align:center;color:#fff;font-size:18px;font-weight:900;">' + ico('school-report.png', '📋', 64) + '<div style="margin-top:4px;">오늘의 성적표</div></div>' + inner.outerHTML);
         }
       } catch (e) { console.warn('school-popup report', e); }
       return r;
