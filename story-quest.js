@@ -1005,7 +1005,7 @@
     var idx = 0;
     var ov = document.createElement('div');
     ov.id = 'story-ov';
-    ov.style.cssText = 'position:fixed;inset:0;z-index:880;background:rgba(8,6,20,.88);display:flex;align-items:flex-end;justify-content:center;font-family:inherit;animation:stFade .25s ease;';
+    ov.style.cssText = 'position:fixed;inset:0;z-index:99990;background:rgba(8,6,20,.88);display:flex;align-items:flex-end;justify-content:center;font-family:inherit;animation:stFade .25s ease;';
     ov.innerHTML =
       '<style>@keyframes stFade{from{opacity:0}to{opacity:1}}@keyframes stPop{from{transform:translateY(8px);opacity:0}to{transform:none;opacity:1}}</style>' +
       '<div style="width:100%;max-width:480px;padding:0 12px 18px;box-sizing:border-box;">' +
