@@ -69,6 +69,7 @@
   function tkLoad() { try { return JSON.parse(localStorage.getItem(TK_KEY) || '{}'); } catch (e) { return {}; } }
   function tkSave(d) { try { localStorage.setItem(TK_KEY, JSON.stringify(d)); } catch (e) {} }
   function gameDay() { try { var m = JSON.parse(localStorage.getItem('ph_meal') || '{}'); return Number(m.day) || 1; } catch (e) { return 1; } }
+  function tkIcon(px) { try { return typeof window.matIcon === 'function' ? window.matIcon(TK_NAME, px, '🎟️') : '🎟️'; } catch (e) { return '🎟️'; } }
   function bagTk() { try { var it = bagItems.find(function (i) { return i.name === TK_NAME; }); return it ? it.qty : 0; } catch (e) { return 0; } }
   function exp(cid) { try { return getAffectionTotalExp(cid); } catch (e) { return 0; } }
   function stageName(min) { return min >= 1700 ? '인연' : min >= 400 ? '신뢰' : min >= 80 ? '우호' : '친절'; }
@@ -133,7 +134,7 @@
     var all = tkLoad(); var t = all[cid] || { n: 0, d: 0 };
     t.n = Math.min((Number(t.n) || 0) + 1, st.need); t.d = gameDay(); all[cid] = t; tkSave(all);
     var nm = NAMES[cid] || cid, left = st.need - t.n;
-    try { if (typeof showBagToast === 'function') showBagToast('🎟️ ' + nm + '에게 데이트 티켓을 건넸어요 (' + t.n + '/' + st.need + ')' + (left <= 0 ? ' — 설렘 이벤트가 열렸어요!' : '')); } catch (e) {}
+    try { if (typeof showBagToast === 'function') showBagToast(nm + '에게 데이트 티켓을 건넸어요 (' + t.n + '/' + st.need + ')' + (left <= 0 ? ' — 설렘 이벤트가 열렸어요!' : '')); } catch (e) {}
     try { openBondDetail(cid); } catch (e) {}
   }
 
@@ -149,7 +150,7 @@
     else {
       var left = st.need - st.have;
       var can = !st.giftedToday && bagTk() > 0;
-      b.textContent = '🎟️ 데이트 티켓 선물 (' + st.have + '/' + st.need + ')' + (st.giftedToday ? ' · 오늘은 이미 선물했어요' : bagTk() <= 0 ? ' · 티켓이 없어요 (팬덤 원정에서 꽃집 할머니를 찾아봐요)' : '');
+      b.innerHTML = tkIcon(18) + ' 데이트 티켓 선물 (' + st.have + '/' + st.need + ')' + (st.giftedToday ? ' · 오늘은 이미 선물했어요' : bagTk() <= 0 ? ' · 티켓이 없어요 (팬덤 원정에서 꽃집 할머니를 찾아봐요)' : '');
       b.style.cssText = base + (can ? 'background:linear-gradient(135deg,#FF4D88,#FF9EC4);color:#fff;cursor:pointer;' : 'background:rgba(255,255,255,.08);color:#aaa;font-size:12px;');
       if (can) b.onclick = function () { giveTicket(cid); };
       else b.disabled = true;

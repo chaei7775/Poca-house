@@ -46,7 +46,7 @@
     el.addEventListener('click', function (e) { e.stopPropagation(); talk(); });
     layer.appendChild(el);
     cur = { el: el, timer: setTimeout(remove, STAY_SEC * 1000) };
-    toast('💐 꽃집 할머니가 어디선가 두리번거리고 있어요');
+    toast('꽃집 할머니가 어디선가 두리번거리고 있어요');
   }
 
   function dlg(html) {
