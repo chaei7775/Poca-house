@@ -226,7 +226,8 @@
     try { arr = JSON.parse(localStorage.getItem(LOADOUT_KEY) || 'null'); } catch (e) {}
     var out = [], seen = {};
     if (Array.isArray(arr)) {
-      for (var i = 0; i < SLOTS; i++) { var id = arr[i]; if (id && skillById(id) && !seen[id]) { out.push(id); seen[id] = 1; } else out.push(null); }
+      for (var i = 0; i < SLOTS; i++) { var id = arr[i]; if (id && skillById(id) && !seen[id] && (skillById(id).price === 0 || ownCount(skillById(id)) > 0)) {   // 아무도 안 배운 스킬은 장착 해제
+           out.push(id); seen[id] = 1; } else out.push(null); }
       return out;
     }
     SKILLS.forEach(function (s) { if (out.length < SLOTS && s.price === 0) { out.push(s.id); } });   // 처음엔 기본 스킬만
@@ -883,6 +884,8 @@
         var id = el.getAttribute('data-pick'), cur = loadLoadout();
         var at = cur.indexOf(id);
         if (at !== -1) { equip(at, null); edSel = null; renderEditor(); return; }     // 장착중인 걸 누르면 해제
+        var sk0 = skillById(id);
+        if (sk0 && sk0.price > 0 && !ownCount(sk0)) { toast('🔒 상점에서 먼저 배워야 장착할 수 있어요! (더보기 > 💖 팬 스킬 상점)'); return; }   // 아무도 안 배운 스킬은 장착 불가
         var slot = edSel !== null && !cur[edSel] ? edSel : cur.indexOf(null);
         if (slot === -1) { toast('빈 칸이 없어요! 장착된 칸을 눌러 먼저 해제해요'); return; }
         equip(slot, id); edSel = null;
