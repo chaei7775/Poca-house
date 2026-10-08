@@ -234,7 +234,7 @@
       var res = original.apply(this, arguments);
       var grid = document.getElementById('more-menu-grid');
       if (grid && !document.getElementById('more-road-tile')) {
-        var st = status(), tag = st === 'ready' ? ' ✅' : (st === 'running' ? ' ⏳' : (plv() < UNLOCK_LV ? ' 🔒Lv.' + UNLOCK_LV : ''));
+        var st = status(), tag = st === 'ready' ? ' ✅' : (st === 'running' ? ' ⏳' : '');
         grid.insertAdjacentHTML('beforeend', window.moreMenuTileHtml('🚗', '로드 매니저' + tag, ACC, 'openRoadManager()'));
         if (grid.lastElementChild) grid.lastElementChild.id = 'more-road-tile';
       }
