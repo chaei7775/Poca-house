@@ -201,7 +201,7 @@
     var ov = document.createElement('div');
     ov.id = 'hfx-overlay';
     ov.style.cssText = 'position:fixed;inset:0;z-index:955;background:rgba(10,5,20,.95);overflow-y:auto;padding:18px;' + FONT;
-    ov.innerHTML = '<div style="max-width:340px;margin:0 auto;"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;"><div style="font-size:18px;font-weight:900;color:#fff;">🌟 히든카드 효과</div>' +
+    ov.innerHTML = '<div style="max-width:340px;margin:0 auto;"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;"><div style="font-size:18px;font-weight:900;color:#fff;"><img src="more-hiddenfx.png" alt="" style="width:30px;height:30px;object-fit:contain;vertical-align:-8px;margin-right:6px;" onerror="this.outerHTML=\'🌟\'">히든카드 효과</div>' +
       '<button id="hfx-x" style="padding:7px 12px;border:none;border-radius:10px;background:rgba(255,255,255,.12);color:#fff;font-size:13px;font-weight:900;cursor:pointer;' + FONT + '">닫기</button></div>' +
       '<div style="font-size:11px;color:#bbb;line-height:1.6;margin-bottom:12px;">카드 그림의 숫자는 강화 전 기본값이에요.<br>강화 · 초월할수록 효과가 커져서, 초월 3단계를 끝내면 기본값의 <b style="color:#FFD700;">' + MAX_MULT + '배</b>까지 올라가요. (효과마다 상한이 있어요)</div>' + rows + '</div>';
     document.body.appendChild(ov);
@@ -242,11 +242,12 @@
 
   whenReady(function () { return typeof window.openMoreMenu === 'function' && typeof window.moreMenuTileHtml === 'function'; }, function () {
     var orig = window.openMoreMenu;
+    try { if (typeof MORE_ICON_FILES === 'object') MORE_ICON_FILES['🎴'] = 'hiddenfx'; } catch (e) {}   // more-hiddenfx.png (없으면 이모지)
     window.openMoreMenu = function () {
       var res = orig.apply(this, arguments);
       var grid = document.getElementById('more-menu-grid');
       if (grid && !document.getElementById('more-hfx-tile')) {
-        grid.insertAdjacentHTML('beforeend', window.moreMenuTileHtml('🌟', '히든 효과', ACC, 'openHiddenEffects()'));
+        grid.insertAdjacentHTML('beforeend', window.moreMenuTileHtml('🎴', '히든 효과', ACC, 'openHiddenEffects()'));
         if (grid.lastElementChild) grid.lastElementChild.id = 'more-hfx-tile';
       }
       return res;
