@@ -52,9 +52,11 @@
       '<div style="text-align:left;background:rgba(255,255,255,.08);border-radius:14px;padding:12px 14px;font-size:12.5px;line-height:1.75;color:#f1e9ff;">' + cfg.intro.map(function (l) { return '· ' + l; }).join('<br>') + '</div>' +
       '<div style="font-size:11.5px;color:#ffd76a;margin:10px 0;">오늘 보상 ' + (d.left > 0 ? '<b>' + d.left + '번</b> 남음 (넘으면 ' + Math.round(EXTRA_RATE * 100) + '%)' : '<b>다 썼어요</b> · 지금부턴 ' + Math.round(EXTRA_RATE * 100) + '%만 받아요') + ' · ⚡ ' + cfg.stamina + '</div>' +
       '<button id="xk-go" style="width:100%;padding:14px;border:none;border-radius:13px;background:linear-gradient(135deg,' + cfg.color + ',#8b5cf6);color:#fff;font-size:15px;font-weight:900;cursor:pointer;' + FONT + '">시작하기</button>' +
+      '<button id="xk-gear" style="width:100%;margin-top:8px;padding:11px;border:none;border-radius:12px;background:rgba(192,132,252,.25);border:1.5px solid #C084FC;color:#fff;font-size:13px;font-weight:900;cursor:pointer;' + FONT + '">🎀 소품 장착</button>' +
       '<button id="xk-back" style="width:100%;margin-top:8px;padding:11px;border:none;border-radius:12px;background:rgba(255,255,255,.1);color:#ccc;font-size:13px;cursor:pointer;' + FONT + '">나가기</button></div>';
     root.appendChild(intro);
     $('xk-back').onclick = function () { root.remove(); };
+    $('xk-gear').onclick = function () { try { if (window.FanGear) window.FanGear.open(charId); } catch (e) {} };
     $('xk-go').onclick = function () {
       if (stam() < cfg.stamina) { toast('스태미나가 부족해요!'); return; }
       try { stamina -= cfg.stamina; if (typeof saveStamina === 'function') saveStamina(); if (typeof saveAll === 'function') saveAll(); } catch (e) {}
@@ -73,8 +75,12 @@
 
   // ── 보상 지급 + 결과 화면 ──
   function settle(cfg, root, charId, res, rate) {
-    var coin = Math.round((res.coin || 0) * rate), exp = Math.round((res.exp || 0) * rate);
+    var gmR = 1; try { if (window.FanGear) gmR = window.FanGear.mult(charId, 'reward'); } catch (e) {}   // 🎀 소품 보상 증가
+    var coin = Math.round((res.coin || 0) * rate * gmR), exp = Math.round((res.exp || 0) * rate * gmR);
     var items = [];
+    try {   // 🎀 소품 드랍 (클리어했을 때만, cfg.gearChance)
+      if (res.win && cfg.gearChance && Math.random() < cfg.gearChance && window.FanGear) { var gi = window.FanGear.roll(cfg.gearMin); if (gi) { res.items = (res.items || []).concat([gi]); } }
+    } catch (e) {}
     (res.items || []).forEach(function (it) {
       var q = Math.max(0, Math.round((it.qty || 0) * rate));
       if (q <= 0 && rate < 1 && (it.qty || 0) > 0 && Math.random() < rate) q = 1;   // 낮은 비율이어도 가끔은 1개

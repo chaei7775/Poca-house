@@ -573,7 +573,7 @@
 
   // ════════ 보상 ════════
   function grant(love, bonus) {
-    var mult = (love ? LOVE_MULT : 1) * (bonus || 1);
+    var mult = (love ? LOVE_MULT : 1) * (bonus || 1) * gm(F.cid, 'reward');   // 🎀 소품 보상 증가
     var lines = [];
     var cm = COIN_MULT[F.mapId] || 1;
     var gain = Math.max(1, Math.round(COIN_BASE * cm * mult * (0.9 + Math.random() * 0.2)));
@@ -591,6 +591,10 @@
     return { coins: gain, exp: exp, pieces: pieces, lines: lines };
   }
 
+  // 🎀 팬덤 원정 소품 (expedition-gear.js) 효과 읽기
+  function gs(cid, k) { try { return window.FanGear ? window.FanGear.sum(cid, k) : 0; } catch (e) { return 0; } }
+  function gm(cid, k) { return 1 + gs(cid, k) / 100; }
+  function forgiveLeft() { return gs(F && F.cid, 'forgive') - ((F && F.forgiveUsed) || 0); }
   // ════════ 스킬 사용 ════════
   function useSkill(id) {
     if (!F) return null;
@@ -601,13 +605,14 @@
     if (!hasSkill(F.cid, sk)) { openBuyModal(sk); return null; }      // 아직 안 배운 스킬: 구매 창
     var now = Date.now();
     if ((F.cd[id] || 0) > now) return null;
-    var mlv = mLv(id), reachM = sk.reach * (1 + 0.05 * mlv);          // 숙련 Lv마다 사거리 +5%
+    var mlv = mLv(id), reachM = sk.reach * (1 + 0.05 * mlv) * gm(F.cid, 'reach');          // 숙련 Lv마다 사거리 +5% · 🎀 소품 사거리
     var fan = nearestTarget(reachM);
     if (!fan) { toast(bcHook() ? '가까이에 이벤트가 없어요! ❗ 쪽으로 걸어가 봐요 (눌러서 닿기 전까지만)' : '가까이에 팬이 없어요! 팬 쪽으로 걸어가 봐요'); return null; }
     var me = playerPos();
     var hk = bcHook();
     if (fan.ev && !hk.canResolve(fan.ev)) return null;                // 스태미나 부족 등
-    F.cd[id] = now + (sk.aoe ? Math.max(1, COOLDOWN - 0.4 * mlv) : Math.max(0.5, 1 - 0.1 * mlv)) * 1000;   // 단타 1초, 광역 3초 (숙련 Lv마다 단타 -0.1초 / 광역 -0.4초)   // 숙련 Lv마다 쿨타임 -0.4초 (최소 1초)
+    F.cd[id] = now + (sk.aoe ? Math.max(1, COOLDOWN - 0.4 * mlv) : Math.max(0.5, 1 - 0.1 * mlv)) * 1000 * (1 - gs(F.cid, 'cd') / 100);   // 🎀 소품 쿨타임 감소
+    //   // 단타 1초, 광역 3초 (숙련 Lv마다 단타 -0.1초 / 광역 -0.4초)   // 숙련 Lv마다 쿨타임 -0.4초 (최소 1초)
     // 대상 모으기: 가장 가까운 대상 + (광역이면) 범위 안의 다른 팬들
     var list = [fan.ev || fan];
     if (sk.aoe) {
@@ -620,6 +625,11 @@
     var res = { done: 0, fail: 0, ok: 0 }, didUse = false;
     list.forEach(function (o) {
       var st = applyStep(o, id, sk, mlv);
+      if (st === 'fail' && forgiveLeft() > 0) {                       // 🎀 수정 왕관 배지: 순서 실수 막아줌 (게이지는 그대로)
+        F.forgiveUsed = (F.forgiveUsed || 0) + 1;
+        floatText(o.x, o.y - 0.03, '<div style="font-size:13px;font-weight:900;color:#a5f3fc;text-shadow:0 2px 6px #000;white-space:nowrap;">🛡️ 소품이 실수를 막아줬어요!</div>');
+        sfx('pick'); return;
+      }
       var isEv = !!o.type && !!o.el && !o.emoji;                       // 맵 이벤트인지
       var tg = isEv ? evTarget(o) : o;
       effect(id, tg, me, st === 'done');
@@ -647,7 +657,7 @@
         var evRef = o, cidNow = F.cid;
         setTimeout(function () {
           var ok = false;
-          try { ok = hk.resolve(evRef, love, 1 + 0.04 * mlv); } catch (e) {}
+          try { ok = hk.resolve(evRef, love, (1 + 0.04 * mlv) * gm(cidNow, 'reward')); } catch (e) {}
           if (ok) { addServe(cidNow); maybeBook(evRef.type, id); } else evRef.fsBusy = false;
         }, 900);
       } else {
@@ -700,8 +710,15 @@
     gear.textContent = '⚙️ 스킬 장착';
     gear.style.cssText = 'background:rgba(0,0,0,.62);border:1px solid #C084FC;border-radius:999px;padding:2px 10px;font-size:10px;font-weight:900;color:#fff;cursor:pointer;';
     gear.onpointerdown = function (e) { e.stopPropagation(); e.preventDefault(); openEditor(); };
+    var gearRow = document.createElement('div');
+    gearRow.style.cssText = 'display:flex;gap:6px;';
+    var gbtn = document.createElement('div');
+    gbtn.textContent = '🎀 소품 장착';
+    gbtn.style.cssText = gear.style.cssText;
+    gbtn.onpointerdown = function (e) { e.stopPropagation(); e.preventDefault(); try { if (window.FanGear) window.FanGear.open(F && F.cid); } catch (x) {} };
+    gearRow.appendChild(gear); gearRow.appendChild(gbtn);
     bar.appendChild(hint);
-    bar.appendChild(gear);
+    bar.appendChild(gearRow);
     bar.appendChild(row);
     view.appendChild(bar);
     F.bar = bar; F.hint = hint; F.btns = btns;
@@ -719,7 +736,7 @@
       if (!s) { ic.textContent = '➕'; lb.textContent = '장착'; b.style.opacity = '.5'; b.style.borderColor = '#666'; b.style.animation = 'none'; continue; }
       var lvLock = !levelOk(s), locked = !hasSkill(F.cid, s);
       var left = Math.max(0, Math.ceil(((F.cd[s.id] || 0) - now) / 1000));
-      var nr = nearestTarget(s.reach * (1 + 0.05 * masteryLv(F.cid, s.id)));
+      var nr = nearestTarget(s.reach * (1 + 0.05 * masteryLv(F.cid, s.id)) * gm(F.cid, 'reach'));
       ic.textContent = (lvLock || locked) ? '🔒' : s.icon;
       lb.textContent = lvLock ? ('Lv.' + s.useLv) : (locked ? ('🍔' + priceLabel(s.price)) : (left > 0 ? left + '초' : s.short));
       var ready = !lvLock && !locked && left === 0 && !!nr;

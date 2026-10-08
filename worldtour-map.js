@@ -133,7 +133,7 @@
         float('-' + dmg);
         q('wt-say').textContent = S.combo >= 3 ? '🔥 연속 응대! 팬들이 열광해요' : '성공! 팬이 만족해요';
         drawHud();
-        if (Math.random() < 0.7) dropBox();   // 팬이 만족하면 상자를 떨어뜨림
+        if (Math.random() < Math.min(1, 0.7 * (window.FanGear ? window.FanGear.mult(ctx.charId, 'box') : 1))) dropBox();   // 🎀 소품: 상자 확률   // 팬이 만족하면 상자를 떨어뜨림
         if (S.hp <= 0) return end(true);
         S.lock = true; setTimeout(newSeq, 350);
       }
@@ -175,7 +175,7 @@
     if (!window.ExpKit) { setTimeout(reg, 100); return; }
     window.ExpKit.register({
       id: 'world_tour', bg: 'special-world_tour.jpg', name: '월드투어 스타디움', emoji: '🏟️', color: '#f472b6', needLevel: NEED_LEVEL, stamina: STAMINA, daily: DAILY,
-      tagline: '스킬 연속 응대! 소원의 조각·강화석·재조합석',
+      tagline: '스킬 연속 응대! 소원의 조각·강화석·재조합석', gearChance: 0.45, gearMin: 'great',
       intro: ['보스 머리 위에 뜨는 <b>스킬 순서</b>를 그대로 아래 버튼으로 눌러요.', '성공하면 팬이 만족해서 🎁 <b>상자를 떨어뜨려요</b>! 눌러서 주워요 (몇 초 뒤 사라져요). 보스 게이지도 깎여요. <b>연속 성공</b>할수록 데미지가 커져요!', '틀리거나 시간이 끝나면 ❤️가 깎여요 (5개). 단계가 오를수록 순서가 <b>3→4→5개</b>로 길어져요.', '쓸 수 있는 스킬은 <b>플레이어 레벨</b>로 정해져요: 🎤20 💖25 ✨30 🌹35 🎆40 (Lv.40이면 🎆 불꽃쇼가 들어간 줄은 데미지 ×1.4)', '보스를 쓰러뜨리면 🧩 <b>소원의 조각</b>, 🔨 <b>강화석</b>, 🔹 <b>재조합석</b>, 🔶 <b>원석</b>, <b>프리미엄 조각</b>이 나와요. 가끔 💠 <b>에픽 재조합석</b>도!'],
       play: play
     });

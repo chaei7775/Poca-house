@@ -686,7 +686,7 @@
     var g = SPECIAL_GEAR[Math.floor(Math.random() * SPECIAL_GEAR.length)];
     var label = SPECIAL_GEAR_GRADES[grade];
     var eff = gearEffectText(g.effect, gearScaledValue(g, grade));
-    if (!addToBag(g.emoji, '[' + label + '] ' + g.name, 'gear', 1, '특별탐험 촬영 소품 · ' + eff)) return null;
+    if (!addToBag(g.emoji, '[' + label + '] ' + g.name, 'gear', 1, '팬덤 원정 소품 · ' + eff)) return null;
     return { icon: g.emoji, text: '[' + label + '] ' + g.name + ' (' + eff + ')', color: '#C084FC' };
   }
 

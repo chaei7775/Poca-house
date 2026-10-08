@@ -210,7 +210,7 @@
     if (!window.ExpKit) { setTimeout(reg, 100); return; }
     window.ExpKit.register({
       id: 'paparazzi_run', bg: 'special-paparazzi_run.jpg', name: '파파라치 탈출', emoji: '🕵️', color: '#38bdf8', needLevel: NEED_LEVEL, stamina: STAMINA, daily: DAILY,
-      tagline: '시야를 피해 탈출! 강화석·굿즈 재료·현상액',
+      tagline: '시야를 피해 탈출! 강화석·굿즈 재료·현상액', gearChance: 0.3,
       intro: ['화면을 <b>누른 채 끌면</b> 걸어가요. 맨 위 <b>🚪 출구</b>가 목표!', '파파라치의 <b>노란 시야</b>에 오래 있으면 📸 찰칵! <b>3번</b> 찍히면 실패예요.', '길 위의 🎁 <b>선물 상자</b>를 먹으면 🔶 <b>굿즈 공방 재료</b>(원석·원목·모래 …), 강화석, 코인이 나와요.', '스킬 버튼: 💖<b>윙크</b>(Lv.25) 가까운 카메라 정지 · ✨<b>폭죽</b>(Lv.30) 전부 정지 · 🌹<b>장미</b>(Lv.35) 오래 정지', '성공하면 <b>강화석</b>, 🧪 <b>현상액</b>, 🔶 <b>원석</b>, 가끔 <b>방지권</b>이 나와요.'],
       play: play
     });

@@ -128,7 +128,7 @@
         S.accept = false; S.cleared++; S.round++;
         q('rh-say').textContent = '✨ 성공! 팬들이 열광해요';
         drawHud();
-        if (Math.random() < BOX_CHANCE) later(dropBox, 250);
+        if (Math.random() < Math.min(1, BOX_CHANCE * (window.FanGear ? window.FanGear.mult(ctx.charId, 'box') : 1))) later(dropBox, 250);   // 🎀 소품: 상자 확률
         if (S.round >= ROUNDS.length) later(startGauge, 1300); else later(show, 1300);
       }
     }
@@ -188,7 +188,7 @@
     if (!window.ExpKit) { setTimeout(reg, 100); return; }
     window.ExpKit.register({
       id: 'rhythm_stage', bg: 'special-rhythm_stage.jpg', name: '음악방송 리허설장', emoji: '🎧', color: '#a78bfa', needLevel: NEED_LEVEL, stamina: STAMINA, daily: DAILY,
-      tagline: '악기 패턴 따라 치기! 작곡 재료·재조합석·필름',
+      tagline: '악기 패턴 따라 치기! 작곡 재료·재조합석·필름', gearChance: 0.25,
       intro: ['악기 패드가 <b>깜빡이는 순서</b>를 잘 보고, 똑같이 눌러요. 5라운드 (4칸 → 8칸), 갈수록 빨라져요!', '틀리면 ❤️가 깎이고 같은 패턴을 다시 보여줘요. ❤️가 0이면 거기서 끝.', '5라운드를 다 깨면 마지막 <b>퍼펙트 게이지</b>! 가운데에서 멈추면 보너스.', '라운드를 깰 때마다 팬이 🎁 <b>응원 상자</b>를 떨어뜨려요. 눌러서 주워요!', '점수가 높으면 랭크 S·A·B·C. 랭크가 높을수록 🎼 <b>작곡 재료</b>, 🔹 <b>재조합석</b>, 🎞️ <b>필름</b>이 많이 나와요.'],
       play: play
     });

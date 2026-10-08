@@ -62,7 +62,7 @@ function migrateSpecialMaterialEmoji() {
     } else if (i.type === 'gear') {
       const parsed = parseGearBagName(i.name);
       if (parsed) {
-        const desc = '특별탐험 촬영 소품 · ' + gearEffectText(parsed.effect, parsed.value);
+        const desc = '팬덤 원정 소품 · ' + gearEffectText(parsed.effect, parsed.value);
         if (i.desc !== desc || i.emoji !== parsed.emoji) { i.desc = desc; i.emoji = parsed.emoji; changed = true; }
       }
     }
@@ -71,14 +71,14 @@ function migrateSpecialMaterialEmoji() {
 }
 setInterval(migrateSpecialMaterialEmoji, 2000);
 const SPECIAL_GEAR = [
-  { name:'월광 리본',       emoji:'🎀', effect:'flee',    value:10 },
-  { name:'프리즘 브로치',   emoji:'🌈', effect:'chance',  value:15 },
-  { name:'천공 깃털 배지',  emoji:'🪽', effect:'variant', value:20 },
-  { name:'은하수 브로치',   emoji:'🌌', effect:'variant', value:35 },
-  { name:'수정 왕관 배지',  emoji:'💎', effect:'retry',   value:1 },
-  { name:'불꽃 펜던트',     emoji:'🔥', effect:'chance',  value:30 },
-  { name:'성운 펜던트',     emoji:'🌠', effect:'flee',    value:25 },
-  { name:'용의 심장 브로치', emoji:'❤️', effect:'variant', value:50 }
+  { name:'월광 리본',       emoji:'🎀', effect:'reach',   value:10 },
+  { name:'프리즘 브로치',   emoji:'🌈', effect:'cd',      value:15 },
+  { name:'천공 깃털 배지',  emoji:'🪽', effect:'reward',  value:20 },
+  { name:'은하수 브로치',   emoji:'🌌', effect:'reward',  value:35 },
+  { name:'수정 왕관 배지',  emoji:'💎', effect:'forgive', value:1 },
+  { name:'불꽃 펜던트',     emoji:'🔥', effect:'cd',      value:30 },
+  { name:'성운 펜던트',     emoji:'🌠', effect:'reach',   value:25 },
+  { name:'용의 심장 브로치', emoji:'❤️', effect:'box',     value:50 }
 ];
 const CAPTURE_TOOLS = [
   { id:'net',   name:'카메라',     emoji:'📷', price:50, value:20 },
@@ -119,14 +119,15 @@ function getEquippedGearMap() {
 // 소품 능력: 등급이 높을수록 수치가 커짐 (재도전 횟수는 전설만 2회)
 const SPECIAL_GEAR_GRADE_MULT = { common:1, great:1.2, rare:1.5, legend:2 };
 function gearScaledValue(gear, grade) {
-  if (gear.effect === 'retry') return grade === 'legend' ? 2 : 1;
+  if (gear.effect === 'forgive') return grade === 'legend' ? 2 : 1;
   return Math.round(gear.value * (SPECIAL_GEAR_GRADE_MULT[grade] || 1));
 }
 function gearEffectText(effect, value) {
-  return effect === 'flee' ? 'NPC 도망확률 -' + value + '%' :
-    effect === 'chance' ? 'NPC 촬영확률 +' + value + '%' :
-    effect === 'variant' ? '특별 NPC 출현 +' + value + '%' :
-    'NPC 촬영 실패시 재도전 ' + value + '회';
+  return effect === 'reach' ? '팬덤 원정 스킬 사거리 +' + value + '%' :
+    effect === 'cd' ? '팬덤 원정 스킬 쿨타임 -' + value + '%' :
+    effect === 'reward' ? '팬덤 원정 코인·경험치 +' + value + '%' :
+    effect === 'box' ? '팬 응원 상자 떨어질 확률 +' + value + '%' :
+    '팬덤 원정 스킬 순서 실수 ' + value + '회 막아줌';
 }
 // 가방 이름 '[고급] 월광 리본' → { name, baseName, emoji, effect, value, grade }
 function parseGearBagName(bagName) {
@@ -646,7 +647,7 @@ function resolveSpecialCapture(success) {
     const gradeLabel = SPECIAL_GEAR_GRADES[gearGrade];
     if (typeof addToBag === 'function') {
       const effectDesc = gearEffectText(gearItem.effect, gearScaledValue(gearItem, gearGrade));
-      addToBag(gearItem.emoji, '[' + gradeLabel + '] ' + gearItem.name, 'gear', 1, '특별탐험 촬영 소품 · ' + effectDesc);
+      addToBag(gearItem.emoji, '[' + gradeLabel + '] ' + gearItem.name, 'gear', 1, '팬덤 원정 소품 · ' + effectDesc);
     }
   }
 
