@@ -1,6 +1,6 @@
 // ════════════════════════════════════════════════════════════
 // 🎤 첫 공연 튜토리얼 연결 (concert-tutorial.js)
-// 플레이어 레벨 5가 되면 "선배의 무대" 초대 팝업이 뜨고, 홈에 [첫 공연] 버튼이 생긴다.
+// 플레이어 레벨 5 이상 + 첫 데뷔를 하고 나면 "선배의 무대" 초대 팝업이 뜨고, 홈에 [첫 공연] 버튼이 생긴다.
 // 공연을 끝까지 하면 체험용 히든카드(7일)가 지급된다 (concert-farm.js + trial-card.js).
 // 체험 카드를 이미 받은 계정은 아무것도 안 뜬다.
 // ✏️ 고치는 법: NEED_LEVEL(몇 레벨에 열리나), COOLDOWN_H(팝업이 다시 뜨는 간격, 시간)
@@ -13,7 +13,9 @@
 
   function plv() { try { return Number(playerLevel) || 1; } catch (e) { return 1; } }
   function hasTrial() { try { return !!localStorage.getItem('ph_trialCard'); } catch (e) { return false; } }
-  function eligible() { return plv() >= NEED_LEVEL && !hasTrial() && typeof window.startConcertFarm === 'function'; }
+  // 첫 데뷔(기획사)를 한 번이라도 시킨 뒤에만 열린다
+  function debuted() { try { var d = (JSON.parse(localStorage.getItem('ph_agency') || '{}') || {}).done || {}; return Object.keys(d).some(function (k) { return d[k]; }); } catch (e) { return false; } }
+  function eligible() { return plv() >= NEED_LEVEL && debuted() && !hasTrial() && typeof window.startConcertFarm === 'function'; }
   function homeActive() { var h = document.getElementById('screen-home'); return !!(h && h.classList.contains('active')); }
   function busy() { return !!(document.getElementById('concert-overlay') || document.getElementById('concert-tut-pop') || document.querySelector('[id$="-overlay"][style*="position:fixed"]:not(#place-overlay)')); }
 
