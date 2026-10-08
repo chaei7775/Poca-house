@@ -5,7 +5,7 @@
 //  · 보스는 머리 위에 기술 이름이 뜨고 바닥에 붉은 예고가 떠요 → 피하기
 //      📸 몰카 촬영(부채꼴) · 🚗 미행 돌진(일직선) · 📞 전화 폭탄(원형 장판) · 🎁 수상한 선물(🎀 리본만 진짜)
 //      🧑‍🤝‍🧑 사생 부대 소환(졸개를 먼저 안 잡으면 보스 피해 30%) · 📡 도청기(느려짐 장판) · 📱 라이브 방송(광폭화: 안전지대)
-//  · 체력 70% / 40% / 10% 에서 페이즈가 바뀌고 기술이 늘어요. 제한시간 180초
+//  · 체력 70% / 40% / 10% 에서 페이즈가 바뀌고 기술이 늘어요. 제한시간 150초
 //  · 졸개가 쓰러지면 가끔 🎁 상자 → 걸어가서 주워요
 // 보상: 🧩 소원의 조각 · 🔨 강화석 · 🔹 재조합석 · 🔶 공방의 원석 · 🖼️ 프리미엄 조각 · 코인 · 카드 경험치
 // ✏️ 값 바꾸는 곳: 아래 [설정] 과 SKD(스킬 성능) / ATK·PHASE_POOL(보스 기술)
@@ -57,16 +57,16 @@
     rose:      { range: 440, dmg: 200, cd: 4.2, aoe: true },
     finale:    { range: 520, dmg: 320, cd: 6.5, aoe: true, stun: 2 }
   };
-  var BOSS_R = 58, PLAYER_R = 20, SPEED = 175, TIME_LIMIT = 180, INV = 1.3;
+  var BOSS_R = 58, PLAYER_R = 20, SPEED = 175, TIME_LIMIT = 150, INV = 1.3;
   // 보스 기술 (name = 머리 위에 뜨는 이름 / warn = 예고 시간 초)
   var ATK = {
-    cam:   { name: '📸 몰카 촬영',   warn: 2.25 },
-    dash:  { name: '🚗 미행 돌진',   warn: 1.75 },
-    phone: { name: '📞 전화 폭탄',   warn: 2.25 },
-    gift:  { name: '🎁 수상한 선물', warn: 1.25 },
-    squad: { name: '🧑‍🤝‍🧑 사생 부대 소환', warn: 1.65 },
-    bug:   { name: '📡 도청기 설치', warn: 1.45 },
-    live:  { name: '📱 라이브 방송 켜기!', warn: 3.25 }
+    cam:   { name: '📸 몰카 촬영',   warn: 2.0 },
+    dash:  { name: '🚗 미행 돌진',   warn: 1.5 },
+    phone: { name: '📞 전화 폭탄',   warn: 2.0 },
+    gift:  { name: '🎁 수상한 선물', warn: 1.0 },
+    squad: { name: '🧑‍🤝‍🧑 사생 부대 소환', warn: 1.4 },
+    bug:   { name: '📡 도청기 설치', warn: 1.2 },
+    live:  { name: '📱 라이브 방송 켜기!', warn: 3.0 }
   };
   var PHASE_POOL = [['cam', 'dash'], ['cam', 'dash', 'phone', 'gift'], ['cam', 'dash', 'phone', 'gift', 'squad', 'bug'], ['live', 'cam', 'phone', 'dash']];
   var SAYS = ['오늘도 찍었다!', '내 사랑은 정당해!', '왜 도망가? 응원하는 건데!', '다 알고 있어, 네 스케줄!', '조금만 더 가까이…!'];
@@ -98,6 +98,7 @@
     var q = function (id) { return wrap.querySelector('#' + id); };
     function loadImg(src) { var i = new Image(); i.src = src; return i; }
     var IM = { boss: loadImg(imgBase + 'rfan-boss.png'), face: loadImg(ctx.face || (imgBase + 'face-' + ctx.charId + '.png')), box: loadImg(imgBase + 'fx-box.png'), bg: loadImg(imgBase + 'special-world_tour.jpg'), fans: [] };
+    ['highlight','wink','encore','rose','finale','hit'].forEach(function (k) { IM['v_' + k] = loadImg(imgBase + 'vfx-' + k + '.png'); });
     ['cam','van','phone','trap','gift','bug','live','safe','fan','lane','ring-red','ring-green','ring-blue','burst'].forEach(function (k) { IM['w_' + k] = loadImg(imgBase + 'wt-' + k + '.png'); });
     for (var fi = 1; fi <= FAN_IMGS; fi++) IM.fans.push(loadImg(imgBase + 'rfan-' + fi + '.png'));
     function ok(im) { return im && im.complete && im.naturalWidth > 0; }
@@ -162,7 +163,7 @@
       var hitBoss = bd <= R;
       if (!hitBoss && !targets.length) { say('너무 멀어요! 가까이 가서 눌러요'); return; }
       S.cd[id] = d.cd * cdMul; S.uses++;
-      S.fx.push({ k: 'ring', x: S.px, y: S.py, r: R, life: 0.35, age: 0, col: d.aoe ? '#ffe27a' : '#a5f3fc' });
+      S.fx.push({ k: 'skfx', id: id, x: S.px, y: S.py, r: R, life: d.aoe ? 0.75 : 0.4, age: 0, aoe: !!d.aoe });
       var list = d.aoe ? targets : targets.slice(0, 1);
       list.forEach(function (t) {
         t.m.hp -= dmgBase;
@@ -187,7 +188,7 @@
     function checkPhase() {
       var r = S.hp / BOSS_HP, np = r > 0.7 ? 0 : r > 0.4 ? 1 : r > 0.1 ? 2 : 3;
       if (np > S.phase) {
-        S.phase = np; S.fx = S.fx.filter(function (f) { return f.k === 'txt' || f.k === 'ring'; }); S.cur = null; S.idle = 2.2;
+        S.phase = np; S.fx = S.fx.filter(function (f) { return f.k === 'txt' || f.k === 'ring' || f.k === 'skfx'; }); S.cur = null; S.idle = 2.2;
         banner(np === 3 ? '🔥 광폭화! 라이브 방송 시작!' : '⚡ ' + (np + 1) + '페이즈!');
         dropBox(S.bx + (Math.random() - 0.5) * 120, S.by + 110);
         drawHud();
@@ -304,6 +305,42 @@
     // 빛나는 이펙트(검은 배경 → 'lighter' 가산 합성) / 아이콘
     function glow(im, x, y, w, h, a, rot) { if (!ok(im)) return false; g.save(); g.globalCompositeOperation = 'lighter'; g.globalAlpha = Math.max(0, Math.min(1, a)); g.translate(x, y); if (rot) g.rotate(rot); g.drawImage(im, -w / 2, -h / 2, w, h); g.restore(); return true; }
     function icon(k, x, y, sz, a) { var im = IM['w_' + k]; if (!ok(im)) return false; g.save(); g.globalAlpha = a == null ? 1 : a; g.drawImage(im, x - sz / 2, y - sz / 2, sz, sz); g.restore(); return true; }
+
+    var VP = { sign: ['165,243,252', '#a5f3fc'], photo: ['165,243,252', '#d6f7ff'], shake: ['253,230,138', '#fde68a'], heart: ['255,170,210', '#ffc2dc'], highlight: ['255,222,150', '#ffe9b0'], wink: ['255,170,210', '#ffc2dc'], encore: ['200,160,255', '#dcc8ff'], rose: ['255,110,150', '#ff9fb8'], finale: ['255,236,180', '#fff0c4'] };
+    function eo(t) { t = Math.max(0, Math.min(1, t)); return 1 - (1 - t) * (1 - t) * (1 - t); }
+    function glint(x, y, r, col, a) {
+      if (a <= 0 || r <= 0) return; g.globalAlpha = a; g.fillStyle = col; g.beginPath();
+      g.moveTo(x, y - r); g.lineTo(x + r * 0.13, y - r * 0.13); g.lineTo(x + r, y); g.lineTo(x + r * 0.13, y + r * 0.13); g.lineTo(x, y + r); g.lineTo(x - r * 0.13, y + r * 0.13); g.lineTo(x - r, y); g.lineTo(x - r * 0.13, y - r * 0.13); g.closePath(); g.fill();
+    }
+    function vlayer(name, x, y, R, p, rot, am) {
+      var im = IM['v_' + name]; if (!ok(im)) return; var e = eo(p / 0.6), w = R * 2.2 * (0.4 + 0.6 * e);
+      var a = (p < 0.1 ? p / 0.1 : Math.pow(Math.max(0, 1 - (p - 0.1) / 0.9), 1.3)) * (am || 1); if (a <= 0) return;
+      g.save(); g.translate(x, y); g.rotate(rot * p); g.globalAlpha = Math.min(1, a); g.drawImage(im, -w / 2, -w / 2, w, w); g.restore();
+    }
+    function skillFx(f, p) {
+      var x = f.x, y = f.y, R = Math.min(f.r, 300), id = f.id, pal = VP[id] || VP.sign, i, a, ez = eo(p / 0.6);
+      g.save(); g.globalCompositeOperation = 'lighter';
+      var gr = g.createRadialGradient(x, y, R * 0.1, x, y, R); gr.addColorStop(0, 'rgba(' + pal[0] + ',0)'); gr.addColorStop(0.7, 'rgba(' + pal[0] + ',' + (0.14 * (1 - p)) + ')'); gr.addColorStop(1, 'rgba(' + pal[0] + ',0)');
+      g.globalAlpha = 1; g.fillStyle = gr; g.beginPath(); g.arc(x, y, R, 0, 7); g.fill();
+      if (f.aoe) {
+        vlayer(id, x, y, R, p, id === 'rose' ? 1.6 : (id === 'wink' ? -0.5 : 0.3), id === 'finale' ? 0.8 : 1);
+        if (id === 'finale') vlayer('encore', x, y, R * 0.7, Math.max(0, Math.min(1, (p - 0.22) / 0.78)), -0.9, 0.5);
+        if (id === 'encore') vlayer('encore', x, y, R * 0.6, Math.max(0, Math.min(1, (p - 0.2) / 0.8)), 0.5, 0.7);
+      } else vlayer('hit', x, y, R * 0.55, p, 0.4, 0.9);
+      for (i = 0; i < 2; i++) {
+        var pp = Math.max(0, Math.min(1, (p - i * 0.12) / 0.7)); if (pp <= 0 || pp >= 1) continue;
+        g.globalAlpha = (1 - pp) * 0.9; g.strokeStyle = pal[1]; g.lineWidth = (i ? 1 : 2.5) * (1 - pp * 0.6) + 0.5; g.shadowColor = 'rgba(' + pal[0] + ',1)'; g.shadowBlur = 10;
+        g.beginPath(); g.arc(x, y, R * 0.96 * eo(pp), 0, 7); g.stroke();
+      }
+      g.shadowBlur = 0;
+      var n = id === 'finale' ? 20 : (f.aoe ? 12 : 6);
+      for (i = 0; i < n; i++) {
+        var h1 = Math.abs(Math.sin(i * 12.9898 + 4.1) * 43758.5453) % 1, h2 = Math.abs(Math.sin(i * 78.233 + 1.7) * 43758.5453) % 1, h3 = Math.abs(Math.sin(i * 39.346 + 9.2) * 43758.5453) % 1;
+        a = h1 * 6.2832 + p * (h2 - 0.5) * 1.2; var dd = R * (0.25 + 0.75 * ez) * (0.55 + h3 * 0.5), tw = Math.sin(Math.max(0, Math.min(1, (p - h2 * 0.3) / 0.7)) * 3.1416);
+        glint(x + Math.cos(a) * dd, y + Math.sin(a) * dd, 5 + h3 * (id === 'finale' ? 12 : 8), i % 3 ? pal[1] : '#ffffff', tw * 0.9);
+      }
+      g.restore();
+    }
     function drawCone(x, y, ang, half, len, col) { g.beginPath(); g.moveTo(x, y); g.arc(x, y, len, ang - half, ang + half); g.closePath(); g.fillStyle = col; g.fill(); }
     function draw() {
       g.clearRect(0, 0, W, H);
@@ -351,7 +388,8 @@
       // 이펙트
       S.fx.forEach(function (f) {
         var p = f.age / f.life;
-        if (f.k === 'ring') { g.beginPath(); g.arc(f.x, f.y, f.r * (0.4 + 0.6 * p), 0, 7); g.strokeStyle = f.col; g.globalAlpha = 1 - p; g.lineWidth = 4; g.stroke(); g.globalAlpha = 1; }
+        if (f.k === 'skfx') skillFx(f, p);
+        else if (f.k === 'ring') { g.beginPath(); g.arc(f.x, f.y, f.r * (0.4 + 0.6 * p), 0, 7); g.strokeStyle = f.col; g.globalAlpha = 1 - p; g.lineWidth = 4; g.stroke(); g.globalAlpha = 1; }
         else if (f.k === 'boom' && glow(IM.w_burst, f.x, f.y, f.r * 2.4 * (0.6 + 0.6 * p), f.r * 2.4 * (0.6 + 0.6 * p), 1 - p, 0)) { }
         else if (f.k === 'boom') { g.beginPath(); g.arc(f.x, f.y, f.r * (0.6 + 0.6 * p), 0, 7); g.fillStyle = 'rgba(251,191,36,' + (0.7 * (1 - p)) + ')'; g.fill(); }
         else if (f.k === 'camflash') { drawCone(f.x, f.y, f.ang, 0.3, 520, 'rgba(255,255,255,' + (0.8 * (1 - p)) + ')'); }
@@ -402,7 +440,7 @@
     window.ExpKit.register({
       id: 'world_tour', bg: 'special-world_tour.jpg', name: '월드투어 스타디움', emoji: '🏟️', color: '#f472b6', needLevel: NEED_LEVEL, stamina: STAMINA, daily: DAILY,
       tagline: '탑뷰 보스전! 소원의 조각·강화석·재조합석', gearChance: 0.45, gearMin: 'great',
-      intro: ['무대에 <b>사생팬 보스</b>가 나타났어요! 화면을 <b>누르거나 끌면</b> 멤버가 걸어가요. 아래 <b>스킬 버튼</b>으로 보스를 공격해요 (사거리 안에서만 먹혀요).', '보스는 머리 위에 <b>기술 이름</b>이 뜨고, 바닥에 <b>붉은 예고</b>가 떠요. 맞기 전에 피하세요! ❤️는 5개예요. 📸 몰카(부채꼴) · 🚗 돌진(일직선) · 📞 전화 폭탄(원) · 🎁 수상한 선물(🎀 리본만 진짜)', '체력이 줄면 <b>페이즈</b>가 바뀌고 🧑‍🤝‍🧑 사생 부대(졸개를 먼저 안 잡으면 보스 피해 30%), 📡 도청기, 마지막엔 📱 <b>라이브 광폭화</b>(초록 안전지대로 대피!)가 나와요. 제한시간 180초.', '스킬은 <b>그 멤버가 배운 스킬</b>만 써요 (🔒는 스킬 상점에서 배우면 열려요). 광역 스킬일수록 사거리와 위력이 커요. 🎆 불꽃쇼는 보스를 2초 기절시켜요!', '졸개를 쓰러뜨리면 가끔 🎁 <b>상자</b>가 떨어져요 → 걸어가서 주워요. 보스를 쓰러뜨리면 🧩 <b>소원의 조각</b>, 🔨 <b>강화석</b>, 🔹 <b>재조합석</b>, 🔶 <b>원석</b>, <b>프리미엄 조각</b>, 가끔 💠 <b>에픽 재조합석</b>!'],
+      intro: ['무대에 <b>사생팬 보스</b>가 나타났어요! 화면을 <b>누르거나 끌면</b> 멤버가 걸어가요. 아래 <b>스킬 버튼</b>으로 보스를 공격해요 (사거리 안에서만 먹혀요).', '보스는 머리 위에 <b>기술 이름</b>이 뜨고, 바닥에 <b>붉은 예고</b>가 떠요. 맞기 전에 피하세요! ❤️는 5개예요. 📸 몰카(부채꼴) · 🚗 돌진(일직선) · 📞 전화 폭탄(원) · 🎁 수상한 선물(🎀 리본만 진짜)', '체력이 줄면 <b>페이즈</b>가 바뀌고 🧑‍🤝‍🧑 사생 부대(졸개를 먼저 안 잡으면 보스 피해 30%), 📡 도청기, 마지막엔 📱 <b>라이브 광폭화</b>(초록 안전지대로 대피!)가 나와요. 제한시간 150초.', '스킬은 <b>그 멤버가 배운 스킬</b>만 써요 (🔒는 스킬 상점에서 배우면 열려요). 광역 스킬일수록 사거리와 위력이 커요. 🎆 불꽃쇼는 보스를 2초 기절시켜요!', '졸개를 쓰러뜨리면 가끔 🎁 <b>상자</b>가 떨어져요 → 걸어가서 주워요. 보스를 쓰러뜨리면 🧩 <b>소원의 조각</b>, 🔨 <b>강화석</b>, 🔹 <b>재조합석</b>, 🔶 <b>원석</b>, <b>프리미엄 조각</b>, 가끔 💠 <b>에픽 재조합석</b>!'],
       play: play
     });
   }
