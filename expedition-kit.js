@@ -9,6 +9,7 @@
 (function () {
   'use strict';
   var IMG_BASE = 'https://raw.githubusercontent.com/chaei7775/Poca-house/main/';
+  var LOCKED = true;                  // true = 새 맵 3개를 잠가 둠 (🔒 준비 중). 열려면 false 로 바꾸기
   var EXTRA_RATE = 0.3;               // 하루 횟수를 넘긴 뒤 보상 비율
   var REG = {}, ORDER = [];
   var FONT = "font-family:'Noto Sans KR',sans-serif;";
@@ -123,11 +124,12 @@
   }
 
   // ── 팬덤 원정 칸에 끼워 넣기 ──
+  function isOpen() { if (!LOCKED) return true; try { return localStorage.getItem('ph_xk_open') === '1'; } catch (e) { return false; } }   // 테스트용: localStorage ph_xk_open=1 이면 열림
   function install(cfg) {
     if (typeof window.startSpecialExplore !== 'function' || typeof SPECIAL_LOCATIONS === 'undefined' || typeof window.openSpecialCardSelect !== 'function') { setTimeout(function () { install(cfg); }, 80); return; }
     if (window['__xkInst_' + cfg.id]) return;
     window['__xkInst_' + cfg.id] = true;
-    if (!SPECIAL_LOCATIONS.some(function (l) { return l.id === cfg.id; })) SPECIAL_LOCATIONS.push({ id: cfg.id, name: cfg.name, emoji: cfg.emoji, color: cfg.color, bg: IMG_BASE + (cfg.bg || 'map-fanrush.png') });
+    if (isOpen() && !SPECIAL_LOCATIONS.some(function (l) { return l.id === cfg.id; })) SPECIAL_LOCATIONS.push({ id: cfg.id, name: cfg.name, emoji: cfg.emoji, color: cfg.color, bg: IMG_BASE + (cfg.bg || 'map-fanrush.png') });
     var orig = window.startSpecialExplore;
     window.startSpecialExplore = function (locationId, charId) {
       if (locationId === cfg.id) { enter(cfg, charId); return; }
@@ -138,9 +140,11 @@
       var bid = 'xk-btn-' + cfg.id;
       if (sec && !$(bid)) {
         var b = document.createElement('button'); b.id = bid;
-        b.setAttribute('onclick', "openSpecialCardSelect('" + cfg.id + "')");
+        if (isOpen()) b.setAttribute('onclick', "openSpecialCardSelect('" + cfg.id + "')");
+        else b.onclick = function () { toast('🔒 ' + cfg.name + '은(는) 준비 중이에요! 곧 열려요'); };
         b.style.cssText = 'width:100%;display:flex;align-items:center;gap:12px;padding:13px 14px;margin-bottom:9px;background:' + cfg.color + '1f;border:1.5px solid ' + cfg.color + ';border-radius:14px;color:#fff;font-size:14px;font-weight:900;cursor:pointer;font-family:\'Noto Sans KR\',sans-serif;text-align:left;';
-        b.innerHTML = '<span style="font-size:24px;">' + cfg.emoji + '</span><span>' + cfg.name + ' <span style="font-size:10px;color:#ffe;font-weight:700;">NEW · Lv.' + cfg.needLevel + '</span><br><span style="font-size:10px;font-weight:400;opacity:.85;">' + cfg.tagline + '</span></span>';
+        b.innerHTML = '<span style="font-size:24px;">' + cfg.emoji + '</span><span>' + cfg.name + ' <span style="font-size:10px;color:#ffe;font-weight:700;">' + (isOpen() ? 'NEW · Lv.' + cfg.needLevel : '🔒 준비 중') + '</span><br><span style="font-size:10px;font-weight:400;opacity:.85;">' + cfg.tagline + '</span></span>';
+        if (!isOpen()) b.style.opacity = '.55';
         var pad = sec.lastElementChild;
         sec.insertBefore(b, pad);
       }
