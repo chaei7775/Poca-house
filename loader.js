@@ -128,9 +128,31 @@ function __bootOne() {
   })();
 }
 setTimeout(__bootReveal, 6000);   // 안전장치: 아무리 늦어도 6초 뒤엔 보여줌
-NEW_CONTENT_FILES.forEach(function(filename) {
+// 📦 묶음 로딩: build-bundle.py 가 만든 bundle.json 에 파일 전체가 순서대로 들어 있다.
+//    한 번에 받아서 배열 순서 그대로 실행하므로, 파일 100여 개를 따로 받던 때보다 훨씬 빠르고 더보기 같은 메뉴 칸이 매번 똑같이 나온다.
+//    ⚠️ NEW_CONTENT_FILES 의 파일을 고치거나 추가했으면 `python3 build-bundle.py` 로 bundle.json 을 다시 만들어 같이 올릴 것.
+var BUNDLE_V = '678c28395e';
+function __loadOne(filename) {   // 묶음에 없는 파일이나 묶음을 못 받았을 때 예전 방식으로 하나씩
   const s = document.createElement('script');
   s.src = filename + '?v=' + Date.now(); // 같은 사이트(GitHub Pages) 경로에서 직접 로드 - raw.githubusercontent.com은 JS 실행이 막힐 수 있음
   s.onload = __bootOne; s.onerror = __bootOne;
   document.body.appendChild(s);
-});
+}
+function __loadAllSeparately() { NEW_CONTENT_FILES.forEach(__loadOne); }
+(function loadBundle() {
+  if (typeof fetch !== 'function') { __loadAllSeparately(); return; }
+  fetch('bundle.json?v=' + BUNDLE_V).then(function (r) { if (!r.ok) throw new Error('bundle ' + r.status); return r.json(); }).then(function (b) {
+    var have = {};
+    (b.files || []).forEach(function (f) {
+      have[f[0]] = 1;
+      try {
+        var s = document.createElement('script');
+        s.textContent = f[1] + '\n//# sourceURL=' + f[0];
+        document.body.appendChild(s);   // 안에 든 글자가 바로, 순서대로 실행됨
+      } catch (e) { try { console.error('[bundle]', f[0], e); } catch (x) {} }
+    });
+    var rest = NEW_CONTENT_FILES.filter(function (n) { return !have[n]; });
+    __bootLeft = rest.length;
+    if (rest.length) rest.forEach(__loadOne); else { __bootLeft = 1; __bootOne(); }
+  }).catch(function (e) { try { console.warn('[bundle] 묶음 로딩 실패, 하나씩 불러와요', e); } catch (x) {} __loadAllSeparately(); });
+})();
