@@ -351,3 +351,18 @@
 
   window.__chartUi = { refresh: render, open: openChart, startStream: startStream, startShow: startShow, encore: encore, explainFlow: explainFlow, showNews: showNews };
 })();
+
+// ── 중앙광장에 📺 음원차트·음악방송 버튼 붙이기 ──
+(function hookSquareChart() {
+  var anchor = document.getElementById('btn-fanclub-square');
+  if (!anchor || typeof PLACE_BUTTONS === 'undefined' || typeof ALL_PLACE_BTNS === 'undefined') { setTimeout(hookSquareChart, 80); return; }
+  if (document.getElementById('btn-chart-square')) return;
+  var b = document.createElement('button');
+  b.id = 'btn-chart-square';
+  b.textContent = '📈 음원차트 · 음악방송';
+  b.style.cssText = "display:none;width:100%;padding:14px;margin-top:10px;background:rgba(96,165,250,0.2);border:1.5px solid #60a5fa;border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;";
+  b.onclick = function () { try { if (typeof closePlace === 'function') closePlace(); } catch (e) {} if (window.__chartUi) window.__chartUi.open(); };
+  anchor.insertAdjacentElement('afterend', b);
+  if (PLACE_BUTTONS.square.indexOf('btn-chart-square') === -1) PLACE_BUTTONS.square.push('btn-chart-square');
+  if (ALL_PLACE_BTNS.indexOf('btn-chart-square') === -1) ALL_PLACE_BTNS.push('btn-chart-square');
+})();
