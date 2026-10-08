@@ -1173,7 +1173,7 @@
         }
         var dist = pxDist(ev.x, ev.y, me.px, me.py);
         if (dist < HIT_R + (ev.kind === 'special' ? 10 : 0)) {
-          if (!ev.skip) {
+          if (!ev.skip && !ev.fsBusy) {   // 스킬로 응대 중인 이벤트는 닿아도 미니게임이 안 열림
             if (ev.kind === 'special' && SKILL_ONLY[curLoc]) { ev.skip = true; toast('✨ 이 이벤트는 스킬로만 응대할 수 있어요! 머리 위에 뜬 스킬을 순서대로 써요 (스킬은 더보기 → 💖 팬 스킬 상점에서 살 수 있어요)'); }
             else { tryStart(ev); break; }
           }
