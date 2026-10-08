@@ -23,7 +23,12 @@
     var p = document.getElementById('concert-tut-pop'); if (p) p.remove();
     try { window.startConcertFarm({ grantCard: true, freeDrinks: FREE_DRINKS }); } catch (e) { console.error('[concert-tut]', e); }
   }
-  window.startConcertTutorial = go;
+  // 퀘스트 목록의 [가기]로도 들어오므로, 조건(레벨·첫 데뷔)을 여기서도 확인한다
+  window.startConcertTutorial = function () {
+    if (plv() < NEED_LEVEL) { try { showBagToast('🔒 첫 공연은 플레이어 Lv.' + NEED_LEVEL + '부터 열려요'); } catch (e) {} return; }
+    if (!debuted()) { try { showBagToast('🔒 첫 공연은 첫 데뷔를 시키고 나면 열려요!'); } catch (e) {} return; }
+    go();
+  };
 
   function popup() {
     if (document.getElementById('concert-tut-pop')) return;
