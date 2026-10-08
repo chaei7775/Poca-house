@@ -96,11 +96,6 @@
       hint: '🎒 가방 → 🧃 사과주스 → 사용하기. 스태미나(⚡)가 있어야 탐험을 나갈 수 있어요. 퀘스트를 깨면 주스를 계속 줘요!',
       done: function () { return quest('tut_drink'); }, reward: 200,
       go: function () { goTo('bag'); }, target: '#nav-bag' },
-    { id: 'concert', icon: '🎤', title: '첫 공연 · 선배의 무대',
-      hint: '플레이어 Lv.5 이상이고 첫 데뷔를 하고 나면 탑스타 세연 선배가 무대에 초대해요! 팬 하트를 가득 채우면 🎁 7일 체험 히든카드를 선물로 줘요. 홈의 🎤 버튼을 눌러요.',
-      when: function () { try { return Number(playerLevel) >= 5; } catch (e) { return false; } },
-      done: function () { try { return !!localStorage.getItem('ph_trialCard'); } catch (e) { return false; } }, reward: 600,
-      go: function () { if (typeof window.startConcertTutorial === 'function') window.startConcertTutorial(); else goTo('home'); }, target: '#concert-tut-btn' },
     { id: 'explore', icon: '🚐', title: '스케줄 나가서 재료 모으기',
       hint: '🚐 스케줄 가기 → 촬영 세트장·뷰티 살롱·공원에서 재료를 모아요. 🏕️ 워크숍 캠프에선 진짜 낚시도 할 수 있어요!',
       done: function () { return story('story_10') || !!S.flags.first_explore || (!newAcct() && hiLv() >= 3); }, reward: 300,
@@ -145,6 +140,11 @@
       hint: '맵 → 광장 → 🎤 기획사. 촬영 세트장·뷰티 살롱·공원 재료 6개씩 + 코인 2000이 필요해요. 데뷔하면 시간마다 코인이 쌓여요!',
       done: function () { return !!S.flags.first_agency || debutCount() >= 1; }, reward: 300,
       go: function () { goTo('map'); }, target: '#nav-map' },
+    { id: 'concert', icon: '🎤', title: '첫 공연 · 선배의 무대',
+      hint: '플레이어 Lv.5 이상이고 첫 데뷔를 하고 나면 탑스타 세연 선배가 무대에 초대해요! 팬 하트를 가득 채우면 🎁 7일 체험 히든카드를 선물로 줘요. 홈의 🎤 버튼을 눌러요.',
+      when: function () { try { return Number(playerLevel) >= 5; } catch (e) { return false; } },
+      done: function () { try { return !!localStorage.getItem('ph_trialCard'); } catch (e) { return false; } }, reward: 600,
+      go: function () { if (typeof window.startConcertTutorial === 'function') window.startConcertTutorial(); else goTo('home'); }, target: '#concert-tut-btn' },
     { id: 'cf', icon: '🎬', title: '데뷔한 아이돌 CF 찍기',
       hint: '맵 → 광장 → 🎬 CF 촬영. 매일 새 의뢰가 3개 올라와요. 포스터가 쌓일수록 팬카페가 들썩여요!',
       done: function () { return cfDone(); }, reward: 400,
@@ -302,7 +302,7 @@
 
 
   // 🔒 unlock-gate.js 의 해금 레벨과 맞춤: 레벨이 모자란 단계는 길잡이가 건너뛴다 (잠긴 곳으로 보내지 않게)
-  var STEP_LV = { explore: 3, school: 3, lv3: 3, room: 3, fishing: 3, mystery: 3, recombine: 12, hidden: 12, premium: 12, prem_equip: 12, enhance: 10, transcend: 10, studio: 15, album: 15, royalty: 15, goods: 15, goods_equip: 15, drama: 8, cf: 10, fancafe: 12, invest: 20, invest_done: 20, invest_grade: 20 };
+  var STEP_LV = { agency: 5, explore: 3, school: 3, lv3: 3, room: 3, fishing: 3, mystery: 3, recombine: 12, hidden: 12, premium: 12, prem_equip: 12, enhance: 10, transcend: 10, studio: 15, album: 15, royalty: 15, goods: 15, goods_equip: 15, drama: 8, cf: 10, fancafe: 12, invest: 20, invest_done: 20, invest_grade: 20 };
   STEPS.forEach(function (st) {
     var need = STEP_LV[st.id]; if (!need) return;
     var prev = st.when;
