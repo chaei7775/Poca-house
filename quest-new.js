@@ -63,6 +63,8 @@
   }
   function check() {
     try {
+      // 레벨 10 이상인데 '학원 문을 열어라'가 안 눌려 있으면 완료 처리 (레벨업 순간을 놓친 경우 보정)
+      if (typeof questProgress !== 'undefined' && QUESTS.main_level && questProgress.main_level !== 'done' && typeof playerLevel !== 'undefined' && playerLevel >= 10 && typeof checkQuestProgress === 'function') { checkQuestProgress('player_level_10'); return; }
       if (typeof questProgress === 'undefined' || typeof checkQuestProgress !== 'function') return;
       var ids = K(DETECT);
       for (var i = 0; i < ids.length; i++) {
