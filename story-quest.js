@@ -83,6 +83,7 @@
   function anyAffExp() { var a = J('ph_affectionExp', {}) || {}; return keys(a).some(function (k) { return a[k] > 0; }); }
   function storyReadAny() { var r = J('ph_story', {}) || {}; return keys(r).some(function (k) { return /_\d+$/.test(k) && r[k] === true; }); }
   function bagHas(name) { try { return typeof bagItems !== 'undefined' && bagItems.some(function (i) { return i && i.name === name; }); } catch (e) { return false; } }
+  function chartSt() { var c = J('ph_chart', {}) || {}; return c; }                      // music-chart.js 가 남긴 음원차트 기록
   function wishN() { try { return typeof wishFragments !== 'undefined' ? wishFragments : 0; } catch (e) { return 0; } }
   function recombined() { return parseInt(localStorage.getItem('ph_rc_pity') || '0') > 0 || (J('ph_hiddenCards', []) || []).length > 0; }
   // 낚시를 해봤는지: 낚시 화면이 열린 적이 있거나, 가방에 낚시로 잡은 물고기가 있음
@@ -353,6 +354,22 @@
           ['n:컴백 무대 직전, 아이돌은 손바닥에 땀을 쥐고 있었다.',
            'x:sion:…몸은 가벼워. 어젯밤 먹은 삼계탕 덕인가?',
            'n:무대가 끝난 뒤, 환호가 한참 이어졌다.']),
+        q('s4_9b', '내 노래가 흐르는 곳', '📈 정규 앨범을 타이틀곡으로 주고 음원차트에 올려보자.', 800, 90,
+          function () { return !!((chartSt().songs || []).length); },
+          ['n:정규 앨범의 첫 곡이 차트 맨 아래에 작게 떴다. 순위 옆에 NEW 두 글자가 반짝였다.',
+           'i:내 이름 옆에… 숫자가 붙었어. 처음으로.',
+           'p:이제부터 올라가면 되는 거지.',
+           'i:응. 나 혼자서는 못 올라가. 같이 해줄 거지?'], 'ara'),
+        q('s4_9c', '스밍 총공!', '📣 음원차트에서 내 곡의 스밍 총공을 해보자.', 700, 80,
+          function () { return (chartSt().songs || []).some(function (x) { return (x.streamedDay || -1) >= 0; }); },
+          ['n:밤 열한 시. 팬들의 손가락이 한꺼번에 화면을 두드렸다.',
+           'x:doyun:순위는 가만히 있는다고 안 올라. 사람들이 직접 들어줘야 해.',
+           'n:새벽 한 시, 순위 옆의 화살표가 빨갛게 위를 가리켰다.']),
+        q('s4_9d', '음악방송 무대', '🎤 음악방송 1위 후보로 무대에 올라보자.', 900, 100,
+          function () { return ((chartSt().stats || {}).shows || 0) >= 1; },
+          ['n:차트 3위 안에 든 곡은 금·토·일 음악방송에 후보로 오른다. 무대 뒤는 평소보다 조용했다.',
+           'x:yuna:떨려? 괜찮아. 무대에서는 내가 제일 큰 소리로 응원할게.',
+           'n:조명이 켜지자 객석에서 이름이 한꺼번에 터져 나왔다.']),
         q('s4_10', '열 끼', '🍙 아이돌들에게 밥을 모두 합쳐 10번 먹이자.', 400, 50,
           function () { return cnt().meals >= 10; },
           ['n:식당 의자가 이제 모자랄 지경이다.',
@@ -446,6 +463,11 @@
           function () { return qdone('main_hidden_all'); },
           ['n:마지막 히든카드를 내려놓았을 때, 책상 위의 모든 카드가 동시에 빛났다.',
            'n:이제 다 모였다. 별의 기록은 완성되었다.']),
+        q('s6_7b', '올킬', '👑 내 곡을 음원차트 1위에 올려보자.', 8000, 800,
+          function () { return !!((chartSt().stats || {}).first); },
+          ['n:콘크리트처럼 단단하던 1위 자리에 처음으로 금이 갔다.',
+           'x:sion:…진짜로 올라왔네. 숫자가 거짓말은 안 하니까.',
+           'n:차트 맨 위에 이름이 떠 있었다. 이름이 불리면, 사람은 돌아온다는 말이 떠올랐다.']),
         q('s6_8', '네 이름을 부를게', '👑 앞의 이야기를 모두 마치면 열려요.', 20000, 2000,
           function () {
             return CHAPTERS.every(function (ch) {
