@@ -606,10 +606,14 @@ $('#dr-prep').addEventListener('click',e=>{
     if(n!==(st.active||1)){
       st[st.active||1]=[...(S.equip[cid]||[])];            /* 쓰던 세트에 지금 장착을 저장 */
       st.active=n;
-      const want=(st[n]||[]).filter(u=>S.inv.some(i=>i.u===u)),out=[];let skip=0;
-      for(const u of want){const oc=onCard(u);if((oc&&oc!==cid)||out.length>=c.slots){skip++;continue}out.push(u)}
+      const want=(st[n]||[]).filter(u=>S.inv.some(i=>i.u===u)),out=[];let skip=0,moved=0;
+      for(const u of want){
+        if(out.length>=c.slots){skip++;continue}
+        const oc=onCard(u);
+        if(oc&&oc!==cid){S.equip[oc]=S.equip[oc].filter(x=>x!==u);syncSet(oc);moved++}   /* 다른 카드가 쓰던 스킬은 그 카드에서 빼고 가져옴 */
+        out.push(u)}
       S.equip[cid]=out;
-      snack(skip?`${n}번 세트로 바꿨어요 (다른 카드가 쓰는 스킬 ${skip}개는 빠졌어요)`:`${n}번 세트로 바꿨어요`);
+      snack(`${n}번 세트로 바꿨어요`+(moved?` (다른 카드 스킬 ${moved}개를 가져왔어요)`:'')+(skip?` · 슬롯이 모자라 ${skip}개는 빠졌어요`:''));
     }
   }
   else if(a==='buy'){const n=+b.dataset.n,p=n===1?CFG.SMALL:CFG.BIG;if(coins<p)snack('골드가 부족해요');else{coins-=p;saveGame();S.potion+=n;snack(`체력 음료로 촬영 ${n}회를 더 할 수 있어요`)}}
