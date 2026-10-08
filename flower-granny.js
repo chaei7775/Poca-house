@@ -17,6 +17,10 @@
   var STAY_SEC = 35;            // 나타나 있는 시간
   var IMG = 'https://raw.githubusercontent.com/chaei7775/Poca-house/main/npc-flower-granny.png';
 
+  function face(sz) {
+    return '<div style="width:' + sz + 'px;height:' + sz + 'px;margin:0 auto;border-radius:50%;background:#fff0f6;border:3px solid #FF9EC4;display:flex;align-items:center;justify-content:center;font-size:' + Math.round(sz * 0.52) + 'px;overflow:hidden;">' +
+      '<img src="' + IMG + '" alt="" style="width:100%;height:100%;object-fit:cover;object-position:50% 30%;" onerror="var p=this.parentNode;if(p)p.textContent=\'👵\'"></div>';
+  }
   var cur = null;               // 지금 떠 있는 할머니 {el, timer}
   function $(id) { return document.getElementById(id); }
   function toast(m) { if (typeof showBagToast === 'function') showBagToast(m); }
@@ -36,8 +40,7 @@
     var x = 0.16 + Math.random() * 0.68, y = 0.30 + Math.random() * 0.48;
     var el = document.createElement('div');
     el.style.cssText = 'position:absolute;left:' + (x * 100) + '%;top:' + (y * 100) + '%;transform:translate(-50%,-50%);z-index:11;text-align:center;cursor:pointer;animation:bcPulse 1.2s ease-in-out infinite;';
-    el.innerHTML = '<div style="width:54px;height:54px;border-radius:50%;background:#fff0f6;border:3px solid #FF9EC4;display:flex;align-items:center;justify-content:center;font-size:28px;box-shadow:0 0 18px #FF9EC4;overflow:hidden;">' +
-      '<img src="' + IMG + '" alt="" style="width:100%;height:100%;object-fit:cover;object-position:50% 20%;" onerror="var p=this.parentNode;if(p)p.textContent=\'👵\'"></div>' +
+    el.innerHTML = '<div style="box-shadow:0 0 18px #FF9EC4;border-radius:50%;">' + face(54) + '</div>' +
       '<div style="margin-top:2px;font-size:11px;font-weight:900;color:#fff;text-shadow:0 1px 4px #000;">꽃집 할머니</div>';
     ['pointerdown', 'touchstart', 'mousedown'].forEach(function (t) { el.addEventListener(t, function (e) { e.stopPropagation(); }); });
     el.addEventListener('click', function (e) { e.stopPropagation(); talk(); });
@@ -62,7 +65,7 @@
     if (!cur) return;
     remove();
     var ov = dlg(
-      '<div style="font-size:34px;">👵</div>' +
+      face(64) +
       '<div style="font-size:12px;color:#FF9EC4;font-weight:700;margin:4px 0 8px;">꽃집 할머니</div>' +
       '<div style="font-size:14px;line-height:1.7;min-height:64px;">아이고, 우리 아이돌 왔구나.<br>저 애들 둘이 좀 더 가까워지게 내가 몰래 도와주고 싶은데… 말 안 해도 알지?</div>' +
       '<button data-i="0" style="' + BTN + '">🙇 늘 감사합니다, 할머니</button>' +
