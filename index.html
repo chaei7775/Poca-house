@@ -19,6 +19,7 @@ html{color-scheme:only light;}
   
   * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   :root { --pink: #FF6B9D; --pink-light: #FFB3CC; --pink-pale: #FFF0F5; --purple: #C084FC; --gold: #F59E0B; --dark: #1a1a2e; }
+  html, body { overscroll-behavior-y: none; }
   body { font-family: 'Noto Sans KR', sans-serif; background: var(--pink-pale); min-height: 100vh; max-width: 430px; margin: 0 auto; overflow-x: hidden; }
   .screen { display: none; min-height: 100vh; flex-direction: column; padding-bottom: 110px; }
   .screen.active { display: flex; }
@@ -144,7 +145,7 @@ html{color-scheme:only light;}
   .story-msg.player .story-msg-name { text-align: right; color: #FF6B9D; }
   .story-read-footer { padding: 16px; flex-shrink: 0; }
   .story-next-btn { width: 100%; padding: 14px; background: linear-gradient(135deg, #C084FC, #FF6B9D); border: none; border-radius: 14px; color: #fff; font-size: 15px; font-weight: 700; font-family: 'Noto Sans KR', sans-serif; cursor: pointer; }
-  .navbar { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 430px; background: rgba(255,240,245,0.75); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-top: 1px solid rgba(255,107,157,0.2); display: flex; flex-direction: column; z-index: 100; box-shadow: 0 -4px 20px #FF6B9D22; height: 96px; }
+  .navbar { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 430px; background: #FFF0F5; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-top: 1px solid rgba(255,107,157,0.2); display: flex; flex-direction: column; z-index: 100; box-shadow: 0 -4px 20px #FF6B9D22; height: 96px; }
   .navbar-row { display: flex; width: 100%; flex: 1; }
   .nav-item { flex: 1; padding: 6px 0 5px; display: flex; flex-direction: column; align-items: center; gap: 1px; cursor: pointer; border: none; background: none; font-family: 'Noto Sans KR', sans-serif; color: #555; font-weight: 900; }
   .nav-item.active { color: #000; font-weight: 900; text-shadow:0 1px 0 #fff; }
