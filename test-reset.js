@@ -29,11 +29,25 @@
     } catch (e) { serverOk = false; }
     try { if (window.pocaAuth && window.pocaLoggedInUid) await window.pocaAuth.signOut(window.pocaAuth.auth); } catch (e) {}
     wipeLocal();
+    try { sessionStorage.setItem('tr_auto_guest', '1'); } catch (e) {}   // 새로고침 뒤 첫 화면을 건너뛰고 바로 게스트 시작
     try { if (window.indexedDB && indexedDB.databases) { var dbs = await indexedDB.databases(); dbs.forEach(function (d) { if (d.name && /poca|ph_/i.test(d.name)) indexedDB.deleteDatabase(d.name); }); } } catch (e) {}
     say(serverOk ? '완료! 새로 시작해요…' : '이 기기만 지웠어요 (서버 정보는 지우지 못했어요). 새로고침해요…', !serverOk);
     setTimeout(function () { location.reload(); }, 900);
   }
   window.pocaResetAll = resetAll;
+
+  // 초기화 직후 새로고침이면: 환영 화면에서 '게스트로 시작하기'를 자동으로 눌러 바로 게임 시작 흐름(닉네임 입력)으로
+  (function autoGuest() {
+    var on = false; try { on = sessionStorage.getItem('tr_auto_guest') === '1'; } catch (e) {}
+    if (!on) return;
+    var n = 0;
+    (function tryClick() {
+      var ov = document.getElementById('onboarding-overlay');
+      var btn = ov && Array.prototype.slice.call(ov.querySelectorAll('button')).filter(function (b) { return /게스트/.test(b.textContent); })[0];
+      if (btn) { try { sessionStorage.removeItem('tr_auto_guest'); } catch (e) {} btn.click(); return; }
+      if (++n < 60) setTimeout(tryClick, 150); else { try { sessionStorage.removeItem('tr_auto_guest'); } catch (e) {} }
+    })();
+  })();
 
   function decorate(ovId) {
     var ov = document.getElementById(ovId || 'auth-overlay');
