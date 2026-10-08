@@ -59,16 +59,21 @@
     while ((x = w.nextNode())) if (TEST.test(x.nodeValue)) list.push(x);
     list.forEach(fixText);
   }
+  // 그림을 미리 받아 둔다 (처음 이모지가 보였다가 바뀌거나, 그림이 뜨기 전에 빈칸이 보이는 깜빡임 방지)
+  function preload() { var seen = {}; KEYS.forEach(function (c) { var k = MAP[c]; if (!seen[k]) { seen[k] = 1; var i = new Image(); i.src = url(k); IMG[k] = i; } }); }
+  // 페이지가 그려지기 시작할 때부터 지켜본다: 새로 생기는 글자는 화면에 그려지기 전에 바로 그림으로 바꿈
   function start() {
-    scan(document.body);
+    preload();
+    if (document.body) scan(document.body);
     new MutationObserver(function (ms) {
       ms.forEach(function (m) {
         if (m.type === 'characterData') fixText(m.target);
         else m.addedNodes.forEach(function (n) { if (!(n.classList && n.classList.contains('phfx'))) scan(n); });
       });
-    }).observe(document.body, { childList: true, subtree: true, characterData: true });
+    }).observe(document.documentElement, { childList: true, subtree: true, characterData: true });
+    if (!document.body) document.addEventListener('DOMContentLoaded', function () { scan(document.body); });
   }
-  if (document.body) start(); else document.addEventListener('DOMContentLoaded', start);
+  start();
 
   // 캔버스: 이모지 한 글자만 찍는 fillText 를 그림 그리기로 바꾼다
   function img(k) { if (!IMG[k]) { IMG[k] = new Image(); IMG[k].src = url(k); } return IMG[k]; }
