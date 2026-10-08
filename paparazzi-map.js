@@ -42,6 +42,8 @@
     root.appendChild(cv);
     var c = cv.getContext('2d');
     var face = new Image(); face.crossOrigin = 'anonymous'; face.src = ctx.face;
+    var PAP = [], PAPD = [];
+    for (var pi = 1; pi <= 4; pi++) { var a1 = new Image(); a1.src = ctx.imgBase + 'pap-' + pi + '.png'; PAP.push(a1); var a2 = new Image(); a2.src = ctx.imgBase + 'pap-' + pi + 'd.png'; PAPD.push(a2); }
     var P = { x: W / 2, y: WORLD_H - 90, r: 13, inv: 0 };
     function gfs(k) { try { return window.FanGear ? window.FanGear.sum(ctx.charId, k) : 0; } catch (e) { return 0; } }   // 🎀 소품 효과
     var G = { forgive: gfs('forgive'), extra: [], t: 0, lives: LIVES, meter: 0, boxes: 0, stone: 0, coin: 0, goods: {}, over: false, flash: 0, tx: null, ty: null, cd: {}, off: 0, msg: '', msgT: 0 };
@@ -179,13 +181,15 @@
       // 상자
       boxes.forEach(function (bx) { if (!bx.got) { c.font = '26px sans-serif'; c.fillText('🎁', bx.x, bx.y + Math.sin(G.t * 3 + bx.x) * 2); } });
       // 카메라 시야
-      cams.forEach(function (m) {
+      cams.forEach(function (m, ci) {
         var on = m.off <= 0;
         c.fillStyle = on ? 'rgba(255,235,120,.22)' : 'rgba(150,150,170,.1)';
         c.beginPath(); c.moveTo(m.x, m.y); c.arc(m.x, m.y, m.range, m.ang - m.half, m.ang + m.half); c.closePath(); c.fill();
         if (on) { c.strokeStyle = 'rgba(255,235,120,.55)'; c.lineWidth = 1.5; c.stroke(); }
-        c.fillStyle = '#1f2937'; c.beginPath(); c.arc(m.x, m.y, 15, 0, 7); c.fill();
-        c.font = '17px sans-serif'; c.fillStyle = '#fff'; c.fillText(on ? '📸' : '😵', m.x, m.y + 1);
+        var pim = (on ? PAP : PAPD)[ci % 4];
+        if (pim && pim.complete && pim.naturalWidth) { c.save(); c.shadowColor = 'rgba(0,0,0,.45)'; c.shadowBlur = 6; c.globalAlpha = on ? 1 : 0.85; c.drawImage(pim, m.x - 25, m.y - 27, 50, 50); c.restore(); }
+        else { c.fillStyle = '#1f2937'; c.beginPath(); c.arc(m.x, m.y, 15, 0, 7); c.fill();
+        c.font = '17px sans-serif'; c.fillStyle = '#fff'; c.fillText(on ? '📸' : '😵', m.x, m.y + 1); }
       });
       // 플레이어
       c.globalAlpha = P.inv > 0 && Math.floor(G.t * 10) % 2 ? 0.4 : 1;
