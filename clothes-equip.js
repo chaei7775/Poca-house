@@ -282,7 +282,7 @@
   }
 
   window.openClothesEquip = open;
-  window.__clothesEquip = { heart: function (cid) { return Math.min(CAP, charTotals(cid).heart || 0); }, equip: equip, unequip: unequip, bonus: bonus, allTotals: allTotals, charTotals: charTotals, kindOf: kindOf, load: load, CAP: CAP, DRESS_MULT: DRESS_MULT };
+  window.__clothesEquip = { effText: effText, heart: function (cid) { return Math.min(CAP, charTotals(cid).heart || 0); }, equip: equip, unequip: unequip, bonus: bonus, allTotals: allTotals, charTotals: charTotals, kindOf: kindOf, load: load, CAP: CAP, DRESS_MULT: DRESS_MULT };
 
   // ── 기존 능력치 계산에 끼워 넣기 ──
   function whenReady(test, fn) {

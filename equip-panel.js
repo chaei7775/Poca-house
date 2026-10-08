@@ -36,7 +36,7 @@
     var out = { player: null, premium: [], trial: null, chars: [], count: 0 };
     // 👤 내 의상
     try {
-      if (typeof equippedCloth !== 'undefined' && equippedCloth) {
+      if (false && typeof equippedCloth !== 'undefined' && equippedCloth) {
         var id = typeof equippedCloth === 'object' ? equippedCloth.id : equippedCloth, c = clothDef(id);
         var val = (typeof equippedCloth === 'object' && equippedCloth.statVal) || (c && c.statVal) || 0;
         if (c) { out.player = { name: c.name, text: (CLOTH_STAT[c.stat] || c.stat) + ' +' + val + '%', img: c.img }; out.count++; }
@@ -61,7 +61,7 @@
         var p = ce[slot]; if (!p) return;
         var d = clothDef(p.id); if (!d) return;
         var kind = slot === 'dress' ? '원피스' : slot === 'top' ? '상의' : '하의';
-        row.clothes.push({ kind: kind, name: (p.great ? '✨ ' : '') + d.name, img: d.img, text: CLOTH_STAT[d.stat] || d.stat });
+        row.clothes.push({ kind: kind, name: (p.great ? '✨ ' : '') + d.name, img: d.img, text: (function () { try { return window.__clothesEquip.effText(p); } catch (x) { return CLOTH_STAT[d.stat] || d.stat; } })() });
         out.count++;
       });
       var ge = goods[cid] || {};
@@ -88,9 +88,6 @@
   }
   function html() {
     var d = collect(), h = '';
-    var top = '';
-    top += d.player ? chipRow('👤', d.player.name, esc(d.player.text)) : '<div style="font-size:11px;color:#8b7bb0;">입고 있는 의상이 없어요 (가방에서 옷을 눌러 착용)</div>';
-    h += section('👤 내 의상', top);
     h += section('💎 프리미엄 장착 효과', d.premium.length ? d.premium.map(function (l) { return chipRow('', l, '', '#fff').replace('<div style="font-size:20px;"></div>', ''); }).join('') : '<div style="font-size:11px;color:#8b7bb0;">장착한 프리미엄 카드가 없어요 (트레이닝룸 > 프리미엄 카드)</div>');
     if (d.trial) h += section('🎟️ 체험 카드', chipRow('🎟️', d.trial.name, esc(d.trial.text), '#fcd34d'));
     h += '<div style="height:1px;background:rgba(255,255,255,0.12);margin:4px 0 12px;"></div>';
@@ -102,7 +99,7 @@
       h += '<div style="background:rgba(255,255,255,0.06);border:1.5px solid ' + (any ? 'rgba(192,132,252,0.55)' : 'rgba(255,255,255,0.1)') + ';border-radius:14px;padding:9px;margin-bottom:9px;">' +
         '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;"><img src="' + base() + 'face-' + c.id + '.png" style="width:34px;height:34px;border-radius:50%;object-fit:cover;background:#2a2146;" onerror="this.style.visibility=\'hidden\'">' +
         '<div style="font-size:14px;font-weight:900;color:#fff;">' + esc(c.name) + '</div></div>';
-      if (c.clothes.length) h += c.clothes.map(function (x) { return chipRow('👗', x.kind + ' · ' + x.name, esc(x.text)); }).join('');
+      if (c.clothes.length) h += c.clothes.map(function (x) { return chipRow(x.img ? '<img src="' + x.img + '" style="width:30px;height:30px;object-fit:contain;" onerror="this.outerHTML=\'👗\'">' : '👗', x.kind + ' · ' + x.name, esc(x.text)); }).join('');
       else h += '<div style="font-size:11px;color:#8b7bb0;margin-bottom:5px;">👗 입은 옷 없음</div>';
       h += c.goods.map(function (g) {
         if (g.empty) return '<div style="display:flex;align-items:center;gap:8px;border:1px dashed rgba(255,255,255,0.18);border-radius:10px;padding:6px 9px;margin-bottom:5px;font-size:11px;color:#8b7bb0;">＋ ' + g.slot + ' 비어 있음</div>';
