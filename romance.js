@@ -63,6 +63,13 @@
   var KEY = 'ph_romance';
   function load() { try { return JSON.parse(localStorage.getItem(KEY) || '{}'); } catch (e) { return {}; } }
   function save(d) { try { localStorage.setItem(KEY, JSON.stringify(d)); } catch (e) {} }
+  // 🎟️ 데이트 티켓: 꽃집 할머니(flower-granny.js)가 주는 아이템. 멤버당 하루 1개 선물 → 일정 개수가 모여야 다음 설렘 이벤트가 열림
+  var TK_NAME = '데이트 티켓', TK_KEY = 'ph_romance_tk';
+  var TK_NEED = [0, 10, 20];       // 설렘 1편(입문)은 티켓 없이, 2편 10개, 3편 20개
+  function tkLoad() { try { return JSON.parse(localStorage.getItem(TK_KEY) || '{}'); } catch (e) { return {}; } }
+  function tkSave(d) { try { localStorage.setItem(TK_KEY, JSON.stringify(d)); } catch (e) {} }
+  function gameDay() { try { var m = JSON.parse(localStorage.getItem('ph_meal') || '{}'); return Number(m.day) || 1; } catch (e) { return 1; } }
+  function bagTk() { try { var it = bagItems.find(function (i) { return i.name === TK_NAME; }); return it ? it.qty : 0; } catch (e) { return 0; } }
   function exp(cid) { try { return getAffectionTotalExp(cid); } catch (e) { return 0; } }
   function stageName(min) { return min >= 1700 ? '인연' : min >= 400 ? '신뢰' : min >= 80 ? '우호' : '친절'; }
 
@@ -70,7 +77,10 @@
     var d = load()[cid] || { done: [], pt: 0 };
     var list = EV[cid] || [], e = exp(cid), next = null;
     for (var i = 0; i < list.length; i++) if (d.done.indexOf(list[i].id) < 0) { next = list[i]; break; }
-    return { d: d, next: next, ready: !!next && e >= next.min, total: list.length };
+    var idx = d.done.length, need = TK_NEED[idx] || 0, t = tkLoad()[cid] || { n: 0, d: 0 };
+    var have = Math.min(Number(t.n) || 0, need);
+    return { d: d, next: next, expOk: !!next && e >= next.min, need: need, have: have, giftedToday: t.d === gameDay(),
+             ready: !!next && e >= next.min && have >= need, total: list.length };
   }
 
   function close() { var o = document.getElementById('rom-ov'); if (o) o.remove(); }
@@ -105,7 +115,7 @@
     }
     function finish(pt) {
       var all = load(); var d = all[cid] || { done: [], pt: 0 };
-      if (d.done.indexOf(ev.id) < 0) { d.done.push(ev.id); d.pt += pt; if (pt === 3) d.full = (d.full || 0) + 1; all[cid] = d; save(all); try { addAffectionExp(cid, pt === 3 ? 20 : pt === 2 ? 14 : 8); } catch (e) {} }
+      if (d.done.indexOf(ev.id) < 0) { var tk = tkLoad(); if (tk[cid]) { tk[cid].n = 0; tkSave(tk); } d.done.push(ev.id); d.pt += pt; if (pt === 3) d.full = (d.full || 0) + 1; all[cid] = d; save(all); try { addAffectionExp(cid, pt === 3 ? 20 : pt === 2 ? 14 : 8); } catch (e) {} }
       var hearts = ''; for (var i = 0; i < 3; i++) hearts += i < pt ? '💗' : '🤍';
       box.onclick = null;
       box.innerHTML = '<div style="text-align:center;padding-top:8px;"><div style="font-size:30px;">' + hearts + '</div><div style="font-size:15px;font-weight:700;margin:8px 0;">두근 ' + pt + '/3</div><div style="font-size:12px;color:#ccc;">호감도 +' + (pt === 3 ? 20 : pt === 2 ? 14 : 8) + '</div><button id="rom-ok" style="margin-top:14px;width:100%;padding:13px;border:none;border-radius:12px;background:linear-gradient(135deg,#FF6B9D,#C084FC);color:#fff;font-weight:700;font-size:14px;font-family:inherit;">확인</button></div>';
@@ -116,6 +126,17 @@
     })();
   }
 
+  function giveTicket(cid) {
+    var st = status(cid);
+    if (!st.next || st.giftedToday || bagTk() <= 0 || st.have >= st.need) return;
+    try { useFromBag(TK_NAME, 1); } catch (e) { return; }
+    var all = tkLoad(); var t = all[cid] || { n: 0, d: 0 };
+    t.n = Math.min((Number(t.n) || 0) + 1, st.need); t.d = gameDay(); all[cid] = t; tkSave(all);
+    var nm = NAMES[cid] || cid, left = st.need - t.n;
+    try { if (typeof showBagToast === 'function') showBagToast('🎟️ ' + nm + '에게 데이트 티켓을 건넸어요 (' + t.n + '/' + st.need + ')' + (left <= 0 ? ' — 설렘 이벤트가 열렸어요!' : '')); } catch (e) {}
+    try { openBondDetail(cid); } catch (e) {}
+  }
+
   function addButton(cid) {
     var area = document.querySelector('#bond-detail-overlay .bond-affection');
     if (!area || !EV[cid]) return;
@@ -124,7 +145,16 @@
     var base = 'width:100%;margin-top:10px;padding:13px;border:none;border-radius:12px;font-size:14px;font-weight:700;font-family:"Noto Sans KR",sans-serif;';
     if (!st.next) { b.textContent = '💓 설렘 이벤트 모두 완료 (두근 ' + st.d.pt + ')'; b.disabled = true; b.style.cssText = base + 'background:rgba(255,255,255,.08);color:#FF9EC4;'; }
     else if (st.ready) { b.textContent = '💓 설렘 이벤트 — ' + st.next.t + ' (' + (st.d.done.length + 1) + '/' + st.total + ')'; b.style.cssText = base + 'background:linear-gradient(135deg,#FF4D88,#FF9EC4);color:#fff;cursor:pointer;'; b.onclick = function () { play(cid, st.next); }; }
-    else { b.textContent = '🔒 ' + stageName(st.next.min) + ' 단계(호감도 ' + st.next.min + ')가 되면 설렘 이벤트가 열려요'; b.disabled = true; b.style.cssText = base + 'background:rgba(255,255,255,.08);color:#888;font-size:12px;'; }
+    else if (!st.expOk) { b.textContent = '🔒 ' + stageName(st.next.min) + ' 단계(호감도 ' + st.next.min + ')가 되면 설렘 이벤트가 열려요'; b.disabled = true; b.style.cssText = base + 'background:rgba(255,255,255,.08);color:#888;font-size:12px;'; }
+    else {
+      var left = st.need - st.have;
+      var can = !st.giftedToday && bagTk() > 0;
+      b.textContent = '🎟️ 데이트 티켓 선물 (' + st.have + '/' + st.need + ')' + (st.giftedToday ? ' · 오늘은 이미 선물했어요' : bagTk() <= 0 ? ' · 티켓이 없어요 (팬덤 원정에서 꽃집 할머니를 찾아봐요)' : '');
+      b.style.cssText = base + (can ? 'background:linear-gradient(135deg,#FF4D88,#FF9EC4);color:#fff;cursor:pointer;' : 'background:rgba(255,255,255,.08);color:#aaa;font-size:12px;');
+      if (can) b.onclick = function () { giveTicket(cid); };
+      else b.disabled = true;
+      if (left <= 0) b.style.display = 'none';
+    }
     area.appendChild(b);
   }
 
