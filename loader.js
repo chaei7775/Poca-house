@@ -101,6 +101,8 @@ const NEW_CONTENT_FILES = [
   'unlock-gate.js',
   'level-pace.js',
   'hidden-effects.js',
+  'music-chart.js',
+  'music-chart-ui.js',
   'manager.js',
   'manager-events.js',
   'road-manager.js',
