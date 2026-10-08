@@ -9,6 +9,9 @@ const RHYTHM_CONFIG = {
   hard:   { label:'💀 고급', bgm:'bgm-rhythm-hard.mp3',   duration:59, noteSpeedMs:850,  spawnIntervalMs:300, doubleNoteChance:0.30, maxCoin:15000 },
 };
 
+// 노트 그림 (색 대신 그림으로 그려서 폰의 '강제 다크모드'에도 색이 안 죽게 함)
+const RHYTHM_NOTE_IMG = 'data:image/svg+xml;utf8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 34" preserveAspectRatio="none"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FF6B9D"/><stop offset="1" stop-color="#C084FC"/></linearGradient></defs><rect width="100" height="34" fill="url(#g)"/><rect width="100" height="12" fill="#fff" opacity=".35"/></svg>');
+
 const RHYTHM_JUDGE = {
   perfect: { window: 45,  label:'PERFECT', score:100, color:'#FFD700' },
   great:   { window: 90,  label:'GREAT',   score:60,  color:'#FF6B9D' },
@@ -138,7 +141,7 @@ function spawnRhythmNote() {
     if (!laneEl) return;
     const noteEl = document.createElement('div');
     noteEl.className = 'rhythm-note';
-    noteEl.style.cssText = `position:absolute;left:0;right:0;top:-40px;height:34px;border-radius:10px;background:linear-gradient(135deg,#FF6B9D,#C084FC);box-shadow:0 2px 10px #0005;`;
+    noteEl.style.cssText = `position:absolute;left:0;right:0;top:-40px;height:34px;border-radius:10px;background:url("${RHYTHM_NOTE_IMG}") center/100% 100% no-repeat;border:2px solid #fff;box-sizing:border-box;box-shadow:0 2px 10px #0005;`;
     laneEl.appendChild(noteEl);
 
     const noteData = {
