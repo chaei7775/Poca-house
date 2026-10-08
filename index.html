@@ -784,7 +784,9 @@ html{color-scheme:only light;}
 <script>
 // 전체화면 창(내 집·장소·원정 등)이 열려 있으면 뒤 화면과 하단 메뉴를 숨겨서, 삼성 인터넷 툴바가 접히거나 당길 때 뒤 화면이 비쳐 보이지 않게 함
 (function(){var IDS=['place-overlay','special-overlay'];
-setInterval(function(){var on=false;try{IDS.forEach(function(i){var e=document.getElementById(i);if(e&&getComputedStyle(e).display!=='none')on=true;});}catch(x){}
+function full(e){var cs=getComputedStyle(e);if(cs.display==='none'||cs.visibility==='hidden'||cs.position!=='fixed')return false;if((parseInt(cs.zIndex)||0)<=100)return false;var r=e.getBoundingClientRect();if(!(r.width>=innerWidth*0.9&&r.height>=innerHeight*0.85))return false;var m=cs.backgroundColor.match(/[\d.]+/g)||[];var al=m.length>3?parseFloat(m[3]):(cs.backgroundColor==='transparent'?0:1);return al>=0.95;}
+setInterval(function(){var on=false;try{IDS.forEach(function(i){var e=document.getElementById(i);if(e&&getComputedStyle(e).display!=='none')on=true;});
+if(!on)Array.prototype.forEach.call(document.body.children,function(e){if(!on&&e.tagName==='DIV'&&e.id!=='boot-splash'&&full(e))on=true;});}catch(x){}
 if(document.body)document.body.classList.toggle('ov-open',on);},250);})();
 </script>
 </body>
