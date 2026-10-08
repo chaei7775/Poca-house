@@ -632,7 +632,8 @@ function resolveSpecialCapture(success) {
   }
 
   // 촬영 소품(장착아이템): 레어변종 10%, 일반 3% 확률 드랍
-  const gotGear = Math.random() < (creature.isVariant ? 0.10 : 0.03);
+  const GEAR_DROP_ON = false;   // 촬영 소품(브로치·펜던트 등) 드랍 — false = 더 이상 안 나옴 (예전: 변종 10% / 일반 3%)
+  const gotGear = GEAR_DROP_ON && Math.random() < (creature.isVariant ? 0.10 : 0.03);
   let gearGrade = null;
   let gearItem = null;
   if (gotGear) {
