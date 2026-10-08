@@ -109,7 +109,15 @@
   }
   function idolName(cid) { try { return CHARS[cid].name; } catch (e) { return cid; } }
   function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
-  function fill(s, cid) { return String(s).replace(/\{idol\}/g, idolName(cid)); }
+  function fill(s, cid) {   // 받침에 맞춰 조사 자동 처리 (민준죠 → 민준이죠 / 세연죠 → 세연이죠 / 하나이 → 하나가)
+    var nm = idolName(cid), c = nm.charCodeAt(nm.length - 1), bt = (c >= 0xAC00 && c <= 0xD7A3) ? ((c - 0xAC00) % 28 !== 0) : true;
+    return String(s).replace(/\{idol\}(죠|아|이(?![가-힣]))?/g, function (m, p) {
+      if (!p) return nm;
+      if (p === '죠') return nm + (bt ? '이죠' : '죠');
+      if (p === '아') return nm + (bt ? '아' : '야');
+      return nm + (bt ? '이' : '가');
+    });
+  }
   function pick(a) { return a[Math.floor(Math.random() * a.length)]; }
   function toast(m) { if (typeof showBagToast === 'function') { try { showBagToast(m); } catch (e) {} } }
   function rnd(a, b) { return a + Math.floor(Math.random() * (b - a + 1)); }
