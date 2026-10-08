@@ -998,7 +998,7 @@ function tapCafeGauge() {
   else if (pos >= 35 && pos <= 65) { score = 25; grade = 'GREAT'; }
   else if (pos >= 25 && pos <= 75) { score = 10; grade = 'COOL'; }
   else { score = 0; grade = 'MISS'; }
-  showResult(grade, score);
+  showResult(grade, 0);   // 단계 점수(40)는 코인이 아님 — 코인은 마지막에 한 번에 지급되므로 '+🍔40' 표시를 하지 않음
   if (grade === 'PERFECT' && cafeStep === 1 && cafeScores[0] >= 40) showComboPopup('🔥 X2 COMBO!');
   cafeScores.push(score); cafeStep++; renderCafeStep();
 }
