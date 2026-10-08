@@ -21,7 +21,14 @@
     var s = document.createElement('style'); s.id = 'sp-style';
     s.textContent = '@keyframes sp-pulse{0%,100%{box-shadow:0 0 0 0 rgba(96,165,250,.55)}50%{box-shadow:0 0 0 9px rgba(96,165,250,0)}}' +
       '@keyframes sp-pop{from{transform:scale(.92);opacity:0}to{transform:scale(1);opacity:1}}' +
-      '#school-pop button{font-family:inherit}';
+      '#school-pop button{font-family:inherit}' +
+      // 수업(미니게임) 화면도 같은 큰 팝업 모양으로
+      '#school-overlay{background:rgba(15,10,35,.62) !important;box-shadow:none !important;max-width:none !important;left:0 !important;right:0 !important;transform:none !important;margin:0 !important;overflow:hidden !important;padding:14px;box-sizing:border-box}' +
+      '#school-overlay[style*="display: block"]{display:flex !important;align-items:center;justify-content:center}' +
+      '#school-overlay > .sp-card{width:min(92vw,400px);max-height:92vh;overflow-y:auto;background:linear-gradient(180deg,#ffffff,#fdf2f8);border-radius:28px;box-shadow:0 20px 60px rgba(0,0,0,.45);animation:sp-pop .22s ease-out}' +
+      '#school-overlay .sp-card > div:first-child{border-radius:28px 28px 0 0;padding:14px 14px !important}' +
+      '#school-overlay .sp-card > div:first-child > div:nth-child(2){white-space:normal !important;font-size:16px !important;line-height:1.3}' +
+      '#school-overlay .sp-card > div:last-child{padding-bottom:22px !important}';
     document.head.appendChild(s);
   }
   function host() {
@@ -132,6 +139,18 @@
     if (window.__schoolPopInstalled) return true;
     window.__schoolPopInstalled = true;
     host();
+    // 수업 화면이 그려질 때마다 내용을 팝업 카드로 감싼다
+    var ov0 = ensureSchoolOverlay(), wrapping = false;
+    new MutationObserver(function () {
+      if (wrapping) return;
+      var kids = Array.prototype.slice.call(ov0.childNodes);
+      if (!kids.length || (kids.length === 1 && kids[0].classList && kids[0].classList.contains('sp-card'))) return;
+      wrapping = true;
+      var card = document.createElement('div'); card.className = 'sp-card';
+      kids.forEach(function (k) { card.appendChild(k); });
+      ov0.appendChild(card);
+      wrapping = false;
+    }).observe(ov0, { childList: true });
 
     window.renderSchoolHome = function () { try { renderHub(); } catch (e) { console.warn('school-popup', e); } };
 
