@@ -1209,6 +1209,12 @@
         var pad = sec.lastElementChild;     // 맨 아래 빈칸 앞에 끼운다
         sec.insertBefore(b, pad);
       }
+      var eb = $('fr-entry-btn');
+      if (eb) {   // 레벨이 모자라면 흐리게 + 🔒 표시
+        var lk = plv() < NEED_LEVEL, tg = eb.querySelector('span:nth-child(2) > span');
+        if (lk) eb.style.opacity = '.55'; else if (eb.style.opacity === '0.55') eb.style.opacity = '';
+        if (tg) tg.textContent = lk ? '🔒 Lv.' + NEED_LEVEL : 'NEW';
+      }
       setTimeout(addBtn, 500);
     })();
   }
