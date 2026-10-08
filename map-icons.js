@@ -22,12 +22,15 @@
     ['특별 탐험', 'special'], ['팬덤 원정', 'fandom'], ['방송국 앞', 'broadcast'], ['팬미팅장', 'fanmeeting'], ['콘서트', 'concert'],
     ['천공성 유적', 'skyruins'], ['달빛 회랑', 'moonlit'], ['공방 지하', 'workshop']
   ].sort(function (a, b) { return b[0].length - a[0].length; });
-  var ROOTS = '#screen-map,#place-overlay,#stamina-floating';
+  var ROOTS = '#screen-map,#place-overlay,#stamina-floating,#school-pop,#school-overlay';
   var EMO = /^(\s*)((?:\p{Extended_Pictographic}️?(?:‍\p{Extended_Pictographic}️?)*))\s*([^\s].*)$/u;
   var ONLY = /^\s*(?:\p{Extended_Pictographic}\uFE0F?(?:\u200D\p{Extended_Pictographic}\uFE0F?)*)\s*$/u;
   // 글자 중간에 끼어 있는 작은 이모지 → 이미지 (파일이 없으면 이모지 그대로)
   var INLINE = { '⚡': 'vip-bolt.png', '🧩': 'mat-wishpiece.png', '🖼️': 'mat-premiumpiece.png', '🖼': 'mat-premiumpiece.png' };
-  var INLINE_RE = /(🖼️|🖼|⚡|🧩)/;
+  // 학교 화면 안에서만 쓰는 것: ⭐ 우등생별 / ✨ 우등생조각 / 🎫 등교티켓
+  var SCHOOL_INLINE = { '⭐': 'honor-star.png', '✨': 'honor-piece.png', '🎫': 'school-ticket.png' };
+  var HONOR = { '🌟': 'honor-star.png' };   // "🌟우등생별" 글자 앞에서만
+  var INLINE_RE = /(🖼️|🖼|⚡|🧩|🌟(?=\s*우등생별)|⭐|✨|🎫)/;
   var fileOk = {}, fileWait = {};
   function probeFile(f) {
     if (fileWait[f]) return; fileWait[f] = true;
@@ -36,9 +39,10 @@
   function inline(t) {
     var v = t.nodeValue; if (!v || !INLINE_RE.test(v)) return;
     var parts = v.split(INLINE_RE), p = t.parentNode, did = false;
+    var school = !!(p.closest && p.closest('#school-pop,#school-overlay'));
     var frag = document.createDocumentFragment();
     parts.forEach(function (part) {
-      var f = INLINE[part];
+      var f = INLINE[part] || HONOR[part] || (school ? SCHOOL_INLINE[part] : null);
       if (f && fileOk[f]) {
         var img = document.createElement('img'); img.src = f; img.alt = ''; img.setAttribute('data-pin', 'inline');
         img.style.cssText = 'width:1.2em;height:1.2em;object-fit:contain;vertical-align:-0.25em;pointer-events:none;';
