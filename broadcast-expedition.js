@@ -446,41 +446,35 @@
     var a = readAuto(), t = $('bc-autotog'), f = $('bc-autofill'), l = $('bc-autolbl');
     if (t) { t.textContent = a.on ? '🔄 자동 회복 ON' : '🔄 자동 회복 OFF'; t.style.borderColor = a.on ? '#4ade80' : '#888'; t.style.color = a.on ? '#4ade80' : '#bbb'; }
     if (f) f.style.width = a.pct + '%';
-    if (l) l.textContent = 'HP ' + a.pct + '% 이하일 때';
+    if (l) l.textContent = 'HP ' + a.pct + '% 이하';
     var bar = $('bc-autobar'); if (bar) bar.style.opacity = a.on ? '1' : '.55';
   }
   function buildAutoUi(box) {
+    // 자동 회복 조절: 드래그 바는 손가락이 스치기만 해도 %가 바뀌어서, [-] [+] 버튼으로만 바꾸게 함 (10% 단위, 눌러야만 바뀜)
     var wrap = document.createElement('div');
     wrap.style.cssText = 'display:flex;flex-direction:column;align-items:flex-end;gap:4px;';
+    var BTN_S = 'width:34px;height:30px;border-radius:10px;background:rgba(26,26,46,.92);border:1.5px solid #4ade80;color:#fff;font-size:18px;font-weight:900;line-height:1;cursor:pointer;font-family:inherit;padding:0;';
     wrap.innerHTML =
-      '<div id="bc-autotog" style="background:rgba(26,26,46,.9);border:1.5px solid #888;border-radius:999px;padding:3px 10px;font-size:12px;font-weight:900;color:#bbb;cursor:pointer;"></div>' +
-      '<div id="bc-autobar" style="width:130px;"><div id="bc-autolbl" style="font-size:10px;font-weight:700;color:#fff;text-shadow:0 1px 3px #000;text-align:right;margin-bottom:2px;"></div>' +
-      '<div id="bc-autotrack" style="width:130px;height:16px;border-radius:8px;background:rgba(0,0,0,.65);border:1.5px solid #4ade80;position:relative;overflow:hidden;touch-action:none;cursor:pointer;">' +
-      '<div id="bc-autofill" style="height:100%;width:0;background:linear-gradient(90deg,#16a34a,#4ade80);pointer-events:none;"></div></div></div>';
+      '<div id="bc-autotog" style="background:rgba(26,26,46,.92);border:1.5px solid #888;border-radius:999px;padding:4px 11px;font-size:12px;font-weight:900;color:#bbb;cursor:pointer;"></div>' +
+      '<div id="bc-autobar" style="display:flex;align-items:center;gap:5px;">' +
+        '<button id="bc-auto-minus" style="' + BTN_S + '">−</button>' +
+        '<div id="bc-autolbl" style="min-width:74px;text-align:center;font-size:11px;font-weight:900;color:#fff;background:rgba(26,26,46,.92);border-radius:8px;padding:6px 4px;"></div>' +
+        '<button id="bc-auto-plus" style="' + BTN_S + '">+</button></div>';
     box.appendChild(wrap);
-    var tog = wrap.querySelector('#bc-autotog'), track = wrap.querySelector('#bc-autotrack');
-    tog.onpointerdown = function (e) {
-      e.stopPropagation(); e.preventDefault();
+    var tog = wrap.querySelector('#bc-autotog');
+    function stop(e) { e.stopPropagation(); }
+    ['pointerdown', 'pointerup', 'pointermove', 'touchstart', 'touchend', 'mousedown'].forEach(function (ev) { wrap.addEventListener(ev, stop); });
+    tog.onclick = function (e) {
+      e.stopPropagation();
       var a = readAuto(); a.on = !a.on; writeAuto(a); autoUiRefresh();
       if (a.on) { if (S) S.autoWarned = false; autoPotion(); }
     };
-    function setFromEvent(e) {
-      var r = track.getBoundingClientRect();
-      var pct = Math.round((e.clientX - r.left) / Math.max(1, r.width) * 100 / AUTO_STEP) * AUTO_STEP;
-      var a = readAuto(); a.pct = Math.max(0, Math.min(100, pct)); writeAuto(a); autoUiRefresh();
-    }
-    var dragging = false;
-    track.onpointerdown = function (e) {
-      e.stopPropagation(); e.preventDefault(); dragging = true;
-      try { track.setPointerCapture(e.pointerId); } catch (er) {}
-      setFromEvent(e);
-    };
-    track.onpointermove = function (e) { if (dragging) { e.stopPropagation(); setFromEvent(e); } };
-    track.onpointerup = track.onpointercancel = function (e) {
-      dragging = false;
-      try { track.releasePointerCapture(e.pointerId); } catch (er) {}
+    function step(d) {
+      var a = readAuto(); a.pct = Math.max(0, Math.min(100, Math.round((a.pct + d) / 10) * 10)); writeAuto(a); autoUiRefresh();
       if (S) { S.autoWarned = false; autoPotion(); }
-    };
+    }
+    wrap.querySelector('#bc-auto-minus').onclick = function (e) { e.stopPropagation(); step(-10); };
+    wrap.querySelector('#bc-auto-plus').onclick = function (e) { e.stopPropagation(); step(10); };
     autoUiRefresh();
   }
   function hurt(type, viaSkill, love) {
