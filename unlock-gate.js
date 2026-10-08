@@ -39,7 +39,7 @@
   // 맵 장소 (맵 화면의 openPlace('...') 버튼): 포카버거·카페거리는 Lv.2, 나머지는 Lv.3
   var PLACE_LV = {
     'cafe-street': { lv: 2, name: '카페거리' },
-    school: { lv: 3, name: '연성고등학교' }, beach: { lv: 3, name: '촬영 세트장' }, forest: { lv: 3, name: '뷰티 살롱' }, shopping: { lv: 3, name: '상점거리' },
+    school: { lv: 3, name: '연성고등학교' }, beach: { lv: 3, name: '뷰티 살롱' }, forest: { lv: 3, name: '촬영 세트장' }, shopping: { lv: 3, name: '상점거리' },
     housing: { lv: 3, name: '연습생 숙소촌' }, mystery: { lv: 3, name: '신비의 섬' }, square: { lv: 3, name: '중앙광장' }, lake: { lv: 3, name: '워크숍 캠프' },
     room: { lv: 3, name: '내 집' }, park: { lv: 3, name: '꽃길공원' }
   };
