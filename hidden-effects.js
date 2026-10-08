@@ -24,21 +24,21 @@
   var MAX_MULT = 10;          // 초월 3단계 완료 시 기본값의 몇 배
   var MAX_PROGRESS = 43;      // 초월 3단계 완료(+10강) = 3×11 + 10
   // 효과 종류별 상한 (단위는 %, 소원조각은 %p)
-  var CAPS = { coin: 100, luck: 15, affection: 50, study: 50, stamina: 50, wish: 2, great: 40 };
+  var CAPS = { coin: 100, luck: 15, affection: 50, study: 50, stamina: 50, wish: 2, great: 40, exp: 100, time: 5, npc: 3, mat: 3 };
   // 카드별 효과: stat 은 위 종류 / v = 카드 그림의 기본값 / live=false 면 아직 연결 안 됨
   var FX = {
     hidden_minjun_rare: [{ stat: 'coin', v: 6, label: '알바 코인' }],
-    hidden_minjun_epic: [{ stat: 'coin', v: 12, label: '알바 코인' }, { stat: 'exp', v: 10, label: '알바 경험치', live: false }],
+    hidden_minjun_epic: [{ stat: 'coin', v: 12, label: '알바 코인' }, { stat: 'exp', v: 10, label: '알바 경험치' }],
     hidden_sion_rare:   [{ stat: 'stamina', v: 5, label: '스태미나 소모', neg: true }],
-    hidden_sion_epic:   [{ stat: 'stamina', v: 10, label: '스태미나 소모', neg: true }, { stat: 'time', v: 1, label: '탐험 시간', live: false }],
+    hidden_sion_epic:   [{ stat: 'stamina', v: 10, label: '스태미나 소모', neg: true }, { stat: 'time', v: 1, label: '탐험 시간' }],
     hidden_yuna_rare:   [{ stat: 'luck', v: 0.7, label: '희귀재료 획득' }],
     hidden_yuna_epic:   [{ stat: 'luck', v: 1, label: '희귀재료 획득' }, { stat: 'affection', v: 1, label: 'NPC 호감도 획득' }],
     hidden_harin_rare:  [{ stat: 'wish', v: 0.5, label: '소원조각 획득' }],
-    hidden_harin_epic:  [{ stat: 'wish', v: 0.8, label: '소원조각 획득' }, { stat: 'npc', v: 1, label: '희귀 NPC 조우율', live: false }],
+    hidden_harin_epic:  [{ stat: 'wish', v: 0.8, label: '소원조각 획득' }, { stat: 'npc', v: 1, label: '희귀 NPC 조우율' }],
     hidden_doyun_rare:  [{ stat: 'exam', v: 5, label: '시험 등급 상승', live: false }],
-    hidden_doyun_epic:  [{ stat: 'exam', v: 10, label: '시험 등급 상승', live: false }, { stat: 'study', v: 5, label: '수업 점수' }],
+    hidden_doyun_epic:  [{ stat: 'exam', v: 10, label: '시험 등급 상승', live: false }, { stat: 'study', v: 5, label: '수업 점수', live: false }],
     hidden_ara_rare:    [{ stat: 'great', v: 3, label: '제작 대성공 확률' }],
-    hidden_ara_epic:    [{ stat: 'great', v: 3, label: '제작 대성공 확률' }, { stat: 'mat', v: 2, label: '제작 재료 소모', live: false }]
+    hidden_ara_epic:    [{ stat: 'great', v: 3, label: '제작 대성공 확률' }, { stat: 'mat', v: 2, label: '제작 재료 소모', neg: true }]
   };
 
   // ════════ 순수 로직 ════════
@@ -128,9 +128,38 @@
     };
   });
 
+  // 5) 알바 경험치 +N% : 알바를 1번 끝낼 때마다(albaDone 증가) 기본 경험치 15의 N%를 더 줌 (소수는 모아서)
+  var _albaLast = null, _expCarry = 0;
+  setInterval(function () {
+    try {
+      if (typeof albaDone === 'undefined' || typeof addPlayerExp !== 'function') return;
+      if (_albaLast === null) { _albaLast = albaDone; return; }
+      var d = albaDone - _albaLast; _albaLast = albaDone;
+      if (d <= 0 || d > 5) return;
+      _expCarry += d * 15 * (totals().exp || 0) / 100;
+      var give = Math.floor(_expCarry);
+      if (give > 0) { _expCarry -= give; addPlayerExp(give); }
+    } catch (e) {}
+  }, 700);
+
+  // 6) 탐험 시간 +N초 (game.js 탐험 타이머가 불러감) / 희귀 NPC 조우율 +N%p (broadcast-expedition.js 가 불러감)
+  window.__hfxExploreMs = function () { try { return Math.round((totals().time || 0) * 1000); } catch (e) { return 0; } };
+  window.__hfxNpcBonus = function () { try { return (totals().npc || 0) / 100; } catch (e) { return 0; } };
+
+  // 7) 제작 재료 소모 -N (재료마다 최소 1개는 남김) : 재봉 레시피 목록을 줄여서 보여주고 실제로도 적게 씀
+  whenReady(function () { return typeof window.getClothRecipeItems === 'function'; }, function () {
+    var orig = window.getClothRecipeItems;
+    window.getClothRecipeItems = function () {
+      var list = orig.apply(this, arguments), cut = 0;
+      try { cut = Math.floor(totals().mat || 0); } catch (e) {}
+      if (!cut || !Array.isArray(list)) return list;
+      return list.map(function (it) { var o = Object.assign({}, it); o.qty = Math.max(1, (Number(it.qty) || 1) - cut); return o; });
+    };
+  });
+
   // ════════ 화면: 더보기 > 🌟 히든 효과 ════════
   var ACC = '#C084FC', FONT = "font-family:'Noto Sans KR',sans-serif;";
-  function fmtVal(e, v) { return (e.neg ? '-' : '+') + r1(v) + (e.stat === 'time' ? '초' : '%'); }
+  function fmtVal(e, v) { return (e.neg ? '-' : '+') + r1(v) + (e.stat === 'time' ? '초' : e.stat === 'mat' ? '개' : '%'); }
   function openPanel() {
     var old = document.getElementById('hfx-overlay'); if (old) old.remove();
     var list = (typeof HIDDEN_CARDS !== 'undefined' ? HIDDEN_CARDS : []).filter(function (h) { return owned(h.id) && FX[h.id]; });

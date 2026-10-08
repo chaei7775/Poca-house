@@ -661,7 +661,7 @@
     fillNormals();
     if (!hasSpecial()) {
       var r = Math.random();
-      var npcChance = LEGEND_CHANCE * (1 + gearVal(S.charId, 'variant') / 100);   // 소품 '변종 출현' = NPC 출현 확률 증가
+      var npcChance = LEGEND_CHANCE * (1 + gearVal(S.charId, 'variant') / 100) + (typeof window.__hfxNpcBonus === 'function' ? window.__hfxNpcBonus() : 0);   // 소품 '변종 출현' = NPC 출현 확률 증가
       if (r < npcChance) spawnSpecial('legend');
       else if (r < npcChance + RARE_CHANCE) spawnSpecial('golden');
     }

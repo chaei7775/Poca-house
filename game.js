@@ -1989,14 +1989,15 @@ function startExplore(placeId) {
   });
 
   // 타이머
-  let timeLeft = 3000;
+  const EXPLORE_MS = 3000 + (typeof window.__hfxExploreMs === 'function' ? window.__hfxExploreMs() : 0);   // 히든카드(시온) 탐험 시간 보너스
+  let timeLeft = EXPLORE_MS;
   exploreStartTime = Date.now();
   explorePaused = false;
   exploreTimer = setInterval(() => {
     if (explorePaused) return;
     const elapsed = Date.now() - exploreStartTime;
-    const remaining = Math.max(0, 3000 - elapsed);
-    const pct = remaining / 3000 * 100;
+    const remaining = Math.max(0, EXPLORE_MS - elapsed);
+    const pct = remaining / EXPLORE_MS * 100;
     const fill = document.getElementById('explore-timer-fill');
     const countdown = document.getElementById('explore-countdown');
     if (fill) fill.style.width = pct + '%';
