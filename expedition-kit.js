@@ -227,8 +227,9 @@
     return res;
   }
   // 상자 그림(HTML). 새 그림(fx-box.png)이 있으면 그걸, 없으면 VIP 상자, 그것도 없으면 이모지
+  var BOX_SVG = "data:image/svg+xml;utf8," + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><ellipse cx="32" cy="58" rx="22" ry="4" fill="#000" opacity=".12"/><rect x="9" y="26" width="46" height="30" rx="5" fill="#fff" stroke="#d9d4e8" stroke-width="2"/><rect x="6" y="18" width="52" height="12" rx="5" fill="#fff" stroke="#d9d4e8" stroke-width="2"/><rect x="28" y="18" width="8" height="38" fill="#ffd76a"/><path d="M32 18C26 6 14 8 18 15c3 5 10 3 14 3zM32 18C38 6 50 8 46 15c-3 5-10 3-14 3z" fill="#ffd76a" stroke="#e0b030" stroke-width="1.5"/></svg>');
   function boxImgHtml(px) {
-    return '<img src="' + IMG_BASE + 'fx-box.png" style="width:' + px + 'px;height:' + px + 'px;object-fit:contain;" onerror="if(!this.__t){this.__t=1;this.src=\'' + IMG_BASE + 'vip-box.png\';}else{this.outerHTML=\'<span style=&quot;font-size:' + Math.round(px * 0.8) + 'px;&quot;>🎁</span>\'}">';
+    return '<img src="' + BOX_SVG + '" style="width:' + px + 'px;height:' + px + 'px;object-fit:contain;">';
   }
 
   window.ExpKit = {
