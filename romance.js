@@ -54,7 +54,7 @@
   }
   function boost(cid, pt) {          // → {pt, notes[]}
     var notes = [], w = worn(cid), f = FAV[cid];
-    if (pt < 3 && f && w.some(function (id) { return f[0].indexOf(id) >= 0; })) { pt++; notes.push(f[1]); }
+    if (pt < 3 && f && w.some(function (id) { return f[0].indexOf(id) >= 0; })) { pt++; notes.push(f[1]); try { var qf = JSON.parse(localStorage.getItem('ph_quest3') || '{}'); qf.fav = 1; localStorage.setItem('ph_quest3', JSON.stringify(qf)); } catch (x) {} }
     var h = 0; try { h = window.__clothesEquip.heart(cid); } catch (x) {}
     if (pt < 3 && h > 0 && Math.random() * 100 < h * 5) { pt++; notes.push('💓 의상 효과로 두근이 더 커졌어!'); }
     return { pt: pt, notes: notes };
@@ -105,7 +105,7 @@
     }
     function finish(pt) {
       var all = load(); var d = all[cid] || { done: [], pt: 0 };
-      if (d.done.indexOf(ev.id) < 0) { d.done.push(ev.id); d.pt += pt; all[cid] = d; save(all); try { addAffectionExp(cid, pt === 3 ? 20 : pt === 2 ? 14 : 8); } catch (e) {} }
+      if (d.done.indexOf(ev.id) < 0) { d.done.push(ev.id); d.pt += pt; if (pt === 3) d.full = (d.full || 0) + 1; all[cid] = d; save(all); try { addAffectionExp(cid, pt === 3 ? 20 : pt === 2 ? 14 : 8); } catch (e) {} }
       var hearts = ''; for (var i = 0; i < 3; i++) hearts += i < pt ? '💗' : '🤍';
       box.onclick = null;
       box.innerHTML = '<div style="text-align:center;padding-top:8px;"><div style="font-size:30px;">' + hearts + '</div><div style="font-size:15px;font-weight:700;margin:8px 0;">두근 ' + pt + '/3</div><div style="font-size:12px;color:#ccc;">호감도 +' + (pt === 3 ? 20 : pt === 2 ? 14 : 8) + '</div><button id="rom-ok" style="margin-top:14px;width:100%;padding:13px;border:none;border-radius:12px;background:linear-gradient(135deg,#FF6B9D,#C084FC);color:#fff;font-weight:700;font-size:14px;font-family:inherit;">확인</button></div>';
