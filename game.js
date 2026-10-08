@@ -717,10 +717,16 @@ function applyAlbaDifficultyReward(amount, diff, grade) {
   return Math.max(1, Math.round(amount * d.mult));
 }
 function getGaugeZoneHtml(diff) {
+  // 그림과 실제 판정을 똑같이: 퍼펙트(노랑) / 굿(분홍 35~65) / 쿨(파랑 25~75)
   const d = getAlbaDifficultyInfo(diff);
-  const greatLeft = Math.max(0, d.zoneLeft - 10);
-  const greatWidth = Math.min(100, d.zoneWidth + 20);
-  return `<div style="position:absolute;top:0;bottom:0;left:${greatLeft}%;width:${greatWidth}%;background:rgba(255,107,157,0.32);border-radius:4px;"></div><div style="position:absolute;top:0;bottom:0;left:${d.zoneLeft}%;width:${d.zoneWidth}%;background:rgba(255,215,0,0.78);border-radius:4px;"></div>`;
+  return `<div style="position:absolute;top:0;bottom:0;left:25%;width:50%;background:rgba(147,197,253,0.30);"></div><div style="position:absolute;top:0;bottom:0;left:35%;width:30%;background:rgba(255,107,157,0.55);"></div><div style="position:absolute;top:0;bottom:0;left:${d.zoneLeft}%;width:${d.zoneWidth}%;background:#FFD700;box-shadow:0 0 0 2px #fff inset,0 0 10px 2px rgba(255,215,0,0.9);"></div>`;
+}
+// 누른 순간의 게이지 위치를 기억 (손가락을 뗄 때 click이 늦게 와도 누른 자리로 판정)
+let gaugeSnap = null;
+function snapGaugePos() { gaugeSnap = { b: burgerGaugePos, c: cafeGaugePos, t: performance.now() }; }
+function snappedGaugePos(kind, cur) {
+  const sn = gaugeSnap; gaugeSnap = null;
+  return (sn && performance.now() - sn.t < 700) ? sn[kind] : cur;
 }
 function getAlbaDifficultyBadge(diff) {
   const d = getAlbaDifficultyInfo(diff);
@@ -853,7 +859,7 @@ function renderBurgerStep() {
   const stackHtml = burgerStack.map(e => `<span style="font-size:18px;">${e}</span>`).join('');
   if (step.gauge) {
     if (hotspots) hotspots.innerHTML = `<div style="position:absolute;left:${step.pos.left};top:${step.pos.top};transform:translate(-50%,-50%);animation:pulse 1s infinite;"><div style="font-size:28px;filter:drop-shadow(0 0 8px #FF6B9D);">🔥</div></div>`;
-    if (panel) panel.innerHTML = `<div style="color:#fff;">${getAlbaDifficultyBadge(burgerDifficulty)}<div style="font-size:13px;color:#FFB3CC;margin-bottom:6px;text-align:center;">${step.hint}</div><div style="display:flex;gap:6px;justify-content:center;margin-bottom:8px;">${stackHtml}</div><div style="width:100%;height:28px;background:rgba(255,255,255,0.1);border-radius:14px;position:relative;overflow:hidden;border:1.5px solid rgba(255,255,255,0.2);cursor:pointer;margin-bottom:8px;" onclick="tapBurgerGauge()">${getGaugeZoneHtml(burgerDifficulty)}<div id="burger-gauge-marker" style="position:absolute;top:3px;bottom:3px;width:5px;background:#fff;border-radius:3px;box-shadow:0 0 8px #fff;left:0%;"></div></div><button onclick="tapBurgerGauge()" style="width:100%;padding:10px;background:linear-gradient(135deg,#FF6B9D,#F59E0B);border:none;border-radius:10px;color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">TAP! 🔥</button></div>`;
+    if (panel) panel.innerHTML = `<div style="color:#fff;">${getAlbaDifficultyBadge(burgerDifficulty)}<div style="font-size:13px;color:#FFB3CC;margin-bottom:6px;text-align:center;">${step.hint}</div><div style="display:flex;gap:6px;justify-content:center;margin-bottom:8px;">${stackHtml}</div><div style="width:100%;height:36px;background:rgba(255,255,255,0.1);border-radius:18px;position:relative;overflow:hidden;border:1.5px solid rgba(255,255,255,0.35);cursor:pointer;touch-action:manipulation;margin-bottom:8px;" onpointerdown="snapGaugePos()" onclick="tapBurgerGauge()">${getGaugeZoneHtml(burgerDifficulty)}<div id="burger-gauge-marker" style="position:absolute;top:0;bottom:0;width:8px;margin-left:-4px;background:#fff;border-radius:4px;box-shadow:0 0 0 2px #1a1a2e,0 0 12px 2px #fff;left:0%;z-index:2;"></div></div><button onpointerdown="snapGaugePos()" onclick="tapBurgerGauge()" style="width:100%;padding:10px;background:linear-gradient(135deg,#FF6B9D,#F59E0B);border:none;border-radius:10px;color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">TAP! 🔥</button></div>`;
     startBurgerGauge();
   } else {
     if (hotspots) hotspots.innerHTML = `<div onclick="tapBurgerIngredient()" style="position:absolute;left:${step.pos.left};top:${step.pos.top};transform:translate(-50%,-50%);background:rgba(255,215,0,0.15);border:2px dashed rgba(255,215,0,0.7);border-radius:10px;padding:8px 12px;cursor:pointer;animation:pulse 1s infinite;display:flex;flex-direction:column;align-items:center;gap:2px;"><span style="font-size:24px;">${step.emoji}</span><span style="font-size:10px;color:#FFD700;font-weight:700;">${step.label}</span></div>`;
@@ -883,7 +889,7 @@ function tapBurgerGauge() {
   if (burgerGaugeLocked) return;
   burgerGaugeLocked = true;
   stopBurgerGauge();
-  const pos = burgerGaugePos;
+  const pos = snappedGaugePos('b', burgerGaugePos);
   let grade;
   const d = getAlbaDifficultyInfo(burgerDifficulty);
   if (pos >= d.perfectMin && pos <= d.perfectMax) { grade = 'PERFECT'; burgerGaugeBonus = 30; }
@@ -935,10 +941,10 @@ function renderCafeStep() {
   if (hotspots) hotspots.innerHTML = '';
   if (cafeStep === 0) {
     if (hotspots) hotspots.innerHTML = `<div onclick="tapMachine()" style="position:absolute;left:38%;top:42%;width:22%;height:18%;background:rgba(255,200,100,0.15);border:2px dashed rgba(255,200,100,0.6);border-radius:10px;display:flex;align-items:center;justify-content:center;cursor:pointer;animation:pulse 1s infinite;"><span style="font-size:20px;">☕</span></div>`;
-    if (panel) panel.innerHTML = `<div style="text-align:center;color:#fff;"><div style="font-size:13px;color:#FFB3CC;margin-bottom:6px;">① 에스프레소 머신을 탭하세요!</div><div id="cafe-gauge-wrap" style="display:none;margin-top:8px;">${getAlbaDifficultyBadge(cafeDifficulty)}<div style="font-size:12px;color:#aaa;margin-bottom:6px;">추출 타이밍!</div><div style="width:100%;height:28px;background:rgba(255,255,255,0.1);border-radius:14px;position:relative;overflow:hidden;border:1.5px solid rgba(255,255,255,0.2);cursor:pointer;" onclick="tapCafeGauge()">${getGaugeZoneHtml(cafeDifficulty)}<div id="cafe-gauge-marker" style="position:absolute;top:3px;bottom:3px;width:5px;background:#fff;border-radius:3px;box-shadow:0 0 8px #fff;left:0%;"></div></div><button onclick="tapCafeGauge()" style="margin-top:8px;width:100%;padding:10px;background:linear-gradient(135deg,#FF6B9D,#C084FC);border:none;border-radius:10px;color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">TAP! ☕</button></div></div>`;
+    if (panel) panel.innerHTML = `<div style="text-align:center;color:#fff;"><div style="font-size:13px;color:#FFB3CC;margin-bottom:6px;">① 에스프레소 머신을 탭하세요!</div><div id="cafe-gauge-wrap" style="display:none;margin-top:8px;">${getAlbaDifficultyBadge(cafeDifficulty)}<div style="font-size:12px;color:#aaa;margin-bottom:6px;">추출 타이밍!</div><div style="width:100%;height:36px;background:rgba(255,255,255,0.1);border-radius:18px;position:relative;overflow:hidden;border:1.5px solid rgba(255,255,255,0.35);cursor:pointer;touch-action:manipulation;" onpointerdown="snapGaugePos()" onclick="tapCafeGauge()">${getGaugeZoneHtml(cafeDifficulty)}<div id="cafe-gauge-marker" style="position:absolute;top:0;bottom:0;width:8px;margin-left:-4px;background:#fff;border-radius:4px;box-shadow:0 0 0 2px #1a1a2e,0 0 12px 2px #fff;left:0%;z-index:2;"></div></div><button onpointerdown="snapGaugePos()" onclick="tapCafeGauge()" style="margin-top:8px;width:100%;padding:10px;background:linear-gradient(135deg,#FF6B9D,#C084FC);border:none;border-radius:10px;color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">TAP! ☕</button></div></div>`;
   } else if (cafeStep === 1) {
     if (hotspots) hotspots.innerHTML = `<div onclick="tapSteamer()" style="position:absolute;left:60%;top:50%;width:15%;height:20%;background:rgba(100,200,255,0.15);border:2px dashed rgba(100,200,255,0.6);border-radius:10px;display:flex;align-items:center;justify-content:center;cursor:pointer;animation:pulse 1s infinite;"><span style="font-size:20px;">🥛</span></div>`;
-    if (panel) panel.innerHTML = `<div style="text-align:center;color:#fff;"><div style="font-size:13px;color:#FFB3CC;margin-bottom:6px;">② 스팀 피쳐를 탭해서 우유를 스티밍!</div><div id="cafe-gauge-wrap" style="display:none;margin-top:8px;">${getAlbaDifficultyBadge(cafeDifficulty)}<div style="font-size:12px;color:#aaa;margin-bottom:6px;">스티밍 타이밍!</div><div style="width:100%;height:28px;background:rgba(255,255,255,0.1);border-radius:14px;position:relative;overflow:hidden;border:1.5px solid rgba(255,255,255,0.2);cursor:pointer;" onclick="tapCafeGauge()">${getGaugeZoneHtml(cafeDifficulty)}<div id="cafe-gauge-marker" style="position:absolute;top:3px;bottom:3px;width:5px;background:#fff;border-radius:3px;box-shadow:0 0 8px #fff;left:0%;"></div></div><button onclick="tapCafeGauge()" style="margin-top:8px;width:100%;padding:10px;background:linear-gradient(135deg,#60a5fa,#C084FC);border:none;border-radius:10px;color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">TAP! 🥛</button></div></div>`;
+    if (panel) panel.innerHTML = `<div style="text-align:center;color:#fff;"><div style="font-size:13px;color:#FFB3CC;margin-bottom:6px;">② 스팀 피쳐를 탭해서 우유를 스티밍!</div><div id="cafe-gauge-wrap" style="display:none;margin-top:8px;">${getAlbaDifficultyBadge(cafeDifficulty)}<div style="font-size:12px;color:#aaa;margin-bottom:6px;">스티밍 타이밍!</div><div style="width:100%;height:36px;background:rgba(255,255,255,0.1);border-radius:18px;position:relative;overflow:hidden;border:1.5px solid rgba(255,255,255,0.35);cursor:pointer;touch-action:manipulation;" onpointerdown="snapGaugePos()" onclick="tapCafeGauge()">${getGaugeZoneHtml(cafeDifficulty)}<div id="cafe-gauge-marker" style="position:absolute;top:0;bottom:0;width:8px;margin-left:-4px;background:#fff;border-radius:4px;box-shadow:0 0 0 2px #1a1a2e,0 0 12px 2px #fff;left:0%;z-index:2;"></div></div><button onpointerdown="snapGaugePos()" onclick="tapCafeGauge()" style="margin-top:8px;width:100%;padding:10px;background:linear-gradient(135deg,#60a5fa,#C084FC);border:none;border-radius:10px;color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">TAP! 🥛</button></div></div>`;
   } else if (cafeStep === 2) {
     if (panel) panel.innerHTML = `<div style="color:#fff;"><div style="font-size:13px;color:#FFB3CC;margin-bottom:8px;text-align:center;">③ 아트 선택 후 컵 위에 그려봐!</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;"><button onclick="selectAndDrawLatte('하트','❤️')" style="padding:10px;background:rgba(255,107,157,0.2);border:1.5px solid #FF6B9D;border-radius:10px;color:#fff;font-size:16px;cursor:pointer;">❤️ 하트</button><button onclick="selectAndDrawLatte('나뭇잎','🍃')" style="padding:10px;background:rgba(100,200,100,0.2);border:1.5px solid #4ade80;border-radius:10px;color:#fff;font-size:16px;cursor:pointer;">🍃 나뭇잎</button><button onclick="selectAndDrawLatte('별','⭐')" style="padding:10px;background:rgba(255,215,0,0.2);border:1.5px solid #FFD700;border-radius:10px;color:#fff;font-size:16px;cursor:pointer;">⭐ 별</button><button onclick="selectAndDrawLatte('곰돌이','🐻')" style="padding:10px;background:rgba(192,132,252,0.2);border:1.5px solid #C084FC;border-radius:10px;color:#fff;font-size:16px;cursor:pointer;">🐻 곰돌이</button></div></div>`;
   } else if (cafeStep === 3) {
@@ -991,7 +997,7 @@ function tapCafeGauge() {
   if (cafeGaugeLocked) return;
   cafeGaugeLocked = true;
   stopCafeGauge();
-  const pos = cafeGaugePos;
+  const pos = snappedGaugePos('c', cafeGaugePos);
   let score, grade;
   const d = getAlbaDifficultyInfo(cafeDifficulty);
   if (pos >= d.perfectMin && pos <= d.perfectMax) { score = 40; grade = 'PERFECT'; }
