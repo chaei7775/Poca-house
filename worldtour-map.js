@@ -5,7 +5,7 @@
 //  · 성공하면 보스 게이지가 깎여요 (연속 성공할수록 큰 데미지). 틀리거나 시간이 끝나면 하트가 깎여요.
 //  · 쓸 수 있는 스킬은 플레이어 레벨로 정해져요: 🎤(Lv.20) 💖(25) ✨(30) 🌹(35) 🎆(40)
 //  · 단계가 올라갈수록 줄이 길어지고 시간이 짧아져요 (3개 → 4개 → 5개)
-// 보상: 🖼️ 프리미엄 조각 · 🧩 소원의 조각 · 🔨 강화석 · 코인 · 카드 경험치
+// 보상: 🧩 소원의 조각 · 🔨 강화석 · 🔹 재조합석 · 🔶 공방의 원석 · 🖼️ 프리미엄 조각 · 코인 · 카드 경험치
 // ✏️ 값 바꾸는 곳: 아래 [설정]
 // ════════════════════════════════════════════════════════════
 (function () {
@@ -22,8 +22,10 @@
   var PHASES = [ { len: 3, sec: 6.5 }, { len: 4, sec: 6 }, { len: 5, sec: 5.5 } ];   // 보스 체력 1/3 구간마다 바뀜
   var WIN_COIN = 120000, WIN_EXP = 1900;
   var PIECE_CHANCE = 0.75, PIECE_BONUS = 0.3;   // 프리미엄 조각
-  var WISH_WIN = 1, WISH_BONUS = 0.4;            // 소원의 조각
-  var STONE_CHANCE = 0.35;
+  var WISH_WIN = 2, WISH_BONUS = 0.5;            // 소원의 조각 (기본 개수, 한 개 더 줄 확률)
+  var STONE_WIN = 1, STONE_BONUS = 0.5;           // 강화석 (기본 개수, 한 개 더 줄 확률)
+  var EPIC_STONE_CHANCE = 0.3;                   // 💠 에픽 재조합석 확률
+  var RECOMB_N = 2, ONGSTONE_N = 2;              // 🔹 재조합석 / 🔶 공방의 원석 개수
   var LOSE_RATE = 0.6;       // 졌을 때: 깎은 비율 × 이 값 만큼의 보상
   var SK = [
     { id: 'highlight', lv: 20, icon: '🎤', name: '하이라이트' },
@@ -134,7 +136,10 @@
         var pc = 0; if (Math.random() < PIECE_CHANCE) { pc = 1; if (Math.random() < PIECE_BONUS) pc = 2; }
         if (pc) items.push({ emoji: '🖼️', name: '프리미엄 조각', cat: 'piece', qty: pc, desc: '프리미엄 카드 조각 · 100개를 모으면 프리미엄 카드 1장' });
         wish = WISH_WIN + (Math.random() < WISH_BONUS ? 1 : 0);
-        if (Math.random() < STONE_CHANCE) stone = 1;
+        stone = STONE_WIN + (Math.random() < STONE_BONUS ? 1 : 0);
+        items.push({ emoji: '🔹', name: '재조합석', cat: 'material', qty: RECOMB_N, desc: '카드 재조합에 필요한 재료' });
+        items.push({ emoji: '🔶', name: '공방의 원석', cat: 'material', qty: ONGSTONE_N, desc: '굿즈 공방 제작 재료 · 탐험·원정에서 나와요' });
+        if (Math.random() < EPIC_STONE_CHANCE) items.push({ emoji: '💠', name: '에픽 재조합석', cat: 'material', qty: 1, desc: 'SSR/UR 카드 재조합에 필요한 재료' });
       } else { coin = Math.round(WIN_COIN * done * LOSE_RATE); exp = Math.round(WIN_EXP * done * LOSE_RATE); }
       setTimeout(function () {
         wrap.remove();
@@ -152,8 +157,8 @@
     if (!window.ExpKit) { setTimeout(reg, 100); return; }
     window.ExpKit.register({
       id: 'world_tour', bg: 'special-world_tour.jpg', name: '월드투어 스타디움', emoji: '🏟️', color: '#f472b6', needLevel: NEED_LEVEL, stamina: STAMINA, daily: DAILY,
-      tagline: '광역 스킬 연속 응대! 프리미엄 조각·소원의 조각',
-      intro: ['보스 머리 위에 뜨는 <b>스킬 순서</b>를 그대로 아래 버튼으로 눌러요.', '성공하면 보스 게이지가 깎여요. <b>연속 성공</b>할수록 데미지가 커져요!', '틀리거나 시간이 끝나면 ❤️가 깎여요 (5개). 단계가 오를수록 순서가 <b>3→4→5개</b>로 길어져요.', '쓸 수 있는 스킬은 <b>플레이어 레벨</b>로 정해져요: 🎤20 💖25 ✨30 🌹35 🎆40 (Lv.40이면 🎆 불꽃쇼가 들어간 줄은 데미지 ×1.4)', '보스를 쓰러뜨리면 <b>프리미엄 조각</b>·<b>소원의 조각</b>이 나와요.'],
+      tagline: '스킬 연속 응대! 소원의 조각·강화석·재조합석',
+      intro: ['보스 머리 위에 뜨는 <b>스킬 순서</b>를 그대로 아래 버튼으로 눌러요.', '성공하면 보스 게이지가 깎여요. <b>연속 성공</b>할수록 데미지가 커져요!', '틀리거나 시간이 끝나면 ❤️가 깎여요 (5개). 단계가 오를수록 순서가 <b>3→4→5개</b>로 길어져요.', '쓸 수 있는 스킬은 <b>플레이어 레벨</b>로 정해져요: 🎤20 💖25 ✨30 🌹35 🎆40 (Lv.40이면 🎆 불꽃쇼가 들어간 줄은 데미지 ×1.4)', '보스를 쓰러뜨리면 🧩 <b>소원의 조각</b>, 🔨 <b>강화석</b>, 🔹 <b>재조합석</b>, 🔶 <b>원석</b>, <b>프리미엄 조각</b>이 나와요. 가끔 💠 <b>에픽 재조합석</b>도!'],
       play: play
     });
   }

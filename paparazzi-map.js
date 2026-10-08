@@ -4,7 +4,7 @@
 //  · 화면을 누른 채 끌면 그쪽으로 걸어가요. 시야 안에 오래 있으면 "찰칵!" (3번 찍히면 실패)
 //  · 길 곳곳의 🎁 선물 상자를 먹으면 보너스. 출구에 닿으면 성공!
 //  · 스킬 버튼: 💖 윙크 샤워(Lv.25~) 가장 가까운 카메라를 잠깐 멈춤 / ✨ 앵콜 폭죽(Lv.30~) 모든 카메라를 멈춤 / 🌹 장미 세례(Lv.35~) 오래 멈춤
-// 보상: 🔨 강화석 · 🛡️ 방지권 · 코인 · 카드 경험치
+// 보상: 🔨 강화석 · 🔶 굿즈 공방 재료 · 🧪 현상액 · 🛡️ 방지권 · 코인 · 카드 경험치
 // ✏️ 값 바꾸는 곳: 아래 [설정]
 // ════════════════════════════════════════════════════════════
 (function () {
@@ -19,9 +19,15 @@
   var SPOT_TIME = 0.55;      // 시야 안에 이만큼(초) 있으면 찰칵
   var CAMS = 9;              // 파파라치 수
   var WIN_COIN = 90000, WIN_EXP = 1300;
-  var STONE_WIN = 1, STONE_BONUS = 0.4;        // 성공 시 강화석 기본 개수, 한 개 더 줄 확률
+  var STONE_WIN = 2, STONE_BONUS = 0.4;        // 성공 시 강화석 기본 개수, 한 개 더 줄 확률
   var PROTECT_WIN = 0.55;                      // 성공 시 방지권 확률
-  var BOX_N = 4, BOX_COIN = 9000, BOX_STONE = 0.35;
+  var BOX_N = 4, BOX_COIN = 9000;
+  var BOX_P_GOODS = 0.55, BOX_P_STONE = 0.25;   // 선물 상자: 굿즈 공방 재료 55% / 강화석 25% / 나머지는 코인
+  var WIN_DEV = [2, 3], WIN_ONGSTONE = 3;       // 성공하면 🧪현상액 2~3개, 🔶공방의 원석 3개 보너스
+  // 🎁 굿즈 공방 재료 (공방의 원석이 두 배로 잘 나옴)
+  var GOODS = ['공방의 원석', '공방의 원석', '고급원목', '별빛나무', '빛나는돌', '해바라기', '별빛모래', '네잎클로버'];
+  function goodsEmoji(n) { if (n === '공방의 원석') return '🔶'; try { return (typeof getMaterialEmoji === 'function' && getMaterialEmoji(n)) || '📦'; } catch (e) { return '📦'; } }
+  function pickGoods() { return GOODS[Math.floor(Math.random() * GOODS.length)]; }
   var LOSE_RATE = 0.4;       // 실패 시 코인·경험치 비율
   var SKILLS = [
     { id: 'wink', lv: 25, icon: '💖', name: '윙크', cd: 8, dur: 3.5, near: true },
@@ -37,7 +43,7 @@
     var c = cv.getContext('2d');
     var face = new Image(); face.crossOrigin = 'anonymous'; face.src = ctx.face;
     var P = { x: W / 2, y: WORLD_H - 90, r: 13, inv: 0 };
-    var G = { t: 0, lives: LIVES, meter: 0, boxes: 0, stone: 0, coin: 0, over: false, flash: 0, tx: null, ty: null, cd: {}, off: 0, msg: '', msgT: 0 };
+    var G = { t: 0, lives: LIVES, meter: 0, boxes: 0, stone: 0, coin: 0, goods: {}, over: false, flash: 0, tx: null, ty: null, cd: {}, off: 0, msg: '', msgT: 0 };
     // 파파라치 배치: 아래→위로 줄을 서게, 서로 다른 움직임
     var cams = [];
     for (var i = 0; i < CAMS; i++) {
@@ -103,12 +109,17 @@
     function end(win) {
       if (G.over) return; G.over = true; cancelAnimationFrame(raf);
       var coin = G.coin + (win ? WIN_COIN : 0), exp = win ? WIN_EXP : 0, stone = G.stone, protect = 0;
-      if (win) { stone += STONE_WIN + (Math.random() < STONE_BONUS ? 1 : 0); if (Math.random() < PROTECT_WIN) protect = 1; }
+      var items = Object.keys(G.goods).map(function (n) { return { emoji: goodsEmoji(n), name: n, cat: 'material', qty: G.goods[n], desc: n === '공방의 원석' ? '굿즈 공방 제작 재료 · 탐험·원정에서 나와요' : '굿즈 공방 제작 재료' }; });
+      if (win) {
+        stone += STONE_WIN + (Math.random() < STONE_BONUS ? 1 : 0); if (Math.random() < PROTECT_WIN) protect = 1;
+        items.push({ emoji: '🧪', name: '현상액', cat: 'film', qty: WIN_DEV[0] + Math.floor(Math.random() * (WIN_DEV[1] - WIN_DEV[0] + 1)), desc: '포토랩 옵션 강화 재료' });
+        items.push({ emoji: '🔶', name: '공방의 원석', cat: 'material', qty: WIN_ONGSTONE, desc: '굿즈 공방 제작 재료 · 탐험·원정에서 나와요' });
+      }
       else { coin = Math.round(coin * LOSE_RATE); }
       setTimeout(function () {
         cv.remove(); bar.remove();
         ctx.finish({
-          win: win, title: win ? '무사히 탈출!' : '사진이 찍혔어요…', coin: coin, exp: exp, stone: stone, protect: protect,
+          win: win, title: win ? '무사히 탈출!' : '사진이 찍혔어요…', coin: coin, exp: exp, stone: stone, protect: protect, items: items,
           summary: win ? '선물 상자 ' + G.boxes + '/' + BOX_N + '개 · 남은 하트 ' + G.lives : '카메라에 ' + LIVES + '번 찍혔어요. 선물 상자 ' + G.boxes + '개는 챙겼어요.'
         });
       }, win ? 500 : 700);
@@ -136,7 +147,10 @@
         boxes.forEach(function (bx) {
           if (!bx.got && Math.hypot(bx.x - P.x, bx.y - P.y) < 28) {
             bx.got = true; G.boxes++;
-            if (Math.random() < BOX_STONE) { G.stone++; say('🎁 강화석을 찾았어요!'); } else { G.coin += BOX_COIN; say('🎁 코인 +' + BOX_COIN.toLocaleString('ko-KR')); }
+            var rr = Math.random();
+            if (rr < BOX_P_GOODS) { var gn = pickGoods(), gq = 2 + Math.floor(Math.random() * 2); G.goods[gn] = (G.goods[gn] || 0) + gq; say('🎁 ' + goodsEmoji(gn) + ' ' + gn + ' ×' + gq); }
+            else if (rr < BOX_P_GOODS + BOX_P_STONE) { G.stone++; say('🎁 강화석을 찾았어요!'); }
+            else { G.coin += BOX_COIN; say('🎁 코인 +' + BOX_COIN.toLocaleString('ko-KR')); }
           }
         });
         if (Math.hypot(EXIT.x - P.x, EXIT.y - P.y) < EXIT.r) end(true);
@@ -196,8 +210,8 @@
     if (!window.ExpKit) { setTimeout(reg, 100); return; }
     window.ExpKit.register({
       id: 'paparazzi_run', bg: 'special-paparazzi_run.jpg', name: '파파라치 탈출', emoji: '🕵️', color: '#38bdf8', needLevel: NEED_LEVEL, stamina: STAMINA, daily: DAILY,
-      tagline: '카메라 시야를 피해 출구까지! 강화석·방지권',
-      intro: ['화면을 <b>누른 채 끌면</b> 걸어가요. 맨 위 <b>🚪 출구</b>가 목표!', '파파라치의 <b>노란 시야</b>에 오래 있으면 📸 찰칵! <b>3번</b> 찍히면 실패예요.', '길 위의 🎁 <b>선물 상자</b>를 먹으면 코인이나 강화석이 나와요.', '스킬 버튼: 💖<b>윙크</b>(Lv.25) 가까운 카메라 정지 · ✨<b>폭죽</b>(Lv.30) 전부 정지 · 🌹<b>장미</b>(Lv.35) 오래 정지', '성공하면 <b>강화석</b>과 가끔 <b>방지권</b>이 나와요.'],
+      tagline: '시야를 피해 탈출! 강화석·굿즈 재료·현상액',
+      intro: ['화면을 <b>누른 채 끌면</b> 걸어가요. 맨 위 <b>🚪 출구</b>가 목표!', '파파라치의 <b>노란 시야</b>에 오래 있으면 📸 찰칵! <b>3번</b> 찍히면 실패예요.', '길 위의 🎁 <b>선물 상자</b>를 먹으면 🔶 <b>굿즈 공방 재료</b>(원석·원목·모래 …), 강화석, 코인이 나와요.', '스킬 버튼: 💖<b>윙크</b>(Lv.25) 가까운 카메라 정지 · ✨<b>폭죽</b>(Lv.30) 전부 정지 · 🌹<b>장미</b>(Lv.35) 오래 정지', '성공하면 <b>강화석</b>, 🧪 <b>현상액</b>, 🔶 <b>원석</b>, 가끔 <b>방지권</b>이 나와요.'],
       play: play
     });
   }

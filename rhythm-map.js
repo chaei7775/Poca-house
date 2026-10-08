@@ -1,7 +1,7 @@
 // ════════════════════════════════════════════════════════════
 // 🎧 음악방송 리허설장 (rhythm-map.js) — 팬덤 원정 · 플레이어 Lv.25
 // 4줄 리듬 터치. 내려오는 음표가 아래 선에 닿을 때 그 줄을 눌러요. 한 곡이 한 판 (약 45초).
-// 보상: 작곡 재료(🎸🥁🎹🎤 · 음표 · 악보 …) + 코인 + 카드 경험치. 점수가 높을수록 재료가 많아요.
+// 보상: 작곡 재료(🎸🥁🎹🎤 · 음표 · 악보 …) + 🔹재조합석 + 🎞️필름 + 코인 + 카드 경험치. 점수가 높을수록 재료가 많아요.
 // ✏️ 값 바꾸는 곳: 아래 [설정]
 // ════════════════════════════════════════════════════════════
 (function () {
@@ -31,6 +31,14 @@
       out[pick.id] = (out[pick.id] || 0) + 1;
     }
     return Object.keys(out).map(function (id) { var k = K.filter(function (x) { return x.id === id; })[0]; return { emoji: k.emoji, name: k.name, cat: 'material', qty: out[id], desc: k.desc || '' }; });
+  }
+  // 랭크가 높을수록 🔹재조합석 · 🎞️필름도 같이 나와요 ([S, A, B, C] 개수. B 의 재조합석은 50% 확률로 1개)
+  var STONE_N = { S: 2, A: 1, B: 0.5, C: 0 }, FILM_N = { S: 3, A: 2, B: 1, C: 0 };
+  function extraItems(g) {
+    var out = [], st = STONE_N[g] >= 1 ? STONE_N[g] : (Math.random() < STONE_N[g] ? 1 : 0), fl = FILM_N[g];
+    if (st > 0) out.push({ emoji: '🔹', name: '재조합석', cat: 'material', qty: st, desc: '카드 재조합에 필요한 재료' });
+    if (fl > 0) out.push({ emoji: '🎞️', name: '필름', cat: 'film', qty: fl, desc: '시크릿 포토랩 현상 재료' });
+    return out;
   }
   function makeSong(level) {
     var beat = 60 / BPM, notes = [], last = -1, run = 0, t = 1.8;
@@ -84,7 +92,7 @@
       setTimeout(function () {
         cv.remove();
         ctx.finish({
-          win: g !== 'C', title: '랭크 ' + g, coin: COIN[g], exp: EXP[g], items: rollKinds(MATS_N[g], luck),
+          win: g !== 'C', title: '랭크 ' + g, coin: COIN[g], exp: EXP[g], items: rollKinds(MATS_N[g], luck).concat(extraItems(g)),
           summary: 'PERFECT ' + st.perfect + ' · GOOD ' + st.good + ' · MISS ' + st.miss + '<br>최대 콤보 ' + st.best + ' · 정확도 ' + Math.round(acc * 100) + '%'
         });
       }, 400);
@@ -160,8 +168,8 @@
     if (!window.ExpKit) { setTimeout(reg, 100); return; }
     window.ExpKit.register({
       id: 'rhythm_stage', bg: 'special-rhythm_stage.jpg', name: '음악방송 리허설장', emoji: '🎧', color: '#a78bfa', needLevel: NEED_LEVEL, stamina: STAMINA, daily: DAILY,
-      tagline: '리듬에 맞춰 터치! 작곡 재료 파밍',
-      intro: ['내려오는 <b>음표</b>가 아래 선에 닿을 때 그 줄을 <b>눌러요</b> (4줄).', '정확할수록 <b>PERFECT</b>! 점수가 높으면 랭크 S·A·B·C.', '랭크가 높을수록 🎼 <b>작곡 재료</b>가 많이 나와요. S 랭크는 <b>영감의불꽃</b>도 잘 나와요.', '한 곡은 약 45초. 코인과 카드 경험치도 받아요.'],
+      tagline: '리듬 터치! 작곡 재료·재조합석·필름',
+      intro: ['내려오는 <b>음표</b>가 아래 선에 닿을 때 그 줄을 <b>눌러요</b> (4줄).', '정확할수록 <b>PERFECT</b>! 점수가 높으면 랭크 S·A·B·C.', '랭크가 높을수록 🎼 <b>작곡 재료</b>가 많이 나와요. S 랭크는 <b>영감의불꽃</b>도 잘 나와요.', '🔹 <b>재조합석</b>과 🎞️ <b>필름</b>도 랭크에 따라 같이 나와요.', '한 곡은 약 45초. 코인과 카드 경험치도 받아요.'],
       play: play
     });
   }
