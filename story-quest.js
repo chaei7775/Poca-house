@@ -1237,7 +1237,11 @@
   (function boot() {
     if (!register()) { setTimeout(boot, 250); return; }
     hookRender();
-    setInterval(function () { tick(); updateChip(); }, 2500);
+    setInterval(function () { tick(); updateChip(); }, 700);
+    // 누르거나 터치한 직후에도 바로 확인 (한 박자 늦게 나오는 느낌 줄이기)
+    ['click', 'touchend'].forEach(function (ev) {
+      document.addEventListener(ev, function () { setTimeout(function () { try { tick(); } catch (e) {} }, 250); setTimeout(function () { try { tick(); } catch (e) {} }, 900); }, true);
+    });
     setTimeout(updateChip, 300);
   })();
 

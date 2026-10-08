@@ -204,7 +204,7 @@
 
   (function boot() {
     if (!register()) { setTimeout(boot, 200); return; }
-    setInterval(function () { recordMilestones(); check(); }, 2500);
+    setInterval(function () { recordMilestones(); check(); }, 900);
     // 퀘스트 탭을 열 때 목록이 새 항목을 바로 보여주도록 한 번 더 그림
     var tries = 0;
     (function hookList() {

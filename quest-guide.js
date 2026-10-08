@@ -547,7 +547,7 @@
   setInterval(function () {
     var i = currentIndex(), g = hasGift();
     if (i !== lastIdx || g !== lastGift) { lastIdx = i; lastGift = g; render(); }
-  }, 1500);
+  }, 600);
 
   window.__guideTest = { STEPS: STEPS, currentIndex: currentIndex };
   setTimeout(render, 900);

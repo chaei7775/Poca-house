@@ -345,7 +345,7 @@
       var rolled = ensureDay();
       if (rolled || signature() !== lastSig) render();
     } catch (e) {}
-  }, 1500);
+  }, 800);
 
   window.__dailyQuest = { claim: claim, claimAll: claimAll, bump: bump, watch: watchTick };
   ensureDay();
