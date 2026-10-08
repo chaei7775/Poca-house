@@ -353,7 +353,7 @@
     if (typeof saveAll === 'function') saveAll();
     try { window.dispatchEvent(new CustomEvent('ph-cf-shot', { detail: { cid: sel.cid, stars: stars, pay: coinsGot } })); } catch (e) {}
 
-    ov.innerHTML = '<div style="text-align:center;color:#fff;"><div style="font-size:54px;">🎬</div><div style="font-size:16px;font-weight:900;margin-top:10px;">촬영 중...</div></div>';
+    ov.innerHTML = '<div style="text-align:center;color:#fff;"><img src="https://raw.githubusercontent.com/chaei7775/Poca-house/main/prop-clap.png" style="width:84px;height:84px;object-fit:contain;" alt=""><div style="font-size:16px;font-weight:900;margin-top:10px;">촬영 중...</div></div>';
     setTimeout(function () {
       var ch = CHARS[sel.cid];
       var head, sub, shown;
