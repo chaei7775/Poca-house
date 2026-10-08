@@ -218,7 +218,7 @@ function openAuthOverlay() {
     '<div style="font-size:17px;font-weight:900;color:#222;">☁️ 계정</div>' +
     '<button onclick="document.getElementById(\'auth-overlay\').remove()" style="background:#f3f3f3;border:none;border-radius:8px;color:#666;padding:6px 12px;cursor:pointer;">닫기</button></div>' +
     '<div id="auth-status" style="font-size:12px;color:#9333ea;font-weight:700;margin-bottom:14px;"></div>' +
-    '<input id="auth-nickname" type="text" placeholder="닉네임 (회원가입 시, 2-8자)" maxlength="8" style="width:100%;padding:12px;border:1.5px solid #eee;border-radius:10px;font-size:14px;margin-bottom:8px;font-family:\'Noto Sans KR\',sans-serif;">' +
+    '<input id="auth-nickname" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" name="poca-nick" placeholder="닉네임 (회원가입 시, 2-8자)" maxlength="8" style="width:100%;padding:12px;border:1.5px solid #eee;border-radius:10px;font-size:14px;margin-bottom:8px;font-family:\'Noto Sans KR\',sans-serif;">' +
     '<input id="auth-email" type="email" placeholder="이메일" style="width:100%;padding:12px;border:1.5px solid #eee;border-radius:10px;font-size:14px;margin-bottom:8px;font-family:\'Noto Sans KR\',sans-serif;">' +
     '<input id="auth-pw" type="password" placeholder="비밀번호 (6자 이상)" style="width:100%;padding:12px;border:1.5px solid #eee;border-radius:10px;font-size:14px;margin-bottom:12px;font-family:\'Noto Sans KR\',sans-serif;">' +
     '<div style="display:flex;gap:8px;margin-bottom:8px;">' +
