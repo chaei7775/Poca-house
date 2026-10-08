@@ -100,7 +100,18 @@
     }
     if (localStorage.getItem('ph_mystery_seen') !== '1') {
       localStorage.setItem('ph_mystery_seen', '1');
-      if (typeof showMysteryUnlockPopup === 'function') showMysteryUnlockPopup();
+      if (typeof showMysteryUnlockPopup === 'function') {
+        showMysteryUnlockPopup();
+        // 첫 방문: 안내 팝업을 닫은 뒤에 탐험을 시작한다 (팝업 뒤에서 제한시간이 흘러 빈손으로 끝나던 문제)
+        var pop = document.body.lastElementChild;
+        running = true;
+        (function waitPop() {
+          if (pop && document.body.contains(pop)) { setTimeout(waitPop, 200); return; }
+          running = false;
+          setTimeout(startMystery, 150);
+        })();
+        return;
+      }
     }
     if (typeof checkQuestProgress === 'function') checkQuestProgress('mystery_island_unlock');
 
