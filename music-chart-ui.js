@@ -20,6 +20,8 @@
   function toast(m) { try { if (typeof showBagToast === 'function') showBagToast(m); } catch (e) {} }
   function sfx(n) { try { if (window.pocaSfx) window.pocaSfx.play(n); } catch (e) {} }
   function whenReady(test, fn) { var t = 0; (function a() { var ok = false; try { ok = test(); } catch (e) {} if (ok) { fn(); return; } if (++t < 200) setTimeout(a, 100); })(); }
+  // 아이콘 그림 (없으면 이모지)
+  function ico(file, emoji, px) { px = px || 24; return '<img src="' + file + '" alt="" draggable="false" style="width:' + px + 'px;height:' + px + 'px;object-fit:contain;vertical-align:' + (px > 40 ? 'middle' : '-' + Math.round(px * 0.2) + 'px') + ';" onerror="this.outerHTML=\'' + emoji + '\'">'; }
   var BTN = 'border:none;border-radius:12px;font-size:14px;font-weight:900;cursor:pointer;' + FONT;
 
   function layer(id, inner, z) {
@@ -63,13 +65,13 @@
     var song = n.id ? s.songs.filter(function (x) { return x.id === n.id; })[0] : null;
     if (n.type === 'release' && song) bigPopup('🎶', '신곡이 차트에 올랐어요!', '<b style="color:#fff;">' + esc(song.title) + '</b><br>' + esc(nameOf(song.cid)) + ' · ' + esc(C().genreName(song.genre)) + '<br>현재 <b style="color:' + GOLD + ';">' + (song.rank > 100 ? '차트 밖' : song.rank + '위') + '</b>예요.<br><span style="color:#aab;font-size:12px;">📣 스밍 총공으로 순위를 올려봐요!</span>', '좋아요', next);
     else if (n.type === 'allkill' && song) {
-      var ov = bigPopup('👑', 'ALL KILL!', '<b style="color:#fff;font-size:15px;">' + esc(song.title) + '</b><br>' + esc(nameOf(song.cid)) + ' — <b>차트 1위 탈환!</b><br>콘크리트 1위를 밀어냈어요!' + (n.first ? '<br><span style="color:' + GOLD + ';">🎁 첫 1위 기념 소원의 조각 +5</span>' : ''), '올킬!', next);
+      var ov = bigPopup(ico('chart-allkill.png', '👑', 104), 'ALL KILL!', '<b style="color:#fff;font-size:15px;">' + esc(song.title) + '</b><br>' + esc(nameOf(song.cid)) + ' — <b>차트 1위 탈환!</b><br>콘크리트 1위를 밀어냈어요!' + (n.first ? '<br><span style="color:' + GOLD + ';">🎁 첫 1위 기념 소원의 조각 +5</span>' : ''), '올킬!', next);
       sfx('reward'); confetti(ov);
     }
     else if (n.type === 'invest') bigPopup('📊', '기획사 주가 급등!', '차트 1위 소식에 투자 <b>[앨범 제작]</b>의 가치가<br><b style="color:#6ee7a0;">+30%</b> 올랐어요!<br><span style="color:#aab;font-size:12px;">(곡당 최대 3일)</span>', '와!', next, '#6ee7a0');
     else if (n.type === 'event' && n.ev) {
       var ev = n.ev;
-      if (ev.type === 'scandal') bigPopup('🚨', ev.name, esc(ev.text) + '<br><span style="color:#fca5a5;font-size:12px;">내 곡 탭에서 해명하세요! (기한 2일)</span>', '확인', function () { tab = 'mine'; render(); next(); }, '#ff6b6b');
+      if (ev.type === 'scandal') bigPopup(ico('chart-scandal.png', '🚨', 88), ev.name, esc(ev.text) + '<br><span style="color:#fca5a5;font-size:12px;">내 곡 탭에서 해명하세요! (기한 2일)</span>', '확인', function () { tab = 'mine'; render(); next(); }, '#ff6b6b');
       else bigPopup(ev.type === 'viral' ? '🔥' : ev.type === 'comeback' ? '🎤' : '📣', ev.name, esc(ev.text) + (ev.gain ? '<br><span style="color:#6ee7a0;">팬카페 가입자 +' + fmt(ev.gain) + '명</span>' : ''), '확인', next, ev.type === 'comeback' ? '#a5b4fc' : GOLD);
     }
     else if (n.type === 'scandal-fail') bigPopup('📉', '해명하지 못했어요', nameOf(n.cid) + '의 곡이 사재기 의혹으로<br>순위가 급락했어요 (4일)', '확인', next, '#ff6b6b');
@@ -95,7 +97,7 @@
     var tb = function (id, label) { var on = tab === id; return '<button data-tab="' + id + '" style="' + BTN + 'flex:1;padding:10px 4px;font-size:13px;color:#fff;background:' + (on ? 'linear-gradient(135deg,' + ACC + ',#a855f7)' : 'rgba(255,255,255,.08)') + ';">' + label + '</button>'; };
     var showDot = s.show && !s.show.done ? ' 🔴' : '';
     ov.innerHTML = '<div style="position:sticky;top:0;z-index:3;background:' + BG + ';padding:12px 14px 8px;">' +
-      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;"><div style="font-size:17px;font-weight:900;color:#fff;">📈 POCA MUSIC <span style="font-size:11px;color:#8b8fa8;font-weight:400;">실시간 차트</span></div>' +
+      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;"><div style="font-size:17px;font-weight:900;color:#fff;">' + ico('more-chart.png', '📈', 26) + ' POCA MUSIC <span style="font-size:11px;color:#8b8fa8;font-weight:400;">실시간 차트</span></div>' +
       '<button id="chart-close" style="' + BTN + 'padding:7px 12px;background:rgba(255,255,255,.12);color:#fff;font-size:13px;">닫기</button></div>' +
       '<div style="display:flex;gap:6px;">' + tb('top', 'TOP 100') + tb('mine', '내 곡') + tb('show', '🎤 음악방송' + showDot) + '</div></div>' +
       '<div style="padding:4px 14px 40px;" id="chart-body">' + (tab === 'top' ? topHtml(s) : tab === 'mine' ? mineHtml(s) : showHtml(s)) + '</div>';
@@ -166,7 +168,7 @@
         '<details style="margin-top:6px;"><summary style="font-size:12px;color:#c4b5fd;cursor:pointer;">점수 내역 · 합계 ' + p.total.toFixed(1) + '</summary><div style="margin-top:6px;">' +
         PART_LABELS.map(function (l) { var v = p[l[0]]; if (!v && l[0] !== 'base') return ''; return '<div style="display:flex;justify-content:space-between;font-size:12px;color:' + (v < 0 ? '#fca5a5' : '#ddd') + ';padding:2px 0;"><span>' + l[1] + '</span><b>' + (v > 0 && l[0] !== 'base' ? '+' : '') + v.toFixed(1) + '</b></div>'; }).join('') +
         '<div style="font-size:11px;color:#8b8fa8;margin-top:4px;line-height:1.5;">팬 ' + fmt(C().members(sg.cid)) + '명 · 히든카드를 강화하고 팬을 늘릴수록 올라가요. 1위 라이벌은 약 99점이에요.</div></div></details>' +
-        '<button data-stream="' + sg.id + '" style="' + BTN + 'width:100%;margin-top:10px;padding:13px;background:' + (canS ? 'linear-gradient(135deg,' + ACC + ',#a855f7)' : 'rgba(255,255,255,.1)') + ';color:' + (canS ? '#fff' : '#8b8fa8') + ';">' + (canS ? '📣 스밍 총공 시작 (⚡' + C().STREAM_STAMINA + ')' : '✅ 오늘 총공 완료') + '</button></div>';
+        '<button data-stream="' + sg.id + '" style="' + BTN + 'width:100%;margin-top:10px;padding:13px;background:' + (canS ? 'linear-gradient(135deg,' + ACC + ',#a855f7)' : 'rgba(255,255,255,.1)') + ';color:' + (canS ? '#fff' : '#8b8fa8') + ';">' + (canS ? ico('chart-stream.png', '📣', 22) + ' 스밍 총공 시작 (⚡' + C().STREAM_STAMINA + ')' : '✅ 오늘 총공 완료') + '</button></div>';
     });
     return out;
   }
@@ -181,7 +183,7 @@
   // ── 사재기 해명 ──
   function explainFlow() {
     var ov = layer('chart-explain-pop',
-      '<div style="font-size:40px;">🚨</div><div style="font-size:19px;font-weight:900;color:#ff9a9a;margin-bottom:10px;">어떻게 대응할까요?</div>' +
+      '<div>' + ico('chart-scandal.png', '🚨', 72) + '</div><div style="font-size:19px;font-weight:900;color:#ff9a9a;margin-bottom:10px;">어떻게 대응할까요?</div>' +
       '<button id="ex-quiz" style="' + BTN + 'width:100%;padding:14px;margin-bottom:8px;background:linear-gradient(135deg,#3b82f6,#6366f1);color:#fff;">📝 해명문 작성하기<br><span style="font-size:11px;font-weight:400;">알맞은 문장을 고르면 의혹이 사라져요</span></button>' +
       '<button id="ex-fan" style="' + BTN + 'width:100%;padding:14px;margin-bottom:8px;background:linear-gradient(135deg,' + ACC + ',#a855f7);color:#fff;">💪 팬덤 반박 총공 (⚡' + C().STREAM_STAMINA + ')<br><span style="font-size:11px;font-weight:400;">타격을 절반으로 줄여요</span></button>' +
       '<button id="ex-back" style="' + BTN + 'width:100%;padding:11px;background:rgba(255,255,255,.1);color:#aaa;">나중에</button>', 970);
@@ -217,7 +219,7 @@
     var sg = s.songs.filter(function (x) { return x.id === sid; })[0];
     var T = 10, taps = 0, score = 0, fever = 0, feverLeft = 0, left = T, running = true;
     var ov = layer('chart-stream',
-      '<div style="font-size:15px;font-weight:900;color:#fff;margin-bottom:2px;">📣 스밍 총공!</div><div style="font-size:12px;color:#aab;margin-bottom:8px;">' + esc(sg.title) + ' — 10초 동안 연타!</div>' +
+      '<div style="font-size:15px;font-weight:900;color:#fff;margin-bottom:2px;">' + ico('chart-stream.png', '📣', 22) + ' 스밍 총공!</div><div style="font-size:12px;color:#aab;margin-bottom:8px;">' + esc(sg.title) + ' — 10초 동안 연타!</div>' +
       '<div id="st-time" style="font-size:34px;font-weight:900;color:' + GOLD + ';">10.0</div>' +
       '<div style="height:12px;border-radius:6px;background:rgba(255,255,255,.12);overflow:hidden;margin:6px 0 4px;"><div id="st-fever" style="height:100%;width:0%;background:linear-gradient(90deg,#60a5fa,#f472b6);"></div></div>' +
       '<div id="st-msg" style="font-size:11px;color:#c4b5fd;height:15px;margin-bottom:8px;">팬덤 피버 게이지를 채우면 3초 동안 ×2!</div>' +
@@ -244,7 +246,7 @@
       ov.remove();
       if (!r) { toast('총공 결과를 저장하지 못했어요'); render(); return; }
       var grade = power >= 0.9 ? '대성공!' : power >= 0.5 ? '성공!' : '아쉬워요';
-      bigPopup(power >= 0.9 ? '🔥' : '📣', '총공 ' + grade, '스밍 점수 <b style="color:#fff;">' + score + '</b> (' + taps + '번 터치)<br>차트 점수 <b style="color:' + GOLD + ';">+' + r.gain + '</b><br>순위 ' + (r.before > 100 ? '차트밖' : r.before + '위') + ' → <b style="color:' + GOLD + ';">' + (r.after > 100 ? '차트밖' : r.after + '위') + '</b><br><span style="color:#aab;font-size:11px;">(총공 점수는 하루마다 절반으로 식어요)</span>', '확인', render);
+      bigPopup(ico('chart-stream.png', '📣', 80), '총공 ' + grade, '스밍 점수 <b style="color:#fff;">' + score + '</b> (' + taps + '번 터치)<br>차트 점수 <b style="color:' + GOLD + ';">+' + r.gain + '</b><br>순위 ' + (r.before > 100 ? '차트밖' : r.before + '위') + ' → <b style="color:' + GOLD + ';">' + (r.after > 100 ? '차트밖' : r.after + '위') + '</b><br><span style="color:#aab;font-size:11px;">(총공 점수는 하루마다 절반으로 식어요)</span>', '확인', render);
       sfx('reward');
     }
   }
@@ -258,7 +260,7 @@
       '<div style="flex:1;background:rgba(255,255,255,.06);border-radius:12px;padding:10px;"><div style="font-size:11px;color:#8b8fa8;">👑 차트 1위</div><div style="font-size:22px;font-weight:900;color:#fff;">' + (ST.ones || 0) + '일</div></div></div>';
     if (s.show && !s.show.done) {
       var sg = s.songs.filter(function (x) { return x.id === s.show.sid; })[0];
-      out += '<div style="background:linear-gradient(135deg,rgba(255,93,143,.22),rgba(168,85,247,.2));border:1px solid ' + ACC + ';border-radius:16px;padding:14px;margin:8px 0;"><div style="font-size:30px;">🎤</div><div style="font-size:16px;font-weight:900;color:#fff;margin:4px 0;">오늘 음악방송 1위 후보!</div><div style="font-size:12px;color:#ddd;margin-bottom:10px;">' + (sg ? esc(sg.title) + ' · ' + esc(nameOf(sg.cid)) + ' (차트 ' + sg.rank + '위)' : '') + '</div><button id="show-go" style="' + BTN + 'width:100%;padding:14px;background:linear-gradient(135deg,' + ACC + ',#a855f7);color:#fff;font-size:15px;">🎙️ 무대 올라가기</button></div>';
+      out += '<div style="background:linear-gradient(135deg,rgba(255,93,143,.22),rgba(168,85,247,.2));border:1px solid ' + ACC + ';border-radius:16px;padding:14px;margin:8px 0;"><div>' + ico('chart-show.png', '🎤', 64) + '</div><div style="font-size:16px;font-weight:900;color:#fff;margin:4px 0;">오늘 음악방송 1위 후보!</div><div style="font-size:12px;color:#ddd;margin-bottom:10px;">' + (sg ? esc(sg.title) + ' · ' + esc(nameOf(sg.cid)) + ' (차트 ' + sg.rank + '위)' : '') + '</div><button id="show-go" style="' + BTN + 'width:100%;padding:14px;background:linear-gradient(135deg,' + ACC + ',#a855f7);color:#fff;font-size:15px;">🎙️ 무대 올라가기</button></div>';
     } else if (s.show && s.show.done) {
       var rs = s.show.res;
       out += '<div style="background:rgba(255,255,255,.06);border-radius:14px;padding:12px;margin:8px 0;font-size:13px;color:#ddd;line-height:1.7;">오늘 음악방송은 끝났어요.<br>' + (rs ? (rs.win ? '<b style="color:' + GOLD + ';">🏆 1위!</b>' : '<b style="color:#aab;">아쉽게 2위</b>') : '') + '</div>';
@@ -290,7 +292,7 @@
         if (win) { sfx('reward'); confetti(ov); }
         setTimeout(function () {
           ov.remove();
-          if (win) bigPopup('🏆', '음악방송 1위!', '코인 <b style="color:' + GOLD + ';">+' + fmt(C().CFG.WIN_PAY) + '</b> · 소원의 조각 +' + C().CFG.SHOW_WISH + '<br>앵콜 무대가 열려요!', '앵콜 무대로!', encore);
+          if (win) bigPopup(ico('chart-trophy.png', '🏆', 96), '음악방송 1위!', '코인 <b style="color:' + GOLD + ';">+' + fmt(C().CFG.WIN_PAY) + '</b> · 소원의 조각 +' + C().CFG.SHOW_WISH + '<br>앵콜 무대가 열려요!', '앵콜 무대로!', encore);
           else bigPopup('🎤', '다음엔 꼭!', '총공으로 점수를 올려서<br>다시 도전해요.', '확인', render, '#9ec5ff');
         }, 2300);
       }
@@ -321,7 +323,7 @@
         if (round >= 3) {
           clearInterval(iv); ov.remove();
           var r = C().encoreReward(hits);
-          if (r) bigPopup(hits >= 3 ? '🏆' : '🎶', hits >= 3 ? '앵콜 대성공!' : '앵콜 무대 끝!', '성공 ' + hits + '/3' + (r.coins ? '<br>앵콜 보너스 코인 <b style="color:' + GOLD + ';">+' + fmt(r.coins) + '</b>' : '') + (r.card ? '<br><b style="color:' + GOLD + ';">🏆 1위 기념 트로피 포토카드</b>를 받았어요!' : ''), '확인', render);
+          if (r) bigPopup(hits >= 3 ? ico('chart-trophy.png', '🏆', 96) : '🎶', hits >= 3 ? '앵콜 대성공!' : '앵콜 무대 끝!', '성공 ' + hits + '/3' + (r.coins ? '<br>앵콜 보너스 코인 <b style="color:' + GOLD + ';">+' + fmt(r.coins) + '</b>' : '') + (r.card ? '<br><b style="color:' + GOLD + ';">🏆 1위 기념 트로피 포토카드</b>를 받았어요!' : ''), '확인', render);
           else render();
         } else { waiting = true; $('en-round').textContent = (round + 1) + '/3'; $('en-res').innerHTML = ''; setZone(); }
       }, 650);
@@ -331,6 +333,7 @@
   // ════════ 더보기 메뉴에 연결 ════════
   whenReady(function () { return typeof window.openMoreMenu === 'function' && typeof window.moreMenuTileHtml === 'function'; }, function () {
     var orig = window.openMoreMenu;
+    try { if (typeof MORE_ICON_FILES === 'object') MORE_ICON_FILES['📈'] = 'chart'; } catch (e) {}   // more-chart.png (없으면 이모지)
     window.openMoreMenu = function () {
       var res = orig.apply(this, arguments);
       var grid = $('more-menu-grid');
