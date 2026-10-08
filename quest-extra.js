@@ -106,6 +106,11 @@
     main_drama_10: { title:'드라마 촬영 10회', desc:'(Lv.8~) 🎥 드라마 촬영을 10번 해보자. 시청률이 쌓이면 탑스타가 될 수 있어.',
       condition:'q2_drama_10', rewardCoins:3000, rewardExp:400, type:'main', detect:function () { return (J('ph_drama', {}) || {}).shoots >= 10; } },
 
+    main_star_fame: { title:'히든 카드로 인지도 올리기', desc:'(Lv.8~) 🎥 드라마 촬영에 히든 카드로 나가면 인지도가 올라(일반·레어 카드는 안 올라). 시청률이 높을수록 많이 올라!',
+      condition:'q2_star_fame', rewardCoins:2000, rewardExp:300, type:'main', detect:function () { var d = J('ph_drama', {}) || {}; return keys(d.star).some(function (k) { return d.star[k]; }) || keys(d.fame).some(function (k) { return d.fame[k] > 0; }); } },
+    main_star_top: { title:'탑스타 승급', desc:'(Lv.8~) 🎥 히든 카드로 촬영을 계속해 인지도 400을 채워봐. 탑스타가 되면 기획사 수익 ×2, 출연료 ×1.5, 카드 슬롯 +1!',
+      condition:'q2_star_top', rewardCoins:20000, rewardExp:1500, type:'main', detect:function () { var d = J('ph_drama', {}) || {}; return keys(d.star).some(function (k) { return d.star[k]; }); } },
+
     // ───── 매니저 ─────
     main_mgr_actor: { title:'배우 전담 매니저', desc:'🎭 드라마 촬영을 한 번 하면 윤서진 매니저가 찾아와. 맵 → 광장 → 🎤 기획사 매니저 카드에서 만나보자. 드라마 출연료가 올라가.',
       condition:'q2_mgr_actor', rewardCoins:1000, rewardExp:150, type:'main', detect:function () { return !!(J('ph_manager', {}) || {}).actMet; } },

@@ -153,6 +153,16 @@
       hint: '맵 → 광장 → 🎥 드라마 촬영. 대본·감독·아이돌 카드를 고르고 촬영! 연기 스킬이 드랍되고, 스킬 슬롯 확장권도 나와요.',
       done: function () { return (J('ph_drama', {}) || {}).shoots > 0; }, reward: 400,
       go: function () { goTo('map'); }, target: '#nav-map' },
+    { id: 'star_fame', icon: '⭐', title: '히든 카드로 촬영해서 인지도 올리기',
+      hint: '인지도는 🎥 드라마 촬영에 히든 카드로 나가야 올라요 (일반·레어 카드는 안 올라요). 시청률이 높을수록 많이 오르고, 400이 되면 탑스타가 돼요!',
+      when: function () { return hiddenCount() >= 1 && (J('ph_drama', {}) || {}).shoots > 0; },
+      done: function () { var d = J('ph_drama', {}) || {}; return keys(d.star).some(function (k) { return d.star[k]; }) || keys(d.fame).some(function (k) { return d.fame[k] > 0; }); }, reward: 500,
+      go: function () { goTo('map'); }, target: '#nav-map' },
+    { id: 'star_top', icon: '🌟', title: '탑스타로 승급시키기',
+      hint: '히든 카드로 촬영을 계속해서 인지도 400을 채워요. 탑스타가 되면 🎤 기획사 수익 ×2, 출연료 ×1.5, 그 아이돌의 모든 카드 스킬 슬롯 +1!',
+      when: function () { var d = J('ph_drama', {}) || {}; return keys(d.fame).some(function (k) { return d.fame[k] > 0; }) || keys(d.star).some(function (k) { return d.star[k]; }); },
+      done: function () { var d = J('ph_drama', {}) || {}; return keys(d.star).some(function (k) { return d.star[k]; }); }, reward: 3000,
+      go: function () { goTo('map'); }, target: '#nav-map' },
     { id: 'mgr_actor', icon: '🎭', title: '배우 전담 매니저 만나기',
       hint: '드라마 촬영을 한 번 하면 🎭 배우 전담 매니저 윤서진이 찾아와요. 맵 → 광장 → 🎤 기획사의 매니저 카드에서 만나요. 드라마 출연료가 올라가요!',
       when: function () { var m = J('ph_manager', {}) || {}; return !!(m.actReady || m.actMet); },
@@ -307,7 +317,7 @@
 
 
   // 🔒 unlock-gate.js 의 해금 레벨과 맞춤: 레벨이 모자란 단계는 길잡이가 건너뛴다 (잠긴 곳으로 보내지 않게)
-  var STEP_LV = { agency: 5, explore: 3, school: 3, lv3: 3, room: 3, fishing: 3, mystery: 3, recombine: 12, hidden: 12, premium: 12, prem_equip: 12, enhance: 10, transcend: 10, studio: 15, album: 15, royalty: 15, goods: 15, goods_equip: 15, drama: 8, cf: 10, fancafe: 12, invest: 20, invest_done: 20, invest_grade: 20 };
+  var STEP_LV = { agency: 5, explore: 3, school: 3, lv3: 3, room: 3, fishing: 3, mystery: 3, recombine: 12, hidden: 12, premium: 12, prem_equip: 12, enhance: 10, transcend: 10, studio: 15, album: 15, royalty: 15, goods: 15, goods_equip: 15, drama: 8, star_fame: 8, star_top: 8, cf: 10, fancafe: 12, invest: 20, invest_done: 20, invest_grade: 20 };
   STEPS.forEach(function (st) {
     var need = STEP_LV[st.id]; if (!need) return;
     var prev = st.when;
