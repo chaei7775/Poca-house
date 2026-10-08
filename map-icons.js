@@ -62,6 +62,14 @@
   }
   function schedule() { if (queued) return; queued = true; (window.requestAnimationFrame || setTimeout)(scan); }
 
+  // 포카마을 지도 위의 장소 이름표: 검은 바탕 + 금색 글씨
+  (function pinStyle() {
+    if (document.getElementById('mi-pin-style')) return;
+    var st = document.createElement('style'); st.id = 'mi-pin-style';
+    st.textContent = '#screen-map button[style*="absolute"]{background:rgba(12,10,8,.92) !important;border:1.5px solid #D4AF37 !important;color:#FFD966 !important;box-shadow:0 2px 10px rgba(0,0,0,.6) !important;text-shadow:none !important;}';
+    (document.head || document.documentElement).appendChild(st);
+  })();
+
   function start() {
     if (!document.body) { setTimeout(start, 50); return; }
     var roots = document.querySelectorAll(ROOTS);
