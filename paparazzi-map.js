@@ -99,11 +99,11 @@
     root.appendChild(bar);
     function refreshBtns() { SKILLS.forEach(function (s) { var el = btns[s.id]; if (el) { var cd = G.cd[s.id] || 0; el.style.opacity = cd > 0 ? 0.45 : 1; } }); }
     // 입력
-    function setTarget(e) { var r = cv.getBoundingClientRect(); G.tx = (e.clientX - r.left) / r.width * W; G.ty = camY() + (e.clientY - r.top) / r.height * H; }
+    function setTarget(e) { var r = cv.getBoundingClientRect(); G.sx = (e.clientX - r.left) / r.width * W; G.sy = (e.clientY - r.top) / r.height * H; G.tx = G.sx; G.ty = camY() + G.sy; }
     cv.addEventListener('pointerdown', function (e) { setTarget(e); G.drag = true; cv.setPointerCapture && cv.setPointerCapture(e.pointerId); e.preventDefault(); });
     cv.addEventListener('pointermove', function (e) { if (G.drag) setTarget(e); });
-    cv.addEventListener('pointerup', function () { G.drag = false; G.tx = null; });
-    cv.addEventListener('pointercancel', function () { G.drag = false; G.tx = null; });
+    cv.addEventListener('pointerup', function () { G.drag = false; });
+    cv.addEventListener('pointercancel', function () { G.drag = false; });
     function camY() { return Math.max(0, Math.min(WORLD_H - H, P.y - H * 0.62)); }
 
     var last = performance.now(), raf = 0;
@@ -130,9 +130,11 @@
       var dt = Math.min(0.05, (now - last) / 1000); last = now; G.t += dt;
       if (!G.over) {
         // 이동
+        if (G.drag && G.sx != null) { G.tx = G.sx; G.ty = camY() + G.sy; }   // 꾹 누르는 동안엔 손가락 위치를 계속 따라감 (화면이 스크롤돼도)
         if (G.tx != null) {
           var dx = G.tx - P.x, dy = G.ty - P.y, d = Math.hypot(dx, dy);
           if (d > 6) { var s = Math.min(d, SPEED * dt); P.x += dx / d * s; P.y += dy / d * s; }
+          else if (!G.drag) { G.tx = null; G.ty = null; }   // 손 떼고 도착하면 멈춤 (톡 찍으면 거기까지 걸어감)
         }
         P.x = Math.max(P.r, Math.min(W - P.r, P.x)); P.y = Math.max(P.r, Math.min(WORLD_H - P.r, P.y));
         cams.forEach(function (m) { camTick(m, dt); });
