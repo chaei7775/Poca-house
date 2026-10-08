@@ -15,7 +15,10 @@
   async function resetAll() {
     var msg = document.getElementById('tr-msg');
     function say(t, bad) { if (msg) { msg.textContent = t; msg.style.color = bad ? '#ef4444' : '#16a34a'; } }
-    if (!confirm('정말 처음부터 다시 시작할까요?\n이 기기의 게임 진행이 전부 지워져요.' + (window.pocaLoggedInUid ? '\n(서버에 저장된 내 정보도 지워요)' : ''))) return;
+    if (window.pocaLoggedInUid) {
+      var t = prompt('⚠️ 지금 로그인된 계정(' + (window.pocaLoggedInEmail || '') + ')의 저장 데이터가 서버에서도 영구 삭제돼요. 되돌릴 수 없어요!\n정말 지우려면 "삭제"라고 입력하세요.');
+      if (t !== '삭제') { say('취소했어요', true); return; }
+    } else if (!confirm('정말 처음부터 다시 시작할까요?\n이 기기의 게임 진행이 전부 지워져요.')) return;
     say('지우는 중…');
     var serverOk = true;
     try {
