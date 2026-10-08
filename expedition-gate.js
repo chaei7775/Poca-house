@@ -28,7 +28,7 @@
 
   function paint() {
     var on = !debuted();
-    document.querySelectorAll('button[onclick*="openSpecialCardSelect"]').forEach(function (b) {
+    document.querySelectorAll('button[onclick*="openSpecialCardSelect"], #fr-entry-btn, #vr-entry-btn').forEach(function (b) {
       var tag = b.querySelector(':scope > .eg-b');
       if (on) {
         b.style.opacity = '.5'; b.style.filter = 'grayscale(.6)';
