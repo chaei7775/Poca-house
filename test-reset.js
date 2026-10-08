@@ -35,8 +35,8 @@
   }
   window.pocaResetAll = resetAll;
 
-  function decorate() {
-    var ov = document.getElementById('auth-overlay');
+  function decorate(ovId) {
+    var ov = document.getElementById(ovId || 'auth-overlay');
     if (!ov || ov.querySelector('#tr-box')) return;
     var card = ov.firstElementChild; if (!card) return;
     var box = document.createElement('div');
@@ -54,5 +54,14 @@
     var orig = window.openAuthOverlay;
     window.openAuthOverlay = function () { var r = orig.apply(this, arguments); try { decorate(); } catch (e) {} return r; };
     window.openAuthOverlay.__trHooked = true;
+  })();
+  // 맨 처음 화면(회원가입/로그인 · 게스트로 시작하기)에도 같은 버튼
+  (function hook2() {
+    if (typeof window.openOnboardingOverlay !== 'function') { setTimeout(hook2, 100); return; }
+    if (window.openOnboardingOverlay.__trHooked) return;
+    var orig = window.openOnboardingOverlay;
+    window.openOnboardingOverlay = function () { var r = orig.apply(this, arguments); try { decorate('onboarding-overlay'); } catch (e) {} return r; };
+    window.openOnboardingOverlay.__trHooked = true;
+    try { decorate('onboarding-overlay'); } catch (e) {}   // 이미 떠 있으면 바로 붙임
   })();
 })();
