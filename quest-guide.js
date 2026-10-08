@@ -411,7 +411,7 @@
     st.textContent =
       '@keyframes qgFinger{0%,100%{transform:translate(-50%,0)}50%{transform:translate(-50%,10px)}}#qg-finger{position:fixed;z-index:880;font-size:34px;line-height:1;pointer-events:none;filter:drop-shadow(0 2px 4px rgba(0,0,0,.6));animation:qgFinger .8s ease-in-out infinite;display:none;}' +
       '@keyframes qgPulse{0%,100%{box-shadow:0 0 0 0 rgba(255,255,255,.95)}50%{box-shadow:0 0 0 7px rgba(255,255,255,0)}}' +
-      '.qg-pulse{animation:qgPulse 1.3s ease-in-out infinite !important;outline:3px solid #fff;outline-offset:2px;}' +
+      '.qg-pulse{animation:none !important;outline:none !important;}#qg-finger{display:none !important;}' +   // 손가락·깜빡임 끔 (되살리려면 이 줄을 원래대로)
       '.qg-card{margin:8px 14px;background:#fff;border:2px solid #000;border-radius:14px;padding:10px 12px;font-family:"Noto Sans KR",sans-serif;}' +
       '.qg-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;}' +
       '.qg-label{font-size:10px;font-weight:900;color:#9333ea;letter-spacing:1px;}' +
