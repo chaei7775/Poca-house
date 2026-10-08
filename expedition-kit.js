@@ -111,7 +111,7 @@
     var boxes = entries.map(function (e, i) {
       return '<div class="xk-box" data-i="' + i + '" style="cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;height:92px;">' +
         '<div class="xk-bx" style="height:56px;display:flex;align-items:center;justify-content:center;animation:xkBob 1.2s ease-in-out ' + (i % 3) * 0.15 + 's infinite;">' +
-        '<img src="' + IB + 'vip-box.png" style="width:54px;height:54px;object-fit:contain;" onerror="this.outerHTML=\'<span style=&quot;font-size:42px;&quot;>🎁</span>\'"></div>' +
+        boxImgHtml(54) + '</div>' +
         '<div class="xk-lb" style="font-size:11px;font-weight:900;line-height:1.25;text-align:center;margin-top:2px;color:#cbb8ff;">눌러서 열기</div></div>';
     }).join('');
     var box = document.createElement('div');
@@ -137,7 +137,8 @@
       el.setAttribute('data-open', '1');
       var bx = el.querySelector('.xk-bx'), lb = el.querySelector('.xk-lb');
       bx.style.animation = 'xkPop .45s ease-out';
-      bx.innerHTML = e.ic.replace('width:30px;height:30px', 'width:46px;height:46px');
+      bx.innerHTML = '<img src="' + IB + 'fx-box-open.png" style="width:54px;height:54px;object-fit:contain;">';
+      setTimeout(function () { bx.style.animation = 'xkPop .45s ease-out'; bx.innerHTML = e.ic.replace('width:30px;height:30px', 'width:46px;height:46px'); }, 350);
       lb.style.color = '#fff'; lb.innerHTML = e.t + '<br><span style="color:#ffd76a;">' + e.n + '</span>';
       left--; var lf = $('xk-left'); if (lf) lf.textContent = left;
       if (left <= 0) { var al = $('xk-all'); if (al) al.style.display = 'none'; }
@@ -229,7 +230,7 @@
   // 상자 그림(HTML). 새 그림(fx-box.png)이 있으면 그걸, 없으면 VIP 상자, 그것도 없으면 이모지
   var BOX_SVG = "data:image/svg+xml;utf8," + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><ellipse cx="32" cy="58" rx="22" ry="4" fill="#000" opacity=".12"/><rect x="9" y="26" width="46" height="30" rx="5" fill="#fff" stroke="#d9d4e8" stroke-width="2"/><rect x="6" y="18" width="52" height="12" rx="5" fill="#fff" stroke="#d9d4e8" stroke-width="2"/><rect x="28" y="18" width="8" height="38" fill="#ffd76a"/><path d="M32 18C26 6 14 8 18 15c3 5 10 3 14 3zM32 18C38 6 50 8 46 15c-3 5-10 3-14 3z" fill="#ffd76a" stroke="#e0b030" stroke-width="1.5"/></svg>');
   function boxImgHtml(px) {
-    return '<img src="' + BOX_SVG + '" style="width:' + px + 'px;height:' + px + 'px;object-fit:contain;">';
+    return '<img src="' + IMG_BASE + 'fx-box.png" style="width:' + px + 'px;height:' + px + 'px;object-fit:contain;" onerror="this.onerror=null;this.src=\'' + BOX_SVG + '\'">';
   }
 
   window.ExpKit = {
