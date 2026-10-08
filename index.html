@@ -780,5 +780,12 @@ html{color-scheme:only light;}
   <script>var s=document.createElement('script');s.src='loader.js?v='+Date.now();document.body.appendChild(s);</script>
   <script>setTimeout(function(){var v=document.getElementById('boot-veil');if(v)v.remove();var p=document.getElementById('boot-splash');if(p)p.remove();},9000);</script>
   
+<style>html{background:#000}body.ov-open .navbar,body.ov-open .screen{visibility:hidden !important}</style>
+<script>
+// 전체화면 창(내 집·장소·원정 등)이 열려 있으면 뒤 화면과 하단 메뉴를 숨겨서, 삼성 인터넷 툴바가 접히거나 당길 때 뒤 화면이 비쳐 보이지 않게 함
+(function(){var IDS=['place-overlay','special-overlay'];
+setInterval(function(){var on=false;try{IDS.forEach(function(i){var e=document.getElementById(i);if(e&&getComputedStyle(e).display!=='none')on=true;});}catch(x){}
+if(document.body)document.body.classList.toggle('ov-open',on);},250);})();
+</script>
 </body>
 </html>
