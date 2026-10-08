@@ -83,6 +83,7 @@
   function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
   function toast(m) { if (typeof showBagToast === 'function') showBagToast(m); }
   function plv() { try { return Number(playerLevel) || 1; } catch (e) { return 1; } }
+  function gfs(k) { try { return window.FanGear ? window.FanGear.sum(G && G.charId, k) : 0; } catch (e) { return 0; } }   // 🎀 소품 효과 (expedition-gear.js)
   function rnd(a, b) { return a + Math.random() * (b - a); }
   function dist(ax, ay, bx, by) { var dx = ax - bx, dy = ay - by; return Math.sqrt(dx * dx + dy * dy); }
   function sfx(n) { try { if (window.pocaSfx && pocaSfx.play) pocaSfx.play(n); } catch (e) {} }
@@ -137,7 +138,7 @@
   function newGame(charId, vw, vh) {
     var ch = (typeof CHARS !== 'undefined' && CHARS[charId]) ? CHARS[charId] : { name: '아이돌', emoji: '🎤', gradeColor: '#fff' };
     var g = {
-      charId: charId, ch: ch, px: WORLD / 2, py: WORLD / 2, dir: { x: 0, y: 1 },
+      charId: charId, ch: ch, forgive: (window.FanGear ? window.FanGear.sum(charId, 'forgive') : 0), px: WORLD / 2, py: WORLD / 2, dir: { x: 0, y: 1 },
       maxhp: maxHpNow(), hp: maxHpNow(),
       fans: [], proj: [], pick: [], fx: [], dn: [],
       wave: 0, waveT: 0, queue: [], rest: 1.2, bossDown: false, minionT: 0,
@@ -244,6 +245,7 @@
     wrongPress(f);
   }
   function wrongPress(f) {
+    if ((G.forgive || 0) > 0) { G.forgive--; addDn(f.x, f.y - f.T.r - 14, '🎀 소품이 실수를 막아줬어요', '#a5f3fc', false); return; }
     if (hasGuard('luck') && Math.random() < 0.4) { addDn(f.x, f.y - f.T.r - 14, '🛡️ 하윤이 막아줬어요', '#9fd8ff', false); return; }
     f.step = 0; f.angry = 4;
     addDn(f.x, f.y - f.T.r - 14, '😤 순서가 틀렸어요!', '#ff6b6b', true);
@@ -412,7 +414,7 @@
     function inRange(f, r) { return dist(f.x, f.y, G.px, G.py) - f.T.r < r; }
     function needs(f) { return f.seq[f.step] === id; }
     if (s.kind === 'single') {
-      var cand = near.filter(function (f) { return inRange(f, s.range); });
+      var cand = near.filter(function (f) { return inRange(f, (s.range * (1 + gfs('reach') / 100))); });
       if (!cand.length) return false;
       var tg1 = cand.filter(needs)[0] || cand[0];
       addFx({ k: 'beam', x: G.px, y: G.py, x2: tg1.x, y2: tg1.y, t: 0.25, max: 0.25, c: id === 'sign' ? '#ffe27a' : '#ff9ad0' });
@@ -420,7 +422,7 @@
       if (needs(tg1)) { knock(tg1, 25, G.px, G.py); advance(tg1); if (id === 'shake') heal(6); } else missPress(tg1);
       used = true;
     } else if (s.kind === 'multi') {
-      var cm = near.filter(function (f) { return inRange(f, s.range); });
+      var cm = near.filter(function (f) { return inRange(f, (s.range * (1 + gfs('reach') / 100))); });
       if (!cm.length) return false;
       var hit3 = cm.filter(needs).slice(0, 3);
       if (!hit3.length) { addFx({ k: 'beam', x: G.px, y: G.py, x2: cm[0].x, y2: cm[0].y, t: 0.3, max: 0.3, c: '#ff6fb1' }); missPress(cm[0]); }
@@ -432,27 +434,27 @@
       var dd = dist(tgt.x, tgt.y, G.px, G.py) || 1; dx = (tgt.x - G.px) / dd; dy = (tgt.y - G.py) / dd;
       var inLine = G.fans.filter(function (f2) {
         var rx = f2.x - G.px, ry = f2.y - G.py, along = rx * dx + ry * dy, perp = Math.abs(rx * dy - ry * dx);
-        return along > 0 && along < s.range + f2.T.r && perp < 26 + f2.T.r;
+        return along > 0 && along < (s.range * (1 + gfs('reach') / 100)) + f2.T.r && perp < 26 + f2.T.r;
       });
-      addFx({ k: 'flash', x: G.px, y: G.py, x2: G.px + dx * s.range, y2: G.py + dy * s.range, t: 0.3, max: 0.3 });
+      addFx({ k: 'flash', x: G.px, y: G.py, x2: G.px + dx * (s.range * (1 + gfs('reach') / 100)), y2: G.py + dy * (s.range * (1 + gfs('reach') / 100)), t: 0.3, max: 0.3 });
       var ok2 = inLine.filter(needs);
       if (!ok2.length) missPress(inLine[0] || tgt);
       else ok2.slice().forEach(function (f7) { knock(f7, 20, G.px, G.py); advance(f7); });
       used = true;
     } else if (s.kind === 'aoe') {
-      var inR = G.fans.filter(function (f3) { return inRange(f3, s.range); });
+      var inR = G.fans.filter(function (f3) { return inRange(f3, (s.range * (1 + gfs('reach') / 100))); });
       if (!inR.length) return false;
       var kb = id === 'finale' ? 70 : (id === 'encore' ? 55 : (id === 'wink' ? 45 : (id === 'rose' ? 35 : 28)));
       inR.slice().forEach(function (f4) { knock(f4, kb, G.px, G.py); if (id === 'rose') f4.slow = 3; advance(f4); });   // 광역: 어떤 순서 칸이든 하나를 채움
       var DUR = { highlight: 0.95, wink: 0.95, encore: 1.15, rose: 1.5, finale: 1.7 }[id] || 0.9;
-      addFx({ k: 'skill', id: id, x: G.px, y: G.py, r: s.range, t: DUR, max: DUR });
-      addFx({ k: (id === 'encore' || id === 'finale') ? 'bigring' : 'ring', x: G.px, y: G.py, r: s.range, t: 0.7, max: 0.7, c: (id === 'wink' || id === 'rose') ? 'gold' : '' });
+      addFx({ k: 'skill', id: id, x: G.px, y: G.py, r: (s.range * (1 + gfs('reach') / 100)), t: DUR, max: DUR });
+      addFx({ k: (id === 'encore' || id === 'finale') ? 'bigring' : 'ring', x: G.px, y: G.py, r: (s.range * (1 + gfs('reach') / 100)), t: 0.7, max: 0.7, c: (id === 'wink' || id === 'rose') ? 'gold' : '' });
       cinematic(id, s, inR);
       if (id === 'encore') { G.shield = 1.5; G.shake = 10; }
       if (id === 'finale') { G.shield = 2.2; G.shake = 14; }
       used = true;
     }
-    if (used) { G.fat = (G.fat || 0) + fcost; G.cd[id] = s.cd; sfx(s.sfx || (id === 'encore' ? 'reward' : 'pick')); }
+    if (used) { G.fat = (G.fat || 0) + fcost; G.cd[id] = s.cd * (1 - gfs('cd') / 100); sfx(s.sfx || (id === 'encore' ? 'reward' : 'pick')); }
     return used;
   }
 
@@ -465,10 +467,10 @@
     if (G.over) return;
     G.over = true; G.won = !!won;
     var bounty = hasGuard('bounty');
-    var coin = Math.round(G.coins * (bounty ? 1.3 : 1)), exp = Math.round(G.exp * (bounty ? 1.2 : 1)), pieces = 0, stones = 0;
+    var coin = Math.round(G.coins * (bounty ? 1.3 : 1) * (1 + gfs('reward') / 100)), exp = Math.round(G.exp * (bounty ? 1.2 : 1) * (1 + gfs('reward') / 100)), pieces = 0, stones = 0;
     if (won) {
       coin += BOSS_COIN; exp += BOSS_EXP;
-      if (Math.random() < Math.min(1, BOSS_PIECE_CHANCE + (bounty ? 0.2 : 0))) { pieces = 1; if (Math.random() < BOSS_PIECE_BONUS) pieces = 2; }
+      if (Math.random() < Math.min(1, (BOSS_PIECE_CHANCE + (bounty ? 0.2 : 0)) * (1 + gfs('box') / 100))) { pieces = 1; if (Math.random() < BOSS_PIECE_BONUS) pieces = 2; }
       if (Math.random() < BOSS_STONE_CHANCE) stones = 1;
     } else { coin = Math.floor(coin * DEFEAT_RATE); exp = Math.floor(exp * DEFEAT_RATE); }
     var gotBooks = [];

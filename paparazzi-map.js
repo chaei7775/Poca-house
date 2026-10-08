@@ -43,7 +43,8 @@
     var c = cv.getContext('2d');
     var face = new Image(); face.crossOrigin = 'anonymous'; face.src = ctx.face;
     var P = { x: W / 2, y: WORLD_H - 90, r: 13, inv: 0 };
-    var G = { t: 0, lives: LIVES, meter: 0, boxes: 0, stone: 0, coin: 0, goods: {}, over: false, flash: 0, tx: null, ty: null, cd: {}, off: 0, msg: '', msgT: 0 };
+    function gfs(k) { try { return window.FanGear ? window.FanGear.sum(ctx.charId, k) : 0; } catch (e) { return 0; } }   // 🎀 소품 효과
+    var G = { forgive: gfs('forgive'), extra: [], t: 0, lives: LIVES, meter: 0, boxes: 0, stone: 0, coin: 0, goods: {}, over: false, flash: 0, tx: null, ty: null, cd: {}, off: 0, msg: '', msgT: 0 };
     // 파파라치 배치: 아래→위로 줄을 서게, 서로 다른 움직임
     var cams = [];
     for (var i = 0; i < CAMS; i++) {
@@ -74,10 +75,10 @@
     function say(t) { G.msg = t; G.msgT = 1.3; }
     function useSkill(s) {
       if ((G.cd[s.id] || 0) > 0 || G.over) return;
-      G.cd[s.id] = s.cd;
+      G.cd[s.id] = s.cd * (1 - gfs('cd') / 100);   // 🎀 쿨타임 소품
       if (s.near) {
-        var best = null, bd = 99999;
-        cams.forEach(function (m) { var d = Math.hypot(m.x - P.x, m.y - P.y); if (d < bd) { bd = d; best = m; } });
+        var best = null, bd = 99999, RR = gfs('reach') > 0 ? 130 * (1 + gfs('reach') / 100) : 0;   // 🎀 사거리 소품: 가까운 카메라 여러 대에 걸림
+        cams.forEach(function (m) { var d = Math.hypot(m.x - P.x, m.y - P.y); if (RR && d <= RR) m.off = s.dur; if (d < bd) { bd = d; best = m; } });
         if (best) best.off = s.dur;
       } else cams.forEach(function (m) { m.off = s.dur; });
       say(s.icon + ' ' + s.name + '! 카메라가 잠깐 멈췄어요');
@@ -118,10 +119,10 @@
       else { coin = Math.round(coin * LOSE_RATE); }
       setTimeout(function () {
         cv.remove(); bar.remove();
-        ctx.finish({
+        ctx.finish(ExpKit.mergeLoot({
           win: win, title: win ? '무사히 탈출!' : '사진이 찍혔어요…', coin: coin, exp: exp, stone: stone, protect: protect, items: items,
           summary: win ? '선물 상자 ' + G.boxes + '/' + BOX_N + '개 · 남은 하트 ' + G.lives : '카메라에 ' + LIVES + '번 찍혔어요. 선물 상자 ' + G.boxes + '개는 챙겼어요.'
-        });
+        }, G.extra));
       }, win ? 500 : 700);
     }
     function loop(now) {
@@ -140,9 +141,10 @@
         var seen = P.inv <= 0 && cams.some(inCone);
         G.meter = Math.max(0, Math.min(1, G.meter + (seen ? dt / SPOT_TIME : -dt * 1.8)));
         if (G.meter >= 1) {
-          G.meter = 0; G.lives--; G.flash = 1; P.inv = 1.4; P.y = Math.min(WORLD_H - 40, P.y + 70); G.tx = null;
+          G.meter = 0; if (G.forgive > 0) { G.forgive--; G.flash = 0.6; P.inv = 1.4; say('🎀 소품이 찰칵을 막아줬어요!'); } else {
+          G.lives--; G.flash = 1; P.inv = 1.4; P.y = Math.min(WORLD_H - 40, P.y + 70); G.tx = null;
           say('📸 찰칵! 찍혔어요 (남은 하트 ' + Math.max(0, G.lives) + ')');
-          if (G.lives <= 0) end(false);
+          if (G.lives <= 0) end(false); }
         }
         boxes.forEach(function (bx) {
           if (!bx.got && Math.hypot(bx.x - P.x, bx.y - P.y) < 28) {
@@ -151,6 +153,7 @@
             if (rr < BOX_P_GOODS) { var gn = pickGoods(), gq = 2 + Math.floor(Math.random() * 2); G.goods[gn] = (G.goods[gn] || 0) + gq; say('🎁 ' + goodsEmoji(gn) + ' ' + gn + ' ×' + gq); }
             else if (rr < BOX_P_GOODS + BOX_P_STONE) { G.stone++; say('🎁 강화석을 찾았어요!'); }
             else { G.coin += BOX_COIN; say('🎁 코인 +' + BOX_COIN.toLocaleString('ko-KR')); }
+            if (Math.random() < Math.min(1, gfs('box') / 100)) { var xl = ExpKit.rollLoot(); G.extra.push(xl); say('🎁 소품 덕분에 한 번 더! ' + xl.txt); }   // 🎀 상자 소품: 한 번 더 열림
           }
         });
         if (Math.hypot(EXIT.x - P.x, EXIT.y - P.y) < EXIT.r) end(true);

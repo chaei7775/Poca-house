@@ -1,11 +1,11 @@
 // ════════════════════════════════════════════════════════════
 // 🎀 팬덤 원정 소품 (expedition-gear.js)
 // 가방의 소품(브로치·펜던트·리본·배지)을 멤버마다 2칸까지 장착. 팬덤 원정에서 효과가 적용돼요.
-//   사거리(월광 리본·성운 펜던트) : 스킬 사거리 +%      (방송국 앞·팬미팅장·공연장)
-//   쿨타임(프리즘 브로치·불꽃 펜던트) : 스킬 쿨타임 -%    (방송국 앞·팬미팅장·공연장, 최대 -60%)
-//   보상(천공 깃털 배지·은하수 브로치) : 코인·경험치 +%     (모든 팬덤 원정)
-//   상자(용의 심장 브로치) : 팬 응원 상자가 떨어질 확률 +% (리허설장·월드투어)
-//   실수 방지(수정 왕관 배지) : 스킬 순서를 틀려도 1회(전설 2회) 막아줌 (방송국 앞·팬미팅장·공연장)
+//   사거리(월광 리본·성운 펜던트) : 스킬 사거리 +%  (방송국·팬미팅·공연장·공항·레드카펫 / 파파라치=윙크 범위 / 월드투어=제한시간 / 리허설장=게이지 구간)
+//   쿨타임(프리즘 브로치·불꽃 펜던트) : 스킬 쿨타임 -% 최대 -60%  (스킬 쓰는 맵 + 파파라치 / 월드투어=데미지 / 리허설장=게이지 느리게)
+//   보상(천공 깃털 배지·은하수 브로치) : 코인·경험치 +%  (모든 팬덤 원정)
+//   상자(용의 심장 브로치) : 상자 확률/보상 +%  (리허설장·월드투어=떨어질 확률 / 파파라치=상자 한 번 더 / 공항=프리미엄 조각 확률 / 레드카펫=방지권·조각 확률)
+//   실수 방지(수정 왕관 배지) : 실수를 1회(전설 2회) 막아줌  (모든 팬덤 원정 · 파파라치는 '찍힘' 1회 막기)
 // 저장: localStorage 'ph_fangear' = { 멤버id: [소품 가방이름, 소품 가방이름] }  (장착해도 가방 아이템은 그대로 있음)
 // 다른 파일에서: FanGear.sum(멤버id, 'reach'|'cd'|'reward'|'box'|'forgive') → 합친 수치
 // ✏️ 값 바꾸는 곳: special-explore.js 의 SPECIAL_GEAR(value) / SPECIAL_GEAR_GRADE_MULT, 아래 [설정]
@@ -99,6 +99,7 @@
         '<button id="fg-next" style="width:34px;height:34px;border:none;border-radius:50%;background:rgba(255,255,255,.12);color:#fff;font-size:16px;">▶</button></div>' +
         '<div style="display:flex;gap:8px;margin-bottom:8px;">' + slots + '</div>' +
         '<div style="margin-bottom:10px;">' + bonus + '</div>' +
+        '<div style="font-size:10px;color:#9aa;line-height:1.5;margin:0 0 8px;text-align:left;">모든 팬덤 원정에서 효과가 있어요. 맵마다 적용 방식이 조금 달라요.<br>📏 사거리 = 스킬 범위 (파파라치: 윙크 범위 · 월드투어: 제한시간 · 리허설장: 게이지 구간)<br>⏱️ 쿨타임 = 스킬 쿨타임 (월드투어: 데미지 · 리허설장: 게이지 속도 느리게)</div>' +
         '<div style="text-align:left;font-size:11px;color:#ffd76a;font-weight:900;margin-bottom:6px;">가방 소품 (눌러서 장착)</div>' + rows +
         '<button id="fg-close" style="width:100%;margin-top:8px;padding:11px;border:none;border-radius:12px;background:rgba(255,255,255,.12);color:#ddd;font-size:14px;font-weight:900;cursor:pointer;' + FONT + '">닫기</button></div>';
       ov.querySelector('#fg-close').onclick = function () { ov.remove(); };

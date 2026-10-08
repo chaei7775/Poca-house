@@ -39,7 +39,8 @@
     var root = ctx.root, lv = ctx.level, imgBase = ctx.imgBase;
     var avail = SK.filter(function (s) { return lv >= s.lv; });
     var lvMul = 1 + Math.max(0, lv - 35) * LV_DMG;
-    var S = { loot: [], hp: BOSS_HP, hearts: HEARTS, combo: 0, best: 0, chains: 0, seq: [], pos: 0, left: 0, total: 0, over: false, lock: false };
+    function gfs(k) { try { return window.FanGear ? window.FanGear.sum(ctx.charId, k) : 0; } catch (e) { return 0; } }   // 🎀 소품 효과
+    var S = { forgive: gfs('forgive'), loot: [], hp: BOSS_HP, hearts: HEARTS, combo: 0, best: 0, chains: 0, seq: [], pos: 0, left: 0, total: 0, over: false, lock: false };
     var wrap = document.createElement('div');
     wrap.style.cssText = 'position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;background:radial-gradient(circle at 50% 25%,#3b1d6e,#0b0716 72%);overflow:hidden;font-family:\'Noto Sans KR\',sans-serif;';
     wrap.innerHTML =
@@ -87,7 +88,7 @@
     function newSeq() {
       var p = PHASES[phase()];
       S.seq = []; for (var i = 0; i < p.len; i++) S.seq.push(avail[Math.floor(Math.random() * avail.length)].id);
-      S.pos = 0; S.total = p.sec; S.left = p.sec; S.lock = false;
+      S.pos = 0; S.total = p.sec * (1 + gfs('reach') / 100); S.left = S.total; S.lock = false;   // 🎀 사거리 소품 = 제한시간 늘림
       drawSeq(); drawHud();
     }
     function float(t, col) { var d = q('wt-dmg'); d.style.color = col || '#ffe27a'; d.textContent = t; d.style.animation = 'none'; void d.offsetWidth; d.style.animation = 'wtUp .8s ease-out forwards'; }
@@ -122,12 +123,15 @@
     function press(id, el) {
       if (S.over || S.lock) return;
       el.style.transform = 'scale(.92)'; setTimeout(function () { el.style.transform = ''; }, 90);
-      if (S.seq[S.pos] !== id) return bossAttack('순서가 틀렸어요! 하트가 깎였어요');
+      if (S.seq[S.pos] !== id) {
+        if (S.forgive > 0) { S.forgive--; float('🎀 막아줬어요!', '#a5f3fc'); q('wt-say').textContent = '🎀 소품이 실수를 막아줬어요 (순서 그대로 이어가요)'; return; }   // 🎀 실수 방지 소품
+        return bossAttack('순서가 틀렸어요! 하트가 깎였어요');
+      }
       S.pos++; drawSeq();
       if (S.pos >= S.seq.length) {
         S.chains++; S.combo++; S.best = Math.max(S.best, S.combo);
         var finBonus = S.seq.indexOf('finale') >= 0 ? 1.4 : 1;
-        var dmg = Math.round(BASE_DMG * lvMul * (1 + Math.min(S.combo - 1, 8) * COMBO_BONUS) * finBonus);
+        var dmg = Math.round(BASE_DMG * lvMul * (1 + Math.min(S.combo - 1, 8) * COMBO_BONUS) * finBonus * (1 + gfs('cd') / 100));   // 🎀 쿨타임 소품 = 데미지 증가
         S.hp = Math.max(0, S.hp - dmg);
         var img = q('wt-boss-img') || q('wt-boss'); img.style.animation = 'none'; void img.offsetWidth; img.style.animation = 'wtHit .3s';
         float('-' + dmg);

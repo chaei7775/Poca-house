@@ -56,7 +56,9 @@
 
   function play(ctx) {
     var root = ctx.root;
-    var S = { round: 0, cleared: 0, hearts: HEARTS, seq: [], idx: 0, accept: false, over: false, loot: [], gauge: 0, gaugeBonus: 0, timers: [] };
+    function gfs(k) { try { return window.FanGear ? window.FanGear.sum(ctx.charId, k) : 0; } catch (e) { return 0; } }   // 🎀 소품 효과
+    var PZ = PERFECT_ZONE * (1 + gfs('reach') / 100), GZ = Math.min(45, GOOD_ZONE * (1 + gfs('reach') / 100)), GMS = GAUGE_MS * (1 + gfs('cd') / 100);   // 🎀 사거리 = 게이지 구간 넓힘 / 쿨타임 = 게이지 느리게
+    var S = { forgive: gfs('forgive'), round: 0, cleared: 0, hearts: HEARTS, seq: [], idx: 0, accept: false, over: false, loot: [], gauge: 0, gaugeBonus: 0, timers: [] };
     var wrap = document.createElement('div');
     wrap.style.cssText = 'position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;background:radial-gradient(circle at 50% 0%,#3b1d6e,#0b0716 70%);overflow:hidden;' + FONT;
     wrap.innerHTML =
@@ -67,8 +69,8 @@
       '<div id="rh-pads" style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;width:88%;max-width:320px;"></div>' +
       '<div id="rh-gauge" style="display:none;width:88%;max-width:320px;margin-top:18px;text-align:center;">' +
         '<div style="position:relative;height:30px;border-radius:15px;background:rgba(255,255,255,.14);overflow:hidden;border:2px solid #fff;">' +
-          '<div style="position:absolute;top:0;bottom:0;left:' + (50 - GOOD_ZONE) + '%;width:' + (GOOD_ZONE * 2) + '%;background:rgba(110,231,183,.45);"></div>' +
-          '<div style="position:absolute;top:0;bottom:0;left:' + (50 - PERFECT_ZONE) + '%;width:' + (PERFECT_ZONE * 2) + '%;background:#ffd76a;"></div>' +
+          '<div style="position:absolute;top:0;bottom:0;left:' + (50 - GZ) + '%;width:' + (GZ * 2) + '%;background:rgba(110,231,183,.45);"></div>' +
+          '<div style="position:absolute;top:0;bottom:0;left:' + (50 - PZ) + '%;width:' + (PZ * 2) + '%;background:#ffd76a;"></div>' +
           '<div id="rh-needle" style="position:absolute;top:-2px;bottom:-2px;width:6px;margin-left:-3px;background:#fff;border-radius:3px;box-shadow:0 0 8px #fff;left:0;"></div></div>' +
         '<button id="rh-stop" style="margin-top:14px;width:100%;padding:15px;border:none;border-radius:14px;background:linear-gradient(135deg,#f59e0b,#ef4444);color:#fff;font-size:17px;font-weight:900;cursor:pointer;' + FONT + '">🎤 지금!</button></div>' +
       '<div style="flex:1;"></div>';
@@ -116,6 +118,7 @@
       if (S.over || !S.accept) return;
       light(i, true); setTimeout(function () { light(i, false); }, 120); sfx();
       if (S.seq[S.idx] !== i) {
+        if (S.forgive > 0) { S.forgive--; q('rh-say').textContent = '🎀 소품이 실수를 막아줬어요! 다시 눌러요'; return; }   // 🎀 실수 방지 소품
         S.accept = false; S.hearts--;
         wrap.style.animation = 'none'; void wrap.offsetWidth; wrap.style.animation = 'rhShake .3s';
         q('rh-say').textContent = '앗! 틀렸어요 (하트 -1)';
@@ -156,13 +159,13 @@
       gT0 = performance.now(); gDone = false;
       (function loop(now) {
         if (!root.isConnected || S.over || gDone) return;
-        var ph = ((now - gT0) % GAUGE_MS) / GAUGE_MS, pos = ph < 0.5 ? ph * 2 : 2 - ph * 2;   // 0~1~0
+        var ph = ((now - gT0) % GMS) / GMS, pos = ph < 0.5 ? ph * 2 : 2 - ph * 2;   // 0~1~0
         S.gauge = pos * 100; q('rh-needle').style.left = S.gauge + '%';
         gaugeRaf = requestAnimationFrame(loop);
       })(performance.now());
       q('rh-stop').onclick = function () {
         if (gDone) return; gDone = true; cancelAnimationFrame(gaugeRaf);
-        var off = Math.abs(S.gauge - 50), bonus = off <= PERFECT_ZONE ? 2 : off <= GOOD_ZONE ? 1 : 0;
+        var off = Math.abs(S.gauge - 50), bonus = off <= PZ ? 2 : off <= GZ ? 1 : 0;
         S.gaugeBonus = bonus; S.gaugeDone = true;
         q('rh-say').textContent = bonus === 2 ? '🌟 PERFECT!' : bonus === 1 ? '👍 GOOD!' : '아쉬워요…';
         later(finish, 1100);

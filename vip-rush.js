@@ -109,6 +109,7 @@
     setTimeout(function () { if (el.parentNode) el.remove(); }, ms || 3000);
   }
   function plv() { try { return Number(playerLevel) || 1; } catch (e) { return 1; } }
+  function gfs(k) { try { return window.FanGear ? window.FanGear.sum(G && G.charId, k) : 0; } catch (e) { return 0; } }   // 🎀 소품 효과 (expedition-gear.js)
   function rnd(a, b) { return a + Math.random() * (b - a); }
   function dist(ax, ay, bx, by) { var dx = ax - bx, dy = ay - by; return Math.sqrt(dx * dx + dy * dy); }
   function sfx(n) { try { if (window.pocaSfx && pocaSfx.play) pocaSfx.play(n); } catch (e) {} }
@@ -163,7 +164,7 @@
   function newGame(charId, vw, vh) {
     var ch = (typeof CHARS !== 'undefined' && CHARS[charId]) ? CHARS[charId] : { name: '아이돌', emoji: '🎤', gradeColor: '#fff' };
     var g = {
-      charId: charId, ch: ch, px: WORLD / 2, py: WORLD - 170, dir: { x: 0, y: 1 },
+      charId: charId, ch: ch, forgive: (window.FanGear ? window.FanGear.sum(charId, 'forgive') : 0), px: WORLD / 2, py: WORLD - 170, dir: { x: 0, y: 1 },
       maxhp: maxHpNow(), hp: maxHpNow(),
       fans: [], proj: [], pick: [], fx: [], dn: [],
       wave: 1, waveT: 0, box: null, queue: [], rest: 1.2, bossDown: false, minionT: 0,
@@ -313,6 +314,7 @@
     wrongPress(f);
   }
   function wrongPress(f) {
+    if ((G.forgive || 0) > 0) { G.forgive--; addDn(f.x, f.y - f.T.r - 14, '🎀 소품이 실수를 막아줬어요', '#a5f3fc', false); return; }
     if (hasGuard('luck') && Math.random() < 0.4) { addDn(f.x, f.y - f.T.r - 14, '🛡️ 하윤이 막아줬어요', '#9fd8ff', false); return; }
     f.step = 0; f.angry = 4;
     addDn(f.x, f.y - f.T.r - 14, '😤 순서가 틀렸어요!', '#ff6b6b', true);
@@ -493,7 +495,7 @@
     var near = G.fans.slice().sort(function (a, b) { return dist(a.x, a.y, G.px, G.py) - dist(b.x, b.y, G.px, G.py); });
     function inRange(f, r) { return dist(f.x, f.y, G.px, G.py) - f.T.r < r; }
     if (s.kind === 'single') {
-      var cand = near.filter(function (f) { return inRange(f, s.range); });
+      var cand = near.filter(function (f) { return inRange(f, (s.range * (1 + gfs('reach') / 100))); });
       if (!cand.length) return false;
       var tg1 = cand[0];
       addFx({ k: 'beam', x: G.px, y: G.py, x2: tg1.x, y2: tg1.y, t: 0.25, max: 0.25, c: id === 'sign' ? '#ffe27a' : '#ff9ad0' });
@@ -501,7 +503,7 @@
       dealDmg(tg1, base, 25); if (id === 'shake') heal(6);
       used = true;
     } else if (s.kind === 'multi') {
-      var cm = near.filter(function (f) { return inRange(f, s.range); }).slice(0, 3);
+      var cm = near.filter(function (f) { return inRange(f, (s.range * (1 + gfs('reach') / 100))); }).slice(0, 3);
       if (!cm.length) return false;
       cm.forEach(function (f6) { addFx({ k: 'beam', x: G.px, y: G.py, x2: f6.x, y2: f6.y, t: 0.3, max: 0.3, c: '#ff6fb1' }); dealDmg(f6, base, 25); });
       used = true;
@@ -511,24 +513,24 @@
       var dd = dist(tgt.x, tgt.y, G.px, G.py) || 1; dx = (tgt.x - G.px) / dd; dy = (tgt.y - G.py) / dd;
       var inLine = G.fans.filter(function (f2) {
         var rx = f2.x - G.px, ry = f2.y - G.py, along = rx * dx + ry * dy, perp = Math.abs(rx * dy - ry * dx);
-        return along > 0 && along < s.range + f2.T.r && perp < 26 + f2.T.r;
+        return along > 0 && along < (s.range * (1 + gfs('reach') / 100)) + f2.T.r && perp < 26 + f2.T.r;
       });
-      addFx({ k: 'flash', x: G.px, y: G.py, x2: G.px + dx * s.range, y2: G.py + dy * s.range, t: 0.3, max: 0.3 });
+      addFx({ k: 'flash', x: G.px, y: G.py, x2: G.px + dx * (s.range * (1 + gfs('reach') / 100)), y2: G.py + dy * (s.range * (1 + gfs('reach') / 100)), t: 0.3, max: 0.3 });
       inLine.slice().forEach(function (f7) { dealDmg(f7, base, 20); });
       used = true;
     } else if (s.kind === 'aoe') {
-      var inR = G.fans.filter(function (f3) { return inRange(f3, s.range); });
+      var inR = G.fans.filter(function (f3) { return inRange(f3, (s.range * (1 + gfs('reach') / 100))); });
       if (!inR.length) return false;
       var kb = id === 'finale' ? 70 : (id === 'encore' ? 55 : (id === 'wink' ? 45 : (id === 'rose' ? 35 : 28)));
       var DUR = { highlight: 0.95, wink: 0.95, encore: 1.15, rose: 1.5, finale: 1.7 }[id] || 0.9;
-      addFx({ k: 'skill', id: id, x: G.px, y: G.py, r: s.range, t: DUR, max: DUR });
+      addFx({ k: 'skill', id: id, x: G.px, y: G.py, r: (s.range * (1 + gfs('reach') / 100)), t: DUR, max: DUR });
       cinematic(id, s, inR);
       inR.slice().forEach(function (f4) { if (id === 'rose') f4.slow = 3; dealDmg(f4, base, kb); });
       if (id === 'encore') { G.shield = 1.5; }
       if (id === 'finale') { G.shield = 2.2; }
       used = true;
     }
-    if (used) { G.fat = (G.fat || 0) + fcost; G.cd[id] = s.cd; sfx(s.sfx || (id === 'encore' ? 'reward' : 'pick')); }
+    if (used) { G.fat = (G.fat || 0) + fcost; G.cd[id] = s.cd * (1 - gfs('cd') / 100); sfx(s.sfx || (id === 'encore' ? 'reward' : 'pick')); }
     return used;
   }
 
@@ -548,12 +550,12 @@
     if (G.over) return;
     G.over = true; G.won = !!won;
     var bounty = hasGuard('bounty');
-    var coin = Math.round(G.coins * (bounty ? 1.3 : 1)), exp = Math.round(G.exp * (bounty ? 1.2 : 1)), pieces = 0, stones = 0, protects = 0;
+    var coin = Math.round(G.coins * (bounty ? 1.3 : 1) * (1 + gfs('reward') / 100)), exp = Math.round(G.exp * (bounty ? 1.2 : 1) * (1 + gfs('reward') / 100)), pieces = 0, stones = 0, protects = 0;
     if (won) {
       coin += BOX_COIN; exp += BOX_EXP;
       stones = ri(BOX_STONE_MIN, BOX_STONE_MAX) + (bounty ? 1 : 0);
-      if (Math.random() < Math.min(1, BOX_PROTECT_CHANCE + (bounty ? 0.15 : 0))) protects = ri(1, BOX_PROTECT_MAX);
-      if (Math.random() < Math.min(1, BOX_PIECE_CHANCE + (bounty ? 0.2 : 0))) pieces = 1;
+      if (Math.random() < Math.min(1, (BOX_PROTECT_CHANCE + (bounty ? 0.15 : 0)) * (1 + gfs('box') / 100))) protects = ri(1, BOX_PROTECT_MAX);
+      if (Math.random() < Math.min(1, (BOX_PIECE_CHANCE + (bounty ? 0.2 : 0)) * (1 + gfs('box') / 100))) pieces = 1;
     } else { coin = Math.floor(coin * DEFEAT_RATE); exp = Math.floor(exp * DEFEAT_RATE); }
     var gotBooks = [];
     try {
