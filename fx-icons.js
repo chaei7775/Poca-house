@@ -1,22 +1,15 @@
 // ════════════════════════════════════════════════════════════
 // ✨ 폭죽/별 이모지 → 그림 교체 (fx-icons.js)
-// 화면 어디서든 🎉🎊✨⭐🌟 이 나오면 자동으로 그림(SVG)으로 바꿔 보여준다. (팝업·토스트·캔버스 공통)
-// ✏️ 그림 모양 고치는 법: 아래 SVG 문자열만 바꾸면 전부 같이 바뀜
+// 화면 어디서든 🎉🎊✨⭐🌟 이 나오면 자동으로 그림(fx-*.png)으로 바꿔 보여준다. (팝업·토스트·캔버스 공통)
+// ✏️ 그림 바꾸는 법: fx-star/glow/spark/burst/popper/shower.png 파일 교체
 // ════════════════════════════════════════════════════════════
 (function () {
   'use strict';
-  var G = '<defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFE98A"/><stop offset="1" stop-color="#F5A524"/></linearGradient>' +
-    '<radialGradient id="h"><stop offset="0" stop-color="#fff" stop-opacity=".9"/><stop offset="1" stop-color="#FFD54A" stop-opacity="0"/></radialGradient></defs>';
-  var STAR = 'M32 5 L39.5 23.5 L59 25 L44 38 L48.8 57.5 L32 47 L15.2 57.5 L20 38 L5 25 L24.5 23.5 Z';
-  var SVG = {
-    star: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">' + G + '<path d="' + STAR + '" fill="url(#g)" stroke="#C98A12" stroke-width="3" stroke-linejoin="round"/><path d="M32 12 L36 24 L26 25 Z" fill="#fff" opacity=".55"/></svg>',
-    glow: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">' + G + '<circle cx="32" cy="32" r="30" fill="url(#h)"/><path d="' + STAR + '" fill="url(#g)" stroke="#E0A020" stroke-width="2.5" stroke-linejoin="round" transform="translate(6.4 6.4) scale(.8)"/></svg>',
-    spark: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">' + G + '<path d="M28 6 Q30 26 50 28 Q30 30 28 50 Q26 30 6 28 Q26 26 28 6Z" fill="#FFF3B0" stroke="#F5C542" stroke-width="2.5" stroke-linejoin="round"/><path d="M50 36 Q51 44 58 45 Q51 46 50 54 Q49 46 42 45 Q49 44 50 36Z" fill="#FFE27A"/><circle cx="14" cy="50" r="3" fill="#FFE27A"/></svg>',
-    party: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><g stroke-linecap="round" fill="none" stroke-width="4"><path d="M32 30 L32 8" stroke="#FF5C93"/><path d="M32 30 L12 16" stroke="#FFD54A"/><path d="M32 30 L52 16" stroke="#4FC3F7"/><path d="M32 30 L6 34" stroke="#B388FF"/><path d="M32 30 L58 34" stroke="#69DB7C"/></g><rect x="26" y="2" width="8" height="5" rx="1.5" fill="#FF5C93" transform="rotate(20 30 4)"/><rect x="6" y="8" width="8" height="5" rx="1.5" fill="#FFD54A" transform="rotate(-30 10 10)"/><rect x="50" y="8" width="8" height="5" rx="1.5" fill="#4FC3F7" transform="rotate(35 54 10)"/><circle cx="4" cy="42" r="3.5" fill="#B388FF"/><circle cx="60" cy="42" r="3.5" fill="#69DB7C"/><circle cx="20" cy="42" r="3" fill="#FFD54A"/><circle cx="46" cy="44" r="3" fill="#FF5C93"/><circle cx="32" cy="46" r="3.5" fill="#4FC3F7"/><circle cx="32" cy="30" r="5" fill="#fff" stroke="#FFD54A" stroke-width="2.5"/></svg>'
-  };
-  var MAP = { '🎉': 'party', '🎊': 'party', '✨': 'spark', '⭐': 'star', '🌟': 'glow', '💫': 'glow' };
+  var BASE = 'https://raw.githubusercontent.com/chaei7775/Poca-house/main/';
+  // 이모지 → 그림 파일(fx-○○.png). 그림을 바꾸려면 같은 이름 파일만 교체하면 됨
+  var MAP = { '🎉': 'popper', '🎊': 'burst', '✨': 'spark', '⭐': 'star', '🌟': 'glow', '💫': 'shower' };
   var URL = {}, IMG = {};
-  Object.keys(SVG).forEach(function (k) { URL[k] = 'data:image/svg+xml;utf8,' + encodeURIComponent(SVG[k]); });
+  ['popper', 'burst', 'spark', 'star', 'glow', 'shower'].forEach(function (k) { URL[k] = BASE + 'fx-' + k + '.png'; });
   var RE = /(?:🎉|🎊|✨|⭐|🌟|💫)️?/g;
   var TEST = /🎉|🎊|✨|⭐|🌟|💫/;
   var SKIP = { SCRIPT: 1, STYLE: 1, TEXTAREA: 1, OPTION: 1, TITLE: 1, INPUT: 1, NOSCRIPT: 1 };
