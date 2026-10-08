@@ -407,7 +407,12 @@
   function giveDrop(d, x, y) {
     var label = null, emoji = '✨', before = exploreCollected.length;
     var el = { style: {}, parentNode: { removeChild: function () {} } };
-    collectExploreItem(0, { name: d.name, isWish: d.isWish, isRare: d.isRare }, el);
+    // 무대에서 줍는 재료는 '스케줄(탐험)'이 아니므로 첫 탐험 퀘스트·스토리는 켜지 않고, 경험치도 작게(10→2)
+    var _cq = window.checkQuestProgress, _ae = window.addPlayerExp;
+    window.checkQuestProgress = function (c) { if (c === 'first_explore') return; return _cq.apply(this, arguments); };
+    window.addPlayerExp = function (n) { return _ae.call(this, Math.min(Number(n) || 0, 2)); };
+    try { collectExploreItem(0, { name: d.name, isWish: d.isWish, isRare: d.isRare }, el); }
+    finally { window.checkQuestProgress = _cq; window.addPlayerExp = _ae; }
     if (d.isWish) { label = '🧩 소원의 조각'; emoji = '🧩'; }
     else {
       label = exploreCollected.length > before ? exploreCollected[exploreCollected.length - 1] : d.name;
