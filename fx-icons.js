@@ -7,12 +7,13 @@
   'use strict';
   var BASE = 'https://raw.githubusercontent.com/chaei7775/Poca-house/main/';
   // 이모지 → 그림 파일(fx-○○.png). 그림을 바꾸려면 같은 이름 파일만 교체하면 됨
-  var MAP = { '🎉': 'popper', '🎊': 'burst', '✨': 'spark', '⭐': 'star', '🌟': 'glow', '💫': 'shower', '🎬': 'clap' };
+  var MAP = { '🎉': 'popper', '🎊': 'burst', '✨': 'spark', '⭐': 'star', '🌟': 'glow', '💫': 'shower', '🎬': 'clap', '🚗': 'van' };
   var URL = {}, IMG = {};
   ['popper', 'burst', 'spark', 'star', 'glow', 'shower'].forEach(function (k) { URL[k] = BASE + 'fx-' + k + '.png'; });
+  URL.van = BASE + 'road-van.png';    // 🚗 검정 밴 (로드매니저 그림 재사용, 가로로 긴 그림)
   URL.clap = BASE + 'prop-clap.png';  // 🎬 클래퍼보드 (촬영 세트장 소품 그림 재사용)
-  var RE = /(?:🎉|🎊|✨|⭐|🌟|💫|🎬)️?/g;
-  var TEST = /🎉|🎊|✨|⭐|🌟|💫|🎬/;
+  var RE = /(?:🎉|🎊|✨|⭐|🌟|💫|🎬|🚗)️?/g;
+  var TEST = /🎉|🎊|✨|⭐|🌟|💫|🎬|🚗/;
   var SKIP = { SCRIPT: 1, STYLE: 1, TEXTAREA: 1, OPTION: 1, TITLE: 1, INPUT: 1, NOSCRIPT: 1 };
 
   // 한 글자(🎉 등) 를 <span> 으로 감싸서 그림을 배경으로 깐다 (글자는 투명하게 남겨 둬서 textContent 는 그대로)
@@ -20,7 +21,7 @@
     var s = document.createElement('span');
     s.className = 'phfx';
     s.textContent = ch;
-    s.style.cssText = 'display:inline-block;width:1.05em;height:1.05em;vertical-align:-.14em;overflow:hidden;white-space:nowrap;color:transparent;text-shadow:none;' +
+    s.style.cssText = 'display:inline-block;width:' + (MAP[ch] === 'van' ? '1.8em' : '1.05em') + ';height:1.05em;vertical-align:-.14em;overflow:hidden;white-space:nowrap;color:transparent;text-shadow:none;' +
       'background:url("' + URL[MAP[ch]] + '") center/contain no-repeat;';
     return s;
   }
