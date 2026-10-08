@@ -221,25 +221,42 @@
   function plv() { try { return Number(playerLevel) || 1; } catch (e) { return 1; } }
   function levelOk(sk) { return plv() >= (sk.useLv || 1); }
   // ── 장착 스킬 (5칸, 모든 팬덤 원정 맵 공통) ──
-  function loadLoadout() {
-    var arr = null;
-    try { arr = JSON.parse(localStorage.getItem(LOADOUT_KEY) || 'null'); } catch (e) {}
+  // 장착은 멤버마다 따로 (그 멤버가 배운 스킬만 장착 가능). 저장: { 멤버id: [5칸] } (예전엔 모두 공통 배열이었음 → 그대로 기본값으로 이어받음)
+  var edChar = null;                                         // 장착 화면에서 보고 있는 멤버
+  function curCid() { return (edChar && $('fs-editor') ? edChar : '') || (F && F.cid) || shopChar || charIds()[0] || ''; }
+  function readLoadoutStore() { try { return JSON.parse(localStorage.getItem(LOADOUT_KEY) || 'null'); } catch (e) { return null; } }
+  function loadLoadout(cid) {
+    cid = cid || curCid();
+    var st = readLoadoutStore(), arr = null;
+    if (Array.isArray(st)) arr = st;                        // 예전 공통 저장분
+    else if (st && typeof st === 'object' && Array.isArray(st[cid])) arr = st[cid];
     var out = [], seen = {};
-    if (Array.isArray(arr)) {
-      for (var i = 0; i < SLOTS; i++) { var id = arr[i]; if (id && skillById(id) && !seen[id] && (skillById(id).price === 0 || ownCount(skillById(id)) > 0)) {   // 아무도 안 배운 스킬은 장착 해제
-           out.push(id); seen[id] = 1; } else out.push(null); }
+    if (arr) {
+      for (var i = 0; i < SLOTS; i++) {
+        var id = arr[i], sk = id && skillById(id);
+        if (sk && !seen[id] && hasSkill(cid, sk)) { out.push(id); seen[id] = 1; } else out.push(null);   // 그 멤버가 안 배운 스킬은 장착 해제
+      }
       return out;
     }
     SKILLS.forEach(function (s) { if (out.length < SLOTS && s.price === 0) { out.push(s.id); } });   // 처음엔 기본 스킬만
     while (out.length < SLOTS) out.push(null);
     return out;
   }
-  function saveLoadout(arr) { try { localStorage.setItem(LOADOUT_KEY, JSON.stringify(arr)); } catch (e) {} if (typeof saveAll === 'function') { try { saveAll(); } catch (e) {} } }
-  function equip(slot, id) {                       // id = null 이면 비움. 이미 다른 칸에 있으면 그 칸을 비우고 옮김
-    var L = loadLoadout();
+  function saveLoadout(arr, cid) {
+    cid = cid || curCid();
+    var st = readLoadoutStore(), map = {};
+    if (Array.isArray(st)) { charIds().forEach(function (c) { map[c] = st.slice(); }); }   // 예전 공통 저장분을 멤버별로 나눠 담음
+    else if (st && typeof st === 'object') map = st;
+    map[cid] = arr;
+    try { localStorage.setItem(LOADOUT_KEY, JSON.stringify(map)); } catch (e) {}
+    if (typeof saveAll === 'function') { try { saveAll(); } catch (e) {} }
+  }
+  function equip(slot, id, cid) {                  // id = null 이면 비움. 이미 다른 칸에 있으면 그 칸을 비우고 옮김
+    cid = cid || curCid();
+    var L = loadLoadout(cid);
     if (id) for (var i = 0; i < SLOTS; i++) if (L[i] === id) L[i] = null;
     L[slot] = id || null;
-    saveLoadout(L);
+    saveLoadout(L, cid);
     return L;
   }
   function coinsNow() { return (typeof coins !== 'undefined') ? coins : 0; }
@@ -840,7 +857,8 @@
 
   // ════════ ⚔️ 스킬 장착 화면 (더보기 > 팬 스킬 상점 / 맵의 ⚙️ 버튼) ════════
   var edSel = null;
-  function openEditor() {
+  function openEditor(cid) {
+    edChar = cid || (F && F.cid) || shopChar || charIds()[0] || null;
     var old = $('fs-editor'); if (old) old.remove();
     var ov = document.createElement('div');
     ov.id = 'fs-editor';
@@ -864,14 +882,14 @@
       return '<div data-pick="' + s.id + '" style="display:flex;align-items:center;gap:10px;padding:9px 11px;margin-bottom:7px;border-radius:13px;cursor:pointer;background:' + (eq ? 'rgba(124,58,237,.3)' : 'rgba(255,255,255,.07)') + ';border:1.5px solid ' + (eq ? '#C084FC' : 'rgba(255,255,255,.14)') + ';opacity:' + (low ? '.6' : '1') + ';">' +
         '<div style="font-size:24px;">' + s.icon + '</div><div style="flex:1;min-width:0;"><div style="font-size:13px;font-weight:900;color:#fff;">' + s.name + (s.aoe ? ' <span style="font-size:10px;color:#ffd76a;">광역</span>' : '') + '</div>' +
         '<div style="font-size:10px;color:#bbb;line-height:1.4;">' + s.desc + '</div></div>' +
-        '<div style="font-size:11px;font-weight:900;color:' + (low ? '#ff9a9a' : '#9fe8b0') + ';white-space:nowrap;text-align:right;">' + (low ? '🔒 Lv.' + s.useLv : (s.price === 0 ? '기본 스킬' : (ownCount(s) ? '배운 멤버 ' + ownCount(s) + '명' : '<span style="color:#ff9a9a;">🔒 아직 아무도 안 배움</span>'))) + ((F && hasSkill(F.cid, s)) ? '<br><span style="color:#FFD700;">숙련 Lv.' + masteryLv(F.cid, s.id) + '</span>' : '') + (eq ? '<br><span style="color:#C084FC;">장착중</span>' : '') + '</div></div>';
+        '<div style="font-size:11px;font-weight:900;color:' + (low ? '#ff9a9a' : '#9fe8b0') + ';white-space:nowrap;text-align:right;">' + (low ? '🔒 Lv.' + s.useLv : (s.price === 0 ? '기본 스킬' : (hasSkill(edChar, s) ? '배움 ✔' : '<span style="color:#ff9a9a;">🔒 ' + (charName(edChar) || '이 멤버') + ' 아직 안 배움</span>'))) + ((F && hasSkill(F.cid, s)) ? '<br><span style="color:#FFD700;">숙련 Lv.' + masteryLv(F.cid, s.id) + '</span>' : '') + (eq ? '<br><span style="color:#C084FC;">장착중</span>' : '') + '</div></div>';
     }).join('');
     ov.innerHTML = '<div style="width:100%;max-width:380px;max-height:92vh;overflow-y:auto;background:linear-gradient(135deg,#1a1a2e,#2d1b4e);border:2px solid #C084FC;border-radius:20px;padding:18px 14px;color:#fff;">' +
-      '<div style="font-size:17px;font-weight:900;text-align:center;">⚔️ 스킬 장착</div>' +
-      '<div style="font-size:11px;color:#bbb;text-align:center;margin:4px 0 12px;line-height:1.5;">장착한 스킬이 모든 팬덤 원정 맵에서 똑같이 쓰여요<br>칸을 누르고 → 아래 스킬을 눌러 장착 · 장착된 칸을 누르면 해제<br><span style="color:#ffd76a;">스킬은 멤버마다 배워야 하고, 쓰려면 플레이어 레벨이 필요해요 (지금 Lv.' + plv() + ')</span></div>' +
+      '<div style="font-size:17px;font-weight:900;text-align:center;">⚔️ ' + (charName(edChar) || '') + ' 스킬 장착</div>' +
+      '<div style="font-size:11px;color:#bbb;text-align:center;margin:4px 0 12px;line-height:1.5;">장착은 멤버마다 따로예요 · 그 멤버가 배운 스킬만 장착할 수 있어요 (모든 팬덤 원정 맵에서 적용)<br>칸을 누르고 → 아래 스킬을 눌러 장착 · 장착된 칸을 누르면 해제<br><span style="color:#ffd76a;">스킬은 멤버마다 배워야 하고, 쓰려면 플레이어 레벨이 필요해요 (지금 Lv.' + plv() + ')</span></div>' +
       '<div style="display:flex;justify-content:center;gap:7px;margin-bottom:14px;">' + slots + '</div>' + rows +
       '<button id="fs-ed-close" style="width:100%;margin-top:6px;padding:12px;border:none;border-radius:12px;background:linear-gradient(135deg,#FF6B9D,#C084FC);color:#fff;font-size:14px;font-weight:900;cursor:pointer;font-family:inherit;">완료</button></div>';
-    $('fs-ed-close').onclick = function () { ov.remove(); try { refreshBar(); } catch (e) {} };
+    $('fs-ed-close').onclick = function () { ov.remove(); edChar = null; try { refreshBar(); } catch (e) {} };
     Array.prototype.forEach.call(ov.querySelectorAll('[data-slot]'), function (el) {
       el.onclick = function () {
         var i = Number(el.getAttribute('data-slot')), cur = loadLoadout();
@@ -885,7 +903,7 @@
         var at = cur.indexOf(id);
         if (at !== -1) { equip(at, null); edSel = null; renderEditor(); return; }     // 장착중인 걸 누르면 해제
         var sk0 = skillById(id);
-        if (sk0 && sk0.price > 0 && !ownCount(sk0)) { toast('🔒 상점에서 먼저 배워야 장착할 수 있어요! (더보기 > 💖 팬 스킬 상점)'); return; }   // 아무도 안 배운 스킬은 장착 불가
+        if (sk0 && !hasSkill(edChar, sk0)) { toast('🔒 ' + (charName(edChar) || '이 멤버') + '은(는) 아직 이 스킬을 못 배웠어요! (더보기 > 💖 팬 스킬 상점에서 배워요)'); return; }   // 그 멤버가 배운 스킬만 장착
         var slot = edSel !== null && !cur[edSel] ? edSel : cur.indexOf(null);
         if (slot === -1) { toast('빈 칸이 없어요! 장착된 칸을 눌러 먼저 해제해요'); return; }
         equip(slot, id); edSel = null;
@@ -975,7 +993,7 @@
       };
     });
     ov.querySelector('#fs-shop-close').onclick = function () { ov.remove(); };
-    var edb = ov.querySelector('#fs-open-ed'); if (edb) edb.onclick = function () { openEditor(); var e2 = $('fs-editor'); if (e2) { var cl = e2.querySelector('#fs-ed-close'); var o = cl.onclick; cl.onclick = function () { o(); renderShop(ov); }; } };
+    var edb = ov.querySelector('#fs-open-ed'); if (edb) edb.onclick = function () { openEditor(shopChar); var e2 = $('fs-editor'); if (e2) { var cl = e2.querySelector('#fs-ed-close'); var o = cl.onclick; cl.onclick = function () { o(); renderShop(ov); }; } };
     Array.prototype.forEach.call(ov.querySelectorAll('[data-ch]'), function (b) { b.onclick = function () { shopChar = b.getAttribute('data-ch'); renderShop(ov); }; });
     Array.prototype.forEach.call(ov.querySelectorAll('[data-buy]'), function (b) {
       b.onclick = function () {

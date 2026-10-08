@@ -94,7 +94,7 @@
   function skillOwned(s) { var a = API(); return !a || !G || a.hasSkill(G.charId, s.id); }
   // 한 판 동안만: 장착한 단일 스킬이 3개 미만이면, 빈 슬롯에 배운 기본 스킬(사인·사진·악수·하트)을 자동으로 채워서 팬들이 다양한 걸 요구하게 함 (저장된 장착 상태는 안 바뀜)
   function loadoutIds() {
-    var a = API(), base = a ? a.loadout() : ['sign', 'photo', null, null, null];
+    var a = API(), base = a ? a.loadout(G && G.charId) : ['sign', 'photo', null, null, null];
     if (!G || !a) return base;
     var lo = base.slice(), singles = 0, have = {};
     lo.forEach(function (id) { if (id) { have[id] = 1; var k = skillById(id); if (k && k.kind !== 'aoe' && skillOpen(k) && skillOwned(k)) singles++; } });
