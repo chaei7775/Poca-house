@@ -4,7 +4,7 @@
 //
 //  · 갖고 있는 동안 효과가 켜진다 (카드 그림의 숫자 = 강화 전 "기본값")
 //  · 강화(+1~+10) · 초월(1~3단계)을 올릴수록 효과가 커진다
-//      진행도 p = 초월단계×10 + 강화단계 (0~40) → 배율 = 1 + (MAX_MULT-1) × p/40
+//      진행도 p = 초월단계×11 + 강화단계 (0~43, 초월 1번 = 강화 1칸 보너스) → 배율 = 1 + (MAX_MULT-1) × p/43
 //      초월 3단계 완료(+10강) = 기본값의 MAX_MULT배 (10배: 알바코인 +6% → +60%)
 //  · 효과마다 상한(CAPS)이 있어서 너무 세지지 않는다
 //
@@ -22,7 +22,7 @@
 
   // ── 설정 ──
   var MAX_MULT = 10;          // 초월 3단계 완료 시 기본값의 몇 배
-  var MAX_PROGRESS = 40;      // 초월 3 × 10 + 강화 10
+  var MAX_PROGRESS = 43;      // 초월 3단계 완료(+10강) = 3×11 + 10
   // 효과 종류별 상한 (단위는 %, 소원조각은 %p)
   var CAPS = { coin: 100, luck: 15, affection: 50, study: 50, stamina: 50, wish: 2, great: 40 };
   // 카드별 효과: stat 은 위 종류 / v = 카드 그림의 기본값 / live=false 면 아직 연결 안 됨
@@ -47,9 +47,19 @@
   function progress(id) {
     var st = J('ph_enhance', {}) || {};
     var L = Number(st.level && st.level[id]) || 0, S = Number(st.stage && st.stage[id]) || 0;
-    return Math.max(0, Math.min(MAX_PROGRESS, S * 10 + L));
+    return pFor(L, S);
   }
-  function multOf(id) { return 1 + (MAX_MULT - 1) * progress(id) / MAX_PROGRESS; }
+  function pFor(L, S) { return Math.max(0, Math.min(MAX_PROGRESS, S * 11 + L)); }
+  function multAt(p) { return 1 + (MAX_MULT - 1) * p / MAX_PROGRESS; }
+  // 다음 강화/초월 뒤의 진행도 (더 못 올리면 null)
+  function nextP(id) {
+    var st = J('ph_enhance', {}) || {};
+    var L = Number(st.level && st.level[id]) || 0, S = Number(st.stage && st.stage[id]) || 0;
+    if (L < 10) return pFor(L + 1, S);
+    if (S < 3) return (S + 1 >= 3) ? pFor(10, S + 1) : pFor(0, S + 1);
+    return null;
+  }
+  function multOf(id) { return multAt(progress(id)); }
   function r1(n) { return Math.round(n * 10) / 10; }
   // 지금 켜져 있는 효과 합계 { coin:.., luck:.. } (상한 적용)
   function totals() {
@@ -144,6 +154,37 @@
     document.getElementById('hfx-x').onclick = function () { ov.remove(); };
   }
   window.openHiddenEffects = openPanel;
+
+  // ════════ 트레이닝룸 화면에 효과를 바로 보여주기 ════════
+  function capped(e, m) { return Math.min(CAPS[e.stat] !== undefined ? CAPS[e.stat] : 1e9, e.v * m); }
+  function detailBox(id) {
+    var lines = FX[id].map(function (e) {
+      if (e.live === false) return '<div style="display:flex;justify-content:space-between;font-size:12px;color:#777;padding:2px 0;"><span>' + e.label + '</span><span>' + fmtVal(e, e.v) + ' (준비 중)</span></div>';
+      var cur = capped(e, multOf(id)), np = nextP(id), nx = np === null ? null : capped(e, multAt(np));
+      var tail = nx === null ? ' <span style="font-size:10px;color:#6ee7a0;">최대!</span>' : (nx > cur ? ' <span style="font-size:11px;color:#6ee7a0;">→ ' + fmtVal(e, nx) + '</span>' : '');
+      return '<div style="display:flex;justify-content:space-between;align-items:baseline;font-size:13px;color:#fff;padding:2px 0;"><span>' + e.label + '</span><span><span style="color:#888;font-size:11px;">기본 ' + fmtVal(e, e.v) + '</span> <b style="color:#FFD700;">' + fmtVal(e, cur) + '</b>' + tail + '</span></div>';
+    }).join('');
+    return '<div class="hfx-box" style="background:rgba(255,215,0,.07);border:1px solid #FFD70044;border-radius:12px;padding:9px 12px;margin-bottom:10px;"><div style="font-size:12px;font-weight:900;color:#FFD700;margin-bottom:4px;">🌟 카드 효과 <span style="font-weight:400;color:#aaa;">(강화할수록 커져요)</span></div>' + lines + '</div>';
+  }
+  function decorate() {
+    var det = document.getElementById('enhance-detail');
+    if (det && !det.querySelector('.hfx-box')) {
+      var title = det.querySelector('#enh-go') || det.querySelector('#enh-back');
+      var h = (typeof HIDDEN_CARDS !== 'undefined' ? HIDDEN_CARDS : []).filter(function (x) { return det.innerHTML.indexOf(x.name) !== -1 && owned(x.id) && FX[x.id]; });
+      // 같은 이름(레어/에픽)이 있어서 이미지 주소로 정확히 구분
+      var exact = h.filter(function (x) { return det.innerHTML.indexOf(x.img) !== -1; })[0] || h[0];
+      if (title && exact) title.insertAdjacentHTML('beforebegin', detailBox(exact.id));
+    }
+    var ov = document.getElementById('enhance-overlay');
+    if (ov) ov.querySelectorAll('[data-open]').forEach(function (el) {
+      if (el.querySelector('.hfx-mini')) return;
+      var id = el.getAttribute('data-open'), e = FX[id] && FX[id].filter(function (x) { return x.live !== false; })[0];
+      if (!e) return;
+      var bar = el.lastElementChild; if (!bar) return;
+      bar.insertAdjacentHTML('beforeend', '<div class="hfx-mini" style="font-size:9px;color:#9fe8b0;font-weight:900;">' + e.label + ' ' + fmtVal(e, capped(e, multOf(id))) + '</div>');
+    });
+  }
+  try { new MutationObserver(function () { try { decorate(); } catch (e) {} }).observe(document.body, { childList: true, subtree: true }); } catch (e) {}
 
   whenReady(function () { return typeof window.openMoreMenu === 'function' && typeof window.moreMenuTileHtml === 'function'; }, function () {
     var orig = window.openMoreMenu;
