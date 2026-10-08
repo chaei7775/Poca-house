@@ -17,6 +17,12 @@
       crystal: 2,
       message: '🎁 데이터 소실 보상 쿠폰!\n\n💰 코인 5,000,000\n💎 소원의 결정 2개\n\n불편을 드려 죄송해요 🙏'
     },
+    'RECOMBO100': {
+      items: [
+        { emoji: '🔹', name: '재조합석', type: 'material', qty: 100, desc: '카드 재조합에 필요한 재료' }
+      ],
+      message: '🎁 재조합석 쿠폰!\n\n🔹 재조합석 100개'
+    },
     'WELCOME': {
       gold: 300000,
       items: [
