@@ -29,8 +29,7 @@
       '<button onclick="document.getElementById(\'meet-overlay\').remove()" style="width:100%;padding:12px;background:rgba(255,255,255,0.08);border:none;border-radius:12px;color:#aaa;font-size:14px;cursor:pointer;font-family:\'Noto Sans KR\',sans-serif;">돌아가기</button></div>';
     document.body.appendChild(overlay);
     try { showGiftMenu(charId); } catch (e) { console.error('[bond-gift] showGiftMenu error:', e); }
-    // 아이돌을 만난 걸로 처리 (튜토리얼 '처음 만나는 인연')
-    try { if (typeof checkQuestProgress === 'function') checkQuestProgress('first_meet'); } catch (e) {}
+    // (선물창을 여는 것만으로는 '처음 만나는 인연'을 깨지 않음 — 만나기/대화 버튼을 눌러야 함)
   };
 
   function addButton(charId) {
