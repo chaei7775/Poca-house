@@ -907,7 +907,9 @@
     var list = order.length ? order.map(function (n) { return n + (counts[n] > 1 ? ' ×' + counts[n] : ''); }).join('<br>') : '아무것도 못 얻었어요 😢';
     var card = opts.grantCard && typeof window.grantTrialCard === 'function' && normal;
     S = null;
-    ov.innerHTML = '<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.78);">' +
+    // 결과 창: 무대 화면(touch-action:none)을 그대로 쓰면 손가락 스크롤이 막히고, 내용이 길면 버튼이 화면 밖에 걸림 → 스크롤 허용 + 길면 위아래로 밀려 올라가게
+    ov.style.touchAction = 'pan-y'; ov.style.overflowY = 'auto'; ov.style.webkitOverflowScrolling = 'touch';
+    ov.innerHTML = '<div style="position:relative;min-height:100%;box-sizing:border-box;padding:18px 0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.78);">' +
       '<div style="background:linear-gradient(135deg,#1a1a2e,#4a1b6e);border:2px solid #f59e0b;border-radius:20px;padding:26px 22px;text-align:center;width:85%;max-width:300px;">' +
       '<div style="font-size:36px;margin-bottom:6px;">🎪</div>' +
       '<div style="font-size:18px;font-weight:900;color:#fff;margin-bottom:8px;">' + (normal ? '무대 대성공!' : '무대에서 나왔어요') + '</div>' +
