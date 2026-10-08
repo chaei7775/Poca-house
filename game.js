@@ -2099,20 +2099,20 @@ function learnSewing() {
 let equippedCloth = JSON.parse(localStorage.getItem('ph_equippedCloth') || 'null');
 
 const CLOTH_ITEMS = [
-  { id:'cherry-skirt',    name:'벚꽃 미디 스커트',      img:B+'cloth-cherry-skirt.jpg',    grade:'희귀', stat:'charm',    statVal:3, stat2:'heart', val2:3, desc:'매력 +3%, 두근 +3%' },
-  { id:'cherry-blouse',   name:'벚꽃 시스루 블라우스',   img:B+'cloth-cherry-blouse.jpg',   grade:'희귀', stat:'affection', statVal:3, stat2:'heart', val2:3, desc:'호감도 +3%, 두근 +3%' },
-  { id:'crystal-jacket',  name:'수정 트위드 자켓',       img:B+'cloth-crystal-jacket.jpg',  grade:'희귀', stat:'luck',     statVal:3, stat2:'heart', val2:3, desc:'행운 +3%, 희귀재료 +3%, 두근 +3%' },
-  { id:'crystal-skirt',   name:'수정 트위드 스커트',     img:B+'cloth-crystal-skirt.jpg',   grade:'희귀', stat:'luck',     statVal:3, stat2:'heart', val2:3, desc:'행운 +3%, 희귀재료 +3%, 두근 +3%' },
-  { id:'crystal-jumper',  name:'수정 야구 점퍼',         img:B+'cloth-crystal-jumper.jpg',  grade:'희귀', stat:'luck',     statVal:3, stat2:'heart', val2:3, desc:'행운 +3%, 희귀재료 +3%, 두근 +3%' },
-  { id:'crystal-pants',   name:'수정 베이직 팬츠',       img:B+'cloth-crystal-pants.jpg',   grade:'희귀', stat:'luck',     statVal:3, stat2:'heart', val2:3, desc:'행운 +3%, 희귀재료 +3%, 두근 +3%' },
-  { id:'cloud-skirt',     name:'구름 체크 스커트',       img:B+'cloth-cloud-skirt.jpg',     grade:'희귀', stat:'coin',     statVal:3, stat2:'heart', val2:3, desc:'알바 코인 +3%, 두근 +3%' },
-  { id:'cloud-jacket',    name:'구름 크롭 자켓',         img:B+'cloth-cloud-jacket.jpg',    grade:'희귀', stat:'coin',     statVal:3, stat2:'heart', val2:3, desc:'알바 코인 +3%, 두근 +3%' },
-  { id:'cloud-shorts',    name:'구름 핫팬츠',            img:B+'cloth-cloud-shorts.jpg',    grade:'희귀', stat:'coin',     statVal:3, stat2:'heart', val2:3, desc:'알바 코인 +3%, 두근 +3%' },
-  { id:'cloud-dress',     name:'구름 교복 원피스',       img:B+'cloth-cloud-dress.jpg',     grade:'희귀', stat:'charm',    statVal:3, stat2:'heart', val2:3, desc:'매력 +3%, 두근 +3%' },
-  { id:'star-blazer',     name:'별빛 데님 블레이저',     img:B+'cloth-star-blazer.jpg',     grade:'희귀', stat:'study',    statVal:3, stat2:'heart', val2:3, desc:'수업 점수 +3%, 두근 +3%' },
-  { id:'star-dress',      name:'별빛 데님 멜빵 원피스',  img:B+'cloth-star-dress.jpg',      grade:'희귀', stat:'study',    statVal:3, stat2:'heart', val2:3, desc:'수업 점수 +3%, 두근 +3%' },
-  { id:'moon-jeans',      name:'달빛 청바지',            img:B+'cloth-moon-jeans.jpg',      grade:'희귀', stat:'charm',    statVal:3, stat2:'heart', val2:3, desc:'매력 +3%, 두근 +3%' },
-  { id:'moon-hoodie',     name:'달빛 후드점퍼',          img:B+'cloth-moon-hoodie.jpg',     grade:'희귀', stat:'study',    statVal:3, stat2:'heart', val2:3, desc:'수업 점수 +3%, 두근 +3%' },
+  { id:'cherry-skirt',    name:'벚꽃 미디 스커트',      img:B+'cloth-cherry-skirt.png',    grade:'희귀', stat:'charm',    statVal:3, stat2:'heart', val2:3, desc:'매력 +3%, 두근 +3%' },
+  { id:'cherry-blouse',   name:'벚꽃 시스루 블라우스',   img:B+'cloth-cherry-blouse.png',   grade:'희귀', stat:'affection', statVal:3, stat2:'heart', val2:3, desc:'호감도 +3%, 두근 +3%' },
+  { id:'crystal-jacket',  name:'수정 트위드 자켓',       img:B+'cloth-crystal-jacket.png',  grade:'희귀', stat:'luck',     statVal:3, stat2:'heart', val2:3, desc:'행운 +3%, 희귀재료 +3%, 두근 +3%' },
+  { id:'crystal-skirt',   name:'수정 트위드 스커트',     img:B+'cloth-crystal-skirt.png',   grade:'희귀', stat:'luck',     statVal:3, stat2:'heart', val2:3, desc:'행운 +3%, 희귀재료 +3%, 두근 +3%' },
+  { id:'crystal-jumper',  name:'수정 야구 점퍼',         img:B+'cloth-crystal-jumper.png',  grade:'희귀', stat:'luck',     statVal:3, stat2:'heart', val2:3, desc:'행운 +3%, 희귀재료 +3%, 두근 +3%' },
+  { id:'crystal-pants',   name:'수정 베이직 팬츠',       img:B+'cloth-crystal-pants.png',   grade:'희귀', stat:'luck',     statVal:3, stat2:'heart', val2:3, desc:'행운 +3%, 희귀재료 +3%, 두근 +3%' },
+  { id:'cloud-skirt',     name:'구름 체크 스커트',       img:B+'cloth-cloud-skirt.png',     grade:'희귀', stat:'coin',     statVal:3, stat2:'heart', val2:3, desc:'알바 코인 +3%, 두근 +3%' },
+  { id:'cloud-jacket',    name:'구름 크롭 자켓',         img:B+'cloth-cloud-jacket.png',    grade:'희귀', stat:'coin',     statVal:3, stat2:'heart', val2:3, desc:'알바 코인 +3%, 두근 +3%' },
+  { id:'cloud-shorts',    name:'구름 핫팬츠',            img:B+'cloth-cloud-shorts.png',    grade:'희귀', stat:'coin',     statVal:3, stat2:'heart', val2:3, desc:'알바 코인 +3%, 두근 +3%' },
+  { id:'cloud-dress',     name:'구름 교복 원피스',       img:B+'cloth-cloud-dress.png',     grade:'희귀', stat:'charm',    statVal:3, stat2:'heart', val2:3, desc:'매력 +3%, 두근 +3%' },
+  { id:'star-blazer',     name:'별빛 데님 블레이저',     img:B+'cloth-star-blazer.png',     grade:'희귀', stat:'study',    statVal:3, stat2:'heart', val2:3, desc:'수업 점수 +3%, 두근 +3%' },
+  { id:'star-dress',      name:'별빛 데님 멜빵 원피스',  img:B+'cloth-star-dress.png',      grade:'희귀', stat:'study',    statVal:3, stat2:'heart', val2:3, desc:'수업 점수 +3%, 두근 +3%' },
+  { id:'moon-jeans',      name:'달빛 청바지',            img:B+'cloth-moon-jeans.png',      grade:'희귀', stat:'charm',    statVal:3, stat2:'heart', val2:3, desc:'매력 +3%, 두근 +3%' },
+  { id:'moon-hoodie',     name:'달빛 후드점퍼',          img:B+'cloth-moon-hoodie.png',     grade:'희귀', stat:'study',    statVal:3, stat2:'heart', val2:3, desc:'수업 점수 +3%, 두근 +3%' },
 ];
 
 
@@ -2125,7 +2125,7 @@ function normalizeClothBagItems() {
       || CLOTH_ITEMS.find(c => item.name === c.name || item.name === `✨ ${c.name}` || item.name.replace(/^✨\s*/, '') === c.name);
     if (!cloth) return;
     if (!item.clothId) { item.clothId = cloth.id; changed = true; }
-    if (!item.img) { item.img = cloth.img; changed = true; }
+    if (item.img !== cloth.img) { item.img = cloth.img; changed = true; }
     if (!item.stat) { item.stat = cloth.stat; changed = true; }
     if (!item.statVal) { item.statVal = item.isGreat ? cloth.statVal + 1 : cloth.statVal; changed = true; }
     if (!item.desc) { item.desc = `${item.isGreat ? '대성공 의상' : cloth.grade + ' 의상'} · ${getClothDisplayDesc(cloth, item)}`; changed = true; }
