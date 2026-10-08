@@ -9,7 +9,7 @@
 (function () {
   'use strict';
   var IMG_BASE = 'https://raw.githubusercontent.com/chaei7775/Poca-house/main/';
-  var LOCKED = true;                  // true = 새 맵 3개를 잠가 둠 (🔒 준비 중). 열려면 false 로 바꾸기
+  var LOCKED = false;                 // true = 새 맵 3개를 전부 잠가 둠 (🔒 준비 중). false = 각 맵의 레벨(25/30/35)에 맞춰 열림
   var EXTRA_RATE = 0.3;               // 하루 횟수를 넘긴 뒤 보상 비율
   var REG = {}, ORDER = [];
   var FONT = "font-family:'Noto Sans KR',sans-serif;";
@@ -130,6 +130,15 @@
     if (window['__xkInst_' + cfg.id]) return;
     window['__xkInst_' + cfg.id] = true;
     if (isOpen() && !SPECIAL_LOCATIONS.some(function (l) { return l.id === cfg.id; })) SPECIAL_LOCATIONS.push({ id: cfg.id, name: cfg.name, emoji: cfg.emoji, color: cfg.color, bg: IMG_BASE + (cfg.bg || 'map-fanrush.png') });
+    if (!window.__xkSelWrapped) {
+      window.__xkSelWrapped = true;
+      var origSel = window.openSpecialCardSelect;
+      window.openSpecialCardSelect = function (id) {
+        var c = REG[id];
+        if (c && plv() < c.needLevel) { toast('🔒 ' + c.name + '은(는) 플레이어 Lv.' + c.needLevel + '부터 열려요 (지금 Lv.' + plv() + ')'); return; }
+        return origSel.apply(this, arguments);
+      };
+    }
     var orig = window.startSpecialExplore;
     window.startSpecialExplore = function (locationId, charId) {
       if (locationId === cfg.id) { enter(cfg, charId); return; }
@@ -143,10 +152,15 @@
         if (isOpen()) b.setAttribute('onclick', "openSpecialCardSelect('" + cfg.id + "')");
         else b.onclick = function () { toast('🔒 ' + cfg.name + '은(는) 준비 중이에요! 곧 열려요'); };
         b.style.cssText = 'width:100%;display:flex;align-items:center;gap:12px;padding:13px 14px;margin-bottom:9px;background:' + cfg.color + '1f;border:1.5px solid ' + cfg.color + ';border-radius:14px;color:#fff;font-size:14px;font-weight:900;cursor:pointer;font-family:\'Noto Sans KR\',sans-serif;text-align:left;';
-        b.innerHTML = '<span style="font-size:24px;">' + cfg.emoji + '</span><span>' + cfg.name + ' <span style="font-size:10px;color:#ffe;font-weight:700;">' + (isOpen() ? 'NEW · Lv.' + cfg.needLevel : '🔒 준비 중') + '</span><br><span style="font-size:10px;font-weight:400;opacity:.85;">' + cfg.tagline + '</span></span>';
-        if (!isOpen()) b.style.opacity = '.55';
+        b.innerHTML = '<span style="font-size:24px;">' + cfg.emoji + '</span><span>' + cfg.name + ' <span class="xk-tag" style="font-size:10px;color:#ffe;font-weight:700;">NEW · Lv.' + cfg.needLevel + '</span><br><span style="font-size:10px;font-weight:400;opacity:.85;">' + cfg.tagline + '</span></span>';
         var pad = sec.lastElementChild;
         sec.insertBefore(b, pad);
+      }
+      var bb = $(bid);
+      if (bb) {
+        var lock = !isOpen() || plv() < cfg.needLevel;
+        bb.style.opacity = lock ? '.55' : '1';
+        var tag = bb.querySelector('.xk-tag'); if (tag) tag.textContent = !isOpen() ? '🔒 준비 중' : lock ? '🔒 Lv.' + cfg.needLevel : 'NEW · Lv.' + cfg.needLevel;
       }
       setTimeout(addBtn, 600);
     })();
