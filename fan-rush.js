@@ -949,14 +949,14 @@
     for (var si = 0; si < 5; si++) (function (si) {
       var b = document.createElement('button'); b.className = 'fr-sk'; b.id = 'fr-slot-' + si;
       b.innerHTML = '<span class="ic"></span><span class="nm"></span><div class="cd"></div><span class="tm"></span>';
-      b.onclick = function (e) { e.stopPropagation(); var id = loadoutIds()[si]; if (id) useSkill(id); else if (API()) API().openEditor(); else toast('스킬 장착은 더보기 > 💖 팬 스킬 상점에서 해요'); };
+      b.onclick = function (e) { e.stopPropagation(); var id = loadoutIds()[si]; if (id) useSkill(id); else if (API()) API().openEditor(G && G.charId); else toast('스킬 장착은 더보기 > 💖 팬 스킬 상점에서 해요'); };
       b.addEventListener('pointerdown', function (e) { e.stopPropagation(); });
       sk.appendChild(b);
     })(si);
     var gearB = document.createElement('button');   // ⚙️ 스킬 장착 (스킬 세트 1·2·3 변경도 여기서)
     gearB.textContent = '⚙️ 스킬 장착';
     gearB.style.cssText = 'position:absolute;left:10px;bottom:28px;background:rgba(0,0,0,.62);border:1px solid #C084FC;border-radius:999px;padding:5px 12px;font-size:11px;font-weight:900;color:#fff;cursor:pointer;font-family:inherit;';
-    gearB.onclick = function (e) { e.stopPropagation(); if (API()) API().openEditor(); else toast('스킬 장착은 더보기 > 💖 팬 스킬 상점에서 해요'); };
+    gearB.onclick = function (e) { e.stopPropagation(); if (API()) API().openEditor(G && G.charId); else toast('스킬 장착은 더보기 > 💖 팬 스킬 상점에서 해요'); };
     gearB.addEventListener('pointerdown', function (e) { e.stopPropagation(); });
     $('fr-view').appendChild(gearB);
     var pw = $('fr-pots');
