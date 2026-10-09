@@ -42,10 +42,10 @@
   var SLOTS = 5;                 // 장착 슬롯 수 (모든 팬덤 원정 맵에서 공통)
   var LOADOUT_KEY = 'ph_skillLoadout';
   var SKILLS = [                 // price = 상점 가격(멤버 1명당 코인). 0이면 처음부터 가지고 있음 / useLv = 쓸 수 있는 플레이어 레벨 / aoe = 광역(reach = 쓸 수 있는 거리)
-    { id: 'sign',  name: '사인해주기', short: '사인', icon: '✍️', price: 0,       useLv: 1,  desc: '펜이 반짝! 팬이 제일 좋아하는 기본 스킬' },
-    { id: 'photo', name: '사진촬영',   short: '사진', icon: '📸', price: 0,       useLv: 1,  desc: '찰칵! 폴라로이드 한 장을 남겨요' },
-    { id: 'shake', name: '악수',       short: '악수', icon: '🤝', price: 300000,  useLv: 10, desc: '손을 맞잡고 반짝이를 터뜨려요' },
-    { id: 'heart', name: '손하트',     short: '하트', icon: '💗', price: 1000000, useLv: 15, desc: '하트를 날려서 팬 마음을 저격해요' },
+    { id: 'sign',  name: '사인해주기', short: '사인', icon: '🖋', price: 0,       useLv: 1,  desc: '펜이 반짝! 팬이 제일 좋아하는 기본 스킬' },
+    { id: 'photo', name: '사진촬영',   short: '사진', icon: '🫱', price: 0,       useLv: 1,  desc: '찰칵! 폴라로이드 한 장을 남겨요' },
+    { id: 'shake', name: '악수',       short: '악수', icon: '🫰', price: 300000,  useLv: 10, desc: '손을 맞잡고 반짝이를 터뜨려요' },
+    { id: 'heart', name: '손하트',     short: '하트', icon: '🫶', price: 1000000, useLv: 15, desc: '하트를 날려서 팬 마음을 저격해요' },
     { id: 'highlight', name: '하이라이트 부르기', short: '하이라이트', icon: '🪩', price: 2000000, useLv: 20, aoe: true, reach: 170, desc: '광역! 주변 팬들을 확 사로잡아요' },
     { id: 'wink',  name: '윙크 샤워',  short: '윙크샤워', icon: '😘', price: 3000000, useLv: 25, aoe: true, reach: 250, desc: '넓은 광역! 넓은 범위에 윙크 세례' },
     { id: 'encore', name: '앵콜 폭죽', short: '앵콜폭죽', icon: '🧨', price: 5000000, useLv: 30, aoe: true, reach: 320, desc: '대광역! 전방위 대폭발' },
