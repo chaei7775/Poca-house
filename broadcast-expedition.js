@@ -833,6 +833,7 @@
     return { tier: t, n: t.min + Math.floor(Math.random() * (t.max - t.min + 1)) };
   }
   var boxSnooze = 0;
+  function pieceIcon(sz) { try { if (typeof window.matIcon === 'function') return window.matIcon(PIECE_NAME, sz, PIECE_EMOJI); } catch (e) {} return PIECE_EMOJI; }
   window.__bcBoxOpen = function () { boxOpen(); };   // 테스트용
   window.__bcBoxCount = function (n) { var o = boxLoad(); o.n += (n | 0); boxSave(o); try { hud(); } catch (e) {} return true; };   // 팬 스킬로 응대해도 상자 진행 +1
   window.__bcBoxBonus = function (n) { var o = boxLoad(); o.bonus += (n | 0); boxSave(o); return true; };   // 팬 스킬 등: 조각을 바로 주지 않고 뽑기 상자에 덤으로 쌓기
@@ -893,7 +894,7 @@
       var fx = $('cm-fx'), em = ['🖼️', '✨', '💖', '⭐', '🎁', '💫'];
       for (var k = 0; k < 28; k++) {
         var p = document.createElement('div'), a = Math.random() * Math.PI * 2, d = 60 + Math.random() * 130;
-        p.textContent = em[k % em.length];
+        if (em[k % em.length] === '🖼️') p.innerHTML = pieceIcon(26); else p.textContent = em[k % em.length];
         p.style.cssText = 'position:absolute;left:' + cx + 'px;top:' + cy + 'px;font-size:' + (16 + Math.random() * 14) + 'px;transition:transform .9s cubic-bezier(.1,.7,.3,1),opacity .9s ease-in;transform:translate(-50%,-50%);opacity:1;';
         fx.appendChild(p);
         (function (p, a, d) { setTimeout(function () { p.style.transform = 'translate(' + (Math.cos(a) * d) + 'px,' + (Math.sin(a) * d - 40) + 'px) scale(.6) rotate(' + (a * 90) + 'deg)'; p.style.opacity = '0'; }, 30); })(p, a, d);
@@ -962,7 +963,7 @@
         res.style.display = 'flex';
         res.innerHTML = '<div style="text-align:center;padding:20px;animation:cmPop .5s ease-out;">' +
           '<div style="font-size:16px;font-weight:900;color:' + rr.tier.color + ';">' + rr.tier.name + '!</div>' +
-          '<div style="font-size:34px;font-weight:900;color:#7dd3fc;margin-top:8px;">🖼️ +' + total + '</div>' +
+          '<div style="font-size:34px;font-weight:900;color:#7dd3fc;margin-top:8px;display:flex;align-items:center;justify-content:center;gap:8px;">' + pieceIcon(46) + '+' + total + '</div>' +
           '<div style="font-size:13px;margin-top:4px;color:#eee;">프리미엄 조각</div>' +
           '<div style="font-size:12px;margin-top:6px;color:#ddd;">' + (st.bonus ? '(상자 ' + rr.n + ' + 카드 효과 ' + st.bonus + ') · ' : '') + '모은 조각 ' + have + '/' + PIECE_GOAL + '</div>' +
           '<button id="cm-ok" style="margin-top:16px;padding:12px 34px;border:none;border-radius:12px;background:linear-gradient(135deg,#FF6B9D,#C084FC);color:#fff;font-size:15px;font-weight:900;font-family:inherit;">확인</button></div>';
