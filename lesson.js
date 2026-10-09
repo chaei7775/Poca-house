@@ -550,6 +550,7 @@
     function close() { ov.remove(); done(); }
     function drawAsk() {
       ov.innerHTML = '<div style="width:100%;max-width:340px;background:linear-gradient(160deg,#1b1330,#2d1b4e);border:1.5px solid ' + (ev.id === 'break' ? '#ffd700' : '#b793ff') + ';border-radius:20px;padding:18px;animation:lsPop .35s ease-out;">' +
+        '<img src="meal-assets/event/' + ev.id + '.jpg" loading="lazy" decoding="async" alt="" draggable="false" style="display:block;width:100%;border-radius:12px;margin:0 0 10px;" onerror="this.style.display=\'none\'">' +
         '<div style="text-align:center;font-size:12px;font-weight:900;color:' + (ev.id === 'break' ? '#ffd700' : '#c9b6ff') + ';">' + (ev.id === 'break' ? '🌟' : '💬') + ' 돌발 상황!</div>' +
         '<div style="text-align:center;font-size:16px;font-weight:900;color:#fff;margin:4px 0 8px;">' + esc(ev.title) + '</div>' +
         '<div style="background:rgba(255,255,255,0.08);border-radius:12px;padding:11px;font-size:12.5px;color:#e8eaff;line-height:1.6;margin-bottom:12px;">' + esc(fillTxt(ev.text, name, k)) + '</div>' +
