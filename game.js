@@ -2614,7 +2614,10 @@ function getTodayKey() {
 function normalizeSchoolDaily() {
   const today = getTodayKey();
   if (!schoolDaily || schoolDaily.date !== today) {
-    schoolDaily = { date: today, tickets: 3, cards: {}, done: {}, report: false };
+    // 🎫 등교권은 쌓인다: 안 쓴 장수가 남고 하루 +3장 (최대 SCHOOL_TICKET_CAP장, 이미 더 많이 갖고 있으면 그대로 유지)
+    const left = (schoolDaily && typeof schoolDaily.tickets === 'number') ? schoolDaily.tickets : 0;
+    const CAP = 30;
+    schoolDaily = { date: today, tickets: left >= CAP ? left : Math.min(CAP, left + 3), cards: {}, done: {}, report: false };
   }
   if (typeof schoolDaily.tickets !== 'number') schoolDaily.tickets = 3;
   if (!schoolDaily.cards) schoolDaily.cards = {};
@@ -2774,7 +2777,7 @@ function schoolHeader(title) {
   return `<div style="position:sticky;top:0;z-index:2;background:linear-gradient(135deg,#60a5fa,#C084FC);padding:10px 12px;color:#fff;box-shadow:0 2px 12px #0002;display:flex;align-items:center;justify-content:space-between;gap:8px;">
     <button onclick="closeSchoolGames()" style="background:rgba(0,0,0,0.22);border:none;border-radius:10px;color:#fff;padding:7px 10px;font-weight:900;cursor:pointer;flex-shrink:0;">←</button>
     <div style="font-size:16px;font-weight:900;flex:1;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;">${title}</div>
-    <div style="font-size:10px;font-weight:900;background:rgba(255,255,255,0.22);border-radius:13px;padding:4px 7px;white-space:nowrap;line-height:1.28;text-align:right;flex-shrink:0;">🎫 ${schoolDaily.tickets}/3<br>⭐ ${honorStars} · ✨ ${honorFragments}</div>
+    <div style="font-size:10px;font-weight:900;background:rgba(255,255,255,0.22);border-radius:13px;padding:4px 7px;white-space:nowrap;line-height:1.28;text-align:right;flex-shrink:0;">🎫 ${schoolDaily.tickets}장<br>⭐ ${honorStars} · ✨ ${honorFragments}</div>
   </div>`;
 }
 

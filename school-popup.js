@@ -85,7 +85,7 @@
         '<div style="flex:1;min-width:0;"><div style="font-size:20px;font-weight:900;line-height:1.25;word-break:keep-all;">🎒 ' + card.name + '</div>' +
         '<div style="font-size:12.5px;opacity:.95;margin:3px 0 10px;">등교 중 · 수업 끝나면 성적표!</div>' +
         '<button onclick="__schoolPop.change()" style="border:none;border-radius:12px;background:#fff;color:#1d4ed8;font-size:12.5px;font-weight:900;padding:7px 14px;cursor:pointer;">🔄 포카 바꾸기</button></div></div>' +
-      '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:14px;">' + chip('🎫 ' + schoolDaily.tickets + '/3') + chip('⭐ ' + honorStars) + chip('✨ ' + honorFragments + '/100') + '</div></div>';
+      '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:14px;">' + chip('🎫 ' + schoolDaily.tickets + '장') + chip('⭐ ' + honorStars) + chip('✨ ' + honorFragments + '/100') + '</div></div>';
 
     var bar = '<div style="padding:16px 18px 4px;"><div style="display:flex;justify-content:space-between;font-size:13px;font-weight:900;color:#334155;margin-bottom:7px;"><span>오늘의 수업 진행</span><span>' + doneN + ' / 3</span></div>' +
       '<div style="height:10px;border-radius:6px;background:#e2e8f0;overflow:hidden;"><div style="height:100%;width:' + Math.round(doneN / 3 * 100) + '%;background:linear-gradient(90deg,#60a5fa,#C084FC);border-radius:6px;transition:width .4s;"></div></div></div>';
