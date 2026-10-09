@@ -103,7 +103,7 @@
       else h += '<div style="font-size:11px;color:#8b7bb0;margin-bottom:5px;">👗 입은 옷 없음</div>';
       h += c.goods.map(function (g) {
         if (g.empty) return '<div style="display:flex;align-items:center;gap:8px;border:1px dashed rgba(255,255,255,0.18);border-radius:10px;padding:6px 9px;margin-bottom:5px;font-size:11px;color:#8b7bb0;">＋ ' + g.slot + ' 비어 있음</div>';
-        return chipRow(g.emoji, g.slot + ' · ' + g.name + ' (' + (GRADE_LABEL[g.grade] || '') + ')', g.lines.join('<br>'), GRADE_COLOR[g.grade]);
+        return chipRow((typeof window.matIcon === 'function' ? window.matIcon(g.name, 32, g.emoji) : g.emoji), g.slot + ' · ' + g.name + ' (' + (GRADE_LABEL[g.grade] || '') + ')', g.lines.join('<br>'), GRADE_COLOR[g.grade]);
       }).join('');
       h += '</div>';
     });
