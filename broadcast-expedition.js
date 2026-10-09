@@ -818,8 +818,8 @@
   //  평균 약 25개 (스태미나 3,000 = 이벤트 100번 기준). 확률/개수는 아래 BOX_TIERS 만 고치면 됨.
   var BOX_KEY = 'ph_pieceBox', BOX_NEED = 100;
     var BOX_TIERS = [   // w: 확률(%), min~max: 조각 개수
-    { name: '아쉬운 상자', w: 8,  min: 5,   max: 10,  color: '#9ca3af' },
-    { name: '일반 상자',   w: 57, min: 12,  max: 25,  color: '#7dd3fc' },
+    { name: '아쉬운 상자', w: 5,  min: 5,   max: 10,  color: '#9ca3af' },
+    { name: '일반 상자',   w: 60, min: 12,  max: 25,  color: '#7dd3fc' },
     { name: '레어 상자',   w: 25, min: 29,  max: 40,  color: '#c084fc' },
     { name: '에픽 상자',   w: 8,  min: 41,  max: 60,  color: '#fbbf24' },
     { name: '🌟 대박 상자', w: 2,  min: 100, max: 100, color: '#ff6b9d' }
