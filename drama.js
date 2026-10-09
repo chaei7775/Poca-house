@@ -553,13 +553,12 @@ function renderPrep(){
       ${groups}`}
     </div>
 
-    <div class="sec"><h2>체력 음료</h2><div class="shop">
-      <button class="buy ${stam()===0?'hot':''}" data-a="buy" data-n="1"><b>체력 음료 (소)</b><span>촬영 1회 · ${won(CFG.SMALL)}</span></button>
-      <button class="buy" data-a="buy" data-n="3"><b>체력 음료 (대)</b><span>촬영 3회 · ${won(CFG.BIG)}</span></button>
-    </div></div>
-
   </div>
   <div class="dock">
+    <div class="shop" style="margin-bottom:8px">
+      <button class="buy ${stam()===0?'hot':''}" data-a="buy" data-n="1" style="padding:7px 10px"><b style="font-size:13px">🥤 체력 음료 (소)</b><span style="font-size:11px">촬영 1회 · ${won(CFG.SMALL)}</span></button>
+      <button class="buy" data-a="buy" data-n="3" style="padding:7px 10px"><b style="font-size:13px">🥤 체력 음료 (대)</b><span style="font-size:11px">촬영 3회 · ${won(CFG.BIG)}</span></button>
+    </div>
     <div class="sum">${sc_.title} · ${d_.name} · ${c_.name}(${c_.grade}) · 스킬 ${mine.length}/${c_.slots}</div>
     <button class="go" data-a="go" ${locked||stam()<1?'disabled':''}><span>${locked?(hasCard?'데뷔 전 캐릭터예요':'카드가 없어요'):stam()<1?'체력 음료가 필요해요':'촬영 시작'}</span><small>${locked||stam()<1?'':'체력 -1'}</small></button>
   </div>`;
