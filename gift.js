@@ -43,6 +43,11 @@
       var e = emojiOf(key);
       try { if (typeof window.matIcon === 'function') return window.matIcon(nameOf(key), px || 20, e) || e; } catch (x) {}
     }
+    if (key.indexOf('bk_sweet_') === 0) {                    // 디저트 공방 간식 → meal-assets/sweets/<id>.png (없으면 이모지)
+      var px2 = px || 20, em = emojiOf(key);
+      return '<span style="position:relative;display:inline-block;width:' + px2 + 'px;height:' + px2 + 'px;font-size:' + Math.round(px2 * 0.8) + 'px;line-height:' + px2 + 'px;text-align:center;vertical-align:middle;">' + em +
+        '<img src="meal-assets/sweets/' + esc(key.slice(9)) + '.png" alt="" loading="lazy" decoding="async" style="position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:transparent;" onload="var p=this.parentNode;if(p&&p.firstChild&&p.firstChild.nodeType===3)p.firstChild.nodeValue=\'\';" onerror="this.remove()"></span>';
+    }
     return emojiOf(key);
   }
   function emojiOf(key) { if (key === 'coin') return COIN.emoji; var C = core(); return C && C.ITEMS[key] ? C.ITEMS[key].emoji : '🎁'; }
@@ -147,7 +152,7 @@
     S.received.push(id); delete S.pending[id];
     addLog(S, '🎁 ' + (x.fromNick || '친구') + '님이 ' + nameOf(x.item) + ' x' + fmt(n) + ' 선물');
     saveState(S); core().persist();
-    toast('🎁 ' + (x.fromNick || '친구') + '님의 선물! ' + (x.item.indexOf('mat_') === 0 ? '' : emojiOf(x.item) + ' ') + nameOf(x.item) + ' x' + fmt(n));
+    toast('🎁 ' + (x.fromNick || '친구') + '님의 선물! ' + (x.item.indexOf('mat_') === 0 || x.item.indexOf('bk_sweet_') === 0 ? '' : emojiOf(x.item) + ' ') + nameOf(x.item) + ' x' + fmt(n));
   }
   async function receiveAll() {
     if (notReady()) return 0;
@@ -256,7 +261,7 @@
       var btn = this; btn.disabled = true; btn.style.opacity = '0.6';
       try {
         await sendGift(toUid, toNick, key, qty);
-        toast('🎁 ' + toNick + '에게 ' + (key.indexOf('mat_') === 0 ? '' : emojiOf(key) + ' ') + nameOf(key) + ' x' + fmt(qty) + ' 보냈어요!');
+        toast('🎁 ' + toNick + '에게 ' + (key.indexOf('mat_') === 0 || key.indexOf('bk_sweet_') === 0 ? '' : emojiOf(key) + ' ') + nameOf(key) + ' x' + fmt(qty) + ' 보냈어요!');
         q.remove(); if (parent) parent.remove();
       } catch (e) {
         toast((e && e.message) || '보내지 못했어요');
