@@ -116,8 +116,35 @@
     btn = document.createElement('button'); btn.id = 'ph-help-btn';
     btn.textContent = '?';
     btn.style.cssText = 'position:fixed;top:calc(env(safe-area-inset-top,0px) + 56px);right:10px;z-index:99990;width:34px;height:34px;border-radius:50%;border:2px solid #FFD700;background:rgba(30,20,50,.88);color:#FFD700;font-size:18px;font-weight:900;font-family:inherit;line-height:1;cursor:pointer;display:none;padding:0;';
-    ['pointerdown', 'touchstart', 'mousedown'].forEach(function (t) { btn.addEventListener(t, function (e) { e.stopPropagation(); }); });
-    btn.addEventListener('click', function (e) { e.stopPropagation(); if (shown) openHelp(shown); });
+    btn.style.touchAction = 'none';
+    var pos = null; try { pos = JSON.parse(localStorage.getItem('ph_help_pos') || 'null'); } catch (e) {}
+    function place(x, y) {       // 화면 안으로 가둬서 놓는다
+      x = Math.max(4, Math.min(window.innerWidth - 38, x)); y = Math.max(4, Math.min(window.innerHeight - 38, y));
+      btn.style.left = x + 'px'; btn.style.top = y + 'px'; btn.style.right = 'auto'; return { x: x, y: y };
+    }
+    if (pos && isFinite(pos.x) && isFinite(pos.y)) place(pos.x, pos.y);
+    // 누르면 도움말, 꾹 눌러 끌면 ? 버튼을 원하는 곳으로 옮길 수 있다 (다른 버튼과 겹칠 때)
+    var drag = null;
+    btn.addEventListener('pointerdown', function (e) {
+      e.stopPropagation();
+      var r = btn.getBoundingClientRect();
+      drag = { sx: e.clientX, sy: e.clientY, ox: r.left, oy: r.top, moved: false };
+      try { btn.setPointerCapture(e.pointerId); } catch (x) {}
+    });
+    btn.addEventListener('pointermove', function (e) {
+      if (!drag) return;
+      var dx = e.clientX - drag.sx, dy = e.clientY - drag.sy;
+      if (!drag.moved && Math.abs(dx) + Math.abs(dy) < 8) return;
+      drag.moved = true; place(drag.ox + dx, drag.oy + dy);
+    });
+    btn.addEventListener('pointerup', function (e) {
+      e.stopPropagation();
+      if (!drag) return;
+      if (drag.moved) { var r = btn.getBoundingClientRect(); try { localStorage.setItem('ph_help_pos', JSON.stringify({ x: r.left, y: r.top })); } catch (x) {} }
+      else if (shown) openHelp(shown);
+      drag = null;
+    });
+    ['touchstart', 'mousedown', 'click'].forEach(function (t) { btn.addEventListener(t, function (e) { e.stopPropagation(); }); });
     document.body.appendChild(btn);
     return btn;
   }

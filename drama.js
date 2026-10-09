@@ -486,6 +486,7 @@ const dir=()=>DIRS.find(d=>d.id===S.sel.dir);
 const eq=cid=>(S.equip[cid]||[]).map(u=>S.inv.find(i=>i.u===u)).filter(Boolean);
 /* 스킬 세트: 카드마다 1·2·3번 세트를 저장해 두고 한 번에 갈아끼운다. 장착을 바꾸면 쓰는 세트에도 자동 저장 */
 const SET_N=3;
+let pickU=0;   /* 스킬 목록에서 눌러 고른 스킬(장착/해제 버튼이 아래에 뜸) */
 function getSets(cid){if(!S.sets)S.sets={};if(!S.sets[cid])S.sets[cid]={active:1,1:[...(S.equip[cid]||[])],2:[],3:[]};return S.sets[cid]}
 function syncSet(cid){const st=getSets(cid);st[st.active||1]=[...(S.equip[cid]||[])]}
 function setBar(cid){const st=getSets(cid),ac=st.active||1;return `<div class="slotrow"><span class="lab">세트</span>${[1,2,3].map(n=>`<button class="btn" data-a="set" data-n="${n}" style="padding:8px 16px;font-size:13px;${n===ac?'border:2px solid #FFD700;background:rgba(255,215,0,.15);':''}">${n}번${n===ac?'':` <span style="font-size:10px;color:var(--muted)">${(st[n]||[]).length}</span>`}</button>`).join('')}</div>`}
@@ -514,7 +515,8 @@ function renderPrep(){
     if(!list.length)return '';
     return `<div class="grp"><h3>${cat}</h3><div class="chips">${list.map(i=>{
       const k=SKILLS[i.s],oc=onCard(i.u),mineOn=oc===c_.id;
-      return `<button class="chip ${mineOn?'on':''} ${oc&&!mineOn?'other':''}" data-a="eq" data-u="${i.u}"><span class="dot c-${k.cat} ic ic-${i.s}">${k.i}</span><div><b>${k.n} <span class="tag g-${k.gr}" style="display:inline">${k.gr}</span> <span class="tag" style="display:inline;color:#7ee8a5">Lv.${mastLv(i.s)}${mastLv(i.s)>=MAST_MAX?' MAX':''}</span></b><span>${dtext(i.s)}${k.cd?` · 쿨 ${fmt(k.cd*mastCd(i.s))}초`:''}${mastLv(i.s)<MAST_MAX?` · 숙련 ${mastXp(i.s)}/${MAST_XP[mastLv(i.s)]}`:''}${oc&&!mineOn?` · ${card(oc).name} ${card(oc).grade} 장착중`:''}</span></div></button>`}).join('')}</div></div>`}).join('');
+      const picked=pickU===i.u;
+      return `<button class="chip ${mineOn?'on':''} ${oc&&!mineOn?'other':''}" data-a="pick" data-u="${i.u}" style="${picked?'border-color:#FFD700;opacity:1;':''}"><span class="dot c-${k.cat} ic ic-${i.s}">${k.i}</span><div><b>${k.n} <span class="tag g-${k.gr}" style="display:inline">${k.gr}</span> <span class="tag" style="display:inline;color:#7ee8a5">Lv.${mastLv(i.s)}${mastLv(i.s)>=MAST_MAX?' MAX':''}</span></b><span>${dtext(i.s)}${k.cd?` · 쿨 ${fmt(k.cd*mastCd(i.s))}초`:''}${mastLv(i.s)<MAST_MAX?` · 숙련 ${mastXp(i.s)}/${MAST_XP[mastLv(i.s)]}`:''}${oc&&!mineOn?` · ${card(oc).name} ${card(oc).grade} 장착중`:''}</span></div></button>${picked?`<button class="btn" data-a="eq" data-u="${i.u}" ${locked?'disabled':''} style="width:100%;padding:11px 12px;font-size:14px;margin-bottom:4px;background:#FFD700;color:#1a1405;border-color:#FFD700">${mineOn?'해제하기':oc&&!mineOn?`${card(oc).name} 카드에서 가져와 장착하기`:'장착하기'}</button>`:''}`}).join('')}</div></div>`}).join('');
   const _sc=$('#dr-prep .scroll'),_top=_sc?_sc.scrollTop:0;
   $('#dr-prep').innerHTML=`
   <div class="scroll">
@@ -564,7 +566,7 @@ function renderPrep(){
   const _n=$('#dr-prep .scroll');if(_n)_n.scrollTop=_top;
 }
 $('#dr-prep').addEventListener('click',e=>{
-  const b=e.target.closest('[data-a]');if(!b||b.disabled)return;const a=b.dataset.a;
+  const b=e.target.closest('[data-a]');if(!b||b.disabled)return;const a=b.dataset.a;if(a!=='pick'&&a!=='eq')pickU=0;
   if(a==='script')S.sel.script=b.dataset.id;
   else if(a==='dir')S.sel.dir=b.dataset.id;
   else if(a==='card')S.sel.card=b.dataset.id;
@@ -596,10 +598,17 @@ $('#dr-prep').addEventListener('click',e=>{
     const cid=S.sel.card,c=card(cid),u=+b.dataset.u,cur=onCard(u);
     if(!c||!isDebut(c.char))return;
     if(cur===cid){S.equip[cid]=S.equip[cid].filter(x=>x!==u)}
-    else if(cur){snack(card(cur).name+' 카드에 장착중이에요')}
-    else{const l=S.equip[cid]||[];if(l.length>=c.slots)snack('슬롯이 가득 찼어요');else S.equip[cid]=[...l,u]}
-    syncSet(cid);
+    else{
+      const l=S.equip[cid]||[];
+      if(l.length>=c.slots)snack('슬롯이 가득 찼어요');
+      else{
+        if(cur){S.equip[cur]=S.equip[cur].filter(x=>x!==u);syncSet(cur);snack(card(cur).name+' 카드에서 가져왔어요')}
+        S.equip[cid]=[...l,u];
+      }
+    }
+    syncSet(cid);pickU=0;
   }
+  else if(a==='pick'){pickU=(pickU===+b.dataset.u)?0:+b.dataset.u}
   else if(a==='set'){
     const cid=S.sel.card,c=card(cid),n=+b.dataset.n;
     if(!c||!isDebut(c.char))return;
