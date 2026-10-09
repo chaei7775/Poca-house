@@ -2,7 +2,7 @@
 // 💎 프리미엄 카드 (premium-cards.js)
 //
 //  - 방송국 앞 원정에서 모은 '프리미엄 조각' 100개로 프리미엄 카드 1장을 랜덤으로 받는다 (6명 중)
-//  - 같은 카드가 또 나오면 조각 50개를 돌려받는다. 레벨은 '강화'로만 오른다 (Lv.1 → Lv.10).
+//  - 같은 카드가 또 나오면 '같은 카드'로 보관된다. 강화에 성공할 때 같은 카드를 흡수해야 레벨이 오른다 (Lv.1 → Lv.10).
 //  - 강화: 강화석(히든 강화와 같은 재료) + 코인. 실패해도 카드는 안 사라지고 재료만 소모된다.
 //  - 효과는 그 캐릭터로 방송국 앞 원정을 나갈 때만 켜진다
 //      스킬   : 이벤트 성공 시 프리미엄 조각이 나올 확률 +2%p (레벨당 +0.5%p)
@@ -18,7 +18,7 @@
   var PIECE_NAME = '프리미엄 조각', PIECE_EMOJI = '🖼️';
   var GOAL = 100;            // 카드 1장에 필요한 조각 수
   var MAX_LV = 10;           // 카드 최대 레벨
-  var REFUND = 50;           // 같은 카드가 또 나왔을 때 돌려주는 조각 수
+  var ENH_DUP = [1, 1, 1, 1, 1, 2, 2, 2, 3];   // 강화 성공 시 흡수되는 같은 카드 수 (Lv.1→2 ... 9→10)
   // 강화 (Lv.1 → 2 ... 9 → 10 순서의 값). 히든 강화보다 빡세게 (+10강까지 평균 열흘 정도)
   var ENH_RATE = [100, 85, 75, 65, 55, 45, 35, 28, 20];                 // 성공 확률(%)
   var ENH_STONE = [2, 2, 2, 2, 2, 2, 2, 3, 3];                          // 한 번 도전할 때 내는 강화석
@@ -52,6 +52,7 @@
     if (typeof saveAll === 'function') { try { saveAll(); } catch (e) {} }
   }
   function levelOf(id) { var d = load(); return (d[id] && d[id].lv) || 0; }
+  function dupOf(id) { var d = load(); return Math.max(0, Math.floor(Number(d[id] && d[id].dup) || 0)); }
 
   function pieceCount() {
     if (typeof bagItems === 'undefined') return 0;
@@ -82,8 +83,8 @@
     var kind;
     if (cur === 0) { d[c.id] = { lv: 1 }; kind = 'new'; }
     else {
-      kind = 'dup';   // 이미 있는 카드: 조각 일부를 돌려받음 (레벨은 강화로만 올라감)
-      if (typeof addToBag === 'function') addToBag(PIECE_EMOJI, PIECE_NAME, 'piece', REFUND, '프리미엄 카드 조각 · ' + GOAL + '개를 모으면 프리미엄 카드 1장');
+      kind = 'dup';   // 이미 있는 카드: 같은 카드로 보관 (강화에 흡수됨)
+      d[c.id].dup = dupOf(c.id) + 1;
     }
     save(d);
     showReveal(c, kind, (d[c.id] && d[c.id].lv) || 1);
@@ -116,7 +117,7 @@
     var o = document.createElement('div');
     o.id = 'pc-reveal';
     o.style.cssText = 'position:fixed;inset:0;z-index:1500;background:rgba(0,0,0,.88);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:18px;';
-    var head = kind === 'new' ? '🎉 프리미엄 카드 획득!' : '✨ 이미 가진 카드예요 · 조각 ' + REFUND + '개 환급';
+    var head = kind === 'new' ? '🎉 프리미엄 카드 획득!' : '✨ 같은 카드가 나왔어요 · 강화 재료로 보관돼요 (보유 ' + dupOf(c.id) + '장)';
     o.innerHTML =
       '<div style="font-size:18px;font-weight:900;color:#FFD700;margin-bottom:10px;text-align:center;">' + head + '</div>' +
       '<img src="' + imgUrl(c) + '" style="max-height:62vh;max-width:88%;border-radius:14px;border:2px solid #FFD700;animation:pcIn .6s ease-out,pcGlow 2s ease-in-out infinite;">' +
@@ -155,7 +156,8 @@
     var d = load(), lv = (d[c.id] && d[c.id].lv) || 0;
     if (lv < 1 || lv >= MAX_LV) return null;
     var i = lv - 1, needStone = ENH_STONE[i], needCoin = ENH_COIN[i];
-    var st = loadEnh();
+    var st = loadEnh(), needDup = ENH_DUP[i];
+    if (dupOf(c.id) < needDup) { toast('같은 카드가 부족해요! (' + dupOf(c.id) + '/' + needDup + ') 같은 카드가 또 나오면 모여요'); return null; }
     if (stones() < needStone) { toast('강화석이 부족해요! (' + stones() + '/' + needStone + ')'); return null; }
     if (nowCoins() < needCoin) { toast('코인이 부족해요! 🍔 ' + fmt(needCoin) + ' 필요'); return null; }
     var fromBag = Math.min(bagStone(), needStone);
@@ -164,7 +166,7 @@
     try { localStorage.setItem(ENH_KEY, JSON.stringify(st)); } catch (e) {}
     if (typeof coins !== 'undefined') coins -= needCoin;
     var ok = Math.random() * 100 < ENH_RATE[i];
-    if (ok) { d[c.id].lv = lv + 1; save(d); }
+    if (ok) { d[c.id].lv = lv + 1; d[c.id].dup = Math.max(0, (d[c.id].dup || 0) - needDup); save(d); }
     else if (typeof saveAll === 'function') { try { saveAll(); } catch (e) {} }
     if (typeof updateCoinsDisplay === 'function') { try { updateCoinsDisplay(); } catch (e) {} }
     return { ok: ok, from: lv, to: ok ? lv + 1 : lv };
@@ -199,7 +201,8 @@
         '<span style="color:' + (s >= ENH_STONE[i] ? '#fff' : '#ff8a8a') + ';">🔨 강화석 ' + s + ' / ' + ENH_STONE[i] + '</span>' +
         '<span style="color:' + (cn >= ENH_COIN[i] ? '#fff' : '#ff8a8a') + ';">🍔 ' + fmt(ENH_COIN[i]) + '</span>' +
         '<span style="color:#FFD700;">성공 ' + ENH_RATE[i] + '%</span></div>' +
-        '<div style="font-size:10px;color:#aaa;margin-top:4px;">실패해도 카드는 안 사라지고 재료만 사라져요</div>';
+        '<div style="font-size:12px;margin-top:6px;color:' + (dupOf(c.id) >= ENH_DUP[i] ? '#fff' : '#ff8a8a') + ';">🃏 같은 카드 ' + dupOf(c.id) + ' / ' + ENH_DUP[i] + ' <span style="color:#aaa;font-size:10px;">(강화에 성공하면 흡수돼요)</span></div>' +
+        '<div style="font-size:10px;color:#aaa;margin-top:4px;">실패해도 카드와 같은 카드는 안 사라지고 강화석·코인만 사라져요</div>';
     }
     function row(label, from, to, id, suffix) {
       return '<div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;font-size:13px;">' +
@@ -269,7 +272,7 @@
         '<div style="height:12px;border-radius:6px;background:rgba(255,255,255,.12);overflow:hidden;margin-bottom:12px;"><div style="height:100%;width:' + pct + '%;background:linear-gradient(90deg,#7dd3fc,#C084FC);"></div></div>' +
         '<button id="pc-exchange" style="width:100%;padding:13px;border:none;border-radius:13px;font-size:15px;font-weight:900;color:#fff;cursor:' + (can ? 'pointer' : 'default') + ';font-family:\'Noto Sans KR\',sans-serif;background:' + (can ? 'linear-gradient(135deg,#FF6B9D,#C084FC)' : 'rgba(255,255,255,.12)') + ';">' +
         (can ? '💎 프리미엄 카드 받기 (조각 ' + GOAL + '개)' : '조각 ' + (GOAL - n) + '개 더 필요해요') + '</button>' +
-        '<div style="font-size:11px;color:#aaa;margin-top:8px;line-height:1.5;">6명 중 랜덤으로 1장! 같은 카드가 또 나오면 조각 ' + REFUND + '개를 돌려줘요. 레벨은 카드를 눌러 강화(최대 Lv.' + MAX_LV + ')! 조각은 🎬 팬덤 원정 · 방송국 앞에서 모아요.</div>' +
+        '<div style="font-size:11px;color:#aaa;margin-top:8px;line-height:1.5;">6명 중 랜덤으로 1장! 같은 카드가 또 나오면 강화 재료로 모여요. 레벨은 카드를 눌러 같은 카드를 흡수해 강화(최대 Lv.' + MAX_LV + ')! 조각은 🎬 팬덤 원정 · 방송국 앞에서 모아요.</div>' +
       '</div>' +
       '<div style="font-size:13px;font-weight:900;margin-bottom:8px;">내 프리미엄 카드 (' + owned + '/' + CARDS.length + ')</div>' +
       '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;">' + grid + '</div>';
@@ -341,11 +344,11 @@
       return '<div data-pick="' + c.id + '" style="cursor:pointer;position:relative;border-radius:12px;overflow:hidden;border:2px solid ' + c.color + ';background:#111;">' +
         '<img src="' + imgUrl(c) + '" style="width:100%;aspect-ratio:3/4;object-fit:cover;display:block;' + (lv ? '' : 'filter:brightness(.85);') + '" onerror="this.style.opacity=0">' +
         '<div style="position:absolute;left:0;right:0;bottom:0;padding:14px 4px 5px;background:linear-gradient(transparent,rgba(0,0,0,.85));text-align:center;font-size:12px;font-weight:900;color:#fff;">' + c.name +
-        '<div style="font-size:10px;font-weight:700;color:' + (lv ? '#FFD700' : '#9fe8b0') + ';">' + (lv ? '보유 Lv.' + lv + ' · 조각 ' + REFUND + '개 환급' : '🆕 새 카드') + '</div></div></div>';
+        '<div style="font-size:10px;font-weight:700;color:' + (lv ? '#FFD700' : '#9fe8b0') + ';">' + (lv ? '보유 Lv.' + lv + ' · 같은 카드 ' + dupOf(c.id) + '장' : '🆕 새 카드') + '</div></div></div>';
     }).join('');
     o.innerHTML = '<div style="width:100%;max-width:380px;max-height:94vh;overflow-y:auto;background:linear-gradient(135deg,#1a1a2e,#2d1b4e);border:2px solid #FFD700;border-radius:20px;padding:18px 14px;text-align:center;">' +
       '<div style="font-size:18px;font-weight:900;color:#FFD700;">✨ 프리미엄 카드 선택권</div>' +
-      '<div style="font-size:12px;color:#bbb;margin:4px 0 12px;">원하는 카드 1장을 골라요 (이미 가진 카드는 조각 ' + REFUND + '개로 환급돼요)</div>' +
+      '<div style="font-size:12px;color:#bbb;margin:4px 0 12px;">원하는 카드 1장을 골라요 (이미 가진 카드는 강화 재료로 모여요)</div>' +
       '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">' + cells + '</div>' +
       '<button id="pc-voucher-x" style="margin-top:14px;width:100%;padding:11px;border:none;border-radius:12px;background:rgba(255,255,255,.08);color:#aaa;font-size:13px;cursor:pointer;font-family:inherit;">닫기</button></div>';
     document.body.appendChild(o);
@@ -355,12 +358,12 @@
         var c = CARDS.find(function (x) { return x.id === el.getAttribute('data-pick'); });
         if (!c) return;
         var has = levelOf(c.id) > 0;
-        if (has && !window.confirm(c.name + ' 카드는 이미 있어요. 그래도 선택할까요? (조각 ' + REFUND + '개 환급)')) return;
+        if (has && !window.confirm(c.name + ' 카드는 이미 있어요. 그래도 선택할까요? (같은 카드로 보관돼요)')) return;
         if (!window.confirm(c.name + ' 카드로 정할까요?')) return;
         if (typeof useFromBag !== 'function' || !useFromBag(VOUCHER, 1)) { toast('선택권을 쓰지 못했어요'); return; }
         var d = load(), kind;
         if (!has) { d[c.id] = { lv: 1 }; kind = 'new'; }
-        else { kind = 'dup'; if (typeof addToBag === 'function') addToBag(PIECE_EMOJI, PIECE_NAME, 'piece', REFUND, '프리미엄 카드 조각 · ' + GOAL + '개를 모으면 프리미엄 카드 1장'); }
+        else { kind = 'dup'; d[c.id].dup = dupOf(c.id) + 1; }
         save(d);
         o.remove();
         var bo = $('bag-detail-overlay'); if (bo) bo.remove();
