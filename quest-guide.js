@@ -31,6 +31,7 @@
     var d = (J('ph_agency', {}) || {}).done || {};
     return keys(d).filter(function (k) { return d[k]; }).length;
   }
+  function sionDebut() { var d = (J('ph_agency', {}) || {}); return !!((d.done && d.done.sion) || (d.debut && d.debut.sion)); }
   function cfDone() {
     var c = J('ph_cf', {}) || {};
     return (c.posters && c.posters.length > 0) || keys(c.charDone).length > 0;
@@ -247,7 +248,7 @@
       go: function () { goTo('map'); }, target: '#nav-map' },
     { id: 'lesson1', icon: '🎓', title: '시온에게 첫 레슨 시키기',
       hint: '더보기 → 📅 스케줄·식사 → 시온 화면 아래 🎓 레슨! 레슨을 하면 능력치가 영구히 올라가요. (하루 1번)',
-      when: function () { try { return Number(playerLevel) >= 12; } catch (e) { return false; } },
+      when: function () { try { return Number(playerLevel) >= 12 && sionDebut(); } catch (e) { return false; } },
       done: function () { var d = J('ph_training', {}); return !!(d && d.count && (d.count.sion || 0) >= 1); }, reward: 500,
       go: function () { if (typeof window.openMealSchedule === 'function') window.openMealSchedule(); else goTo('home'); }, target: '#nav-shop' },
     { id: 'sweet1', icon: '🧁', title: '디저트 공방에서 간식 만들기',
@@ -257,12 +258,12 @@
       go: function () { if (typeof window.openMealSchedule === 'function') window.openMealSchedule(); else goTo('home'); }, target: '#nav-shop' },
     { id: 'lesson5', icon: '📚', title: '시온 레슨 5번 하기',
       hint: '하루 1번씩 꾸준히! 기분이 좋을 때 레슨하면 더 많이 올라요. 간식을 먹이면 기분이 올라가요.',
-      when: function () { try { return Number(playerLevel) >= 14; } catch (e) { return false; } },
+      when: function () { try { return Number(playerLevel) >= 14 && sionDebut(); } catch (e) { return false; } },
       done: function () { var d = J('ph_training', {}); return !!(d && d.count && (d.count.sion || 0) >= 5); }, reward: 1200,
       go: function () { if (typeof window.openMealSchedule === 'function') window.openMealSchedule(); else goTo('home'); }, target: '#nav-shop' },
     { id: 'sweet_fed', icon: '🍬', title: '아이돌에게 간식 먹이기',
       hint: '만든 간식을 먹이면 기분이 쑥! 아이돌마다 좋아하는 간식이 있어요 (좋아하면 기분 +4 더).',
-      when: function () { try { return Number(playerLevel) >= 14; } catch (e) { return false; } },
+      when: function () { try { return Number(playerLevel) >= 14 && debutCount() >= 1; } catch (e) { return false; } },
       done: function () { var d = J('ph_sweets', {}); return !!(d && d.everFed) || !!S.flags.sweet_fed; }, reward: 600,
       go: function () { if (typeof window.openMealSchedule === 'function') window.openMealSchedule(); else goTo('home'); }, target: '#nav-shop' },
     { id: 'kennel1', icon: '🐾', title: '분양소 구경하기',
