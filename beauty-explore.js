@@ -406,12 +406,16 @@
       var wet = 0.34 * (1 - S.sweep.passes / DRY_NEED);
       if (wet > 0.01) { g.fillStyle = 'rgba(110,160,255,' + wet + ')'; g.fillRect(0, 0, N, N); }
     }
-    S.marks.forEach(function (m) {                         // 퍼프로 누른 곳에 화장이 번짐
-      var a = Math.min(1, (S.t - m.t) / 0.3) * 0.6, cx = N / 2 + m.fx * N, cy = N / 2 + m.fy * N, r = N * 0.13;
-      var gr = g.createRadialGradient(cx, cy, 0, cx, cy, r);
-      gr.addColorStop(0, 'rgba(' + m.rgb + ',' + a + ')'); gr.addColorStop(1, 'rgba(' + m.rgb + ',0)');
-      g.fillStyle = gr; g.fillRect(cx - r, cy - r, r * 2, r * 2);
-    });
+    // 퍼프: 얼굴 위치가 그림마다 달라서 색 얼룩 대신 '전체가 은은히 화사해지는' 효과로 (광대처럼 보이던 것 수정)
+    var hits = S.marks.length;
+    if (hits > 0) {
+      var k = Math.min(1, hits / PUFF_NEED);
+      var lastT = S.marks[hits - 1].t, pop = Math.max(0, 1 - (S.t - lastT) / 0.5);   // 톡 칠 때 살짝 반짝
+      var pg = g.createRadialGradient(N / 2, N * 0.5, 0, N / 2, N * 0.5, N * 0.55);
+      pg.addColorStop(0, 'rgba(255,240,235,' + (0.10 * k + 0.12 * pop) + ')');
+      pg.addColorStop(1, 'rgba(255,225,230,' + (0.05 * k) + ')');
+      g.fillStyle = pg; g.fillRect(0, 0, N, N);
+    }
     if (S.shine > 0) {                                     // 스프레이 윤기
       var sh = g.createLinearGradient(0, 0, N, N);
       var a2 = 0.28 * S.shine + (S.glow > 0 ? 0.2 : 0);
