@@ -29,12 +29,13 @@
   var BOOST_DECAY = 0.55, BOOST_MAX = 30;
   var STREAM_STAMINA = 10;             // 총공 1번 스태미나
   var HOUR_FACTOR = [4, 5, 3, 0, -1, -1, -1, 0, 0, 0, 0, 0, -1, -3, -4, -4, -3, -1, 0, 1, 2, 3, 4, 5];   // 시간대별 내 곡 점수 가감(%)
-  var RANK_PAY = [[1, 300000], [3, 150000], [10, 60000], [30, 20000], [100, 5000]];   // 하루 정산 코인(순위 ≤ 앞 숫자)
+  var PAY_MULT = 30;                    // 💰 정산금 배율 (드라마·CF 수입에 맞춤: 1위 하루 900만 · 음방 1위 1500만)
+  var RANK_PAY = [[1, 300000 * PAY_MULT], [3, 150000 * PAY_MULT], [10, 60000 * PAY_MULT], [30, 20000 * PAY_MULT], [100, 5000 * PAY_MULT]];   // 하루 정산 코인(순위 ≤ 앞 숫자)
   var FIRST_ONE_WISH = 5;              // 처음 1위 했을 때 소원의 조각
   var INVEST_BUMP = 1.3, INVEST_MAX_DAYS = 3;
   var EVENT_CHANCE = 0.35, EVENT_GAP = 2;
   var SHOW_DAYS = [5, 6, 0];
-  var WIN_PAY = 500000, SHOW_WISH = 3;
+  var WIN_PAY = 500000 * PAY_MULT, SHOW_WISH = 3;
 
   // ════════ 도우미 ════════
   function J(k, d) { try { var v = JSON.parse(localStorage.getItem(k) || 'null'); return v === null ? d : v; } catch (e) { return d; } }
@@ -342,13 +343,13 @@
     if (!s.show || !s.show.res || !s.show.res.win || s.show.enc) return null;
     s.show.enc = hits;
     var out = { hits: hits, coins: 0, card: false };
-    if (hits >= 1) { out.coins = hits * 100000; addCoins(out.coins); }
+    if (hits >= 1) { out.coins = hits * 100000 * PAY_MULT; addCoins(out.coins); }
     if (hits >= 3) { out.card = true; try { if (typeof addToBag === 'function') addToBag('🏆', '1위 기념 트로피 포토카드', 'material', 1, '음악방송 1위 앵콜 대성공 기념 포토카드'); } catch (e) {} }
     save(s); return out;
   }
 
   // ════════ 음방 활동(기획사 일정) ════════
-  var STAGE_BASE_MOD = 3, STAGE_COIN = 20000, STAGE_COIN_STAR = 20000, STAGE_MOD = 4, STAGE_MOD_STAR = 2;
+  var STAGE_BASE_MOD = 3, STAGE_COIN = 20000 * PAY_MULT, STAGE_COIN_STAR = 20000 * PAY_MULT, STAGE_MOD = 4, STAGE_MOD_STAR = 2;
   function hasSong(cid) { return load().songs.some(function (x) { return !x.over && x.cid === cid; }); }
   function bestSong(s, cid) { return s.songs.filter(function (x) { return !x.over && x.cid === cid; }).sort(function (a, b) { return (a.rank || 101) - (b.rank || 101); })[0]; }
   // 일정 날 정산 때: 곡에 기본 점수를 주고, 무대 미니게임을 기다리는 목록에 올림
