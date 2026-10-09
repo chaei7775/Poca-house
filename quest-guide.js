@@ -245,6 +245,36 @@
       when: function () { try { return Number(playerLevel) >= 10; } catch (e) { return false; } },
       done: function () { var d = J('ph_royalty', {}); return !!(d && ((d.slots && d.slots.length) || d.ever)); }, reward: 1500,
       go: function () { goTo('map'); }, target: '#nav-map' },
+    { id: 'lesson1', icon: '🎓', title: '시온에게 첫 레슨 시키기',
+      hint: '더보기 → 📅 스케줄·식사 → 시온 화면 아래 🎓 레슨! 레슨을 하면 능력치가 영구히 올라가요. (하루 1번)',
+      when: function () { try { return Number(playerLevel) >= 12; } catch (e) { return false; } },
+      done: function () { var d = J('ph_training', {}); return !!(d && d.count && (d.count.sion || 0) >= 1); }, reward: 500,
+      go: function () { if (typeof window.openMealSchedule === 'function') window.openMealSchedule(); else goTo('home'); }, target: '#nav-shop' },
+    { id: 'sweet1', icon: '🧁', title: '디저트 공방에서 간식 만들기',
+      hint: '📅 스케줄·식사 → 디저트 공방! 탐험 재료로 별빛 마카롱 같은 간식을 만들어 가방에 넣어요.',
+      when: function () { try { return Number(playerLevel) >= 13; } catch (e) { return false; } },
+      done: function () { var d = J('ph_sweets', {}); return !!(d && d.cooked && Object.keys(d.cooked).some(function (k) { return d.cooked[k] > 0; })); }, reward: 600,
+      go: function () { if (typeof window.openMealSchedule === 'function') window.openMealSchedule(); else goTo('home'); }, target: '#nav-shop' },
+    { id: 'lesson5', icon: '📚', title: '시온 레슨 5번 하기',
+      hint: '하루 1번씩 꾸준히! 기분이 좋을 때 레슨하면 더 많이 올라요. 간식을 먹이면 기분이 올라가요.',
+      when: function () { try { return Number(playerLevel) >= 14; } catch (e) { return false; } },
+      done: function () { var d = J('ph_training', {}); return !!(d && d.count && (d.count.sion || 0) >= 5); }, reward: 1200,
+      go: function () { if (typeof window.openMealSchedule === 'function') window.openMealSchedule(); else goTo('home'); }, target: '#nav-shop' },
+    { id: 'sweet_fed', icon: '🍬', title: '아이돌에게 간식 먹이기',
+      hint: '만든 간식을 먹이면 기분이 쑥! 아이돌마다 좋아하는 간식이 있어요 (좋아하면 기분 +4 더).',
+      when: function () { try { return Number(playerLevel) >= 14; } catch (e) { return false; } },
+      done: function () { var d = J('ph_sweets', {}); return !!(d && d.everFed) || !!S.flags.sweet_fed; }, reward: 600,
+      go: function () { if (typeof window.openMealSchedule === 'function') window.openMealSchedule(); else goTo('home'); }, target: '#nav-shop' },
+    { id: 'kennel1', icon: '🐾', title: '분양소 구경하기',
+      hint: '더보기 → 🐾 분양소 (Lv.15). 아이돌과 함께할 친구를 만나봐요.',
+      when: function () { try { return Number(playerLevel) >= 15; } catch (e) { return false; } },
+      done: function () { return !!S.flags.kennel_seen; }, reward: 500,
+      go: function () { if (typeof window.openKennel === 'function') { flag('kennel_seen'); window.openKennel(); } else goTo('home'); }, target: '#nav-shop' },
+    { id: 'trade1', icon: '🏪', title: '거래소 구경하기',
+      hint: '더보기 → 🏪 거래소 (Lv.15). 남는 재료나 간식을 올려서 코인으로 바꿔요.',
+      when: function () { try { return Number(playerLevel) >= 15; } catch (e) { return false; } },
+      done: function () { return !!S.flags.trade_seen; }, reward: 500,
+      go: function () { if (typeof window.openTrade === 'function') { flag('trade_seen'); window.openTrade(); } else goTo('home'); }, target: '#nav-shop' },
     { id: 'chart_in', icon: '📈', title: '내 곡 음원차트에 올리기',
       hint: '정규 앨범을 아이돌에게 타이틀곡으로 주면 더보기 → 📈 음원차트에 올라가요. 순위는 🌙 하루 보내기를 할 때마다 바뀌어요!',
       when: function () { try { return Number(playerLevel) >= 10; } catch (e) { return false; } },
@@ -322,7 +352,7 @@
 
 
   // 🔒 unlock-gate.js 의 해금 레벨과 맞춤: 레벨이 모자란 단계는 길잡이가 건너뛴다 (잠긴 곳으로 보내지 않게)
-  var STEP_LV = { agency: 5, explore: 3, school: 3, lv3: 3, room: 3, fishing: 3, mystery: 3, recombine: 12, hidden: 12, premium: 12, prem_equip: 12, enhance: 10, transcend: 10, studio: 15, album: 15, royalty: 15, goods: 15, goods_equip: 15, drama: 8, star_fame: 8, star_top: 8, mgr_top: 8, cf: 10, fancafe: 12, invest: 20, invest_done: 20, invest_grade: 20 };
+  var STEP_LV = { agency: 5, explore: 3, school: 3, lv3: 3, room: 3, fishing: 3, mystery: 3, recombine: 12, hidden: 12, premium: 12, prem_equip: 12, enhance: 10, transcend: 10, studio: 15, album: 15, royalty: 15, goods: 15, goods_equip: 15, drama: 8, star_fame: 8, star_top: 8, mgr_top: 8, cf: 10, fancafe: 12, invest: 20, invest_done: 20, invest_grade: 20, chart_in: 18, chart_stream: 18, chart_book: 18, chart_act: 18, chart_show: 18, chart_one: 20 };
   STEPS.forEach(function (st) {
     var need = STEP_LV[st.id]; if (!need) return;
     var prev = st.when;

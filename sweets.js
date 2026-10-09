@@ -113,7 +113,7 @@
   function applyFeed(s, cond, cid, r) {
     var d = deltaOf(cid, r), before = { v: cond.v, s: cond.s, m: cond.m };
     cond.v = clamp(cond.v + d.v); cond.s = clamp(cond.s + d.s); cond.m = clamp(cond.m + d.m);
-    s.fed[cid] = fedToday(s, cid) + 1;
+    s.fed[cid] = fedToday(s, cid) + 1; s.everFed = 1;
     return { d: d, before: before };
   }
   function pickLine(trait, like, rng) {
