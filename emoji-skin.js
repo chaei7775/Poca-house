@@ -16,8 +16,8 @@
     '🎤': 'mic', '📸': 'camera', '🎥': 'movie', '🎞': 'film', '📺': 'tv', '🎧': 'headphones', '🎹': 'keys', '🎼': 'notes', '🎵': 'notes', '🎶': 'notes',
     '🎭': 'mask', '🎙': 'standmic', '📣': 'mega', '📰': 'news', '🕶': 'sunglasses', '🚐': 'van', '📷': 'instant', '🏟': 'stadium',
     // 마음/감정
-    '💖': 'heartcrown', '💝': 'heartcrown', '💗': 'heartpink', '💓': 'heartpink', '❤': 'heartred', '💞': 'heartpair', '💕': 'heartpair',
-    '💜': 'heartpurple', '🤍': 'heartwhite', '💔': 'heartbroken', '💌': 'letter', '😊': 'smile', '😢': 'cry', '😴': 'sleep',
+    '💖': 'heart', '💝': 'heart', '💗': 'heart', '💓': 'heart', '❤': 'heart', '💞': 'heart', '💕': 'heart',
+    '💜': 'heart', '🤍': 'heart', '💔': 'heartbroken', '♥': 'heart', '🩷': 'heart', '💌': 'letter', '😊': 'smile', '😢': 'cry', '😴': 'sleep',
     '💪': 'muscle', '👑': 'crown', '🌹': 'rose', '🌸': 'blossom', '🌷': 'blossom', '🦋': 'butterfly',
     // 생활/UI
     '🔒': 'lock', '🔥': 'fire', '⚡': 'bolt', '🛡': 'shield', '🚨': 'siren', '🔮': 'crystal', '📖': 'book', '📘': 'book', '📚': 'book',
