@@ -268,7 +268,7 @@
     function fv(v) { return (v > 0 ? '+' : '-') + pct(v); }
     var box = 'background:rgba(255,255,255,.07);border-radius:14px;padding:12px;margin-bottom:12px;font-size:12px;line-height:1.75;';
     var gradeRows = GRADES.map(function (g) {
-      return '<div style="display:flex;gap:8px;align-items:flex-start;margin-bottom:5px;"><div style="min-width:58px;font-weight:900;color:' + g.color + ';">' + g.name + '</div><div style="flex:1;">' + gdesc[g.id] + '<div style="color:#9ab;font-size:11px;">한 칸당 ' + Math.round(g.w / tot * 100) + '%</div></div></div>';
+      return '<div style="display:flex;gap:8px;align-items:flex-start;margin-bottom:5px;"><div style="min-width:58px;font-weight:900;color:' + g.color + ';">' + g.name + '</div><div style="flex:1;">' + gdesc[g.id] + '<div style="color:#9ab;font-size:11px;">칸마다 뽑힐 확률 ' + Math.round(g.w / tot * 100) + '%</div></div></div>';
     }).join('');
     var head = '<tr style="color:#9ab;font-size:11px;"><td style="padding:3px 0;">효과</td><td style="color:#FFD700;">센터</td><td style="color:#C084FC;">컴백</td><td style="color:#7dd3fc;">연습생</td><td style="color:#f87171;">구설수</td></tr>';
     var rows = OPTS.filter(function (o) { return o.key !== 'pieceExtra'; }).map(function (o) {
