@@ -231,13 +231,13 @@
       var res = $('pc-result'), img = $('pc-detail-img'), badge = $('pc-lvbadge');
       var before = statAt(anim.from), after = statAt(anim.to);
       if (anim.ok) {
-        if (res) { res.style.color = '#4ade80'; res.textContent = '✨ 강화 성공! Lv.' + anim.from + ' → Lv.' + anim.to; }
+        if (res) { res.style.color = '#4ade80'; res.textContent = '🔰 강화 성공! Lv.' + anim.from + ' → Lv.' + anim.to; }
         if (img) img.style.animation = 'pcGlow 1.2s ease-in-out 2';
         if (badge) badge.style.animation = 'pcIn .6s ease-out';
         countUp($('pc-v-skill'), before.skill, after.skill, '%p', 700);
         countUp($('pc-v-extra'), before.extra, after.extra, '%', 700);
       } else {
-        if (res) { res.style.color = '#ff8a8a'; res.textContent = '💔 강화 실패… 재료만 사라졌어요'; }
+        if (res) { res.style.color = '#ff8a8a'; res.textContent = '🌫 강화 실패… 재료만 사라졌어요'; }
         if (img) img.style.animation = 'pcShake .4s';
       }
     }

@@ -22,6 +22,7 @@
     // 광역 스킬 아이콘 (전용 이모지 → em-sk-○○.png)
     '🪩': 'sk-highlight', '😘': 'sk-wink', '🧨': 'sk-encore', '🎠': 'sk-rose', '🎑': 'sk-finale',
     '🔆': 'pt-sparkle', '🏵': 'pt-star', '🎗': 'pt-heartpink', '🧧': 'pt-heartred', '🎐': 'pt-note1', '🎏': 'pt-note2', '🥀': 'pt-petal', '🪅': 'pt-blossom', '🎍': 'pt-fwgold', '🧿': 'pt-fwblue', '🔅': 'pt-ribbon', '🪭': 'pt-confetti',
+    '🪓': 'enh-work', '🔰': 'enh-ok', '🌫': 'enh-fail', '🪬': 'enh-protect', '🧱': 'enh-destroy', '🔱': 'enh-trans',
     '🖋': 'sk-sign', '🫱': 'sk-photo', '🫰': 'sk-shake', '🫶': 'sk-heart',
     // 생활/UI
     '🔒': 'lock', '🔥': 'fire', '⚡': 'bolt', '🛡': 'shield', '🚨': 'siren', '🔮': 'crystal', '📖': 'book', '📘': 'book', '📚': 'book',

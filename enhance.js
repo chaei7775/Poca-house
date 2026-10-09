@@ -443,7 +443,7 @@
 
   function resultScreen(ov, id, state, emoji, title, color, lines, destroyed) {
     ov.innerHTML = '<div style="width:100%;max-width:320px;background:linear-gradient(135deg,#1a1a2e,#2d1b4e);border:2px solid ' + color + ';border-radius:20px;padding:28px 22px;text-align:center;">' +
-      '<div style="font-size:52px;margin-bottom:6px;">' + emoji + '</div>' +
+      '<div style="font-size:84px;line-height:1.1;margin-bottom:6px;">' + emoji + '</div>' +
       '<div style="font-size:19px;font-weight:900;color:' + color + ';margin-bottom:8px;">' + title + '</div>' +
       '<div style="font-size:13px;color:#ddd;line-height:1.7;margin-bottom:16px;">' + lines + '</div>' +
       '<button id="enh-ok" style="' + BTN + 'width:100%;padding:13px;background:linear-gradient(135deg,#FF9F43,#FF6B9D);color:#fff;font-size:15px;">확인</button></div>';
@@ -453,13 +453,13 @@
   function runEnhance(ov, id, state) {
     var res = doEnhance(id, state.protectOn);
     if (!res) { drawDetail(ov, id, state); return; }
-    ov.innerHTML = '<div style="text-align:center;color:#fff;"><div style="font-size:54px;">⚒️</div><div style="font-size:16px;font-weight:900;margin-top:10px;">강화 중...</div></div>';
+    ov.innerHTML = '<div style="text-align:center;color:#fff;"><div style="font-size:80px;">🪓</div><div style="font-size:16px;font-weight:900;margin-top:10px;">강화 중...</div></div>';
     setTimeout(function () {
       var rate = rateOf(res.target, res.stage);
-      if (res.out === 'success') resultScreen(ov, id, state, '✨', '강화 성공! +' + res.target, '#FFD700', '기획사 수익이 올라갔어요' + (res.target >= MAX_LEVEL ? '<br>이제 초월할 수 있어요!' : ''), false);
-      else if (res.out === 'fail') resultScreen(ov, id, state, '💨', '강화 실패…', '#aaa', '카드는 그대로예요 (+' + (res.target - 1) + ')<br>성공 확률 ' + rate + '%였어요', false);
-      else if (res.out === 'protected') resultScreen(ov, id, state, '🛡️', '실패! 방지권 ' + res.protectCost + '장이 대신 사라졌어요', '#4ade80', '카드는 안전해요 (+' + (res.target - 1) + ')<br>성공 확률 ' + rate + '%였어요', false);
-      else resultScreen(ov, id, state, '💔', '카드가 사라졌어요…', '#ef4444', esc(hiddenById(id) ? hiddenById(id).name : '카드') + '<br>방지권 없이 실패했어요', true);
+      if (res.out === 'success') resultScreen(ov, id, state, '🔰', '강화 성공! +' + res.target, '#FFD700', '기획사 수익이 올라갔어요' + (res.target >= MAX_LEVEL ? '<br>이제 초월할 수 있어요!' : ''), false);
+      else if (res.out === 'fail') resultScreen(ov, id, state, '🌫', '강화 실패…', '#aaa', '카드는 그대로예요 (+' + (res.target - 1) + ')<br>성공 확률 ' + rate + '%였어요', false);
+      else if (res.out === 'protected') resultScreen(ov, id, state, '🪬', '실패! 방지권 ' + res.protectCost + '장이 대신 사라졌어요', '#4ade80', '카드는 안전해요 (+' + (res.target - 1) + ')<br>성공 확률 ' + rate + '%였어요', false);
+      else resultScreen(ov, id, state, '🧱', '카드가 사라졌어요…', '#ef4444', esc(hiddenById(id) ? hiddenById(id).name : '카드') + '<br>방지권 없이 실패했어요', true);
     }, 900);
   }
 
@@ -468,7 +468,7 @@
     if (!r) { drawDetail(ov, id, state); return; }
     ov.innerHTML = '<div style="text-align:center;color:#fff;"><div style="font-size:54px;">✨</div><div style="font-size:16px;font-weight:900;margin-top:10px;">초월 중...</div></div>';
     setTimeout(function () {
-      resultScreen(ov, id, state, '🌟', '초월 ' + r.stage + '단계 완료!', '#60A5FA',
+      resultScreen(ov, id, state, '🔱', '초월 ' + r.stage + '단계 완료!', '#60A5FA',
         r.stage >= TRANS_MAX ? '모든 초월을 끝냈어요!<br>기획사 수익이 크게 올라갔어요'
           : '+0부터 다시 시작이에요<br>쌓은 수익 보너스는 그대로예요', false);
     }, 900);
