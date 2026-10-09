@@ -36,6 +36,7 @@
     { id: 'pudding',   name: '반딧불 푸딩',   emoji: '🍮', need: [['달빛수정', 1], ['맑은샘물', 2]],        d: { v: 0, s: 2, m: 10 } },
     { id: 'meringue',  name: '구름 머랭',     emoji: '☁️', need: [['구름조각', 1], ['별빛모래', 2]],        d: { v: 2, s: 1, m: 12 } },
     { id: 'mochi',     name: '벚꽃 모찌',     emoji: '🌸', need: [['벚꽃결정', 1], ['나비가루', 1]],        d: { v: 4, s: 1, m: 13 } },
+    { id: 'honey',      name: '황금 꿀빵',     emoji: '🥞', need: [['해바라기', 2], ['맑은샘물', 1]],        d: { v: 0, s: 10, m: 3 } },
     { id: 'aurora',    name: '오로라 사탕',   emoji: '🌈', need: [['무지개수정', 1], ['별의파편', 1]],      d: { v: 3, s: 3, m: 14 } }
   ];
   var BY_ID = {}, BY_NAME = {};
