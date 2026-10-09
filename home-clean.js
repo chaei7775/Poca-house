@@ -28,7 +28,7 @@
     '.navbar .nav-item{padding:7px 0 6px !important;}' +
     // 더보기 메뉴: 3열 큰 칸 → 4열 작은 칸 (아이콘·글씨는 키움)
     '#more-menu-grid{grid-template-columns:repeat(4,1fr) !important;gap:8px !important;}' +
-    '#more-menu-grid > button{aspect-ratio:auto !important;min-height:78px !important;padding:9px 2px 8px !important;gap:5px !important;border-radius:14px !important;}' +
+    '#more-menu-grid > button{aspect-ratio:auto !important;min-height:78px !important;padding:9px 2px 8px !important;gap:5px !important;border-radius:14px !important;border:1.5px solid rgba(255,255,255,.55) !important;background:rgba(255,255,255,.07) !important;}' +
     '#more-menu-grid > button > span:first-child{font-size:25px !important;line-height:1 !important;}' +
     '#more-menu-grid > button > span:last-child{font-size:11.5px !important;line-height:1.25 !important;word-break:keep-all !important;text-align:center !important;}';
   var st = document.createElement('style'); st.id = 'home-clean-style'; st.textContent = css; document.head.appendChild(st);
