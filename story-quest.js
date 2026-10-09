@@ -53,7 +53,7 @@
   function ownedN() { try { return typeof owned !== 'undefined' ? owned.length : 0; } catch (e) { return 0; } }
   function albaN() { try { return typeof albaDone !== 'undefined' ? albaDone : 0; } catch (e) { return 0; } }
   function debutMap() { return (J('ph_agency', {}) || {}).done || {}; }
-  function debutN() { var d = debutMap(); return keys(d).filter(function (k) { return d[k]; }).length; }
+  function debutN() { var d = debutMap(); return keys(d).filter(function (k) { return d[k] && ['minjun','sion','doyun','harin','yuna','ara'].indexOf(k) >= 0; }).length; }
   function fanN() {
     var idols = (J('ph_fancafe', {}) || {}).idols || {}, n = 0;
     keys(idols).forEach(function (k) { n += keys(idols[k] && idols[k].fans).length; });

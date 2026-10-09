@@ -17,7 +17,7 @@
   // ── 진행 상황 읽기 ──
   function debutCount() {
     var d = (J('ph_agency', {}) || {}).done || {};
-    return keys(d).filter(function (k) { return d[k]; }).length;
+    return keys(d).filter(function (k) { return d[k] && ['minjun','sion','doyun','harin','yuna','ara'].indexOf(k) >= 0; }).length;
   }
   function posterCount() { var c = J('ph_cf', {}) || {}; return c.posters ? c.posters.length : 0; }
   function fanCount() {
