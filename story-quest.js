@@ -903,7 +903,7 @@
   var TRACKS = [];
   CHAPTERS.forEach(function (ch, i) {
     TRACKS.push({ id: ch.id, title: ch.title, emoji: ch.emoji, intro: ch.intro, quests: ch.quests, kind: 'main',
-      lock: i === 0 ? null : { track: CHAPTERS[i - 1].id, text: '앞 챕터를 모두 마치면 열려요.' } });
+      lock: i === 0 ? null : ch.id === 'c4' ? { quest: 's3_5', text: '3장 "카메라 앞의 연기"(드라마 촬영 1번)를 마치면 열려요.' } : { track: CHAPTERS[i - 1].id, text: '앞 챕터를 모두 마치면 열려요.' } });
   });
   ORDER.forEach(function (cid) {
     var d = IDOLS[cid];
