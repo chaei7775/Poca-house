@@ -14,8 +14,8 @@
   var CHAR_ORDER = ['minjun', 'sion', 'doyun', 'harin', 'yuna', 'ara'];
   var GOODS_SLOTS = [['hat', '머리'], ['hand', '손'], ['acc', '액세서리']];
   var GEAR_STAT = {
-    coin: ['🍔', '원정 코인', '%'], exp: ['⭐', '원정 EXP', '%'], piece: ['🖼️', '프리미엄 조각', '%'],
-    ticket: ['🎫', '등교권·조각 드랍', '%'], wish: ['🧩', '소원의 조각', '%p'], honor: ['✨', '우등생조각', '%']
+    coin: ['vip-coin.png', '원정 코인', '%'], exp: ['vip-exp.png', '원정 EXP', '%'], piece: ['mat-premiumpiece.png', '프리미엄 조각', '%'],
+    ticket: ['mat-ticket.png', '등교권·조각 드랍', '%'], wish: ['mat-wishpiece.png', '소원의 조각', '%p'], honor: ['honor-piece.png', '우등생조각', '%']
   };
   var CLOTH_STAT = { coin: '알바 코인', luck: '행운·희귀재료', affection: '호감도', study: '수업 점수', charm: '매력' };
   var GRADE_COLOR = { normal: '#cbd5e1', good: '#4ade80', rare: '#FFD700' };
@@ -30,7 +30,7 @@
   // ════════ 데이터 모으기 (화면 없이도 테스트 가능) ════════
   function gearText(stats) {
     return Object.keys(stats || {}).filter(function (k) { return GEAR_STAT[k] && stats[k]; })
-      .map(function (k) { return GEAR_STAT[k][0] + ' ' + GEAR_STAT[k][1] + ' +' + stats[k] + GEAR_STAT[k][2]; });
+      .map(function (k) { return '<img src="' + base() + GEAR_STAT[k][0] + '" style="width:16px;height:16px;object-fit:contain;vertical-align:-3px;"> ' + GEAR_STAT[k][1] + ' +' + stats[k] + GEAR_STAT[k][2]; });
   }
   function collect() {
     var out = { player: null, premium: [], trial: null, chars: [], count: 0 };
@@ -103,7 +103,7 @@
       else h += '<div style="font-size:11px;color:#8b7bb0;margin-bottom:5px;">👗 입은 옷 없음</div>';
       h += c.goods.map(function (g) {
         if (g.empty) return '<div style="display:flex;align-items:center;gap:8px;border:1px dashed rgba(255,255,255,0.18);border-radius:10px;padding:6px 9px;margin-bottom:5px;font-size:11px;color:#8b7bb0;">＋ ' + g.slot + ' 비어 있음</div>';
-        return chipRow(g.emoji, g.slot + ' · ' + g.name + ' (' + (GRADE_LABEL[g.grade] || '') + ')', g.lines.map(esc).join('<br>'), GRADE_COLOR[g.grade]);
+        return chipRow(g.emoji, g.slot + ' · ' + g.name + ' (' + (GRADE_LABEL[g.grade] || '') + ')', g.lines.join('<br>'), GRADE_COLOR[g.grade]);
       }).join('');
       h += '</div>';
     });
