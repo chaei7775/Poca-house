@@ -833,41 +833,132 @@
     for (var i = 0; i < BOX_TIERS.length; i++) { acc += BOX_TIERS[i].w; if (r < acc) { t = BOX_TIERS[i]; break; } }
     return { tier: t, n: t.min + Math.floor(Math.random() * (t.max - t.min + 1)) };
   }
+  var boxSnooze = 0;
+  window.__bcBoxOpen = function () { boxOpen(); };   // 테스트용
   function boxOpen() {
     if ($('bc-box-ov')) return;
+    var W = Math.min(window.innerWidth - 24, 360), H = Math.min(window.innerHeight - 40, 560);
     var ov = document.createElement('div'); ov.id = 'bc-box-ov';
-    ov.style.cssText = 'position:fixed;inset:0;z-index:99998;background:rgba(0,0,0,.85);display:flex;align-items:center;justify-content:center;padding:18px;font-family:"Noto Sans KR",sans-serif;';
+    ov.style.cssText = 'position:fixed;inset:0;z-index:99998;background:radial-gradient(circle at 50% 30%,#3b1a5c,#120a24 70%);display:flex;align-items:center;justify-content:center;font-family:"Noto Sans KR",sans-serif;color:#fff;overflow:hidden;';
     ['pointerdown', 'touchstart', 'mousedown'].forEach(function (t) { ov.addEventListener(t, function (e) { e.stopPropagation(); }); });
-    ov.innerHTML = '<style>@keyframes bcBoxPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.07)}}</style><div style="width:100%;max-width:320px;text-align:center;color:#fff;">' +
-      '<div style="font-size:15px;font-weight:900;color:#ffe08a;margin-bottom:10px;">🎁 조각 상자가 도착했어요!</div>' +
-      '<div id="bc-box-art" style="width:150px;height:150px;margin:0 auto;border-radius:24px;background:rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;font-size:80px;animation:bcBoxPulse 1.1s ease-in-out infinite;cursor:pointer;">' +
-      '<img src="' + BOX_IMG + '" alt="" style="width:100%;height:100%;object-fit:contain;" onerror="var p=this.parentNode;if(p)p.textContent=\'🎁\'"></div>' +
-      '<div id="bc-box-res" style="min-height:70px;margin-top:14px;font-size:13px;color:#ddd;">상자를 눌러서 열어봐요</div>' +
-      '<button id="bc-box-btn" style="display:block;width:100%;margin-top:10px;padding:13px;border:none;border-radius:12px;background:linear-gradient(135deg,#FF6B9D,#C084FC);color:#fff;font-size:15px;font-weight:900;font-family:inherit;">상자 열기</button></div>';
+    var BOXN = 6, bw = 52;
+    ov.innerHTML = '<style>' +
+      '@keyframes cmBlink{0%,100%{opacity:1}50%{opacity:.35}}' +
+      '@keyframes cmShake{0%,100%{transform:translateX(0) rotate(0)}20%{transform:translateX(-6px) rotate(-8deg)}40%{transform:translateX(6px) rotate(8deg)}60%{transform:translateX(-5px) rotate(-6deg)}80%{transform:translateX(5px) rotate(6deg)}}' +
+      '@keyframes cmPop{0%{transform:scale(.3);opacity:0}70%{transform:scale(1.15)}100%{transform:scale(1);opacity:1}}' +
+      '.cm-arm{transition:transform .35s ease;transform-origin:50% 0}' +
+      '#cm-claw.closed .cm-l{transform:rotate(22deg)}#cm-claw.closed .cm-r{transform:rotate(-22deg)}' +
+      '</style>' +
+      '<div id="cm" style="position:relative;width:' + W + 'px;height:' + H + 'px;border:4px solid #FF9EC4;border-radius:22px;background:linear-gradient(180deg,rgba(255,158,196,.14),rgba(192,132,252,.10));box-shadow:0 0 30px rgba(255,107,157,.45);overflow:hidden;">' +
+        '<div style="position:absolute;left:0;right:0;top:0;height:34px;background:linear-gradient(90deg,#FF6B9D,#C084FC);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:900;letter-spacing:1px;">🎁 조각 뽑기방 🎁</div>' +
+        '<div style="position:absolute;left:14px;right:14px;top:44px;height:5px;border-radius:3px;background:#d1b3ff;"></div>' +
+        '<div id="cm-claw" style="position:absolute;top:46px;left:' + (W / 2 - 20) + 'px;width:40px;">' +
+          '<div id="cm-line" style="width:4px;height:36px;margin:0 auto;background:#e9d5ff;"></div>' +
+          '<div style="position:relative;width:40px;height:34px;">' +
+            '<div style="position:absolute;left:12px;top:0;width:16px;height:12px;border-radius:5px;background:#FFD700;"></div>' +
+            '<div class="cm-arm cm-l" style="position:absolute;left:4px;top:8px;width:6px;height:26px;border-radius:4px;background:#FFD700;"></div>' +
+            '<div class="cm-arm cm-r" style="position:absolute;left:30px;top:8px;width:6px;height:26px;border-radius:4px;background:#FFD700;"></div>' +
+            '<div id="cm-hold" style="position:absolute;left:-6px;top:20px;width:52px;height:52px;"></div>' +
+          '</div>' +
+        '</div>' +
+        '<div id="cm-pile" style="position:absolute;left:0;right:0;bottom:78px;height:70px;"></div>' +
+        '<div style="position:absolute;left:0;right:0;bottom:70px;height:8px;background:#7c3aed;"></div>' +
+        '<div id="cm-chute" style="position:absolute;left:8px;bottom:8px;width:' + (bw + 14) + 'px;height:62px;border:3px dashed #FFD700;border-radius:10px;background:rgba(0,0,0,.35);text-align:center;font-size:10px;color:#FFD700;font-weight:900;padding-top:2px;">꺼내는 곳</div>' +
+        '<div id="cm-msg" style="position:absolute;left:' + (bw + 30) + 'px;right:12px;bottom:46px;text-align:center;font-size:12px;color:#e9d5ff;">버튼을 누르면 갈고리가 움직여요!</div>' +
+        '<button id="cm-btn" style="position:absolute;left:' + (bw + 30) + 'px;right:12px;bottom:10px;height:34px;border:none;border-radius:17px;background:linear-gradient(135deg,#FF6B9D,#C084FC);color:#fff;font-size:15px;font-weight:900;font-family:inherit;animation:cmBlink 1.1s ease-in-out infinite;">🕹️ 뽑기 시작!</button>' +
+        '<div id="cm-fx" style="position:absolute;inset:0;pointer-events:none;"></div>' +
+        '<div id="cm-res" style="position:absolute;inset:0;display:none;align-items:center;justify-content:center;background:rgba(10,5,25,.82);"></div>' +
+      '</div>';
     document.body.appendChild(ov);
-    var done = false;
-    function open() {
-      if (done) { ov.remove(); return; }
-      var st = boxLoad(), rr = boxRoll(), total = rr.n + st.bonus;
-      var ok = false;
-      try { ok = !!addToBag(PIECE_EMOJI, PIECE_NAME, 'piece', total, '프리미엄 카드 조각 · ' + PIECE_GOAL + '개를 모으면 더보기 > 프리미엄 카드에서 교환'); } catch (e) {}
-      if (!ok) { $('bc-box-res').innerHTML = '<span style="color:#ff9a9a;">가방이 꽉 차서 못 열었어요. 슬롯을 비우고 다시 열어요</span>'; return; }
-      done = true;
-      boxSave({ n: Math.max(0, st.n - BOX_NEED), bonus: 0 });
-      if (typeof saveAll === 'function') saveAll();
-      var have = pieceCount();
-      $('bc-box-art').style.animation = 'none';
-      $('bc-box-res').innerHTML = '<div style="font-size:14px;font-weight:900;color:' + rr.tier.color + ';">' + rr.tier.name + '</div>' +
-        '<div style="font-size:26px;font-weight:900;color:#7dd3fc;margin-top:4px;">🖼️ 프리미엄 조각 +' + total + '</div>' +
-        '<div style="font-size:12px;color:#ddd;margin-top:4px;">' + (st.bonus ? '(상자 ' + rr.n + ' + 카드 효과 ' + st.bonus + ') · ' : '') + '모은 조각 ' + have + '/' + PIECE_GOAL + '</div>';
-      $('bc-box-btn').textContent = '확인';
-      hud();
+    var cm = $('cm'), claw = $('cm-claw'), line = $('cm-line'), hold = $('cm-hold'), pile = $('cm-pile'), btn = $('cm-btn'), msg = $('cm-msg');
+    var hues = [0, 40, 200, 280, 330, 120];
+    var xs = [], boxes = [];
+    for (var i = 0; i < BOXN; i++) {
+      var left = 18 + i * ((W - 36 - bw) / (BOXN - 1));
+      var b = document.createElement('div');
+      b.style.cssText = 'position:absolute;bottom:' + (i % 2 ? 0 : 6) + 'px;left:' + left + 'px;width:' + bw + 'px;height:' + bw + 'px;transition:transform .2s;';
+      b.innerHTML = '<img src="' + BOX_IMG + '" alt="" style="width:100%;height:100%;object-fit:contain;filter:hue-rotate(' + hues[i] + 'deg);" onerror="var p=this.parentNode;if(p){p.textContent=\'🎁\';p.style.fontSize=\'44px\';p.style.textAlign=\'center\';}">';
+      pile.appendChild(b); boxes.push(b); xs.push(left + bw / 2 - 20);
     }
-    $('bc-box-btn').onclick = open;
-    $('bc-box-art').onclick = open;
+    var chuteX = 8 + (bw + 14) / 2 - 20;
+    function wait(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
+    function moveX(x, ms) { claw.style.transition = 'left ' + ms + 'ms ease-in-out'; claw.style.left = x + 'px'; return wait(ms + 40); }
+    function lineTo(h, ms) { line.style.transition = 'height ' + ms + 'ms ease-in-out'; line.style.height = h + 'px'; return wait(ms + 40); }
+    function burst(cx, cy, color) {
+      var fx = $('cm-fx'), em = ['🖼️', '✨', '💖', '⭐', '🎁', '💫'];
+      for (var k = 0; k < 26; k++) {
+        var p = document.createElement('div'), a = Math.random() * Math.PI * 2, d = 70 + Math.random() * 130;
+        p.textContent = em[k % em.length];
+        p.style.cssText = 'position:absolute;left:' + cx + 'px;top:' + cy + 'px;font-size:' + (16 + Math.random() * 14) + 'px;transition:transform .9s cubic-bezier(.1,.7,.3,1),opacity .9s ease-in;transform:translate(-50%,-50%);opacity:1;';
+        fx.appendChild(p);
+        (function (p, a, d) { setTimeout(function () { p.style.transform = 'translate(' + (Math.cos(a) * d) + 'px,' + (Math.sin(a) * d - 40) + 'px) scale(.6) rotate(' + (a * 90) + 'deg)'; p.style.opacity = '0'; }, 30); })(p, a, d);
+      }
+      var fl = document.createElement('div');
+      fl.style.cssText = 'position:absolute;left:' + (cx - 90) + 'px;top:' + (cy - 90) + 'px;width:180px;height:180px;border-radius:50%;background:radial-gradient(circle,' + color + ',transparent 70%);opacity:.9;transition:transform .7s,opacity .7s;transform:scale(.3);';
+      fx.appendChild(fl); setTimeout(function () { fl.style.transform = 'scale(2.4)'; fl.style.opacity = '0'; }, 30);
+      setTimeout(function () { fx.innerHTML = ''; }, 1200);
+    }
+    var running = false;
+    btn.onclick = function () {
+      if (running) return; running = true;
+      btn.style.animation = 'none'; btn.disabled = true; btn.style.opacity = '.5'; btn.textContent = '뽑는 중…';
+      var target = Math.floor(Math.random() * BOXN);
+      var mid = [W * 0.2, W * 0.75, W * 0.4, W * 0.62];
+      msg.textContent = '갈고리가 움직여요…';
+      (async function () {
+        for (var m = 0; m < mid.length; m++) await moveX(mid[m], 480);
+        await moveX(xs[target], 520);
+        msg.textContent = '내려간다!';
+        var pileTop = H - 78 - 70 + 4;           // 상자 위쪽 y
+        var drop = pileTop - 46 - 34 + 22;
+        await lineTo(drop, 800);
+        claw.classList.add('closed'); await wait(450);
+        var bx = boxes[target]; hold.appendChild(bx);
+        bx.style.cssText = 'position:absolute;left:0;top:0;width:' + bw + 'px;height:' + bw + 'px;';
+        msg.textContent = '잡았다!';
+        await lineTo(36, 800);
+        await moveX(chuteX, 800);
+        claw.classList.remove('closed'); await wait(200);
+        // 상자를 꺼내는 곳으로 떨어뜨림
+        var rect = cm.getBoundingClientRect(), br = bx.getBoundingClientRect();
+        cm.appendChild(bx);
+        bx.style.cssText = 'position:absolute;left:' + (br.left - rect.left) + 'px;top:' + (br.top - rect.top) + 'px;width:' + bw + 'px;height:' + bw + 'px;transition:top .45s cubic-bezier(.5,0,1,.6);z-index:5;';
+        await wait(30);
+        var fy = H - 8 - 62 + 6; bx.style.top = fy + 'px'; await wait(520);
+        msg.textContent = '두근두근…';
+        bx.style.animation = 'cmShake .6s ease-in-out 2'; await wait(1250);
+        // 결과 결정 + 가방에 넣기
+        var st = boxLoad(), rr = boxRoll(), total = rr.n + st.bonus, ok = false;
+        try { ok = !!addToBag(PIECE_EMOJI, PIECE_NAME, 'piece', total, '프리미엄 카드 조각 · ' + PIECE_GOAL + '개를 모으면 더보기 > 프리미엄 카드에서 교환'); } catch (e) {}
+        var res = $('cm-res');
+        if (!ok) {
+          bx.remove();
+          res.style.display = 'flex';
+          res.innerHTML = '<div style="text-align:center;padding:20px;"><div style="font-size:15px;font-weight:900;color:#ff9a9a;">가방이 꽉 차서 못 열었어요</div><div style="font-size:12px;margin-top:6px;color:#ddd;">슬롯을 비우면 다시 뽑을 수 있어요</div><button id="cm-close" style="margin-top:14px;padding:12px 26px;border:none;border-radius:12px;background:linear-gradient(135deg,#FF6B9D,#C084FC);color:#fff;font-size:14px;font-weight:900;font-family:inherit;">닫기</button></div>';
+          $('cm-close').onclick = function () { boxSnooze = Date.now() + 60000; ov.remove(); };
+          return;
+        }
+        boxSave({ n: Math.max(0, st.n - BOX_NEED), bonus: 0 });
+        if (typeof saveAll === 'function') saveAll();
+        try { if (window.pocaSfx && pocaSfx.play) pocaSfx.play('rarePick'); } catch (e) {}
+        var cr = bx.getBoundingClientRect();
+        bx.style.animation = 'none'; bx.style.transition = 'transform .25s,opacity .25s'; bx.style.transform = 'scale(1.8)'; bx.style.opacity = '0';
+        burst(cr.left - rect.left + bw / 2, cr.top - rect.top + bw / 2, rr.tier.color);
+        await wait(700);
+        var have = pieceCount();
+        res.style.display = 'flex';
+        res.innerHTML = '<div style="text-align:center;padding:20px;animation:cmPop .5s ease-out;">' +
+          '<div style="font-size:16px;font-weight:900;color:' + rr.tier.color + ';">' + rr.tier.name + '!</div>' +
+          '<div style="font-size:34px;font-weight:900;color:#7dd3fc;margin-top:8px;">🖼️ +' + total + '</div>' +
+          '<div style="font-size:13px;margin-top:4px;color:#eee;">프리미엄 조각</div>' +
+          '<div style="font-size:12px;margin-top:6px;color:#ddd;">' + (st.bonus ? '(상자 ' + rr.n + ' + 카드 효과 ' + st.bonus + ') · ' : '') + '모은 조각 ' + have + '/' + PIECE_GOAL + '</div>' +
+          '<button id="cm-ok" style="margin-top:16px;padding:12px 34px;border:none;border-radius:12px;background:linear-gradient(135deg,#FF6B9D,#C084FC);color:#fff;font-size:15px;font-weight:900;font-family:inherit;">확인</button></div>';
+        $('cm-ok').onclick = function () { ov.remove(); hud(); };
+      })();
+    };
   }
   setInterval(function () {
-    try { if (MAP && MAP.pieces && $('bc-layer') && boxLoad().n >= BOX_NEED) boxOpen(); } catch (e) {}
+    try { if (MAP && MAP.pieces && $('bc-layer') && !$('bc-panel') && Date.now() > boxSnooze && boxLoad().n >= BOX_NEED) boxOpen(); } catch (e) {}
   }, 1500);
 
   function grant(r) {
