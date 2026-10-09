@@ -703,7 +703,7 @@
         c.fillText(notes[i % 4], x + Math.cos(a) * d, y + Math.sin(a) * d - p * 18);
       }
       c.globalAlpha = Math.min(1, (1 - p) * 1.6); c.font = Math.round(44 + 18 * Math.sin(Math.min(1, p * 3) * 3.14)) + 'px sans-serif';
-      c.fillText('🎤', x, y - 34 - p * 26);
+      c.fillText('🪩', x, y - 34 - p * 26);
     } else if (id === 'wink') {                            // 💖 윙크 + 하트 폭발
       var g2 = c.createRadialGradient(x, y, 10, x, y, R); g2.addColorStop(0, 'rgba(255,120,190,' + (0.32 * (1 - p)) + ')'); g2.addColorStop(1, 'rgba(255,120,190,0)');
       c.fillStyle = g2; c.beginPath(); c.arc(x, y, R, 0, 7); c.fill();
@@ -713,13 +713,14 @@
         c.fillStyle = i % 3 === 0 ? '#ffd1e8' : (i % 3 === 1 ? '#ff6fb1' : '#ff3d8b'); heartPath(c, x + Math.cos(a) * dd, y + Math.sin(a) * dd - p * 14, 7 + hh(i, 6) * 8);
       }
       c.textAlign = 'center'; c.textBaseline = 'middle'; c.globalAlpha = Math.min(1, (1 - p) * 1.8);
-      c.font = Math.round(52 + 22 * Math.sin(Math.min(1, p * 2.5) * 3.14)) + 'px sans-serif'; c.fillText('💖', x, y - 38 - p * 20);
+      c.font = Math.round(52 + 22 * Math.sin(Math.min(1, p * 2.5) * 3.14)) + 'px sans-serif'; c.fillText('😘', x, y - 38 - p * 20);
       c.font = '22px sans-serif'; c.fillText('✨', x + 34, y - 62 - p * 18); c.fillText('✨', x - 34, y - 50 - p * 14);
     } else if (id === 'encore') {                          // ✨ 앵콜 폭죽 (여러 발)
       for (i = 0; i < 6; i++) {
         pp = clamp01((p - i * 0.1) / 0.55); var ba = i / 6 * 6.2832 + 0.4, bd = R * (0.35 + hh(i, 7) * 0.45);
         starBurst(c, x + Math.cos(ba) * bd, y + Math.sin(ba) * bd, 70, pp, ['#ffd76a', '#ff6fd8', '#7fe9ff', '#9bff9b', '#fff', '#ffb36b'][i], 12);
       }
+      c.globalAlpha = Math.min(1, (1 - p) * 1.6); c.textAlign = 'center'; c.textBaseline = 'middle'; c.font = Math.round(46 + 14 * Math.sin(Math.min(1, p * 3) * 3.14)) + 'px sans-serif'; c.fillText('🧨', x, y - 40 - p * 24);
       c.globalAlpha = 1 - p; c.fillStyle = '#ffd76a';
       for (i = 0; i < 26; i++) { a = hh(i, 8) * 6.2832; var cd = R * hh(i, 9) * (0.3 + p * 0.7); c.fillRect(x + Math.cos(a) * cd - 2, y + Math.sin(a) * cd + p * 30 * hh(i, 10) - 2, 4, 6); }
     } else if (id === 'rose') {                            // 🌹 장미꽃잎 비
@@ -732,7 +733,7 @@
         c.beginPath(); c.ellipse(0, 0, 9, 5, 0, 0, 7); c.fill(); c.restore();
       }
       c.textAlign = 'center'; c.textBaseline = 'middle'; c.font = '30px sans-serif';
-      for (i = 0; i < 7; i++) c.fillText('🌹', x + (hh(i, 14) - 0.5) * R * 1.5, y - R * 0.7 + p * R * (1.1 + hh(i, 15) * 0.5));
+      for (i = 0; i < 7; i++) c.fillText('🎠', x + (hh(i, 14) - 0.5) * R * 1.5, y - R * 0.7 + p * R * (1.1 + hh(i, 15) * 0.5));
     } else if (id === 'finale') {                          // 🎆 불꽃쇼
       if (p < 0.18) { c.globalAlpha = 0.55 * (1 - p / 0.18); c.fillStyle = '#fff'; c.beginPath(); c.arc(x, y, R * 1.3, 0, 7); c.fill(); }
       var cols = ['#ffd76a', '#ff6fd8', '#7fe9ff', '#9bff9b', '#ff9a5a', '#c084fc', '#fff'];
@@ -740,7 +741,7 @@
         pp = clamp01((p - i * 0.065) / 0.45); a = hh(i, 16) * 6.2832; var fd = R * Math.sqrt(hh(i, 17)) * 0.95;
         starBurst(c, x + Math.cos(a) * fd, y + Math.sin(a) * fd, 85 + hh(i, 18) * 40, pp, cols[i % cols.length], 12);
       }
-      c.globalAlpha = 1 - p; c.textAlign = 'center'; c.textBaseline = 'middle'; c.font = '46px sans-serif'; c.fillText('🎆', x, y - 40 - p * 30);
+      c.globalAlpha = 1 - p; c.textAlign = 'center'; c.textBaseline = 'middle'; c.font = '46px sans-serif'; c.fillText('🎑', x, y - 40 - p * 30);
     }
     c.restore();
   }
@@ -750,13 +751,13 @@
     if (id === 'photo') {
       c.globalAlpha = (1 - p) * 0.9; var g = c.createRadialGradient(x, y, 2, x, y, 56 * (0.4 + p)); g.addColorStop(0, '#fff'); g.addColorStop(1, 'rgba(255,255,255,0)');
       c.fillStyle = g; c.beginPath(); c.arc(x, y, 56 * (0.4 + p), 0, 7); c.fill();
-      c.globalAlpha = 1 - p; c.font = '26px sans-serif'; c.fillText('📸', x, y - 30 - p * 14);
+      c.globalAlpha = 1 - p; c.font = '26px sans-serif'; c.fillText('🫱', x, y - 30 - p * 14);
     } else if (id === 'sign') {
-      c.globalAlpha = 1 - p; c.font = '24px sans-serif'; c.fillText('✍️', x, y - 28 - p * 10);
+      c.globalAlpha = 1 - p; c.font = '24px sans-serif'; c.fillText('🖋', x, y - 28 - p * 10);
       c.strokeStyle = '#ffe27a'; c.lineWidth = 3; c.beginPath(); c.moveTo(x - 22, y + 20); c.bezierCurveTo(x - 8, y + 4, x + 8, y + 34, x + 22, y + 16); c.stroke();
       c.font = '16px sans-serif'; c.fillText('✨', x + 24, y - 10 - p * 12);
     } else if (id === 'shake') {
-      starBurst(c, x, y, 44, p, '#ffe27a', 8); c.globalAlpha = 1 - p; c.font = '24px sans-serif'; c.fillText('🤝', x, y - 30 - p * 12);
+      starBurst(c, x, y, 44, p, '#ffe27a', 8); c.globalAlpha = 1 - p; c.font = '24px sans-serif'; c.fillText('🫰', x, y - 30 - p * 12);
     } else if (id === 'heart') {
       c.globalAlpha = 1 - p;
       for (i = 0; i < 5; i++) { c.fillStyle = i % 2 ? '#ff6fb1' : '#ff3d8b'; heartPath(c, x + (i - 2) * 13, y - 12 - p * (26 + i * 7), 8 - Math.abs(i - 2)); }
