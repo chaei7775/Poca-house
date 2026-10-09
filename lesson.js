@@ -454,7 +454,131 @@
       '<div style="font-size:11px;color:#9aa0c8;margin-top:8px;">체력 −' + LESSON_TIRED + ' · 기분 −' + LESSON_MOOD + '</div>' +
       '<button id="lesson-ok" style="' + BTN + 'width:100%;margin-top:12px;padding:12px;background:linear-gradient(135deg,#b793ff,#7c5cff);color:#fff;font-size:14px;">확인</button></div>';
     document.body.appendChild(ov);
-    ov.querySelector('#lesson-ok').onclick = function () { ov.remove(); };
+    ov.querySelector('#lesson-ok').onclick = function () {
+      ov.remove();
+      showEvent(cid, res, function () {
+        var mo = document.getElementById('meal-overlay');
+        if (mo) { try { if (window.__mealRefresh) window.__mealRefresh(); } catch (e) {} drawBox(mo); }
+      });
+    };
+  }
+
+  // ════════ 💬 돌발 이벤트 (레슨 뒤 가끔 터지는 선택 사건) ════════
+  //  fx: stat(레슨한 능력치 ±) · mood · stamina · coin(이번 레슨비 기준 배수, 음수면 잃음)
+  var EVENT_CHANCE = 0.25;       // 레슨 뒤 사건이 터질 확률
+  var EVENTS = [
+    { id: 'senior', title: '연습실에서 만난 선배', text: '{n}이(가) 연습실에서 선배를 마주쳤어요. “내가 한마디 해줄까?”',
+      choices: [
+        { label: '조언을 듣는다', hint: '안전 · {s} +2', out: [{ p: 1, text: '선배의 한마디가 큰 도움이 됐어요!', fx: { stat: 2 } }] },
+        { label: '혼자 해본다', hint: '도박 · {s} +4 또는 기분↓', out: [{ p: 0.5, text: '혼자 깨달은 게 있어요! 감이 확 왔어요.', fx: { stat: 4 } }, { p: 0.5, text: '혼자 끙끙대다 기운이 빠졌어요.', fx: { mood: -6 } }] }
+      ] },
+    { id: 'slump', title: '갑작스러운 슬럼프', min: 30, text: '{n}이(가) 갑자기 {s}이 안 된다며 얼굴이 굳었어요.',
+      choices: [
+        { label: '잠깐 쉬게 한다', hint: '안전 · 기분 +8 · 체력 +10', out: [{ p: 1, text: '푹 쉬고 나니 한결 나아졌어요.', fx: { mood: 8, stamina: 10 } }] },
+        { label: '밀어붙인다', hint: '도박 · {s} +3 또는 체력·기분↓', out: [{ p: 0.6, text: '슬럼프를 뚫었어요! 한 단계 성장했어요.', fx: { stat: 3 } }, { p: 0.4, text: '무리해서 몸이 지쳐버렸어요…', fx: { stamina: -15, mood: -8 } }] }
+      ] },
+    { id: 'audition', title: '작은 오디션 제안', min: 20, text: '{n}에게 작은 오디션 제안이 들어왔어요. 도전해볼까요?',
+      choices: [
+        { label: '도전한다', hint: '도박 · 합격하면 코인 · 떨어지면 기분↓', out: [{ p: 0.5, text: '합격! 출연료를 받았어요 🎉', fx: { coin: 1.5, mood: 10 } }, { p: 0.5, text: '아쉽게 떨어졌어요. 하지만 경험이 됐어요.', fx: { mood: -6, stat: 1 } }] },
+        { label: '이번엔 거절', hint: '안전 · 아무 일 없음', out: [{ p: 1, text: '다음 기회를 기다리기로 했어요.', fx: {} }] }
+      ] },
+    { id: 'letter', title: '팬이 보낸 편지', text: '{n}에게 팬이 정성껏 쓴 편지가 도착했어요.',
+      choices: [
+        { label: '함께 읽는다', hint: '기분 +10', out: [{ p: 1, text: '따뜻한 말에 힘이 났어요!', fx: { mood: 10 } }] },
+        { label: '연습에 몰두한다', hint: '{s} +1 · 기분 +3', out: [{ p: 1, text: '편지를 가슴에 품고 더 열심히 했어요.', fx: { stat: 1, mood: 3 } }] }
+      ] },
+    { id: 'homework', title: '코치님의 특별 과제', text: '코치님이 {n}에게 특별 과제를 내줬어요. “어려운 걸로 할래, 쉬운 걸로 할래?”',
+      choices: [
+        { label: '어려운 과제', hint: '도박 · {s} +4 또는 체력↓', out: [{ p: 0.6, text: '해냈어요! 코치님도 깜짝 놀랐어요.', fx: { stat: 4 } }, { p: 0.4, text: '너무 어려워서 지쳐버렸어요.', fx: { stamina: -10 } }] },
+        { label: '쉬운 과제', hint: '안전 · {s} +2', out: [{ p: 1, text: '차근차근 해냈어요.', fx: { stat: 2 } }] }
+      ] },
+    { id: 'blackout', title: '연습실 정전!', text: '레슨 도중 연습실 불이 꺼졌어요!',
+      choices: [
+        { label: '어둠 속에서 계속한다', hint: '도박 · {s} +3 또는 기분↓', out: [{ p: 0.55, text: '감각만으로 연습했더니 새로운 느낌을 얻었어요!', fx: { stat: 3 } }, { p: 0.45, text: '아무것도 안 보여서 기분만 상했어요.', fx: { mood: -4 } }] },
+        { label: '촛불을 켜고 쉰다', hint: '안전 · 기분 +6', out: [{ p: 1, text: '촛불 아래서 도란도란 이야기를 나눴어요.', fx: { mood: 6 } }] }
+      ] },
+    { id: 'rival', title: '라이벌의 등장', min: 40, text: '라이벌 아이돌이 연습실에 나타났어요. “한번 붙어볼래?”',
+      choices: [
+        { label: '정면 승부', hint: '도박 · {s} +5 또는 기분↓↓', out: [{ p: 0.5, text: '승부에서 이겼어요! 자신감이 폭발했어요.', fx: { stat: 5, mood: 6 } }, { p: 0.5, text: '아쉽게 졌어요. 분한 마음이 커요.', fx: { mood: -10 } }] },
+        { label: '무시한다', hint: '안전 · 기분 변화 없음', out: [{ p: 1, text: '{n}은(는) 자기 페이스를 지켰어요.', fx: { stat: 1 } }] }
+      ] },
+    { id: 'snack', title: '코치님의 간식', text: '코치님이 {n}에게 몰래 간식을 건넸어요.',
+      choices: [
+        { label: '고맙게 받는다', hint: '기분 +6 · 체력 +6', out: [{ p: 1, text: '달콤한 간식에 기운이 났어요!', fx: { mood: 6, stamina: 6 } }] },
+        { label: '정중히 사양한다', hint: '{s} +1', out: [{ p: 1, text: '관리를 위해 참았어요. 의지가 단단해졌어요.', fx: { stat: 1 } }] }
+      ] }
+  ];
+  // 능력치 30·60·90을 처음 넘으면 반드시 터지는 '한계 돌파' 사건
+  var BREAK_MARKS = [30, 60, 90];
+  var BREAK_EVENT = { id: 'break', title: '한계 돌파의 순간', text: '{n}의 {s} 실력이 새로운 경지에 다다랐어요! 지금이 한 단계 더 올라설 기회예요.',
+    choices: [
+      { label: '차분히 다진다', hint: '안전 · {s} +2 · 기분 +5', out: [{ p: 1, text: '기본기를 단단히 다졌어요.', fx: { stat: 2, mood: 5 } }] },
+      { label: '한계에 도전한다', hint: '도박 · {s} +6 또는 체력↓', out: [{ p: 0.55, text: '한계를 넘었어요! 눈빛이 달라졌어요.', fx: { stat: 6, mood: 8 } }, { p: 0.45, text: '욕심이 앞서 몸이 상했어요…', fx: { stamina: -15, mood: -5 } }] }
+    ] };
+  function pickEvent(res, rng) {
+    rng = rng || Math.random;
+    var crossed = BREAK_MARKS.some(function (mk) { return res.before < mk && res.after >= mk; });
+    if (crossed) return BREAK_EVENT;
+    if (rng() >= EVENT_CHANCE) return null;
+    var pool = EVENTS.filter(function (e) { return !e.min || res.after >= e.min; });
+    return pool[Math.floor(rng() * pool.length)];
+  }
+  function rollOutcome(choice, rng) {
+    rng = rng || Math.random;
+    var r = rng(), acc = 0;
+    for (var i = 0; i < choice.out.length; i++) { acc += choice.out[i].p; if (r < acc) return choice.out[i]; }
+    return choice.out[choice.out.length - 1];
+  }
+  // 효과 적용 (코인은 호출하는 쪽에서 처리하도록 coin 배수를 그대로 돌려줌)
+  function applyEventFx(st, cond, cid, k, fx) {
+    var o = statOf(st, cid), changes = [];
+    if (fx.stat) { var b = o[k]; o[k] = clamp(b + fx.stat, 0, STAT_MAX); if (o[k] !== b) changes.push(STAT_BY_K[k].name + ' ' + (o[k] > b ? '+' : '') + (o[k] - b)); }
+    if (fx.mood) { var bm = cond.m; cond.m = clamp(cond.m + fx.mood, 0, 100); if (cond.m !== bm) changes.push('기분 ' + (cond.m > bm ? '+' : '') + (cond.m - bm)); }
+    if (fx.stamina) { var bs = cond.s; cond.s = clamp(cond.s + fx.stamina, 0, 100); if (cond.s !== bs) changes.push('체력 ' + (cond.s > bs ? '+' : '') + (cond.s - bs)); }
+    return changes;
+  }
+  function fillTxt(t, name, k) { return String(t).replace(/\{n\}/g, name).replace(/\{s\}/g, STAT_BY_K[k].name); }
+
+  function showEvent(cid, res, done) {
+    var old = document.getElementById('lesson-event'); if (old) old.remove();
+    var m = M(); if (!m) { done(); return; }
+    var ev = pickEvent(res); if (!ev) { done(); return; }
+    var name = m.CH[cid].name, k = res.k;
+    var ov = document.createElement('div');
+    ov.id = 'lesson-event';
+    ov.style.cssText = 'position:fixed;inset:0;z-index:835;background:rgba(0,0,0,0.82);display:flex;align-items:center;justify-content:center;padding:16px;' + FONT;
+    function close() { ov.remove(); done(); }
+    function drawAsk() {
+      ov.innerHTML = '<div style="width:100%;max-width:340px;background:linear-gradient(160deg,#1b1330,#2d1b4e);border:1.5px solid ' + (ev.id === 'break' ? '#ffd700' : '#b793ff') + ';border-radius:20px;padding:18px;animation:lsPop .35s ease-out;">' +
+        '<div style="text-align:center;font-size:12px;font-weight:900;color:' + (ev.id === 'break' ? '#ffd700' : '#c9b6ff') + ';">' + (ev.id === 'break' ? '🌟' : '💬') + ' 돌발 상황!</div>' +
+        '<div style="text-align:center;font-size:16px;font-weight:900;color:#fff;margin:4px 0 8px;">' + esc(ev.title) + '</div>' +
+        '<div style="background:rgba(255,255,255,0.08);border-radius:12px;padding:11px;font-size:12.5px;color:#e8eaff;line-height:1.6;margin-bottom:12px;">' + esc(fillTxt(ev.text, name, k)) + '</div>' +
+        ev.choices.map(function (c, i) {
+          return '<button data-ci="' + i + '" style="' + BTN + 'width:100%;text-align:left;padding:11px 12px;margin-bottom:8px;background:rgba(255,255,255,0.09);border:1.5px solid #b793ff88;color:#fff;font-size:13px;">' + esc(c.label) +
+            '<br><span style="font-size:11px;color:#ffe08a;font-weight:700;">' + esc(fillTxt(c.hint, name, k)) + '</span></button>';
+        }).join('') + '</div>';
+      Array.prototype.forEach.call(ov.querySelectorAll('[data-ci]'), function (b) {
+        b.onclick = function () { resolve(Number(b.getAttribute('data-ci'))); };
+      });
+    }
+    function resolve(ci) {
+      var ms = m.load(), cond = m.statOf(ms, cid), st = load();
+      var out = rollOutcome(ev.choices[ci]);
+      var changes = applyEventFx(st, cond, cid, k, out.fx || {});
+      if (out.fx && out.fx.coin) {
+        var amt = Math.round(costOf(st, cid, k, 0) * out.fx.coin / 100) * 100;
+        if (amt > 0) { gainCoins(amt); changes.push('코인 +' + amt.toLocaleString()); }
+      }
+      save(st); m.save(ms);
+      var good = !/(지쳐|상했|떨어|졌|빠졌|상한)/.test(out.text);
+      ov.innerHTML = '<div style="width:100%;max-width:340px;background:linear-gradient(160deg,#1b1330,#2d1b4e);border:1.5px solid ' + (good ? '#7ee8a5' : '#ff9d9d') + ';border-radius:20px;padding:18px;text-align:center;animation:lsPop .3s ease-out;">' +
+        '<div style="font-size:34px;">' + (good ? '✨' : '💦') + '</div>' +
+        '<div style="font-size:14px;font-weight:900;color:#fff;margin:6px 0;line-height:1.5;">' + esc(fillTxt(out.text, name, k)) + '</div>' +
+        (changes.length ? '<div style="font-size:12px;font-weight:900;color:' + (good ? '#7ee8a5' : '#ffb3b3') + ';margin-bottom:10px;">' + esc(changes.join(' · ')) + '</div>' : '') +
+        '<button id="le-ok" style="' + BTN + 'width:100%;padding:12px;background:linear-gradient(135deg,#b793ff,#7c5cff);color:#fff;font-size:14px;">확인</button></div>';
+      ov.querySelector('#le-ok').onclick = close;
+    }
+    document.body.appendChild(ov); drawAsk();
   }
 
   // ════════ meal 화면에 붙이기 ════════
@@ -484,6 +608,6 @@
   window.getIdolTrainStat = function (cid, k) { var o = statOf(load(), cid); return k ? o[k] : Object.assign({}, o); };
   window.__lessonTest = {
     STATS: STATS, CFG: { LESSON_COST: LESSON_COST, FREE_LESSONS: FREE_LESSONS, COST_COEF: COST_COEF, LESSON_TIRED: LESSON_TIRED, LESSON_MOOD: LESSON_MOOD, MIN_STAMINA: MIN_STAMINA, ENABLED: ENABLED },
-    load: load, save: save, statOf: statOf, gradeOf: gradeOf, totalOf: totalOf, gainFor: gainFor, canLesson: canLesson, costOf: costOf, openCoachPick: openCoachPick, showResult: showResult, startLesson: startLesson, doLesson: doLesson, doneToday: doneToday
+    load: load, save: save, statOf: statOf, gradeOf: gradeOf, totalOf: totalOf, gainFor: gainFor, canLesson: canLesson, costOf: costOf, openCoachPick: openCoachPick, EVENTS: EVENTS, BREAK_EVENT: BREAK_EVENT, pickEvent: pickEvent, rollOutcome: rollOutcome, applyEventFx: applyEventFx, showEvent: showEvent, showResult: showResult, startLesson: startLesson, doLesson: doLesson, doneToday: doneToday
   };
 })();
