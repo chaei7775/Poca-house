@@ -3,7 +3,7 @@
 //
 //  - 방송국 앞 원정에서 모은 '프리미엄 조각' 100개로 프리미엄 카드 1장을 랜덤으로 받는다 (6명 중)
 //  - 같은 카드가 또 나오면 '같은 카드'로 보관된다. 강화에 성공할 때 같은 카드를 흡수해야 레벨이 오른다 (Lv.1 → Lv.10).
-//  - 강화: 강화석(히든 강화와 같은 재료) + 코인. 실패해도 카드는 안 사라지고 재료만 소모된다.
+//  - 강화: 코인 + 같은 카드 흡수 (강화석은 안 씀). 실패해도 카드는 안 사라지고 재료만 소모된다.
 //  - 효과는 그 캐릭터로 방송국 앞 원정을 나갈 때만 켜진다
 //      스킬   : 이벤트 성공 시 프리미엄 조각이 나올 확률 +2%p (레벨당 +0.5%p)
 //      특별효과: 조각이 나왔을 때 일정 확률(10%, 레벨당 +2%p)로 조각 +1개 추가
@@ -155,15 +155,10 @@
   function tryEnhance(c) {
     var d = load(), lv = (d[c.id] && d[c.id].lv) || 0;
     if (lv < 1 || lv >= MAX_LV) return null;
-    var i = lv - 1, needStone = ENH_STONE[i], needCoin = ENH_COIN[i];
-    var st = loadEnh(), needDup = ENH_DUP[i];
+    var i = lv - 1, needCoin = ENH_COIN[i];
+    var needDup = ENH_DUP[i];
     if (dupOf(c.id) < needDup) { toast('같은 카드가 부족해요! (' + dupOf(c.id) + '/' + needDup + ') 같은 카드가 또 나오면 모여요'); return null; }
-    if (stones() < needStone) { toast('강화석이 부족해요! (' + stones() + '/' + needStone + ')'); return null; }
     if (nowCoins() < needCoin) { toast('코인이 부족해요! 🍔 ' + fmt(needCoin) + ' 필요'); return null; }
-    var fromBag = Math.min(bagStone(), needStone);
-    if (fromBag > 0 && typeof useFromBag === 'function') useFromBag('강화석', fromBag);
-    st.stone -= (needStone - fromBag);
-    try { localStorage.setItem(ENH_KEY, JSON.stringify(st)); } catch (e) {}
     if (typeof coins !== 'undefined') coins -= needCoin;
     var ok = Math.random() * 100 < ENH_RATE[i];
     if (ok) { d[c.id].lv = lv + 1; d[c.id].dup = Math.max(0, (d[c.id].dup || 0) - needDup); save(d); }
@@ -196,13 +191,12 @@
     for (var k = 1; k <= MAX_LV; k++) bar += '<div style="flex:1;height:9px;border-radius:5px;background:' + (k <= lv ? 'linear-gradient(90deg,#FFD700,#FF9F43)' : 'rgba(255,255,255,.15)') + ';"></div>';
     var cost = '';
     if (lv < MAX_LV) {
-      var i = lv - 1, s = stones(), cn = nowCoins();
+      var i = lv - 1, cn = nowCoins();
       cost = '<div style="display:flex;justify-content:space-between;font-size:12px;margin-top:10px;">' +
-        '<span style="color:' + (s >= ENH_STONE[i] ? '#fff' : '#ff8a8a') + ';">🔨 강화석 ' + s + ' / ' + ENH_STONE[i] + '</span>' +
         '<span style="color:' + (cn >= ENH_COIN[i] ? '#fff' : '#ff8a8a') + ';">🍔 ' + fmt(ENH_COIN[i]) + '</span>' +
         '<span style="color:#FFD700;">성공 ' + ENH_RATE[i] + '%</span></div>' +
         '<div style="font-size:12px;margin-top:6px;color:' + (dupOf(c.id) >= ENH_DUP[i] ? '#fff' : '#ff8a8a') + ';">🃏 같은 카드 ' + dupOf(c.id) + ' / ' + ENH_DUP[i] + ' <span style="color:#aaa;font-size:10px;">(강화에 성공하면 흡수돼요)</span></div>' +
-        '<div style="font-size:10px;color:#aaa;margin-top:4px;">실패해도 카드와 같은 카드는 안 사라지고 강화석·코인만 사라져요</div>';
+        '<div style="font-size:10px;color:#aaa;margin-top:4px;">실패해도 카드와 같은 카드는 안 사라지고 코인만 사라져요</div>';
     }
     function row(label, from, to, id, suffix) {
       return '<div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;font-size:13px;">' +
