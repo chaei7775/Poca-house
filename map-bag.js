@@ -62,5 +62,10 @@
     window.renderBag.__mb = true; return true;
   }
   var tries = 0; var t = setInterval(function () { if (hook() || ++tries > 40) clearInterval(t); }, 500);
-  setInterval(function () { btn.style.display = inMap() ? 'flex' : 'none'; if (!inMap()) { var m = $('mapbag-ov'); if (m) m.remove(); } }, 600);
+  function place() {   // 스킬 바(#fs-bar)가 있으면 그 위로 비켜서 안 겹치게
+    var fb = $('fs-bar'), r = fb && fb.offsetParent !== null ? fb.getBoundingClientRect() : null;
+    btn.style.bottom = r && r.height > 0 ? Math.round(window.innerHeight - r.top + 8) + 'px' : 'calc(14px + env(safe-area-inset-bottom))';
+    return !!r;
+  }
+  setInterval(function () { var fsOn = place(); btn.style.display = (inMap() || fsOn) ? 'flex' : 'none'; if (!inMap() && !fsOn) { var m = $('mapbag-ov'); if (m) m.remove(); } }, 600);
 })();
