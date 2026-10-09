@@ -217,6 +217,12 @@ const CSS=`#dr-root{position:fixed;inset:0;z-index:780;overflow:hidden;
 #dr-root .bg-action{background-image:url(drama/bg/thumb-dawn.jpg)}
 #dr-root .bg-comedy{background-image:url(drama/bg/thumb-comedy.jpg)}
 #dr-root .bg-horror{background-image:url(drama/bg/thumb-horror.jpg)}
+#dr-root .bg-umbrella{background-image:url(drama/bg/thumb-umbrella.jpg)}
+#dr-root .bg-warehouse{background-image:url(drama/bg/thumb-warehouse.jpg)}
+#dr-root .bg-cafe{background-image:url(drama/bg/thumb-cafe.jpg)}
+#dr-root .bg-elevator{background-image:url(drama/bg/thumb-elevator.jpg)}
+#dr-root .bg-camp{background-image:url(drama/bg/thumb-camp.jpg)}
+#dr-root .bg-school{background-image:url(drama/bg/thumb-school.jpg)}
 #dr-root .face{background-image:var(--face);background-color:var(--panel-2)}
 #dr-root .bookbtn{display:grid;grid-template-columns:64px 1fr;column-gap:12px;align-items:center;width:100%;text-align:left;padding:12px 14px 12px 18px;border-radius:6px 16px 16px 6px;border:1.5px solid var(--line);border-left:10px solid var(--slate);background:linear-gradient(135deg,var(--panel),var(--panel-2));box-shadow:2px 3px 0 rgba(0,0,0,.25);position:relative}
 #dr-root .bookbtn>div{display:grid;gap:3px;min-width:0}
@@ -527,14 +533,15 @@ const SKILLS={
  one:{n:'원테이크',cat:'보조',gr:'프리미엄',cd:40,i:'원',d:()=>`${fmt(10*MCTX)}초간 NG 무효, 게이지 상승 ×1.5`,use:C=>{G.oneUntil=G.t+10*MM();popup('원테이크!','','var(--slate)')}}
 };
 const DROP={low:{일반:65,레어:30,히든:5,프리미엄:0},high:{일반:40,레어:35,히든:20,프리미엄:5}};
-const BG_SRC={romance:'drama/bg/romance.jpg',action:'drama/bg/action.jpg',comedy:'drama/bg/comedy.jpg',horror:'drama/bg/horror.jpg'};
+const BG_SRC={romance:'drama/bg/romance.jpg',action:'drama/bg/action.jpg',comedy:'drama/bg/comedy.jpg',horror:'drama/bg/horror.jpg',umbrella:'drama/bg/umbrella.jpg',warehouse:'drama/bg/warehouse.jpg',cafe:'drama/bg/cafe.jpg',elevator:'drama/bg/elevator.jpg',camp:'drama/bg/camp.jpg',school:'drama/bg/school.jpg'};
 const GENRE_KEY={'로맨스':'romance','액션':'action','코미디':'comedy','공포':'horror'};
 const SCENE_OF={'로맨스':'romance','액션':'action','코미디':'romance','공포':'action'}; // 스킬 보너스 판정용: 코미디=웃음·애드리브 계열, 공포=액션 계열
 const ACTS={};
 function actImg(id,p){const k=id+p;if(!ACTS[k]){const i=new Image();i.src='drama/actors/'+id+'_'+p+'.png';ACTS[k]=i}return ACTS[k]}
 const POSE_OF={sob:'cry',tears:'cry',dead:'cry',smile:'smile',laugh:'smile',adlib:'smile',song:'smile',makeup:'smile',rage:'fist',chase:'fist',wire:'fist',act:'fist',stunt:'fist',one:'fist',close:'fist'};
 const BGS={};
-function bgFor(g){const k=GENRE_KEY[g]||'romance';if(!BGS[k]){const i=new Image();i.src=BG_SRC[k];BGS[k]=i}return BGS[k]}
+function bgKey(sc){return sc&&BG_SRC[sc.id]?sc.id:(GENRE_KEY[sc&&sc.genre]||'romance')}
+function bgFor(sc){const k=bgKey(sc);if(!BGS[k]){const i=new Image();i.src=BG_SRC[k];BGS[k]=i}return BGS[k]}
 const FAME_GOAL=400;   /* 탑스타 승급에 필요한 인지도 (촬영 1번에 시청률×2 만큼 오름). 저장값(S.fame)은 계속 0~100% 로 두어서 다른 시스템(투자·음악차트)과 호환 */
 const RPTS=[[0,.4],[43,2.1],[67,5.8],[89,11.7],[100,15]];
 function rating(g){for(let i=1;i<RPTS.length;i++){const[a,b]=RPTS[i-1],[c,d]=RPTS[i];if(g<=c)return b+(d-b)*(g-a)/(c-a)}return 15}
@@ -619,7 +626,7 @@ function openBookPop(k){
 function renderBookPop(flip){
   const L=bookList(),it=L[bookI],isS=bookK==='script',on=(isS?S.sel.script:S.sel.dir)===it.id;
   const page=isS
-    ?`<div class="bk-top"><span class="dav sth bg-${GENRE_KEY[it.genre]||'romance'}"></span><div><div class="bk-t">${it.title}</div><div><span class="tag">${it.genre}</span> <span class="tag">${it.cast}인</span></div></div></div>
+    ?`<div class="bk-top"><span class="dav sth bg-${bgKey(it)}"></span><div><div class="bk-t">${it.title}</div><div><span class="tag">${it.genre}</span> <span class="tag">${it.cast}인</span></div></div></div>
       <div class="bk-d">${it.desc}</div><div class="bk-s">${scriptInfo(it)}</div>
       ${it.cast>1?`<div class="bk-n">💞 상대역은 촬영할 때 랜덤으로 정해져요 · 출연료 +${it.cast>=3?30:20}% · 케미 부스트 스킬이 효과를 내요</div>`:''}`
     :`<div class="bk-top"><span class="dav dr bk-dir dr-${it.id}" style="margin:0"></span><div><div class="bk-t">${it.name}</div><div>${S.learned[it.id]?`<span class="tag">${it.style} · 성향 파악 완료</span>`:'<span class="tag">성향 미확인</span>'}</div></div></div>
@@ -670,7 +677,7 @@ function renderPrep(){
     </div>
 
     <div class="sec"><h2><span class="n">1</span>대본 선택</h2>
-      <button class="bookbtn" data-a="bookpop" data-k="script"><span class="dav sth bg-${GENRE_KEY[sc_.genre]||'romance'}"></span><div><div class="t">📖 ${sc_.title}<span class="tag">${sc_.genre}</span><span class="tag">${sc_.cast}인</span></div><div class="s">${sc_.desc}</div><div class="s">${scriptInfo(sc_)}</div><div class="hintl">📖 눌러서 다른 대본 보기 ▸</div></div></button>
+      <button class="bookbtn" data-a="bookpop" data-k="script"><span class="dav sth bg-${bgKey(sc_)}"></span><div><div class="t">📖 ${sc_.title}<span class="tag">${sc_.genre}</span><span class="tag">${sc_.cast}인</span></div><div class="s">${sc_.desc}</div><div class="s">${scriptInfo(sc_)}</div><div class="hintl">📖 눌러서 다른 대본 보기 ▸</div></div></button>
     </div>
 
     <div class="sec"><h2><span class="n">2</span>감독 선택</h2>
@@ -795,7 +802,7 @@ function startShoot(){
   G={t:0,limit:CFG.TIME,gauge:0,buzz:0,ng:0,nextMult:1,nextWin:0,chExt:0,good:false,oneUntil:0,chaseUntil:0,
     card:c,script:sc_,dir:d_,skills:sk,memo:sk.some(k=>k.id==='memo'),active:null,idx:0,
     ev:evFill.sort((a,b)=>a.t-b.t),partners,correct:0,choices:0,ngCount:0,frozen:false,ended:false,okRemain:0,bubbleUntil:0,dirUntil:0,perfects:0};
-  $('#dr-prep').hidden=true;$('#dr-result').hidden=true;$('#dr-shoot').hidden=false;G.bg=bgFor(G.script.genre);
+  $('#dr-prep').hidden=true;$('#dr-result').hidden=true;$('#dr-shoot').hidden=false;G.bg=bgFor(G.script);
   $('#dr-dirName').textContent=d_.name+' · PERFECT';$('#dr-dirPic').className='dav dr dr-'+d_.id;
   $('#dr-cut').hidden=true;$('#dr-banner').hidden=true;$('#dr-bubble').hidden=true;$('#dr-dirSay').hidden=true;$('#dr-choices').innerHTML='';$('#dr-fx').innerHTML='';
   buildSlots();
