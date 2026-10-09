@@ -120,6 +120,11 @@
     ['여기서 한 단계 더 올라가자. 따라와.', '포인트만 짚어줄게. 바로 달라질 거야.', '프로는 디테일이야.'],
     ['…좋은 재목이군. 내 모든 걸 가르쳐주마.', '한 번 보면 알지. 너는 더 갈 수 있어.', '이 정도 열정이라면 무대가 너를 기다린다.']
   ];
+  function coachImg(t, k, px) {   // 코치 초상화 (없으면 이모지). 선택창엔 3장만, 결과창엔 1장만 불러서 가볍게
+    var emo = '<span style="font-size:' + Math.round(px * 0.7) + 'px;">' + TIERS[t].icon + '</span>';
+    return '<span style="display:inline-flex;align-items:center;justify-content:center;width:' + px + 'px;height:' + px + 'px;">' + emo +
+      '<img src="meal-assets/coach/' + k + '-' + t + '.png" loading="lazy" decoding="async" alt="" draggable="false" style="position:absolute;width:' + px + 'px;height:' + px + 'px;object-fit:contain;" onerror="this.style.display=\'none\'" onload="var p=this.previousSibling;if(p)p.style.visibility=\'hidden\'"></span>';
+  }
   function coachName(t, k) { return TIERS[t].name + ' ' + COACH_SUBJ[k]; }
   var TIRED_LINE = '…오늘은 몸이 말을 안 들어. 그래도 끝까지 해봤어.';
   var GLOW_LINE = '기분이 좋아서 그런지 오늘은 술술 들어왔어!';
@@ -383,7 +388,7 @@
       var cost = costOf(st, cid, k, i), ok = have >= cost;
       var bg = cond.s >= STAMINA_LOW ? Math.round((bigNow + T.big) * 100) + '%' : '체력 낮아서 불가';
       return '<button data-tier="' + i + '" style="' + BTN + 'width:100%;display:flex;align-items:center;gap:10px;text-align:left;padding:11px 12px;margin-bottom:8px;background:rgba(255,255,255,0.08);border:1.5px solid ' + (ok ? S.color : '#ffffff22') + ';color:#fff;opacity:' + (ok ? 1 : 0.5) + ';">' +
-        '<span style="font-size:30px;">' + T.icon + '</span><span style="flex:1;"><span style="font-size:13px;">' + esc(coachName(i, k)) + '</span><br>' +
+        '<span style="position:relative;display:inline-block;width:54px;height:54px;flex:none;">' + coachImg(i, k, 54) + '</span><span style="flex:1;"><span style="font-size:13px;">' + esc(coachName(i, k)) + '</span><br>' +
         '<span style="font-size:11px;color:#c9d0f5;font-weight:700;">성장 ×' + T.gain + ' · 🌟대성공 ' + bg + '</span></span>' +
         '<span style="font-size:12px;color:' + (ok ? '#ffe08a' : '#ff8a8a') + ';">🪙' + manTxt(cost) + '</span></button>';
     }).join('');
@@ -440,7 +445,7 @@
     var sparks = res.big ? '<div style="position:absolute;inset:0;pointer-events:none;overflow:hidden;border-radius:20px;">' + [12, 28, 46, 64, 80].map(function (x, i) { return '<span style="position:absolute;left:' + x + '%;top:' + (30 + (i % 3) * 18) + '%;font-size:18px;animation:lsSpark 1.4s ease-out ' + (i * 0.18) + 's infinite;">✨</span>'; }).join('') + '</div>' : '';
     ov.innerHTML = '<div style="position:relative;width:100%;max-width:340px;background:linear-gradient(160deg,#1b1330,#2a1745);border:1.5px solid ' + (res.big ? '#ffd700' : s.color) + ';border-radius:20px;padding:18px;text-align:center;animation:' + (res.big ? 'lsPop .45s ease-out,lsGlow 1.6s ease-in-out infinite' : 'lsPop .3s ease-out') + ';">' + sparks + bigBanner +
       '<div style="font-size:13px;font-weight:900;color:#cfd3ee;">' + esc(name) + ' · ' + s.lesson + '</div>' +
-      '<div style="font-size:11px;color:#9aa0c8;margin-top:2px;">' + T.icon + ' ' + esc(coachName(res.tier | 0, res.k)) + ': “' + esc(res.coachLine || '') + '”</div>' +
+      '<div style="display:flex;align-items:center;gap:8px;justify-content:center;margin-top:6px;text-align:left;"><span style="position:relative;display:inline-block;width:56px;height:56px;flex:none;">' + coachImg(res.tier | 0, res.k, 56) + '</span><span style="font-size:11px;color:#c9d0f5;line-height:1.45;"><b>' + esc(coachName(res.tier | 0, res.k)) + '</b><br>“' + esc(res.coachLine || '') + '”</span></div>' +
       '<div style="font-size:44px;margin:8px 0 2px;">' + s.icon + '</div>' +
       '<div style="font-size:22px;font-weight:900;color:' + s.color + ';">' + s.name + ' +' + res.gain + '</div>' +
       '<div style="font-size:12px;color:#aab4d6;margin-top:2px;">' + res.before + ' → <b style="color:#fff;">' + res.after + '</b></div>' +
