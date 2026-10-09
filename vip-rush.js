@@ -2,7 +2,7 @@
 // 👑 레드카펫 VIP 게이트 (vip-rush.js)
 //
 // 팬덤 원정의 고렙 파밍 맵. 공항 입국장(fan-rush.js) 엔진을 그대로 가져와 고쳐 만들었다.
-//  - 플레이어 Lv.40 이상 · 🧩 소원의 조각 5개를 내고 입장
+//  - 플레이어 Lv.40 이상 · ⭐ 우등생별 2개를 내고 입장
 //  - 탑뷰 맵을 돌아다니며(카메라가 따라감) 팬 무리를 만난다. 팬마다 머리 위에 '광역 스킬' 2개가 떠 있음
 //  - 팬 가까이 가면 어그로! 무리 전체가 몰려옴. 닿으면 HP가 깎임 (0이 되면 쫓겨나 보상 절반)
 //  - 시간 제한 없음. 팬을 전부 만족시키면 맵 가운데에 '팬들의 선물 상자'가 나타나고, 열면 보상이 쏟아짐
@@ -15,7 +15,7 @@
   // ── 설정 ──
   var LOC_ID = 'vip_rush';
   var NEED_LEVEL = 40;             // 입장 가능한 플레이어 레벨
-  var ENTRY_WISH = 5;               // 입장할 때 내는 🧩 소원의 조각 개수
+  var ENTRY_WISH = 2;               // 입장할 때 내는 ⭐ 우등생별 개수 (honorStars)
   var WORLD = 1500;                // 맵 한 변 (px)
   var WAVES = 8;                   // 웨이브 수 (마지막은 보스)
   var WAVE_MAX_SEC = 24;           // 한 웨이브가 이 시간 넘으면 다음 웨이브가 먼저 시작
@@ -1170,7 +1170,7 @@
       '<div style="font-size:19px;font-weight:900;color:' + (r.won ? '#ffd76a' : '#ff8aa8') + ';margin:4px 0;">' + (r.won ? '팬들의 선물 도착!' : '팬들한테 치였어요…') + '</div>' +
       '<div style="font-size:12px;color:#bbb;margin-bottom:12px;">' + r.kills + '명 응대 · ' + Math.floor(r.time / 60) + '분 ' + (r.time % 60) + '초' + (r.won ? '' : '<br>번 보상의 ' + Math.round(DEFEAT_RATE * 100) + '%만 받아요 (선물 상자는 못 열었어요)') + '</div>' +
       '<div style="font-size:14px;line-height:1.9;margin-bottom:14px;">' + lines + '</div>' +
-      '<button id="fr-again" class="vr-row" style="animation-delay:' + tail + 's;width:100%;padding:13px;margin-bottom:8px;border:none;border-radius:12px;background:linear-gradient(135deg,#F5B942,#FB7185);color:#fff;font-size:15px;font-weight:900;cursor:pointer;font-family:inherit;">다시 도전 (' + matHtml('소원의 조각', '🧩', 20) + ' ' + ENTRY_WISH + ')</button>' +
+      '<button id="fr-again" class="vr-row" style="animation-delay:' + tail + 's;width:100%;padding:13px;margin-bottom:8px;border:none;border-radius:12px;background:linear-gradient(135deg,#F5B942,#FB7185);color:#fff;font-size:15px;font-weight:900;cursor:pointer;font-family:inherit;">다시 도전 (' + starIco(20) + ' ' + ENTRY_WISH + ')</button>' +
       '<button id="fr-out" class="vr-row" style="animation-delay:' + tail + 's;width:100%;padding:11px;border:none;border-radius:12px;background:rgba(255,255,255,.1);color:#ccc;font-size:14px;cursor:pointer;font-family:inherit;">나가기</button></div>';
     ov.appendChild(el);
     for (var qi = 0; qi < rows.length; qi++) (function (d) { setTimeout(function () { sfx('pick'); }, d); })(250 + qi * 280);
@@ -1179,12 +1179,13 @@
   }
 
   // ════════ 입장 ════════
-  function wishNow() { try { return Math.floor(Number(wishFragments) || 0); } catch (e) { return 0; } }
+  function wishNow() { try { return Math.floor(Number(honorStars) || 0); } catch (e) { return 0; } }   // ⭐ 우등생별 (이름은 예전 그대로)
+  function starIco(px) { return '<img src="honor-star.png" alt="⭐" style="width:' + px + 'px;height:' + px + 'px;vertical-align:-' + Math.round(px * 0.2) + 'px;">'; }
   function hasAoe() { var a = API(); return !a || loadoutIds().some(function (id) { var k = id && skillById(id); return k && k.kind === 'aoe' && skillOpen(k) && skillOwned(k); }); }
   function enter(charId, again) {
     if (plv() < NEED_LEVEL) { toast('👑 VIP 게이트는 플레이어 Lv.' + NEED_LEVEL + '부터 열려요 (지금 Lv.' + plv() + ')'); return false; }
     var ov = $('special-overlay'); if (!ov) return false;
-    if (wishNow() < ENTRY_WISH) { toast('🧩 소원의 조각이 모자라요! (입장 ' + ENTRY_WISH + '개 · 지금 ' + wishNow() + '개)'); return false; }
+    if (wishNow() < ENTRY_WISH) { toast('⭐ 우등생별이 모자라요! (입장 ' + ENTRY_WISH + '개 · 지금 ' + wishNow() + '개)'); return false; }
     var A = API();
     G = null;
     var go = function () { openHire(charId, ov); };
@@ -1194,7 +1195,7 @@
       '위력은 <b>스킬 기본 위력 × 플레이어 레벨 × 멤버 카드 레벨 × 스킬 숙련도 × 히든카드 강화</b>로 정해져요. 다 키울수록 팬이 금방 만족해요.',
       '단타 스킬은 한 명씩, 광역 스킬(🎤💖✨🌹🎆)은 범위 안 팬 <b>전부</b>에게 한꺼번에 들어가요. 무리를 모아서 광역으로!',
       '<b>시간 제한은 없어요.</b> 대신 HP가 0이 되면 쫓겨나요. 팬을 <b>전부</b> 만족시키면 🎁 <b>팬들의 선물 상자</b>가 나타나요!',
-      '입장할 때 🧩 <b>소원의 조각 ' + ENTRY_WISH + '개</b>를 내요. 🕶️ 보디가드도 고용할 수 있어요.'
+      '입장할 때 ⭐ <b>우등생별 ' + ENTRY_WISH + '개</b>를 내요. (등교해서 얻어요) 🕶️ 보디가드도 고용할 수 있어요.'
     ], go); else go();
     return true;
   }
@@ -1236,7 +1237,7 @@
       $('fr-hire-no').onclick = function () { el.remove(); if (!G) ov.remove(); };
       $('fr-hire-go').onclick = function () {
         var t2 = total();
-        if (wishNow() < ENTRY_WISH) { toast('🧩 소원의 조각이 모자라요! (입장 ' + ENTRY_WISH + '개)'); return; }
+        if (wishNow() < ENTRY_WISH) { toast('⭐ 우등생별이 모자라요! (입장 ' + ENTRY_WISH + '개)'); return; }
         if (t2 > ((typeof coins !== 'undefined') ? coins : 0)) { toast('코인이 모자라요!'); return; }
         if (t2 > 0) { coins -= t2; try { if (typeof updateCoinsDisplay === 'function') updateCoinsDisplay(); } catch (e) {} }
         el.remove();
@@ -1247,7 +1248,7 @@
   }
 
   function startRun(charId, hiredIds, ov) {
-    try { wishFragments = Math.max(0, wishNow() - ENTRY_WISH); localStorage.setItem('ph_wish', wishFragments); } catch (e) {}
+    try { honorStars = Math.max(0, wishNow() - ENTRY_WISH); localStorage.setItem('ph_honorStars', honorStars); } catch (e) {}
     try { if (typeof saveAll === 'function') saveAll(); } catch (e) {}
     curChar = charId; styleOnce();
     for (var pf = 1; pf <= FAN_FACES; pf++) fanFace(pf); fanFace('boss'); ['highlight', 'wink', 'encore', 'rose', 'finale', 'hit'].forEach(vfxImg);   // 얼굴 그림 미리 불러오기
@@ -1290,7 +1291,7 @@
         var b = document.createElement('button'); b.id = 'vr-entry-btn';
         b.onclick = window.openVipRush;
         b.style.cssText = 'width:100%;display:flex;align-items:center;gap:12px;padding:13px 14px;margin-bottom:9px;background:#F5B9421f;border:1.5px solid #F5B942;border-radius:14px;color:#fff;font-size:14px;font-weight:900;cursor:pointer;text-align:left;font-family:inherit;';
-        b.innerHTML = '<span style="font-size:24px;">👑</span><span>레드카펫 VIP 게이트 <span style="font-size:10px;color:#ffe9b0;font-weight:700;">NEW</span><br><span style="font-size:10px;font-weight:400;color:#ffe9b0;">스킬로 팬 무리를 만족시켜요! 선물 상자에서 강화석·방지권 · Lv.' + NEED_LEVEL + ' · 🧩' + ENTRY_WISH + '</span></span><span style="margin-left:auto;color:#888;font-size:16px;">›</span>';
+        b.innerHTML = '<span style="font-size:24px;">👑</span><span>레드카펫 VIP 게이트 <span style="font-size:10px;color:#ffe9b0;font-weight:700;">NEW</span><br><span style="font-size:10px;font-weight:400;color:#ffe9b0;">스킬로 팬 무리를 만족시켜요! 선물 상자에서 강화석·방지권 · Lv.' + NEED_LEVEL + ' · ' + starIco(12) + ENTRY_WISH + '</span></span><span style="margin-left:auto;color:#888;font-size:16px;">›</span>';
         var pad = sec.lastElementChild;     // 맨 아래 빈칸 앞에 끼운다
         sec.insertBefore(b, pad);
       }
