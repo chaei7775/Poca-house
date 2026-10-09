@@ -834,6 +834,7 @@
   }
   var boxSnooze = 0;
   window.__bcBoxOpen = function () { boxOpen(); };   // 테스트용
+  window.__bcBoxBonus = function (n) { var o = boxLoad(); o.bonus += (n | 0); boxSave(o); return true; };   // 팬 스킬 등: 조각을 바로 주지 않고 뽑기 상자에 덤으로 쌓기
   var RAW = 'https://raw.githubusercontent.com/chaei7775/Poca-house/main/';
   function boxOpen() {
     if ($('bc-box-ov')) return;

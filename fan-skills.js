@@ -621,8 +621,10 @@
     var exp = Math.round(EXP_BASE * mult);
     if (exp > 0 && F.cid && typeof addCardExp === 'function') { try { addCardExp(F.cid, exp); lines.push(chipHtml('⭐', '+' + exp + ' EXP', '#FFD700')); } catch (e) {} }
     var pieces = 0;
-    if (love && F.mapId === 'broadcast_front' && Math.random() < PIECE_CHANCE && typeof addToBag === 'function') {
-      if (addToBag(PIECE_EMOJI, PIECE_NAME, 'piece', 1, '프리미엄 카드 조각 · ' + PIECE_GOAL + '개를 모으면 더보기 > 프리미엄 카드에서 교환')) {
+    if (love && F.mapId === 'broadcast_front' && Math.random() < PIECE_CHANCE) {
+      if (typeof window.__bcBoxBonus === 'function') {          // 방송국 앞: 조각은 바로 안 주고 🎁 뽑기 상자에 덤으로 쌓임
+        window.__bcBoxBonus(1); lines.push(chipHtml('🎁', '상자 조각 +1 (뽑기에서 나와요)', '#7dd3fc'));
+      } else if (typeof addToBag === 'function' && addToBag(PIECE_EMOJI, PIECE_NAME, 'piece', 1, '프리미엄 카드 조각 · ' + PIECE_GOAL + '개를 모으면 더보기 > 프리미엄 카드에서 교환')) {
         pieces = 1; lines.push(chipHtml(PIECE_EMOJI, PIECE_NAME + ' +1', '#7dd3fc'));
       }
     }
