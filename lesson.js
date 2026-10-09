@@ -193,6 +193,11 @@
     var cur = statOf(st, cid)[k] || STAT_START;
     return Math.round(COST_COEF * cur * cur * mul / 100) * 100;
   }
+  function onSale(st, cid) { return (st.count[cid] || 0) < FREE_LESSONS; }
+  function fullCost(st, cid, k, tier) {   // 할인 없을 때의 원래 가격
+    var mul = (TIERS[tier | 0] || TIERS[0]).cost, cur = statOf(st, cid)[k] || STAT_START;
+    return Math.round(COST_COEF * cur * cur * mul / 100) * 100;
+  }
   function manTxt(n) { return n >= 10000 ? (Math.round(n / 1000) / 10).toString().replace(/\.0$/, '') + '만' : n.toLocaleString(); }
   function canLesson(st, cid, k, day, cond, haveCoins, tier) {
     if (ENABLED.indexOf(cid) === -1) return { ok: false, why: 'locked' };
@@ -327,16 +332,17 @@
       var c = canLesson(st, cid, s.k, day, cond, have);
       var apt = (APT[cid] && APT[cid][s.k]) || 1;
       var tag = apt > 1 ? '<span style="color:#7ee8a5;">잘해요</span>' : (apt < 1 ? '<span style="color:#ffb36b;">서툴러요</span>' : '');
-      return '<button data-lesson="' + s.k + '" style="' + BTN + 'padding:9px 4px;background:rgba(255,255,255,0.08);border:1px solid ' + s.color + '66;color:#fff;font-size:11px;opacity:' + (c.ok ? 1 : 0.45) + ';">' +
+      return '<button data-lesson="' + s.k + '" style="' + BTN + 'position:relative;padding:9px 4px;background:rgba(255,255,255,0.08);border:1px solid ' + s.color + '66;color:#fff;font-size:11px;opacity:' + (c.ok ? 1 : 0.45) + ';">' +
         '<div>' + ico(s.k, 32, s.icon) + '</div><div>' + s.lesson + '</div>' +
         '<div style="font-size:10px;font-weight:700;min-height:13px;">' + tag + '</div>' +
-        '<div style="font-size:10px;font-weight:900;color:' + (have < costOf(st, cid, s.k) ? '#ff8a8a' : '#ffe08a') + ';">🪙' + manTxt(costOf(st, cid, s.k)) + '</div></button>';
+        (onSale(st, cid) ? '<div style="position:absolute;top:-6px;right:-3px;background:#ff4d6d;color:#fff;font-size:9px;font-weight:900;border-radius:8px;padding:1px 5px;box-shadow:0 1px 4px rgba(0,0,0,.4);">할인</div>' : '') +
+        '<div style="font-size:10px;font-weight:900;color:' + (have < costOf(st, cid, s.k) ? '#ff8a8a' : '#ffe08a') + ';">' + (onSale(st, cid) ? '<span style="text-decoration:line-through;color:#8f98c2;font-weight:700;font-size:9px;">' + manTxt(fullCost(st, cid, s.k, 0)) + '</span><br>' : '') + '🪙' + manTxt(costOf(st, cid, s.k)) + '</div></button>';
     }).join('');
     var ctrl = done
       ? '<div style="text-align:center;font-size:12px;font-weight:900;color:#7ee8a5;background:rgba(126,232,165,.1);border:1px solid rgba(126,232,165,.35);border-radius:10px;padding:9px;">✅ 오늘 레슨 완료! 🌙 하루를 보내면 다시 할 수 있어요</div>'
       : '<div style="font-size:12px;font-weight:900;color:#ddd;margin-bottom:6px;display:flex;justify-content:space-between;"><span>📚 오늘의 레슨 <span style="color:#aaa;font-weight:700;">(하루 1번)</span></span>' +
         '<span style="color:#ffe08a;">체력 −' + LESSON_TIRED + '</span></div>' +
-        ((st.count[cid] || 0) < FREE_LESSONS ? '<div style="font-size:11px;color:#7ee8a5;margin-bottom:6px;">🎀 신입 할인! 앞으로 ' + (FREE_LESSONS - (st.count[cid] || 0)) + '번은 1,000코인 · 그 뒤엔 능력치가 높을수록 비싸져요</div>' : '') +
+        (onSale(st, cid) ? saleBanner(st, cid) : '') +
         (warn ? '<div style="font-size:11px;color:#ffcf9a;margin-bottom:6px;">' + warn + '</div>' : '') +
         '<div id="ls-grid" style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;">' + lessons + '</div>';
     return head + barsHtml(st, cid, from) + fxLine(cid) + '<div style="margin-top:10px;padding-top:10px;border-top:1px dashed rgba(255,255,255,0.15);">' + ctrl + '</div>';
@@ -349,6 +355,15 @@
         for (var i = 0; i < bars.length; i++) bars[i].style.width = bars[i].getAttribute('data-final') + '%';
       });
     });
+  }
+
+  function saleBanner(st, cid) {
+    var used = Math.min(FREE_LESSONS, st.count[cid] || 0), dots = '';
+    for (var d = 0; d < FREE_LESSONS; d++) dots += '<span style="display:inline-block;width:11px;height:11px;border-radius:50%;margin:0 2px;background:' + (d < used ? 'rgba(255,255,255,0.25)' : '#ffd700') + ';"></span>';
+    return '<div style="margin-bottom:8px;padding:9px 10px;border-radius:12px;background:linear-gradient(135deg,rgba(255,77,109,0.28),rgba(255,215,0,0.22));border:1.5px solid #ffd700;text-align:center;">' +
+      '<div style="font-size:13px;font-weight:900;color:#ffe27a;">🎀 신입 레슨 할인 이벤트!</div>' +
+      '<div style="margin:4px 0;">' + dots + '</div>' +
+      '<div style="font-size:11px;font-weight:800;color:#fff;">앞으로 <b style="color:#ffd700;">' + (FREE_LESSONS - used) + '번</b> 모든 코치 레슨이 ' + manTxt(LESSON_COST) + '코인부터!<br><span style="font-size:10px;color:#ffd4dc;">그 뒤엔 능력치가 높을수록 비싸져요</span></div></div>';
   }
 
   function drawBox(ov, from) {
@@ -395,7 +410,7 @@
       return '<button data-tier="' + i + '" style="' + BTN + 'width:100%;display:flex;align-items:center;gap:10px;text-align:left;padding:11px 12px;margin-bottom:8px;background:rgba(255,255,255,0.08);border:1.5px solid ' + (ok ? S.color : '#ffffff22') + ';color:#fff;opacity:' + (ok ? 1 : 0.5) + ';">' +
         '<span style="position:relative;display:inline-block;width:54px;height:54px;flex:none;">' + coachImg(i, k, 54) + '</span><span style="flex:1;"><span style="font-size:13px;">' + esc(coachName(i, k)) + '</span><br>' +
         '<span style="font-size:11px;color:#c9d0f5;font-weight:700;">성장 ×' + T.gain + ' · ' + ico('great', 13, '🌟') + '대성공 ' + bg + '</span></span>' +
-        '<span style="font-size:12px;color:' + (ok ? '#ffe08a' : '#ff8a8a') + ';">🪙' + manTxt(cost) + '</span></button>';
+        '<span style="font-size:12px;text-align:right;color:' + (ok ? '#ffe08a' : '#ff8a8a') + ';">' + (onSale(st, cid) ? '<span style="text-decoration:line-through;color:#8f98c2;font-size:10px;font-weight:700;">' + manTxt(fullCost(st, cid, k, i)) + '</span><br>' : '') + '🪙' + manTxt(cost) + '</span></button>';
     }).join('');
     ov.innerHTML = '<div style="width:100%;max-width:340px;background:linear-gradient(160deg,#1b1330,#2a1745);border:1.5px solid ' + S.color + ';border-radius:20px;padding:16px;">' +
       '<div style="text-align:center;font-size:14px;font-weight:900;color:#fff;margin-bottom:2px;">' + ico(S.k, 22, S.icon) + ' ' + S.lesson + ' · 누구에게 배울까요?</div>' +
