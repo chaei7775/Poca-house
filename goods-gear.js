@@ -588,7 +588,7 @@
     install();   // 한 번만 감쌈 (bag-delete.js 처럼 주기적으로 다시 감싸는 파일과 서로 겹겹이 감싸지 않도록)
   })();
 
-  window.__goodsGear = { globalTotals: globalTotals, craft: craft, rollGear: rollGear, totals: totals, bonusOf: bonusOf, equip: equip, unequip: unequip };
+  window.__goodsGear = { icon: icon, globalTotals: globalTotals, craft: craft, rollGear: rollGear, totals: totals, bonusOf: bonusOf, equip: equip, unequip: unequip };
 
   // ── 맵: 🛍️ 상점거리 에 "🎁 굿즈 공방" 버튼 ──
   var BTN_ID = 'btn-goods-gear';
