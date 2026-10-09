@@ -592,6 +592,12 @@
       el.innerHTML = '<div style="width:34px;height:34px;border-radius:50%;background:#fff;border:3px solid #FF6B9D;display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 0 14px #FF6B9D;">❗</div>';
     } else {
       var legend = ev.type === 'legend';
+      if (!legend) {   // 🌟 황금 셔터(레어 팬): 별 모양 대신 레어팬 얼굴 (rarefan-1~4.png, 없으면 🌟)
+        ev.face = ev.face || (1 + Math.floor(Math.random() * 4));
+        el.innerHTML = '<div style="width:58px;height:58px;display:flex;align-items:center;justify-content:center;"><img src="' + IMG_BASE + 'rarefan-' + ev.face + '.png" alt="" draggable="false" style="width:58px;height:58px;object-fit:contain;filter:drop-shadow(0 0 10px #FFD700);" onerror="this.outerHTML=\'<span style=&quot;font-size:34px;&quot;>🌟</span>\'"></div>' +
+          '<div class="bc-ttl" style="margin-top:2px;font-size:11px;font-weight:900;color:#fff;text-shadow:0 1px 4px #000;"></div>';
+        $('bc-layer').appendChild(el); ev.el = el; return el;
+      }
       el.innerHTML = '<div style="width:48px;height:48px;border-radius:50%;background:' + (legend ? 'linear-gradient(135deg,#ff5a36,#ffb703)' : 'linear-gradient(135deg,#FFD700,#FF9F43)') +
         ';border:3px solid #fff;display:flex;align-items:center;justify-content:center;font-size:24px;box-shadow:0 0 20px #FFD700;">' + (legend ? ((ev.npc && !NPC_READY[ev.npc.id] && ev.npc.emoji) || (ev.npc ? '' : '🔥')) : '🌟') + '</div>' +
         '<div class="bc-ttl" style="margin-top:2px;font-size:11px;font-weight:900;color:#fff;text-shadow:0 1px 4px #000;"></div>';
