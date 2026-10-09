@@ -891,11 +891,12 @@
     function lineTo(h, ms) { line.style.transition = 'height ' + ms + 'ms ease-in-out'; line.style.height = h + 'px'; return wait(ms + 40); }
     function setClosed(c) { openI.style.display = c ? 'none' : 'block'; closedI.style.display = c ? 'block' : 'none'; }
     function burst(cx, cy, color) {
-      var fx = $('cm-fx'), em = ['🖼️', '✨', '💖', '⭐', '🎁', '💫'];
+      var fx = $('cm-fx'), em = ['piece', 'sparkle', 'heart', 'star', 'gift', 'sparkle'];
       for (var k = 0; k < 28; k++) {
-        var p = document.createElement('div'), a = Math.random() * Math.PI * 2, d = 60 + Math.random() * 130;
-        if (em[k % em.length] === '🖼️') p.innerHTML = pieceIcon(26); else p.textContent = em[k % em.length];
-        p.style.cssText = 'position:absolute;left:' + cx + 'px;top:' + cy + 'px;font-size:' + (16 + Math.random() * 14) + 'px;transition:transform .9s cubic-bezier(.1,.7,.3,1),opacity .9s ease-in;transform:translate(-50%,-50%);opacity:1;';
+        var p = document.createElement('div'), a = Math.random() * Math.PI * 2, d = 60 + Math.random() * 130, kind = em[k % em.length], sz = Math.round(18 + Math.random() * 14);
+        if (kind === 'piece') p.innerHTML = pieceIcon(sz + 6);
+        else p.innerHTML = '<img src="' + RAW + 'em-' + kind + '.png" alt="" style="width:' + sz + 'px;height:' + sz + 'px;display:block;">';
+        p.style.cssText = 'position:absolute;left:' + cx + 'px;top:' + cy + 'px;line-height:0;transition:transform .9s cubic-bezier(.1,.7,.3,1),opacity .9s ease-in;transform:translate(-50%,-50%);opacity:1;';
         fx.appendChild(p);
         (function (p, a, d) { setTimeout(function () { p.style.transform = 'translate(' + (Math.cos(a) * d) + 'px,' + (Math.sin(a) * d - 40) + 'px) scale(.6) rotate(' + (a * 90) + 'deg)'; p.style.opacity = '0'; }, 30); })(p, a, d);
       }
