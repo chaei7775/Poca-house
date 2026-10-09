@@ -27,6 +27,7 @@
     yoga:      ['마음이 차분해졌어요.', '몸이 가벼워지고 기분도 좋아졌어요.'],
     pilates:   ['자세가 바르게 잡힌 것 같아요!', '몸이 탄탄해지는 기분이에요.']
   };
+  var LOCK_MSG = '🔒 아이돌이 데뷔한 뒤에 이용할 수 있어요! 기획사에서 먼저 데뷔시켜 주세요';
   var FONT = "font-family:'Noto Sans KR',sans-serif;";
   var BTN = 'border:none;border-radius:12px;font-weight:900;cursor:pointer;' + FONT;
 
@@ -120,7 +121,7 @@
     var m = M();
     if (!m) { toast('아직 이용할 수 없어요'); return; }
     var ids = debutedIds();
-    if (!ids.length) { toast('데뷔한 아이돌이 없어요. 기획사에서 먼저 데뷔시켜 주세요!'); return; }
+    if (!ids.length) { toast(LOCK_MSG); return; }
     var cid = (cid0 && ids.indexOf(cid0) !== -1) ? cid0 : (lastCid && ids.indexOf(lastCid) !== -1 ? lastCid : ids[0]);
     var ov = overlay('spa-ov', Z);
     ov.onclick = function (e) { if (e.target === ov) ov.remove(); };
@@ -199,6 +200,12 @@
   function drawMealBox(ov) {
     var box = ov && ov.querySelector('#spa-box');
     if (!box || !M()) return;
+    if (!debutedIds().length) {
+      var lk = '<div style="margin:14px 0 8px;"><div style="font-size:13px;font-weight:900;color:#ddd;">💆 뷰티·운동 관리 🔒</div>' +
+        '<div style="font-size:11px;color:#9aa0c8;margin-top:3px;line-height:1.5;">아이돌이 데뷔한 뒤에 이용할 수 있어요.</div></div>';
+      if (box.getAttribute('data-h') !== lk) { box.setAttribute('data-h', lk); box.innerHTML = lk; }
+      return;
+    }
     var cid = mealCid(ov);
     if (!cid || !M().CH[cid]) { if (box.innerHTML) { box.removeAttribute('data-h'); box.innerHTML = ''; } return; }
     var ms = M().load(), s = syncDay(load(), ms.day), left = Math.max(0, DAILY_MAX - usedToday(s, cid));
@@ -242,12 +249,21 @@
           if (ref && ref.parentNode) {
             b = document.createElement('button'); b.id = 'btn-spa';
             b.style.cssText = 'display:none;width:100%;padding:14px;margin-top:8px;background:rgba(255,158,203,0.2);border:1.5px solid #ff9ecb;border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;' + FONT;
-            b.textContent = '💆 컨디션 관리 (에스테틱·헬스·요가·필라테스)';
-            b.onclick = function () { try { if (typeof closePlace === 'function') closePlace(); } catch (e) {} openSpa(); };
+            
+            b.onclick = function () {
+              if (!(M() && debutedIds().length)) { toast(LOCK_MSG); return; }
+              try { if (typeof closePlace === 'function') closePlace(); } catch (e) {}
+              openSpa();
+            };
             ref.insertAdjacentElement('afterend', b);
           }
         }
-        if (b) b.style.display = id === 'beach' ? 'block' : 'none';
+        if (b) {
+          b.style.display = id === 'beach' ? 'block' : 'none';
+          var locked = !(M() && debutedIds().length);
+          b.textContent = locked ? '🔒 컨디션 관리 (데뷔 후 이용)' : '💆 컨디션 관리 (에스테틱·헬스·요가·필라테스)';
+          b.style.opacity = locked ? '0.6' : '1';
+        }
       } catch (e) {}
       return r;
     };
