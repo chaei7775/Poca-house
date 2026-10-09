@@ -621,6 +621,7 @@
     var exp = Math.round(EXP_BASE * mult);
     if (exp > 0 && F.cid && typeof addCardExp === 'function') { try { addCardExp(F.cid, exp); lines.push(chipHtml('⭐', '+' + exp + ' EXP', '#FFD700')); } catch (e) {} }
     var pieces = 0;
+    if (F.mapId === 'broadcast_front' && typeof window.__bcBoxCount === 'function') window.__bcBoxCount(1);   // 팬 1명 응대 = 🎁 뽑기 진행 +1
     if (love && F.mapId === 'broadcast_front' && Math.random() < PIECE_CHANCE) {
       if (typeof window.__bcBoxBonus === 'function') {          // 방송국 앞: 조각은 바로 안 주고 🎁 뽑기 상자에 덤으로 쌓임
         window.__bcBoxBonus(1); lines.push(chipHtml('🎁', '상자 조각 +1 (뽑기에서 나와요)', '#7dd3fc'));
