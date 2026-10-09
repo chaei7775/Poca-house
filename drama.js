@@ -251,7 +251,7 @@ const R=document.createElement('div');R.id='dr-root';R.hidden=true;R.innerHTML=H
 "use strict";
 /* ====================== DATA ====================== */
 const FAME_DAILY=3;
-const CFG={SK:0.6,AUTO:0.25,TIME:60,TAPWIN:1.6,CHANCE:2.5,CHOICE:3,HEAL_FREE:3,SMALL:3000000,BIG:8000000,SLOT_MAX:5,SLOT_EXP_MAX:2,SLOT_DROP:0.04,SLOT_DROP_GOOD:0.08};
+const CFG={SK:0.6,AUTO:0.25,TIME:60,TAPWIN:1.6,CHANCE:2.5,CHOICE:3,HEAL_FREE:3,SMALL:10000000,BIG:28000000,SLOT_MAX:5,SLOT_EXP_MAX:2,SLOT_DROP:0.04,SLOT_DROP_GOOD:0.08};
 const SLOTX='슬롯 확장권';
 const GR={'일반':0,'레어':1,'히든':2,'프리미엄':3};
 const CATS=['감정','액션','애드리브','보조'];
