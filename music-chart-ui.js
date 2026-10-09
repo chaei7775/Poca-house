@@ -80,7 +80,7 @@
   }
 
   // ════════ 메인 화면 ════════
-  var CHART_LV = 20;
+  var CHART_LV = 18;
   function lvNow() { try { return Number(playerLevel) || 1; } catch (e) { return 1; } }
   function openChart() {
     if (lvNow() < CHART_LV) { toast('🔒 음원차트는 플레이어 Lv.' + CHART_LV + '부터 열려요 (지금 Lv.' + lvNow() + ')'); return; }

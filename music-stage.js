@@ -52,7 +52,7 @@
   function hearts(n, max) { var o = ''; for (var i = 0; i < max; i++) o += i < n ? '❤️' : '🖤'; return o; }
 
   function open(cid, quality) {
-    try { if ((Number(playerLevel) || 1) < 20) { if (typeof showBagToast === 'function') showBagToast('🔒 음악방송은 플레이어 Lv.20부터 열려요'); return; } } catch (e) {}
+    try { if ((Number(playerLevel) || 1) < 18) { if (typeof showBagToast === 'function') showBagToast('🔒 음악방송은 플레이어 Lv.18부터 열려요'); return; } } catch (e) {}
     var C = window.__chart; if (!C) return;
     var item = C.pendingStage(cid);
     if (!item) { toast('지금 할 수 있는 음방 무대가 없어요'); return; }
