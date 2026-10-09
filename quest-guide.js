@@ -29,7 +29,7 @@
   // ── 진행 상황 읽기 (각 기능 파일이 저장해 둔 값을 직접 읽음) ──
   function debutCount() {
     var d = (J('ph_agency', {}) || {}).done || {};
-    return keys(d).filter(function (k) { return d[k]; }).length;
+    return keys(d).filter(function (k) { return d[k] && ['minjun','sion','doyun','harin','yuna','ara'].indexOf(k) >= 0; }).length;
   }
   function lessonN(d) { var n = 0; if (d && d.count) keys(d.count).forEach(function (k) { n += d.count[k] || 0; }); return n; }
   function sionDebut() { var d = (J('ph_agency', {}) || {}); return !!((d.done && d.done.sion) || (d.debut && d.debut.sion)); }
