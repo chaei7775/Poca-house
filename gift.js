@@ -38,6 +38,13 @@
     } catch (e) { try { if (typeof showBagToast === 'function') showBagToast(m); } catch (e2) {} }
   }
   function nameOf(key) { if (key === 'coin') return COIN.name; var C = core(); return C && C.ITEMS[key] ? C.ITEMS[key].name : key; }
+  function iconOf(key, px) {                                // 화면용: 탐험 재료는 그림, 나머지는 이모지(emoji-skin 이 그림으로 바꿔줌)
+    if (key.indexOf('mat_') === 0) {
+      var e = emojiOf(key);
+      try { if (typeof window.matIcon === 'function') return window.matIcon(nameOf(key), px || 20, e) || e; } catch (x) {}
+    }
+    return emojiOf(key);
+  }
   function emojiOf(key) { if (key === 'coin') return COIN.emoji; var C = core(); return C && C.ITEMS[key] ? C.ITEMS[key].emoji : '🎁'; }
 
   function notReady() {
@@ -140,7 +147,7 @@
     S.received.push(id); delete S.pending[id];
     addLog(S, '🎁 ' + (x.fromNick || '친구') + '님이 ' + nameOf(x.item) + ' x' + fmt(n) + ' 선물');
     saveState(S); core().persist();
-    toast('🎁 ' + (x.fromNick || '친구') + '님의 선물! ' + emojiOf(x.item) + ' ' + nameOf(x.item) + ' x' + fmt(n));
+    toast('🎁 ' + (x.fromNick || '친구') + '님의 선물! ' + (x.item.indexOf('mat_') === 0 ? '' : emojiOf(x.item) + ' ') + nameOf(x.item) + ' x' + fmt(n));
   }
   async function receiveAll() {
     if (notReady()) return 0;
@@ -197,7 +204,7 @@
     ov.onclick = function (e) { if (e.target === ov) ov.remove(); };
     function chip(k) {
       return '<button data-k="' + esc(k) + '" style="border:1.5px solid rgba(255,255,255,0.18);background:rgba(255,255,255,0.06);color:#fff;border-radius:12px;padding:9px 11px;font-size:12px;font-weight:900;cursor:pointer;' + FONT + '">' +
-        emojiOf(k) + ' ' + esc(nameOf(k)) + ' <span style="color:#aab4d6;font-weight:700;">' + (k === 'coin' ? fmt(haveOf(k)) : fmt(haveOf(k))) + '</span></button>';
+        iconOf(k, 20) + ' ' + esc(nameOf(k)) + ' <span style="color:#aab4d6;font-weight:700;">' + (k === 'coin' ? fmt(haveOf(k)) : fmt(haveOf(k))) + '</span></button>';
     }
     ov.innerHTML = '<div style="background:#1a1233;border:1.5px solid ' + ACC + ';border-radius:18px;width:100%;max-width:380px;max-height:88vh;display:flex;flex-direction:column;">' +
       '<div style="padding:14px 16px 6px;display:flex;align-items:center;"><div style="font-size:16px;font-weight:900;color:#FFE27A;">🎁 ' + esc(toNick) + '에게 선물</div>' +
@@ -220,7 +227,7 @@
     q.style.cssText = 'position:fixed;inset:0;z-index:990;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;padding:14px;' + FONT;
     q.onclick = function (e) { if (e.target === q) q.remove(); };
     q.innerHTML = '<div style="background:#241945;border:1.5px solid ' + ACC + ';border-radius:18px;width:100%;max-width:340px;padding:16px;text-align:center;">' +
-      '<div style="font-size:30px;">' + emojiOf(key) + '</div>' +
+      '<div style="font-size:30px;">' + iconOf(key, 40) + '</div>' +
       '<div style="font-size:15px;font-weight:900;color:#fff;margin:2px 0;">' + esc(nameOf(key)) + ' 몇 개 보낼까요?</div>' +
       '<div style="font-size:11px;color:#aab4d6;margin-bottom:10px;">보유 ' + fmt(have) + (key === 'coin' ? ' · 수수료 ' + Math.round(COIN_FEE * 100) + '%' : '') + '</div>' +
       '<div style="font-size:24px;font-weight:900;color:#FFE27A;"><span id="gq-n"></span></div>' +
@@ -249,7 +256,7 @@
       var btn = this; btn.disabled = true; btn.style.opacity = '0.6';
       try {
         await sendGift(toUid, toNick, key, qty);
-        toast('🎁 ' + toNick + '에게 ' + emojiOf(key) + ' ' + nameOf(key) + ' x' + fmt(qty) + ' 보냈어요!');
+        toast('🎁 ' + toNick + '에게 ' + (key.indexOf('mat_') === 0 ? '' : emojiOf(key) + ' ') + nameOf(key) + ' x' + fmt(qty) + ' 보냈어요!');
         q.remove(); if (parent) parent.remove();
       } catch (e) {
         toast((e && e.message) || '보내지 못했어요');

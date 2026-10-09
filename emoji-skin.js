@@ -25,7 +25,7 @@
     '🪓': 'enh-work', '🔰': 'enh-ok', '🌫': 'enh-fail', '🪬': 'enh-protect', '🧱': 'enh-destroy', '🔱': 'enh-trans',
     '🖋': 'sk-sign', '🫱': 'sk-photo', '🫰': 'sk-shake', '🫶': 'sk-heart',
     // 생활/UI
-    '🔒': 'lock', '🔥': 'fire', '⚡': 'bolt', '🛡': 'shield', '🚨': 'siren', '🔮': 'crystal', '📖': 'book', '📘': 'book', '📚': 'book',
+    '🔒': 'lock', '🔥': 'fire', '⚡': 'bolt', '🛡': 'shield', '🚨': 'siren', '🔮': 'crystal', '📖': 'book', '📘': 'book', '📕': 'book', '📙': 'book', '📗': 'book', '📚': 'book',
     '📅': 'calendar', '📋': 'clipboard', '👗': 'dress', '🎽': 'dress', '🧵': 'thread', '☕': 'coffee', '🥤': 'drink', '🌙': 'moon', '💡': 'bulb', '🏠': 'house'
   };
   var KEYS = Object.keys(MAP);
