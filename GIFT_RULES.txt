@@ -1,0 +1,33 @@
+// 🎁 선물하기 Firestore 규칙 — Firebase 콘솔 → Firestore Database → 규칙(Rules) 에서
+// 기존 `match /databases/{database}/documents {` 안에 아래 블록을 추가하고 [게시] 하세요.
+// (trades 블록 옆에 같이 두면 돼요. 한도 숫자는 gift.js 위쪽 설정과 같아야 해요)
+
+    match /gifts/{giftId} {
+      // 보내기: 내 이름으로, 친구에게만, 상태는 'sent', 수량 범위 안에서만
+      allow create: if request.auth != null
+        && request.resource.data.fromUid == request.auth.uid
+        && request.resource.data.toUid is string
+        && request.resource.data.toUid != request.auth.uid
+        && request.resource.data.status == 'sent'
+        && request.resource.data.item is string
+        && request.resource.data.qty is int
+        && request.resource.data.qty >= 1
+        && (
+             (request.resource.data.item == 'coin' && request.resource.data.qty >= 10000 && request.resource.data.qty <= 10000000)
+          || (request.resource.data.item != 'coin' && request.resource.data.qty <= 99)
+        )
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.friends.hasAny([request.resource.data.toUid]);
+
+      // 읽기: 보낸 사람과 받는 사람만
+      allow read: if request.auth != null
+        && (resource.data.fromUid == request.auth.uid || resource.data.toUid == request.auth.uid);
+
+      // 받기: 받는 사람만, 'sent' → 'received' 로 한 번만 (다른 값은 못 바꿈)
+      allow update: if request.auth != null
+        && resource.data.toUid == request.auth.uid
+        && resource.data.status == 'sent'
+        && request.resource.data.status == 'received'
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'receivedAt']);
+
+      allow delete: if false;
+    }

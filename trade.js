@@ -517,6 +517,8 @@
 
   window.openTrade = openTrade;
   window.__tradeTest = { listItem: listItem, listOpen: listOpen, myListings: myListings, buy: buy, cancel: cancel, settleAll: settleAll, settleMine: settleMine, settleBuys: settleBuys, loadState: loadState, have: have, ITEMS: ITEMS, FEE: FEE };
+  // 🎁 선물하기(gift.js)가 같은 품목·가방 도우미를 쓰도록 내보냄
+  window.__tradeCore = { ITEMS: ITEMS, ORDER: ORDER, MAT_ORDER: MAT_ORDER, have: have, take: take, give: give, canReceive: canReceive, addCoins: addCoins, persist: persist, fmt: fmt, esc: esc, uid: uid, myNick: myNick, today: today, F: F };
 
   // ───────── 기존 화면에 연결 ─────────
   function whenReady(test, fn) {

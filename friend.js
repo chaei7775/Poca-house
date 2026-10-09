@@ -91,7 +91,9 @@ function friendRowHtml(d, uid, mode) {
   } else if (mode === 'search') {
     actionHtml = '<button onclick="sendFriendRequest(\'' + uid + '\',\'' + nick.replace(/'/g, "\\'") + '\')" style="background:linear-gradient(135deg,#FF6B9D,#C084FC);border:none;border-radius:8px;color:#fff;padding:6px 12px;font-size:11px;font-weight:900;cursor:pointer;">친구신청</button>';
   } else if (mode === 'friend') {
-    actionHtml = '<button onclick="removeFriend(\'' + uid + '\')" style="background:none;border:none;color:#888;font-size:11px;cursor:pointer;">삭제</button>';
+    actionHtml = '<div style="display:flex;align-items:center;gap:8px;">' +
+      '<button onclick="window.openGiftTo && openGiftTo(\'' + uid + '\',\'' + nick.replace(/'/g, "\\'") + '\')" style="background:linear-gradient(135deg,#FFD700,#ff9f45);border:none;border-radius:8px;color:#2a1a00;padding:6px 10px;font-size:11px;font-weight:900;cursor:pointer;">🎁 선물</button>' +
+      '<button onclick="removeFriend(\'' + uid + '\')" style="background:none;border:none;color:#888;font-size:11px;cursor:pointer;">삭제</button></div>';
   }
   return '<div style="display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,0.06);border-radius:12px;padding:11px 13px;margin-bottom:8px;">' +
     '<div><div style="font-size:13px;font-weight:900;color:#fff;">' + nick + '</div>' +
