@@ -241,6 +241,60 @@
   }
   window.openGiftTo = openGiftTo;
 
+  // ───────── 선물함: 지금 받기 + 최근 받은/보낸 기록 ─────────
+  function ago(t) {
+    var m = Math.max(0, Math.floor((Date.now() - t) / 60000));
+    if (m < 1) return '방금'; if (m < 60) return m + '분 전';
+    var h = Math.floor(m / 60); if (h < 24) return h + '시간 전';
+    return Math.floor(h / 24) + '일 전';
+  }
+  function openGiftBox() {
+    var old = document.getElementById('gift-box'); if (old) old.remove();
+    var ov = document.createElement('div');
+    ov.id = 'gift-box';
+    ov.style.cssText = 'position:fixed;inset:0;z-index:986;background:rgba(0,0,0,0.82);display:flex;align-items:center;justify-content:center;padding:14px;' + FONT;
+    ov.onclick = function (e) { if (e.target === ov) ov.remove(); };
+    function draw(msg) {
+      var log = loadState().log.slice().reverse();
+      ov.innerHTML = '<div style="background:#1a1233;border:1.5px solid ' + ACC + ';border-radius:18px;width:100%;max-width:380px;max-height:84vh;display:flex;flex-direction:column;">' +
+        '<div style="padding:14px 16px 8px;display:flex;align-items:center;"><div style="font-size:16px;font-weight:900;color:#FFE27A;">🎁 선물함</div>' +
+        '<button id="gb-x" style="margin-left:auto;border:none;border-radius:10px;background:rgba(255,255,255,0.1);color:#fff;padding:6px 12px;font-size:12px;font-weight:900;cursor:pointer;' + FONT + '">닫기</button></div>' +
+        '<div style="padding:0 16px 8px;"><button id="gb-get" style="width:100%;border:none;border-radius:12px;padding:12px;font-size:14px;font-weight:900;cursor:pointer;background:linear-gradient(135deg,#FFD700,#ff9a3c);color:#2b1a00;' + FONT + '">🎁 선물 받기</button>' +
+        '<div style="font-size:11px;color:#ffe27a;margin-top:6px;min-height:15px;text-align:center;">' + (msg || '') + '</div></div>' +
+        '<div style="padding:0 16px 16px;overflow-y:auto;font-size:12px;color:#dfe6ff;line-height:1.6;">' +
+        (log.length ? log.map(function (l) { return '<div style="padding:6px 0;border-top:1px solid rgba(255,255,255,0.08);">' + esc(l.m) + ' <span style="color:#8d96c0;">· ' + ago(l.t) + '</span></div>'; }).join('') : '<div style="color:#8d96c0;text-align:center;padding:16px 0;">아직 기록이 없어요</div>') +
+        '</div></div>';
+      ov.querySelector('#gb-x').onclick = function () { ov.remove(); };
+      ov.querySelector('#gb-get').onclick = async function () {
+        var bad = notReady(); if (bad) { draw(bad); return; }
+        this.disabled = true; this.textContent = '확인 중…';
+        var n = 0; try { n = await receiveAll(); } catch (e) { draw('확인하지 못했어요. 잠시 뒤 다시 해봐요'); return; }
+        draw(n ? '🎉 ' + n + '개의 선물을 받았어요!' : '새로 온 선물이 없어요');
+      };
+    }
+    document.body.appendChild(ov); draw();
+  }
+  window.openGiftBox = openGiftBox;
+  (function hookFriend() {                                   // 친구 화면 위쪽에 선물함 버튼 달기
+    var orig = window.openFriendOverlay;
+    if (typeof orig !== 'function' || orig.__gift) return;
+    var w = function () {
+      var r = orig.apply(this, arguments);
+      try {
+        var ov = document.getElementById('friend-overlay');
+        if (ov && !ov.querySelector('#fr-giftbox')) {
+          var head = ov.firstChild, close = head && head.lastChild;
+          var b = document.createElement('button'); b.id = 'fr-giftbox'; b.textContent = '🎁 선물함';
+          b.style.cssText = 'background:linear-gradient(135deg,#FFD700,#ff9a3c);border:none;border-radius:10px;color:#2b1a00;padding:7px 12px;font-size:12px;font-weight:900;cursor:pointer;margin-left:auto;margin-right:8px;' + FONT;
+          b.onclick = openGiftBox;
+          head.insertBefore(b, close);
+        }
+      } catch (e) {}
+      return r;
+    };
+    w.__gift = true; window.openFriendOverlay = w;
+  })();
+
   window.__giftTest = { sendGift: sendGift, receiveAll: receiveAll, recoverPendingSend: recoverPendingSend, loadState: loadState, sendableKeys: sendableKeys, openGiftTo: openGiftTo, CFG: { DAILY_SEND: DAILY_SEND, MAX_QTY: MAX_QTY, COIN_MIN: COIN_MIN, COIN_MAX: COIN_MAX, COIN_DAILY: COIN_DAILY, COIN_FEE: COIN_FEE } };
 
   // ───────── 켜면 받기 / 이후 5분마다 ─────────
