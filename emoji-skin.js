@@ -11,7 +11,7 @@
   var MAP = {
     // 아이템/재화
     '🍔': 'burger', '🎁': 'gift', '🧩': 'puzzle', '🔹': 'gemblue', '🔶': 'gemorange', '💠': 'gemepic', '💎': 'diamond', '🎀': 'bow',
-    '🎒': 'bag', '🔨': 'hammer', '🧪': 'potion', '🎫': 'ticket', '🎟': 'pass', '💰': 'moneybag', '🏆': 'trophy', '🍀': 'clover',
+    '🎒': 'bag', '🔨': 'hammer', '🧪': 'potion', '🎫': 'ticket', '🎟': 'pass', '💰': 'moneybag', '🪙': 'coin', '🏆': 'trophy', '🍀': 'clover',
     // 무대/방송
     '🎤': 'mic', '📸': 'camera', '🎥': 'movie', '🎞': 'film', '📺': 'tv', '🎧': 'headphones', '🎹': 'keys', '🎼': 'notes', '🎵': 'notes', '🎶': 'notes',
     '🎭': 'mask', '🎙': 'standmic', '📣': 'mega', '📰': 'news', '🕶': 'sunglasses', '🚐': 'van', '📷': 'instant', '🏟': 'stadium',
