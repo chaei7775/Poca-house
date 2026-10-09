@@ -228,7 +228,8 @@
     var w = sc.type === 'drama' ? { v: 0.5, m: 0.3, s: 0.2 } : sc.type === 'music' ? { v: 0.4, m: 0.4, s: 0.2 } : { s: 0.5, m: 0.3, v: 0.2 };
     var score = stat.v * w.v + stat.s * w.s + stat.m * w.m;
     var q = qualityOf(score);
-    var pay = Math.round((EVENT_PAY[sc.type] || 0) * QUALITY[q].mult / 100) * 100;
+    var lm = 1; try { if (typeof window.__lessonPayMult === 'function') lm = Number(window.__lessonPayMult(cid, sc.type)) || 1; } catch (e) {}   // 🎓 레슨 능력치 보너스
+    var pay = Math.round((EVENT_PAY[sc.type] || 0) * QUALITY[q].mult * lm / 100) * 100;
     stat.s = clamp(stat.s - EVENT_TIRED); stat.m = clamp(stat.m + EVENT_GLOW);
     return { cid: cid, type: sc.type, score: Math.round(score), quality: q, pay: pay, catering: catering };
   }
@@ -284,7 +285,8 @@
   }
   function incomeMultOf(st, cid) {
     var s = statOf(st, cid);
-    return 1 + bonusOf((s.v + s.s + s.m) / 3, INCOME_MAX);
+    var lim = 1; try { if (typeof window.__lessonIncomeMult === 'function') lim = Number(window.__lessonIncomeMult(cid)) || 1; } catch (e) {}   // 🎓 레슨 능력치 보너스
+    return (1 + bonusOf((s.v + s.s + s.m) / 3, INCOME_MAX)) * lim;
   }
   function pickLine(trait, kind, rng) {
     var pool = (LINES[trait] || LINES['수줍음'])[kind] || [];

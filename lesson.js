@@ -141,6 +141,53 @@
     };
   }
 
+  // ════════ 🎓 능력치 효과 (드라마·CF·음방·기획사 수익에 연결) ════════
+  //  f(k) = (능력치 − 10) / 90  → 처음 0, 100이면 1
+  var FX = {
+    actDrama: 0.30,     // 연기 100 → 드라마 촬영·일정 정산 +30%
+    charmCf: 0.30,      // 매력 100 → CF 보상 +30%
+    stageVD: 0.15,      // 보컬 100 → 음방·컴백 정산 +15%, 댄스 100 → 또 +15%
+    incomeFun: 0.10,    // 예능 100 → 기획사 수익 +10%
+    incomeCharm: 0.10   // 매력 100 → 기획사 수익 +10%
+  };
+  function fOf(cid, k) {
+    var v = STAT_START_VAL; try { if (typeof window.getIdolTrainStat === 'function') v = Number(window.getIdolTrainStat(cid, k)); } catch (e) {}
+    if (!(v >= 0)) v = STAT_START_VAL;
+    return Math.max(0, Math.min(1, (v - STAT_START_VAL) / (STAT_MAX - STAT_START_VAL)));
+  }
+  var STAT_START_VAL = STAT_START;
+  function payMult(cid, type) {
+    if (type === 'drama') return 1 + FX.actDrama * fOf(cid, 'act');
+    if (type === 'music' || type === 'comeback') return 1 + FX.stageVD * (fOf(cid, 'vocal') + fOf(cid, 'dance'));
+    return 1;
+  }
+  function incomeMult(cid) { return 1 + FX.incomeFun * fOf(cid, 'fun') + FX.incomeCharm * fOf(cid, 'charm'); }
+  window.__lessonPayMult = payMult;
+  window.__lessonIncomeMult = incomeMult;
+  function pctTxt(x) { return '+' + Math.round(x * 100) + '%'; }
+  function fxLine(cid) {
+    var st = [
+      ['🎭 연기', pctTxt(FX.actDrama * fOf(cid, 'act')) + ' 드라마'],
+      ['✨ 매력', pctTxt(FX.charmCf * fOf(cid, 'charm')) + ' CF'],
+      ['🎤💃 보컬·댄스', pctTxt(FX.stageVD * (fOf(cid, 'vocal') + fOf(cid, 'dance'))) + ' 음방·컴백'],
+      ['🎪 예능·매력', pctTxt(FX.incomeFun * fOf(cid, 'fun') + FX.incomeCharm * fOf(cid, 'charm')) + ' 기획사 수익']
+    ];
+    return '<div style="margin-top:8px;font-size:10.5px;line-height:1.6;color:#b9c2ff;">📈 지금 효과: ' + st.map(function (r) { return r[0] + ' ' + r[1]; }).join(' · ') + '</div>';
+  }
+  // 드라마·CF 촬영이 끝나면 능력치만큼 코인을 더 준다
+  function bonusToast(label, extra) { if (extra > 0) { try { gainCoins(extra); } catch (e) {} try { if (typeof showBagToast === 'function') showBagToast('🎓 ' + label + ' +' + extra.toLocaleString() + '코인'); } catch (e) {} } }
+  function gainCoins(n) { if (typeof coins !== 'undefined') { coins += n; try { saveAll(); } catch (e) {} } }
+  try {
+    window.addEventListener('ph-drama-shot', function (e) {
+      var d = (e && e.detail) || {}; if (!d.ch || !(d.pay > 0)) return;
+      bonusToast('연기력 보너스', Math.round(d.pay * FX.actDrama * fOf(d.ch, 'act') / 100) * 100);
+    });
+    window.addEventListener('ph-cf-shot', function (e) {
+      var d = (e && e.detail) || {}; if (!d.cid || !(d.pay > 0)) return;
+      bonusToast('매력 보너스', Math.round(d.pay * FX.charmCf * fOf(d.cid, 'charm') / 100) * 100);
+    });
+  } catch (e) {}
+
   // ════════ meal.js / 게임 연결 ════════
   function M() { return window.__mealTest || null; }
   function money() { return (typeof coins !== 'undefined') ? coins : 0; }
@@ -208,7 +255,7 @@
         '<span style="color:' + (have < LESSON_COST ? '#ff8a8a' : '#ffe08a') + ';">' + LESSON_COST.toLocaleString() + '코인 · 체력 −' + LESSON_TIRED + '</span></div>' +
         (warn ? '<div style="font-size:11px;color:#ffcf9a;margin-bottom:6px;">' + warn + '</div>' : '') +
         '<div id="ls-grid" style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;">' + lessons + '</div>';
-    return head + barsHtml(st, cid, from) + '<div style="margin-top:10px;padding-top:10px;border-top:1px dashed rgba(255,255,255,0.15);">' + ctrl + '</div>';
+    return head + barsHtml(st, cid, from) + fxLine(cid) + '<div style="margin-top:10px;padding-top:10px;border-top:1px dashed rgba(255,255,255,0.15);">' + ctrl + '</div>';
   }
 
   function animateBars(root) {
