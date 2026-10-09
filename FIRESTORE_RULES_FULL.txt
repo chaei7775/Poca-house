@@ -1,0 +1,156 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() { return request.auth != null; }
+
+    // 배열 필드에서 "내 uid만" 추가했는지 / 뺐는지 검사
+    function onlyMeAdded(field) {
+      return request.resource.data.get(field, []).toSet()
+        .difference(resource.data.get(field, []).toSet())
+        .hasOnly([request.auth.uid]);
+    }
+    function onlyMeRemoved(field) {
+      return resource.data.get(field, []).toSet()
+        .difference(request.resource.data.get(field, []).toSet())
+        .hasOnly([request.auth.uid]);
+    }
+    function noneRemoved(field) {
+      return resource.data.get(field, []).toSet()
+        .difference(request.resource.data.get(field, []).toSet())
+        .size() == 0;
+    }
+
+    // 플레이어 데이터
+    match /users/{uid} {
+      // 닉네임 중복 검사(가입 전)와 친구 검색에 필요해서 읽기는 열어둠
+      allow read: if true;
+
+      // 내 데이터는 나만 만들고 고칠 수 있음
+      allow create, update: if signedIn() && request.auth.uid == uid;
+
+      // 친구 신청/수락/삭제: 남의 문서에는 "내 uid 추가/삭제"만 가능
+      allow update: if signedIn()
+        && request.resource.data.diff(resource.data).affectedKeys()
+             .hasOnly(['incomingRequests', 'friends'])
+        && onlyMeAdded('incomingRequests') && noneRemoved('incomingRequests')
+        && onlyMeAdded('friends') && onlyMeRemoved('friends');
+    }
+
+    // 게시판
+    match /posts/{postId} {
+      allow read: if true;
+
+      allow create: if signedIn()
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.content is string
+        && request.resource.data.content.size() > 0
+        && request.resource.data.content.size() <= 500
+        && request.resource.data.createdAt == request.time;
+
+      // 좋아요: likedBy만 바뀌고, 내 uid만 넣고 뺄 수 있음
+      allow update: if signedIn()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likedBy'])
+        && onlyMeAdded('likedBy') && onlyMeRemoved('likedBy');
+
+      // 글 삭제는 쓴 사람만
+      allow delete: if signedIn() && resource.data.uid == request.auth.uid;
+    }
+
+    // 🏪 유저 거래소 (trade.js)  — 가격 범위는 trade.js 의 ITEMS min/max 와 같아야 함
+    match /trades/{tradeId} {
+
+         function priceOk(item, p) {
+  return (item == 'recomb'  && p >= 100   && p <= 150000)
+      || (item == 'ws'      && p >= 500   && p <= 100000)
+      || (item == 'epic'    && p >= 2000  && p <= 1000000)
+      || (item == 'stone'   && p >= 1000  && p <= 1000000)
+      || (item == 'protect' && p >= 2000  && p <= 3000000)
+      || (item == 'trans'   && p >= 10000 && p <= 20000000)
+      || (item == 'slotx'   && p >= 30000 && p <= 5000000)
+      || (item == 'dev'     && p >= 1000  && p <= 2000000)
+      || (item == 'bk_tome_finale' && p >= 2000 && p <= 10000000)
+      || (item.matches('bk_.*') && item != 'bk_tome_finale' && p >= 2000 && p <= 5000000)
+      || (item.matches('mat_.*') && p >= 100 && p <= 50000);
+      
+}
+
+      // 로그인한 사람만 거래소를 볼 수 있음
+      allow read: if signedIn();
+
+      // 등록: 내 이름으로만, 정해진 품목·가격 범위·수량만, 상태는 항상 open
+      allow create: if signedIn()
+        && request.resource.data.keys().hasOnly(['sellerUid','sellerNick','item','qty','unitPrice','total','status','claimed','createdAt'])
+        && request.resource.data.sellerUid == request.auth.uid
+        && request.resource.data.status == 'open'
+        && request.resource.data.claimed == false
+        && request.resource.data.qty is int
+        && request.resource.data.qty >= 1 && request.resource.data.qty <= 99
+        && request.resource.data.unitPrice is int
+        && priceOk(request.resource.data.item, request.resource.data.unitPrice)
+        && request.resource.data.total == request.resource.data.qty * request.resource.data.unitPrice;
+
+      allow update: if signedIn() && (
+        // 구매: open → sold (내가 구매자, 판매자 본인은 불가, 바꿀 수 있는 칸 제한)
+        ( resource.data.status == 'open'
+          && request.resource.data.status == 'sold'
+          && request.auth.uid != resource.data.sellerUid
+          && request.resource.data.buyerUid == request.auth.uid
+          && request.resource.data.delivered == false
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status','buyerUid','buyerNick','soldAt','delivered']) )
+        // 취소: 판매자 본인만, open → cancelled
+        || ( resource.data.status == 'open'
+          && request.resource.data.status == 'cancelled'
+          && resource.data.sellerUid == request.auth.uid
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status']) )
+        // 판매자 정산 완료 표시 (팔렸거나 취소된 건만)
+        || ( resource.data.sellerUid == request.auth.uid
+          && resource.data.status in ['sold','cancelled']
+          && resource.data.claimed == false
+          && request.resource.data.claimed == true
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['claimed']) )
+        // 구매자 수령 완료 표시
+        || ( resource.data.get('buyerUid', '') == request.auth.uid
+          && resource.data.status == 'sold'
+          && resource.data.delivered == false
+          && request.resource.data.delivered == true
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['delivered']) )
+      );
+
+      // 기록은 지우지 않음
+      allow delete: if false;
+    }
+
+    // 🎁 친구 선물하기 (gift.js) — 한도는 gift.js 위쪽 설정과 같아야 함
+    match /gifts/{giftId} {
+      // 보내기: 내 이름으로, 내 친구에게만, 상태는 'sent', 수량 범위 안에서만
+      allow create: if signedIn()
+        && request.resource.data.keys().hasOnly(['fromUid','fromNick','toUid','toNick','item','qty','status','createdAt'])
+        && request.resource.data.fromUid == request.auth.uid
+        && request.resource.data.toUid is string
+        && request.resource.data.toUid != request.auth.uid
+        && request.resource.data.status == 'sent'
+        && request.resource.data.item is string
+        && request.resource.data.qty is int
+        && request.resource.data.qty >= 1
+        && (
+             (request.resource.data.item == 'coin' && request.resource.data.qty >= 10000 && request.resource.data.qty <= 10000000)
+          || (request.resource.data.item != 'coin' && request.resource.data.qty <= 99)
+        )
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('friends', []).hasAny([request.resource.data.toUid]);
+
+      // 읽기: 보낸 사람과 받는 사람만
+      allow read: if signedIn()
+        && (resource.data.fromUid == request.auth.uid || resource.data.toUid == request.auth.uid);
+
+      // 받기: 받는 사람만, 'sent' → 'received' 로 한 번만
+      allow update: if signedIn()
+        && resource.data.toUid == request.auth.uid
+        && resource.data.status == 'sent'
+        && request.resource.data.status == 'received'
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'receivedAt']);
+
+      allow delete: if false;
+    }
+  }
+}

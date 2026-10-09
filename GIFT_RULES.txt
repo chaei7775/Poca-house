@@ -6,6 +6,7 @@
       // 보내기: 내 이름으로, 친구에게만, 상태는 'sent', 수량 범위 안에서만
       allow create: if request.auth != null
         && request.resource.data.fromUid == request.auth.uid
+        && request.resource.data.keys().hasOnly(['fromUid','fromNick','toUid','toNick','item','qty','status','createdAt'])
         && request.resource.data.toUid is string
         && request.resource.data.toUid != request.auth.uid
         && request.resource.data.status == 'sent'
