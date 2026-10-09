@@ -250,7 +250,8 @@ const R=document.createElement('div');R.id='dr-root';R.hidden=true;R.innerHTML=H
 
 "use strict";
 /* ====================== DATA ====================== */
-const CFG={SK:0.6,AUTO:0.25,TIME:60,TAPWIN:1.6,CHANCE:2.5,CHOICE:3,HEAL_FREE:3,SMALL:30000,BIG:80000,SLOT_MAX:5,SLOT_EXP_MAX:2,SLOT_DROP:0.04,SLOT_DROP_GOOD:0.08};
+const FAME_DAILY=3;
+const CFG={SK:0.6,AUTO:0.25,TIME:60,TAPWIN:1.6,CHANCE:2.5,CHOICE:3,HEAL_FREE:3,SMALL:3000000,BIG:8000000,SLOT_MAX:5,SLOT_EXP_MAX:2,SLOT_DROP:0.04,SLOT_DROP_GOOD:0.08};
 const SLOTX='슬롯 확장권';
 const GR={'일반':0,'레어':1,'히든':2,'프리미엄':3};
 const CATS=['감정','액션','애드리브','보조'];
@@ -538,7 +539,7 @@ function renderPrep(){
       <div class="cards">${CHARS.map(c=>{const open=isDebut(c.id);return `<button class="pc ${c.id===ch_.id?'on':''} ${open?'':'lock'}" data-a="char" data-id="${c.id}"><div class="face ${open?'':'lockd'}" style="--face:url(face-${c.id}.png);background-size:cover;background-position:center top;border:2px solid ${c.color}"></div><b>${c.name}</b><small>${open?(S.star[c.id]?'탑스타':'데뷔 완료'):'연습생'}</small></button>`}).join('')}</div>
       ${locked?`<div class="s" style="color:var(--muted);margin-top:10px">${lockWhy}</div>`:`
       <div class="opts" style="margin-top:10px">${list_.map(c=>`<button class="opt dopt ${c.id===c_.id?'on':''}" data-a="card" data-id="${c.id}"><span class="dav sth" style="background-image:url('${c.img}');border-radius:8px"></span><div><div class="t">${c.name}</div><div class="s"><span class="tag g-${c.grade}">${c.raw}</span> <span class="tag">${c.grade} · 슬롯 ${c.slots}</span> <span class="tag">${c.trait}</span></div></div></button>`).join('')}</div>
-      <div class="res" style="margin-top:10px"><div class="wide"><div class="lab">${ch_.name} 인지도 <span class="mono" style="color:var(--fg)">${S.star[ch_.id]?'탑스타':Math.floor(Math.min(100,S.fame[ch_.id]||0)*FAME_GOAL/100)+'/'+FAME_GOAL}</span> · 히든 카드로 촬영해야 올라요</div><div class="bar"><i style="width:${S.star[ch_.id]?100:Math.min(100,S.fame[ch_.id]||0)}%"></i></div>${S.star[ch_.id]?'<div class="s" style="color:var(--muted);font-size:12px;margin-top:6px">탑스타 · 모든 카드 슬롯 +1 · 출연료 ×1.5</div>':(c_.grade==='히든'?'':`<div class="s" style="color:var(--muted);font-size:12px;margin-top:6px">일반·레어 카드는 시청률이 ${CAP}%까지만 나와요</div>`)}</div></div>`}
+      <div class="res" style="margin-top:10px"><div class="wide"><div class="lab">${ch_.name} 인지도 <span class="mono" style="color:var(--fg)">${S.star[ch_.id]?'탑스타':Math.floor(Math.min(100,S.fame[ch_.id]||0)*FAME_GOAL/100)+'/'+FAME_GOAL}</span> · 히든 카드로 하루 첫 ${FAME_DAILY}번 촬영만 올라요 (오늘 ${Math.min(FAME_DAILY,(S.fameDay&&S.fameDay.day===today())?S.fameDay.n:0)}/${FAME_DAILY})</div><div class="bar"><i style="width:${S.star[ch_.id]?100:Math.min(100,S.fame[ch_.id]||0)}%"></i></div>${S.star[ch_.id]?'<div class="s" style="color:var(--muted);font-size:12px;margin-top:6px">탑스타 · 모든 카드 슬롯 +1 · 출연료 ×1.5</div>':(c_.grade==='히든'?'':`<div class="s" style="color:var(--muted);font-size:12px;margin-top:6px">일반·레어 카드는 시청률이 ${CAP}%까지만 나와요</div>`)}</div></div>`}
     </div>
 
     <div class="sec"><h2><span class="n">4</span>스킬 세팅 · ${c_.name} ${c_.grade}</h2>
@@ -883,8 +884,8 @@ function finish(ok){
   G.mast=G.mast||{};
   G.skills.forEach(k=>{if(k.passive){const up=addMast(k.id,1);const m=G.mast[k.id]||(G.mast[k.id]={xp:0,up:false});m.xp+=1;if(up)m.up=true}}); // 패시브는 촬영 1회당 경험치 1
   const mastRows=Object.keys(G.mast).map(id=>{const m=G.mast[id],l=mastLv(id);return `<div><span>🎖️ ${SKILLS[id].n} 숙련</span><b>+${m.xp} ${m.up?`· Lv.${l} 달성!`:l>=MAST_MAX?'· MAX':`(Lv.${l} · ${mastXp(id)}/${MAST_XP[l]})`}</b></div>`}).join('');
-  let fameGain=0,promoted=false;
-  if(hid&&!star){fameGain=Math.round(r*2);S.fame[ch]=(S.fame[ch]||0)+fameGain*100/FAME_GOAL;if(S.fame[ch]>=99.999){S.star[ch]=true;promoted=true}}
+  let fameGain=0,promoted=false,fameCapped=false;
+  if(hid&&!star){const fd=(S.fameDay&&S.fameDay.day===today())?S.fameDay:(S.fameDay={day:today(),n:0});if(fd.n<FAME_DAILY){fd.n++;fameGain=Math.round(r*2);S.fame[ch]=(S.fame[ch]||0)+fameGain*100/FAME_GOAL;if(S.fame[ch]>=99.999){S.star[ch]=true;promoted=true}}else fameCapped=true}
   let slotGot=0;
   if(Math.random()<(ok||r>=10?CFG.SLOT_DROP_GOOD:CFG.SLOT_DROP)){try{slotGot=addToBag('🎟️',SLOTX,'material',1,'스킬 슬롯을 영구로 1칸 늘려줘요 (드라마 촬영 · 카드당 최대 +2, 총 5칸)')?1:-1}catch(e){slotGot=-1}}
   coins+=pay;awardShards(shards);giveSkill(drop);saveGame();try{if(typeof spawnCoinFloat==='function')spawnCoinFloat(pay)}catch(e){}
@@ -907,7 +908,7 @@ function finish(ok){
      ${mastRows}
      ${star?'<div><span>탑스타 보너스</span><b>출연료 ×1.5</b></div>':''}
      ${capped?`<div><span>시청률 상한</span><b>일반·레어 카드는 ${CAP}.0%까지</b></div>`:''}
-     ${hid&&!star?`<div><span>${G.card.name} 인지도</span><b>+${fameGain} (${Math.floor(Math.min(100,S.fame[ch])*FAME_GOAL/100)}/${FAME_GOAL})</b></div>`:''}
+     ${hid&&!star?`<div><span>${G.card.name} 인지도</span><b>${fameCapped?`오늘은 다 올랐어요 (${FAME_DAILY}/${FAME_DAILY})`:`+${fameGain} (${Math.floor(Math.min(100,S.fame[ch])*FAME_GOAL/100)}/${FAME_GOAL})`}</b></div>`:''}
      ${ok?`<div><span>남은 시간 보너스</span><b>${fmt(remain)}초</b></div>`:''}
      <div><span>선택 대사 정답</span><b>${G.correct}/${G.choices} · 감독 반응 ${learned?'성향 파악 완료':'아직 모르겠어요'}</b></div>
    </div>

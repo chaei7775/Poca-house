@@ -159,7 +159,7 @@
       done: function () { var d = J('ph_drama', {}) || {}; return keys(d.star).some(function (k) { return d.star[k]; }) || keys(d.fame).some(function (k) { return d.fame[k] > 0; }); }, reward: 500,
       go: function () { goTo('map'); }, target: '#nav-map' },
     { id: 'star_top', icon: '🌟', title: '탑스타로 승급시키기',
-      hint: '히든 카드로 촬영을 계속해서 인지도 400을 채워요. 탑스타가 되면 🎤 기획사 수익 ×2, 출연료 ×1.5, 그 아이돌의 모든 카드 스킬 슬롯 +1!',
+      hint: '히든 카드로 촬영해서 인지도 400을 채워요 (인지도는 하루 첫 3번 촬영만 올라요). 탑스타가 되면 🎤 기획사 수익 ×2, 출연료 ×1.5, 그 아이돌의 모든 카드 스킬 슬롯 +1!',
       when: function () { var d = J('ph_drama', {}) || {}; return keys(d.fame).some(function (k) { return d.fame[k] > 0; }) || keys(d.star).some(function (k) { return d.star[k]; }); },
       done: function () { var d = J('ph_drama', {}) || {}; return keys(d.star).some(function (k) { return d.star[k]; }); }, reward: 3000,
       go: function () { goTo('map'); }, target: '#nav-map' },
