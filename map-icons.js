@@ -20,7 +20,7 @@
     ['등교시키기', 'schoolgames'], ['굿즈 공방', 'goodsworks'], ['작곡 스튜디오', 'studioexp'], ['작곡 테이블', 'compose'], ['소원의 샘', 'spring'],
     ['CF 촬영', 'cf'], ['드라마 촬영', 'drama'], ['공항 입국장', 'airport'], ['VIP 게이트', 'vipgate'], ['팬카페', 'fancafe'], ['분양소', 'kennel'], ['공연장', 'concert'],
     ['특별 탐험', 'special'], ['팬덤 원정', 'fandom'], ['방송국 앞', 'broadcast'], ['팬미팅장', 'fanmeeting'], ['콘서트', 'concert'],
-    ['천공성 유적', 'skyruins'], ['달빛 회랑', 'moonlit'], ['공방 지하', 'workshop']
+    ['파파라치 탈출', 'paparazzi'], ['천공성 유적', 'skyruins'], ['달빛 회랑', 'moonlit'], ['공방 지하', 'workshop']
   ].sort(function (a, b) { return b[0].length - a[0].length; });
   var ROOTS = '#screen-map,#place-overlay,#stamina-floating,#school-pop,#school-overlay';
   var EMO = /^(\s*)((?:\p{Extended_Pictographic}️?(?:‍\p{Extended_Pictographic}️?)*))\s*([^\s].*)$/u;
