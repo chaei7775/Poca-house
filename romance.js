@@ -134,8 +134,28 @@
     var all = tkLoad(); var t = all[cid] || { n: 0, d: 0 };
     t.n = Math.min((Number(t.n) || 0) + 1, st.need); t.d = gameDay(); all[cid] = t; tkSave(all);
     var nm = NAMES[cid] || cid, left = st.need - t.n;
-    try { if (typeof showBagToast === 'function') showBagToast(nm + '에게 데이트 티켓을 건넸어요 (' + t.n + '/' + st.need + ')' + (left <= 0 ? ' — 설렘 이벤트가 열렸어요!' : '')); } catch (e) {}
     try { openBondDetail(cid); } catch (e) {}
+    giftPopup(nm, t.n, st.need, left <= 0);
+  }
+
+  // 🎟️ 티켓을 건네면 가운데에 팝업으로 알려준다
+  function giftPopup(nm, n, need, opened) {
+    try {
+      var old = document.getElementById('rom-gift-ov'); if (old) old.remove();
+      var ov = document.createElement('div'); ov.id = 'rom-gift-ov';
+      ov.style.cssText = 'position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.72);display:flex;align-items:center;justify-content:center;padding:18px;font-family:"Noto Sans KR",sans-serif;';
+      var dots = ''; for (var i = 0; i < need; i++) dots += i < n ? '💗' : '🤍';
+      ov.innerHTML = '<div style="width:100%;max-width:320px;background:#2a1330;border:2px solid #FF9EC4;border-radius:18px;padding:22px 18px;color:#fff;text-align:center;">' +
+        '<div style="display:flex;justify-content:center;">' + tkIcon(56) + '</div>' +
+        '<div style="font-size:16px;font-weight:900;margin:10px 0 6px;">' + nm + '에게 데이트 티켓을 건넸어요!</div>' +
+        '<div style="font-size:22px;letter-spacing:2px;margin:6px 0;">' + dots + '</div>' +
+        '<div style="font-size:13px;color:#ddd;">' + n + ' / ' + need + '</div>' +
+        (opened ? '<div style="margin-top:10px;font-size:14px;font-weight:900;color:#ffe08a;">💓 설렘 이벤트가 열렸어요!</div>' : '') +
+        '<button id="rom-gift-ok" style="margin-top:16px;width:100%;padding:12px;border:none;border-radius:12px;background:linear-gradient(135deg,#FF4D88,#FF9EC4);color:#fff;font-size:14px;font-weight:700;font-family:inherit;">확인</button></div>';
+      ['pointerdown', 'touchstart', 'mousedown'].forEach(function (t) { ov.addEventListener(t, function (e) { e.stopPropagation(); }); });
+      document.body.appendChild(ov);
+      ov.querySelector('#rom-gift-ok').onclick = function () { ov.remove(); };
+    } catch (e) { console.error('[romance]', e); }
   }
 
   function addButton(cid) {
