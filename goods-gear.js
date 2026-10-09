@@ -29,6 +29,13 @@
     acc:  { label: '액세서리', mats: [['별빛모래', 8], ['네잎클로버', 6], [STONE_NAME, STONE_NEED]], items: [['📿', '팬클럽 목걸이', 'goods-acc-1.png'], ['🎧', '투어 헤드폰', 'goods-acc-2.png'], ['💍', '기념 반지', 'goods-acc-3.png']] }
   };
   var SLOT_KEYS = ['hat', 'hand', 'acc'];
+  // 💤 체력 회복 전용 굿즈: 일반·고급·레어가 나올 때 P_REST 확률로 이 굿즈가 나오고, 체력 회복 효과가 반드시 붙는다
+  var P_REST = 0.3;
+  var REST_ITEMS = {
+    hat:  [['☁️', '구름 숙면 머리띠', 'goods-rest-hat-1.png'], ['🌿', '허브 화관', 'goods-rest-hat-2.png']],
+    hand: [['🌟', '별 베개 응원봉', 'goods-rest-hand-1.png'], ['🍵', '허브티 응원봉', 'goods-rest-hand-2.png']],
+    acc:  [['🌙', '달잠 곰돌이 목걸이', 'goods-rest-acc-1.png'], ['💖', '천사 하트 팔찌', 'goods-rest-acc-2.png']]
+  };
   // 능력치 종류. scope 'char' = 그 캐릭터 원정에만 / 'all' = 모든 캐릭터 굿즈 합산(탐험·학교처럼 캐릭터와 상관없는 곳)
   //   r = [일반 범위, 고급 범위, 레어 범위],  dec = 소수점 자리,  cap = 합계 상한
   var STATS = {
@@ -38,11 +45,11 @@
     ticket: { label: '등교권·조각 드랍',  icon: '🎫', unit: '%',  dec: 0, scope: 'char', cap: 60,  r: [[5, 10],  [10, 20], [20, 40]] },
     wish:   { label: '탐험 소원의 조각 확률(샘 성공도 ×10)', icon: '🧩', unit: '%p', dec: 2, scope: 'all', cap: 1.5, r: [[0.05, 0.12], [0.12, 0.25], [0.25, 0.5]] },
     recomb: { label: '재조합 등급 상승 확률', icon: '🔮', unit: '%p', dec: 1, scope: 'all', cap: 6, r: [[1.5, 2.5], [1.5, 2.5], [1.5, 2.5]] },   // 유니크 전용
-    rest:   { label: '체력 회복 (하루 보내기마다 아이돌 체력)', icon: '💤', unit: '', dec: 0, scope: 'char', cap: 8, r: [[1, 1], [1, 2], [2, 3]] },
+    rest:   { label: '체력 회복 (하루 보내기마다 아이돌 체력)', icon: '💤', unit: '', dec: 0, scope: 'char', cap: 20, r: [[2, 3], [4, 5], [6, 8]] },
     honor:  { label: '우등생조각 획득',   icon: '✨', unit: '%',  dec: 0, scope: 'all',  cap: 60,  r: [[5, 10],  [10, 20], [20, 40]] }
   };
   var STAT_KEYS = ['coin', 'exp', 'piece', 'ticket', 'wish', 'honor', 'recomb', 'rest'];
-  var RAND_KEYS = ['coin', 'exp', 'piece', 'ticket', 'honor', 'rest'];   // 일반·고급·레어 굿즈에 랜덤으로 붙는 능력치 (🧩소원의 조각은 에픽, 🔮재조합은 유니크 전용)
+  var RAND_KEYS = ['coin', 'exp', 'piece', 'ticket', 'honor'];   // 일반·고급·레어 굿즈에 랜덤으로 붙는 능력치 (🧩소원의 조각은 에픽, 🔮재조합은 유니크 전용)
   var GRADES = {
     normal: { label: '일반', color: '#cbd5e1', n: 1, i: 0 },
     good:   { label: '고급', color: '#4ade80', n: 1, i: 1 },
@@ -55,7 +62,7 @@
   // 굿즈 이미지: repo 맨 위 폴더에 goods-hat-1.png 처럼 올리면 자동 적용, 없으면 이모지로 표시
   var IMG_BASE = 'https://raw.githubusercontent.com/chaei7775/Poca-house/main/';
   function fileOf(g) {
-    var its = SLOTS[g.slot] ? SLOTS[g.slot].items : [];
+    var its = SLOTS[g.slot] ? SLOTS[g.slot].items.concat(REST_ITEMS[g.slot] || []) : [];
     for (var i = 0; i < its.length; i++) if (its[i][1] === g.base) return its[i][2];
     var ex = EXTRA[g.slot]; if (ex) { if (ex.epic[1] === g.base) return ex.epic[2]; if (ex.unique[1] === g.base) return ex.unique[2]; }
     return null;
@@ -110,9 +117,10 @@
       st[k2] = rnum(rg2[0], rg2[1], STATS[k2].dec);
       return { slot: slot, grade: g, emoji: xb[0], base: xb[1], stats: st };
     }
-    var G = GRADES[g], base = pick(SLOTS[slot].items);
+    var G = GRADES[g], isRest = Math.random() < P_REST, base = pick(isRest ? REST_ITEMS[slot] : SLOTS[slot].items);
     var keys = RAND_KEYS.slice(), stats = {};
-    for (var i = 0; i < G.n; i++) {
+    if (isRest) { var rr = STATS.rest.r[G.i]; stats.rest = rnum(rr[0], rr[1], STATS.rest.dec); }
+    for (var i = isRest ? 1 : 0; i < G.n; i++) {
       var k = keys.splice(Math.floor(Math.random() * keys.length), 1)[0], rg = STATS[k].r[G.i];
       stats[k] = rnum(rg[0], rg[1], STATS[k].dec);
     }
@@ -387,11 +395,11 @@
       return '<div style="display:flex;gap:8px;align-items:flex-start;margin-bottom:6px;"><div style="min-width:48px;font-weight:900;color:' + G.color + ';">' + G.label + '</div><div style="flex:1;">' + r[2] + '<div style="color:#9ab;font-size:11px;">제작 성공 중 ' + pc(r[1]) + ' · 제작 1번당 ' + pc(ok * r[1]) + '</div></div></div>';
     }).join('');
     var head = '<tr style="color:#9ab;font-size:11px;"><td style="padding:3px 0;">능력치</td><td>일반</td><td>고급</td><td>레어</td><td>합계 상한</td></tr>';
-    var statRows = RAND_KEYS.map(function (k) {
+    var statRows = RAND_KEYS.concat(['rest']).map(function (k) {
       var S = STATS[k];
       return '<tr style="border-top:1px solid rgba(255,255,255,.08);"><td style="padding:5px 4px 5px 0;white-space:nowrap;">' + S.icon + ' ' + S.label.replace(/\(.*\)/, '') + '</td><td>' + rg(k, 0) + '</td><td>' + rg(k, 1) + '</td><td>' + rg(k, 2) + '</td><td style="color:#FFD700;">' + S.cap + S.unit + '</td></tr>';
     }).join('');
-    var scopeNote = RAND_KEYS.concat(['wish', 'recomb']).map(function (k) { return STATS[k].icon + ' ' + STATS[k].label.replace(/\(.*\)/, '') + ': ' + (STATS[k].scope === 'char' ? '장착한 그 아이돌의 원정에만' : '장착한 모든 굿즈 합산 (아이돌 상관없음)'); }).join('<br>');
+    var scopeNote = RAND_KEYS.concat(['rest', 'wish', 'recomb']).map(function (k) { return STATS[k].icon + ' ' + STATS[k].label.replace(/\(.*\)/, '') + ': ' + (k === 'rest' ? '💤 전용 굿즈(구름 머리띠 등)에만 붙어요. 장착한 아이돌의 🌙하루 보내기마다 체력이 더 회복 (체력 50까지)' : STATS[k].scope === 'char' ? '장착한 그 아이돌의 원정에만' : '장착한 모든 굿즈 합산 (아이돌 상관없음)'); }).join('<br>');
     body.innerHTML =
       '<div style="' + box + '"><div style="font-weight:900;font-size:13px;margin-bottom:6px;">🔨 제작하면 이렇게 나와요</div>' +
         '<div style="margin-bottom:6px;">실패 <b>' + pc(P_FAIL) + '</b> (재료만 사라져요) · 성공하면 아래 등급 중 하나!</div>' + gradeRows + '</div>' +
@@ -405,7 +413,7 @@
           var S = SLOTS[sl];
           function cell(emo, name, color) { return '<div style="width:72px;text-align:center;">' + icon({ slot: sl, base: name, emoji: emo }, 44) + '<div style="font-size:10px;line-height:1.3;margin-top:2px;color:' + (color || '#dde') + ';">' + name + '</div></div>'; }
           return '<div style="margin-bottom:10px;"><div style="font-weight:900;margin-bottom:4px;">' + S.label + '</div><div style="display:flex;flex-wrap:wrap;gap:6px;">' +
-            S.items.map(function (it) { return cell(it[0], it[1]); }).join('') + cell(EXTRA[sl].epic[0], EXTRA[sl].epic[1], GRADES.epic.color) + cell(EXTRA[sl].unique[0], EXTRA[sl].unique[1], GRADES.unique.color) + '</div></div>';
+            S.items.concat(REST_ITEMS[sl]).map(function (it) { return cell(it[0], it[1]); }).join('') + cell(EXTRA[sl].epic[0], EXTRA[sl].epic[1], GRADES.epic.color) + cell(EXTRA[sl].unique[0], EXTRA[sl].unique[1], GRADES.unique.color) + '</div></div>';
         }).join('') + '</div>';
   }
 
