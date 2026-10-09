@@ -38,10 +38,11 @@
     ticket: { label: '등교권·조각 드랍',  icon: '🎫', unit: '%',  dec: 0, scope: 'char', cap: 60,  r: [[5, 10],  [10, 20], [20, 40]] },
     wish:   { label: '탐험 소원의 조각 확률(샘 성공도 ×10)', icon: '🧩', unit: '%p', dec: 2, scope: 'all', cap: 1.5, r: [[0.05, 0.12], [0.12, 0.25], [0.25, 0.5]] },
     recomb: { label: '재조합 등급 상승 확률', icon: '🔮', unit: '%p', dec: 1, scope: 'all', cap: 6, r: [[1.5, 2.5], [1.5, 2.5], [1.5, 2.5]] },   // 유니크 전용
+    rest:   { label: '체력 회복 (하루 보내기마다 아이돌 체력)', icon: '💤', unit: '', dec: 0, scope: 'char', cap: 8, r: [[1, 1], [1, 2], [2, 3]] },
     honor:  { label: '우등생조각 획득',   icon: '✨', unit: '%',  dec: 0, scope: 'all',  cap: 60,  r: [[5, 10],  [10, 20], [20, 40]] }
   };
-  var STAT_KEYS = ['coin', 'exp', 'piece', 'ticket', 'wish', 'honor', 'recomb'];
-  var RAND_KEYS = ['coin', 'exp', 'piece', 'ticket', 'honor'];   // 일반·고급·레어 굿즈에 랜덤으로 붙는 능력치 (🧩소원의 조각은 에픽, 🔮재조합은 유니크 전용)
+  var STAT_KEYS = ['coin', 'exp', 'piece', 'ticket', 'wish', 'honor', 'recomb', 'rest'];
+  var RAND_KEYS = ['coin', 'exp', 'piece', 'ticket', 'honor', 'rest'];   // 일반·고급·레어 굿즈에 랜덤으로 붙는 능력치 (🧩소원의 조각은 에픽, 🔮재조합은 유니크 전용)
   var GRADES = {
     normal: { label: '일반', color: '#cbd5e1', n: 1, i: 0 },
     good:   { label: '고급', color: '#4ade80', n: 1, i: 1 },

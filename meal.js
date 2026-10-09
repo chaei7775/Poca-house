@@ -243,6 +243,10 @@
         var diff = STAT_START - s[k];
         s[k] = clamp(s[k] + (diff === 0 ? 0 : (diff > 0 ? 1 : -1) * Math.min(DRIFT, Math.abs(diff))));
       });
+      try {   // 🎁 굿즈의 '체력 회복' 효과: 체력이 기본값보다 낮을 때 하루마다 더 회복 (기본값까지만)
+        var gg = window.__goodsGear, rb = gg && gg.totals ? Number(gg.totals(cid).rest) || 0 : 0;
+        if (rb > 0 && s.s < STAT_START) s.s = Math.min(STAT_START, s.s + rb);
+      } catch (e) {}
     });
     Object.keys(st.sched).forEach(function (cid) {
       var sc = st.sched[cid];
