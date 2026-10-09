@@ -337,6 +337,17 @@
   var BTN = 'border:none;border-radius:12px;font-weight:900;cursor:pointer;' + FONT;
   var ACC = '#34D399';
   var tab = 'buy', pick = 'recomb', sellKey = 'recomb', busy = false, cat = 'item';
+  // 화면용 아이콘: 탐험 재료·디저트 간식은 그림, 나머지는 이모지(emoji-skin 이 그림으로 바꿔줌)
+  function iconHtml(it, px) {
+    px = px || 20;
+    try {
+      if (it.desc === '탐험 재료' && typeof window.matIcon === 'function') return window.matIcon(it.name, px, it.emoji) || it.emoji;
+      var T = window.__sweetsTest, r = T && T.RECIPES && T.RECIPES.filter(function (x) { return x.name === it.name; })[0];
+      if (r) return '<span style="position:relative;display:inline-block;width:' + px + 'px;height:' + px + 'px;font-size:' + Math.round(px * 0.8) + 'px;line-height:' + px + 'px;text-align:center;vertical-align:middle;">' + it.emoji +
+        '<img src="meal-assets/sweets/' + r.id + '.png" alt="" loading="lazy" decoding="async" style="position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:transparent;" onload="var p=this.parentNode;if(p&&p.firstChild&&p.firstChild.nodeType===3)p.firstChild.nodeValue=\'\';" onerror="this.remove()"></span>';
+    } catch (e) {}
+    return it.emoji;
+  }
   function keysOf() { return cat === 'mat' && MAT_ORDER.length ? MAT_ORDER : ORDER; }
   function catBar(ov, redraw) {
     if (!MAT_ORDER.length) return '';
@@ -364,7 +375,7 @@
 
   function chip(k, on, attr) {
     var it = ITEMS[k];
-    return '<button ' + attr + '="' + k + '" style="' + BTN + 'padding:7px 10px;font-size:12px;background:' + (on ? 'linear-gradient(135deg,#34D399,#60A5FA)' : 'rgba(255,255,255,0.1)') + ';color:#fff;">' + it.emoji + ' ' + it.name + '</button>';
+    return '<button ' + attr + '="' + k + '" style="' + BTN + 'padding:7px 10px;font-size:12px;background:' + (on ? 'linear-gradient(135deg,#34D399,#60A5FA)' : 'rgba(255,255,255,0.1)') + ';color:#fff;">' + iconHtml(it, 18) + ' ' + it.name + '</button>';
   }
   function tabBtn(id, label) {
     var on = tab === id;
@@ -411,7 +422,7 @@
     list.innerHTML = rows.map(function (x) {
       var mineRow = x.sellerUid === uid();
       return '<div style="display:flex;align-items:center;gap:10px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:12px;padding:10px;margin-bottom:8px;">' +
-        '<div style="font-size:26px;">' + it.emoji + '</div><div style="flex:1;min-width:0;">' +
+        '<div style="font-size:26px;">' + iconHtml(it, 34) + '</div><div style="flex:1;min-width:0;">' +
         '<div style="font-size:13px;font-weight:900;color:#fff;">' + it.name + ' x' + x.qty + '</div>' +
         '<div style="font-size:11px;color:#9ab;">개당 🍔' + fmt(x.unitPrice) + ' · 판매자 ' + esc(x.sellerNick || '익명') + '</div></div>' +
         '<button data-buy="' + x.id + '" data-total="' + x.total + '" ' + (mineRow ? 'disabled' : '') + ' style="' + BTN + 'padding:9px 12px;font-size:12px;background:' + (mineRow ? 'rgba(255,255,255,0.1)' : 'linear-gradient(135deg,#FFD700,#F59E0B)') + ';color:' + (mineRow ? '#777' : '#1a1a2e') + ';">' + (mineRow ? '내 물건' : '🍔 ' + fmt(x.total)) + '</button></div>';
@@ -435,7 +446,7 @@
     var it = ITEMS[sellKey];
     box.innerHTML = catBar() + '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;">' + keysOf().map(function (k) { return chip(k, sellKey === k, 'data-sk'); }).join('') + '</div>' +
       '<div style="background:rgba(255,255,255,0.06);border-radius:12px;padding:12px;">' +
-      '<div style="font-size:13px;color:#fff;font-weight:900;margin-bottom:8px;">' + it.emoji + ' ' + it.name + ' <span style="color:#9ab;font-weight:400;">보유 ' + fmt(have(sellKey)) + '개</span></div>' +
+      '<div style="font-size:13px;color:#fff;font-weight:900;margin-bottom:8px;">' + iconHtml(it, 20) + ' ' + it.name + ' <span style="color:#9ab;font-weight:400;">보유 ' + fmt(have(sellKey)) + '개</span></div>' +
       '<label style="font-size:11px;color:#9ab;">수량 (1~' + MAX_QTY + ')</label>' +
       '<input id="tr-qty" type="number" inputmode="numeric" value="1" min="1" max="' + MAX_QTY + '" style="width:100%;padding:10px;border-radius:10px;border:none;margin:4px 0 10px;font-size:15px;">' +
       '<label style="font-size:11px;color:#9ab;">개당 가격 (' + fmt(it.min) + '~' + fmt(it.max) + ' 코인)</label>' +
@@ -485,7 +496,7 @@
       var it = ITEMS[x.item] || { name: x.item, emoji: '📦' };
       var st = x.status === 'open' ? '<button data-cancel="' + x.id + '" style="' + BTN + 'padding:8px 12px;font-size:12px;background:rgba(239,68,68,0.2);color:#ff8a8a;">취소</button>' : '<span style="font-size:11px;color:#34D399;">정산 대기</span>';
       return '<div style="display:flex;align-items:center;gap:10px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:12px;padding:10px;margin-bottom:8px;">' +
-        '<div style="font-size:26px;">' + it.emoji + '</div><div style="flex:1;min-width:0;">' +
+        '<div style="font-size:26px;">' + iconHtml(it, 34) + '</div><div style="flex:1;min-width:0;">' +
         '<div style="font-size:13px;font-weight:900;color:#fff;">' + it.name + ' x' + x.qty + '</div>' +
         '<div style="font-size:11px;color:#9ab;">개당 🍔' + fmt(x.unitPrice) + ' · 총 🍔' + fmt(x.total) + ' · ' + (x.status === 'open' ? '판매 중' : (x.status === 'sold' ? '팔렸어요! 받을 코인 🍔' + fmt(Math.floor(x.total * (1 - FEE))) : '취소됨')) + '</div></div>' + st + '</div>';
     }).join('') : '<div style="color:#aaa;text-align:center;padding:22px 0;">등록한 물건이 없어요</div>';
