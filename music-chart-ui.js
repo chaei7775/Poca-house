@@ -80,7 +80,10 @@
   }
 
   // ════════ 메인 화면 ════════
+  var CHART_LV = 20;
+  function lvNow() { try { return Number(playerLevel) || 1; } catch (e) { return 1; } }
   function openChart() {
+    if (lvNow() < CHART_LV) { toast('🔒 음원차트는 플레이어 Lv.' + CHART_LV + '부터 열려요 (지금 Lv.' + lvNow() + ')'); return; }
     var ov = $('chart-overlay'); if (ov) ov.remove();
     ov = document.createElement('div');
     ov.id = 'chart-overlay';
@@ -342,7 +345,7 @@
       var res = orig.apply(this, arguments);
       var grid = $('more-menu-grid');
       if (grid && !$('more-chart-tile')) {
-        grid.insertAdjacentHTML('beforeend', window.moreMenuTileHtml('📈', '음원차트', ACC, 'openMusicChart()'));
+        grid.insertAdjacentHTML('beforeend', window.moreMenuTileHtml('📈', lvNow() < CHART_LV ? '음원차트 🔒Lv.' + CHART_LV : '음원차트', ACC, 'openMusicChart()'));
         if (grid.lastElementChild) grid.lastElementChild.id = 'more-chart-tile';
       }
       return res;
