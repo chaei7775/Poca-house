@@ -130,7 +130,7 @@
     // ───── 메인: 프리미엄·수집 ─────
     main_premium: { title:'첫 프리미엄 카드', desc:'팬덤 원정에서 🖼️ 프리미엄 조각 100개 → 더보기 → 💎 프리미엄 카드에서 교환!',
       condition:'q2_premium', rewardCoins:3000, rewardExp:500, type:'main', detect:function () { return premiumList().length >= 1; } },
-    main_premium_up: { title:'프리미엄 카드 강화', desc:'💎 프리미엄 카드를 강화석으로 2레벨 이상! 원정 조각 획득량이 늘어나.',
+    main_premium_up: { title:'프리미엄 카드 강화', desc:'💎 프리미엄 카드를 같은 카드 흡수로 2레벨 이상! 원정 조각 획득량이 늘어나.',
       condition:'q2_premium_up', rewardCoins:3000, rewardExp:500, type:'main',
       detect:function () { return premiumList().some(function (l) { return l >= 2; }); } },
     main_premium_all: { title:'프리미엄 카드 컬렉터', desc:'💎 프리미엄 카드 6종 전부 모으기. 모을수록 원정이 쉬워져.',
