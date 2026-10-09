@@ -903,7 +903,7 @@
   var TRACKS = [];
   CHAPTERS.forEach(function (ch, i) {
     TRACKS.push({ id: ch.id, title: ch.title, emoji: ch.emoji, intro: ch.intro, quests: ch.quests, kind: 'main',
-      lock: i === 0 ? null : ch.id === 'c4' ? { quest: 's3_5', text: '3장 "카메라 앞의 연기"(드라마 촬영 1번)를 마치면 열려요.' } : { track: CHAPTERS[i - 1].id, text: '앞 챕터를 모두 마치면 열려요.' } });
+      lock: i === 0 ? null : ch.id === 'c4' ? { cond: function () { return qdone('s3_5') || qdone('tut_drama') || dramaN() >= 1; }, text: '3장 "카메라 앞의 연기"(드라마 촬영 1번)를 마치면 열려요.' } : { track: CHAPTERS[i - 1].id, text: '앞 챕터를 모두 마치면 열려요.' } });
   });
   ORDER.forEach(function (cid) {
     var d = IDOLS[cid];
@@ -927,6 +927,7 @@
     if (!t.lock) return true;
     if (t.lock.track) { var p = trackById(t.lock.track); return !!p && trackDone(p); }
     if (t.lock.quest) return qdone(t.lock.quest);
+    if (t.lock.cond) { try { return !!t.lock.cond(); } catch (e) { return false; } }
     return true;
   }
   function activeOf(t) {
