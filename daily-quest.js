@@ -242,7 +242,7 @@
     document.head.appendChild(st);
   }
 
-  function doneCount() { return QUESTS.filter(function (q) { return !!D.claimed[q.id]; }).length; }
+  function doneCount() { return QUESTS.filter(function (q) { return !!D.claimed[q.id] || isDone(q); }).length; }
 
   function homeHtml() {
     var n = claimableCount();
