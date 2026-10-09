@@ -4,6 +4,9 @@
 (function () {
   'use strict';
   var FAIL_SHOW = 2, RETRY_MS = 30000;
+  var THROTTLE_MS = 60000;                       // 자동 저장은 1분에 한 번만 (서버 쓰기 한도 아끼기)
+  var IMMEDIATE = { firstLoad: 1, signup: 1, manual: 1, retry: 1, leave: 1 };
+  var lastTry = 0, dirty = false, thrT = null;
   var blocked = false, checked = false, checking = null, fails = 0, retryT = null;
   function $(id) { return document.getElementById(id); }
   function lv() { try { return Number(playerLevel) || 1; } catch (e) { return 1; } }
@@ -79,6 +82,15 @@
     var w = async function (reason) {
       if (!window.pocaLoggedInUid || !window.pocaFirebaseReady || !window.pocaFirebase) return orig.call(this, reason);
       if (blocked) return false;
+      if (!IMMEDIATE[reason]) {           // 자주 호출되는 자동 저장은 모아서 한 번만
+        var wait = THROTTLE_MS - (Date.now() - lastTry);
+        if (wait > 0) {
+          dirty = true;
+          if (!thrT) thrT = setTimeout(function () { thrT = null; if (dirty) window.savePocaUserToServer('throttled'); }, wait + 200);
+          return false;
+        }
+      }
+      lastTry = Date.now(); dirty = false;
       var ok = await checkServer();
       if (!ok || blocked) return false;
       var res = await orig.call(this, reason);
@@ -91,5 +103,9 @@
     try { savePocaUserToServer = w; } catch (e) {}
     return true;
   }
+  // 앱을 닫거나 다른 앱으로 넘어갈 때, 아직 못 올린 변경이 있으면 바로 저장
+  function flush() { if (dirty && typeof window.savePocaUserToServer === 'function') window.savePocaUserToServer('leave'); }
+  document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'hidden') flush(); });
+  window.addEventListener('pagehide', flush);
   var tries = 0, t = setInterval(function () { if (install() || ++tries > 60) clearInterval(t); }, 300);
 })();
