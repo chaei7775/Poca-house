@@ -146,12 +146,19 @@
       return it && it.qty <= n[1];
     });
   }
-  function takeMaterials(r) {
+  var COOK_MAX = 100;                                      // 한 번에 만들 수 있는 최대 개수
+  function maxCook(r) {                                    // 재료로 만들 수 있는 최대 개수
+    var m = COOK_MAX;
+    r.need.forEach(function (n) { m = Math.min(m, Math.floor(have(n[0]) / n[1])); });
+    return Math.max(0, m);
+  }
+  function takeMaterials(r, mult) {
+    mult = mult || 1;
     var list = bagList();
     r.need.forEach(function (n) {
       var i = list.findIndex(function (x) { return x.name === n[0] && x.type === 'material'; });
       if (i < 0) return;
-      list[i].qty -= n[1];
+      list[i].qty -= n[1] * mult;
       if (list[i].qty <= 0) list.splice(i, 1);
     });
   }
@@ -288,46 +295,71 @@
       return;
     }
     var ov = overlay('sweets-confirm', Z);
-    var mats = r.need.map(function (n) { return '<div style="font-size:12px;color:#fff;">' + matIcon(n[0], 20) + ' ' + esc(n[0]) + ' <b style="color:#ffe08a;">×' + n[1] + '</b> <span style="color:#9aa0c8;">(보유 ' + have(n[0]) + ')</span></div>'; }).join('');
+    var max = maxCook(r), qty = 1;
     ov.innerHTML = '<div style="width:100%;max-width:330px;background:linear-gradient(160deg,#1b1330,#2a1745);border:1.5px solid #ff9ecb;border-radius:20px;padding:18px;text-align:center;">' +
       '<div data-r="art" style="margin:4px auto 6px;">' + sweetImg(r, 84) + '</div>' +
       '<div style="font-size:17px;font-weight:900;color:#fff;">' + esc(r.name) + '</div>' +
-      '<div style="font-size:12px;color:#cfd3ee;margin:2px 0 8px;">만들어서 🎒가방에 담을까요?</div>' +
+      '<div style="font-size:12px;color:#cfd3ee;margin:2px 0 8px;">만들어서 🎒가방에 담을까요? <span style="color:#9aa0c8;">(보유 ' + sweetQty(r) + '개)</span></div>' +
       '<div style="display:flex;justify-content:center;gap:8px;margin-bottom:8px;">' + chip('✨ 비주얼', r.d.v) + chip('💪 체력', r.d.s) + chip('😊 기분', r.d.m) + '</div>' +
-      '<div style="background:rgba(255,255,255,0.07);border-radius:12px;padding:8px 10px;display:flex;flex-direction:column;gap:4px;align-items:center;">' + mats + '</div>' +
+      '<div data-r="mats" style="background:rgba(255,255,255,0.07);border-radius:12px;padding:8px 10px;display:flex;flex-direction:column;gap:4px;align-items:center;"></div>' +
+      '<div data-r="qtybox" style="margin-top:10px;background:rgba(255,255,255,0.05);border-radius:12px;padding:9px 10px;">' +
+        '<div style="display:flex;align-items:center;justify-content:space-between;font-size:12px;font-weight:900;color:#fff;margin-bottom:6px;"><span>🍬 만들 개수</span><span><b id="sw-n" style="color:#ffe08a;font-size:16px;">1</b> <span style="color:#9aa0c8;font-weight:700;">/ ' + max + '</span></span></div>' +
+        '<div style="display:flex;align-items:center;gap:8px;">' +
+          '<button id="sw-minus" style="' + BTN + 'width:34px;height:34px;background:rgba(255,255,255,0.12);color:#fff;font-size:18px;">−</button>' +
+          '<input id="sw-range" type="range" min="1" max="' + max + '" value="1" style="flex:1;min-width:0;accent-color:#ff6b9d;">' +
+          '<button id="sw-plus" style="' + BTN + 'width:34px;height:34px;background:rgba(255,255,255,0.12);color:#fff;font-size:18px;">+</button>' +
+          '<button id="sw-maxbtn" style="' + BTN + 'padding:0 10px;height:34px;background:rgba(255,215,0,0.2);color:#ffe27a;font-size:12px;">최대</button></div>' +
+        (max >= COOK_MAX ? '<div style="font-size:10px;color:#9aa0c8;margin-top:5px;">한 번에 최대 ' + COOK_MAX + '개까지 만들 수 있어요</div>' : '') + '</div>' +
       '<div data-r="btns" style="display:flex;gap:8px;margin-top:12px;"><button id="sw-no" style="' + BTN + 'flex:1;padding:12px;background:rgba(255,255,255,0.12);color:#fff;font-size:13px;">취소</button>' +
       '<button id="sw-yes" style="' + BTN + 'flex:2;padding:12px;background:linear-gradient(135deg,#ff6b9d,#c084fc);color:#fff;font-size:14px;">🍬 만들기</button></div></div>';
+    function draw() {
+      ov.querySelector('[data-r="mats"]').innerHTML = r.need.map(function (n) {
+        return '<div style="font-size:12px;color:#fff;">' + matIcon(n[0], 20) + ' ' + esc(n[0]) + ' <b style="color:#ffe08a;">×' + (n[1] * qty) + '</b> <span style="color:#9aa0c8;">(보유 ' + have(n[0]) + ')</span></div>';
+      }).join('');
+      ov.querySelector('#sw-n').textContent = qty;
+      ov.querySelector('#sw-range').value = qty;
+      ov.querySelector('#sw-yes').textContent = '🍬 ' + qty + '개 만들기';
+    }
+    function set(v) { qty = Math.max(1, Math.min(max, Math.floor(Number(v) || 1))); draw(); }
+    ov.querySelector('#sw-range').oninput = function () { set(this.value); };
+    ov.querySelector('#sw-minus').onclick = function () { set(qty - 1); };
+    ov.querySelector('#sw-plus').onclick = function () { set(qty + 1); };
+    ov.querySelector('#sw-maxbtn').onclick = function () { set(max); };
     ov.querySelector('#sw-no').onclick = function () { ov.remove(); };
-    ov.querySelector('#sw-yes').onclick = function () { cook(cid, rid, ov); };
+    ov.querySelector('#sw-yes').onclick = function () { cook(cid, rid, ov, qty); };
+    if (max <= 1) ov.querySelector('[data-r="qtybox"]').style.display = 'none';
+    draw();
   }
 
   var busy = false;
-  function cook(cid, rid, confirmOv) {
+  function cook(cid, rid, confirmOv, n) {
     if (busy) return;
     var r = BY_ID[rid]; if (!r) return;
-    if (!canCook(r, have, hasSpace).ok) { confirmOv.remove(); toast('지금은 만들 수 없어요'); return; }
+    n = Math.max(1, Math.floor(Number(n) || 1));
+    if (!canCook(r, have, hasSpace).ok || maxCook(r) < n) { confirmOv.remove(); toast('지금은 만들 수 없어요'); return; }
     busy = true;
     var art = confirmOv.querySelector('[data-r="art"]');
     if (art) art.firstChild.style.animation = 'swSpin .5s ease-in-out infinite';
     confirmOv.querySelector('[data-r="btns"]').innerHTML = '<div style="flex:1;padding:12px;font-size:13px;font-weight:900;color:#ffe08a;">✨ 반짝반짝 만드는 중…</div>';
+    var qb = confirmOv.querySelector('[data-r="qtybox"]'); if (qb) qb.style.display = 'none';
     snd('stamp');
     setTimeout(function () {
-      takeMaterials(r);                                                     // 재료 차감 → 간식을 가방에 담기
+      takeMaterials(r, n);                                                  // 재료 차감 → 간식을 가방에 담기
       var ok = false;
-      try { ok = !!addToBag(r.emoji, r.name, TYPE, 1, descOf(r)); } catch (e) {}
+      try { ok = !!addToBag(r.emoji, r.name, TYPE, n, descOf(r)); } catch (e) {}
       if (!ok) { afterBagChange(); confirmOv.remove(); busy = false; redraw(); toast('가방에 담지 못했어요'); return; }
       var s = syncDay(load(), (M() ? M().load().day : 1));
-      s.cooked[r.id] = (s.cooked[r.id] || 0) + 1;
+      s.cooked[r.id] = (s.cooked[r.id] || 0) + n;
       save(s);
       afterBagChange();
       confirmOv.remove();
-      showMade(cid, r);
+      showMade(cid, r, n);
       redraw();
       busy = false;
     }, 1000);
   }
 
-  function showMade(cid, r) {
+  function showMade(cid, r, n) {
     var m = M(), c = m && m.CH[cid];
     var ov = overlay('sweets-made', Z);
     var canNow = c && canFeed(syncDay(load(), m.load().day), cid, sweetQty(r)).ok && debutedIds().indexOf(cid) !== -1;
@@ -336,7 +368,7 @@
       '<div style="font-size:13px;font-weight:900;color:#cfd3ee;">🎉 완성!</div>' +
       '<div style="margin:8px auto 2px;animation:swPop .5s ease-out;">' + sweetImg(r, 84) + '</div>' +
       '<div style="font-size:16px;font-weight:900;color:#fff;">' + esc(r.name) + '</div>' +
-      '<div style="font-size:12px;color:#ffe08a;margin-top:4px;">🎒 가방에 담았어요 (보유 ' + sweetQty(r) + '개)</div>' +
+      '<div style="font-size:12px;color:#ffe08a;margin-top:4px;">🎒 가방에 ' + (n > 1 ? n + '개 ' : '') + '담았어요 (보유 ' + sweetQty(r) + '개)</div>' +
       '<div style="display:flex;gap:8px;margin-top:14px;"><button id="sw-close" style="' + BTN + 'flex:1;padding:12px;background:rgba(255,255,255,0.12);color:#fff;font-size:13px;">닫기</button>' +
       (canNow ? '<button id="sw-now" style="' + BTN + 'flex:2;padding:12px;background:linear-gradient(135deg,#ff6b9d,#c084fc);color:#fff;font-size:13px;">' + esc(c.name) + '에게 바로 먹이기' + (d.like ? ' ❤️' : '') + '</button>' : '') + '</div></div>';
     ov.querySelector('#sw-close').onclick = function () { ov.remove(); };
@@ -477,6 +509,6 @@
 
   window.__sweetsTest = {
     RECIPES: RECIPES, LIKES: LIKES, CFG: { PER_DAY: PER_DAY, LIKE_BONUS: LIKE_BONUS },
-    load: load, save: save, syncDay: syncDay, fedToday: fedToday, deltaOf: deltaOf, lacking: lacking, canCook: canCook, canFeed: canFeed, applyFeed: applyFeed, pickLine: pickLine
+    openCookConfirm: openCookConfirm, load: load, save: save, syncDay: syncDay, fedToday: fedToday, deltaOf: deltaOf, lacking: lacking, canCook: canCook, canFeed: canFeed, applyFeed: applyFeed, pickLine: pickLine
   };
 })();
