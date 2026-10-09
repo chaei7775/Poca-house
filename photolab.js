@@ -413,6 +413,7 @@
       coins -= cost.coin;
       if (typeof updateCoinsDisplay === 'function') updateCoinsDisplay();
       var success = (Math.random() * 100) < enhRate(lv);
+      var beforeTxt = slotText(cur.slots[idx]);
       if (success) { cur.slots = next; setCard(id, cur); }
       if (typeof saveBag === 'function') saveBag();
       if (typeof saveAll === 'function') saveAll();
@@ -421,11 +422,35 @@
       var f = document.createElement('div');
       f.style.cssText = 'position:fixed;inset:0;background:' + (success ? '#34d399' : '#ef4444') + ';z-index:100000;pointer-events:none;animation:plFlash .45s ease-out forwards;';
       document.body.appendChild(f); setTimeout(function () { f.remove(); }, 480);
-      toast(success ? '🧪 +' + (lv + 1) + '강 성공! ' + slotText(next[idx]) : '💨 강화 실패… 재료와 코인만 사라졌어요 (+' + lv + '강 그대로)');
       renderLab(false);
+      showEnhResult(idx, lv, success, beforeTxt, success ? slotText(next[idx]) : beforeTxt);
     };
     pop.addEventListener('click', function (e) { if (e.target === pop) pop.remove(); });
     document.body.appendChild(pop);
+  }
+
+  // 🧪 강화 결과 팝업 (성공/실패 + 바뀐 옵션, 이어서 한 번 더 강화 가능)
+  function showEnhResult(idx, lv, success, beforeTxt, afterTxt) {
+    var old = $('pl-enh-res'); if (old) old.remove();
+    var c = getCard(ST ? ST.charId : ''), s2 = c && c.slots ? c.slots[idx] : null;
+    var again = !!(s2 && canEnhance(s2));
+    var pop = document.createElement('div');
+    pop.id = 'pl-enh-res';
+    var col = success ? '#34d399' : '#f87171';
+    pop.style.cssText = 'position:fixed;inset:0;z-index:100002;background:rgba(0,0,0,.8);display:flex;align-items:center;justify-content:center;padding:18px;font-family:\'Noto Sans KR\',sans-serif;';
+    pop.innerHTML = '<div style="width:100%;max-width:320px;background:linear-gradient(135deg,#1a0509,#3b0d1a);border:2px solid ' + col + ';border-radius:18px;padding:22px 20px;text-align:center;color:#fff;box-shadow:0 0 30px ' + col + '55;">' +
+      '<div style="font-size:44px;">' + (success ? '✨' : '💨') + '</div>' +
+      '<div style="font-size:19px;font-weight:900;color:' + col + ';margin:4px 0 10px;">' + (success ? '+' + (lv + 1) + '강 성공!' : '강화 실패…') + '</div>' +
+      (success
+        ? '<div style="font-size:12px;color:#9ca3af;">' + beforeTxt + '</div><div style="font-size:18px;margin:2px 0;">⬇</div><div style="font-size:15px;font-weight:900;color:#34d399;margin-bottom:10px;">' + afterTxt + '</div>'
+        : '<div style="font-size:13px;color:#fca5a5;line-height:1.6;margin-bottom:8px;">' + DEV_EMOJI + ' 현상액과 코인만 사라졌어요.<br>단계는 +' + lv + '강 그대로예요.</div><div style="font-size:12px;color:#9ca3af;margin-bottom:10px;">' + beforeTxt + '</div>') +
+      '<div style="font-size:10px;color:#9ca3af;margin-bottom:12px;">보유 ' + DEV_EMOJI + ' ' + devQty() + ' · 🍔 ' + coinsNow().toLocaleString() + '</div>' +
+      (again ? '<button id="pl-enh-again" style="' + BTN + 'background:linear-gradient(135deg,#059669,#34d399);margin-bottom:8px;">' + (success ? '+' + (lv + 2) + '강 계속 도전' : '다시 도전') + '</button>' : '') +
+      '<button id="pl-enh-ok" style="' + BTN + 'background:rgba(255,255,255,.14);">확인</button></div>';
+    document.body.appendChild(pop);
+    pop.querySelector('#pl-enh-ok').onclick = function () { pop.remove(); };
+    var ag = pop.querySelector('#pl-enh-again');
+    if (ag) ag.onclick = function () { pop.remove(); openSlotEnhance(idx); };
   }
 
   function doRoll() {
