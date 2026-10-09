@@ -21,7 +21,9 @@
   var ENABLED = ['minjun', 'sion', 'doyun', 'harin', 'yuna', 'ara'];          // 레슨이 열린 아이돌
   var STAT_START = 10;
   var STAT_MAX = 100;
-  var LESSON_COST = 1000;          // 코인
+  var LESSON_COST = 1000;          // 코인 (신입 할인가: 아이돌마다 첫 FREE_LESSONS번)
+  var FREE_LESSONS = 5;            // 이 횟수까지는 LESSON_COST 그대로 (초반 퀘스트·뉴비 보호)
+  var COST_COEF = 1000;            // 그 뒤로는 비용 = COST_COEF × (그 능력치 현재값)²  → 10:10만 / 30:90만 / 50:250만 / 100:1000만
   var LESSON_TIRED = 10;           // 체력 −
   var LESSON_MOOD = 3;             // 기분 −
   var MIN_STAMINA = 15;            // 이보다 체력이 낮으면 레슨 불가
@@ -115,12 +117,18 @@
   }
 
   // 레슨 가능 여부
+  function costOf(st, cid, k) {
+    if ((st.count[cid] || 0) < FREE_LESSONS) return LESSON_COST;
+    var cur = statOf(st, cid)[k] || STAT_START;
+    return Math.round(COST_COEF * cur * cur / 100) * 100;
+  }
+  function manTxt(n) { return n >= 10000 ? (Math.round(n / 1000) / 10).toString().replace(/\.0$/, '') + '만' : n.toLocaleString(); }
   function canLesson(st, cid, k, day, cond, haveCoins) {
     if (ENABLED.indexOf(cid) === -1) return { ok: false, why: 'locked' };
     if (!STAT_BY_K[k]) return { ok: false, why: 'invalid' };
     if (doneToday(st, cid, day)) return { ok: false, why: 'done' };
     if (cond.s < MIN_STAMINA) return { ok: false, why: 'tired' };
-    if (haveCoins < LESSON_COST) return { ok: false, why: 'coin' };
+    if (haveCoins < costOf(st, cid, k)) return { ok: false, why: 'coin' };
     return { ok: true };
   }
 
@@ -144,8 +152,8 @@
   // ════════ 🎓 능력치 효과 (드라마·CF·음방·기획사 수익에 연결) ════════
   //  f(k) = ((능력치 − 10) / 90) ^ 0.6  → 처음 0, 100이면 1
   var FX = {
-    actDrama: 0.50,     // 연기 100 → 드라마 촬영·일정 정산 +50%
-    charmCf: 0.50,      // 매력 100 → CF 보상 +50%
+    actDrama: 1.00,     // 연기 100 → 드라마 촬영·일정 정산 +100% (대신 레슨비가 크게 듦)
+    charmCf: 1.00,      // 매력 100 → CF 보상 +100%
     stageVD: 0.30,      // 보컬 100 → 음방·컴백 정산 +30%, 댄스 100 → 또 +30%
     incomeFun: 0.15,    // 예능 100 → 기획사 수익 +15%
     incomeCharm: 0.15   // 매력 100 → 기획사 수익 +15%
@@ -248,12 +256,14 @@
       var tag = apt > 1 ? '<span style="color:#7ee8a5;">잘해요</span>' : (apt < 1 ? '<span style="color:#ffb36b;">서툴러요</span>' : '');
       return '<button data-lesson="' + s.k + '" style="' + BTN + 'padding:9px 4px;background:rgba(255,255,255,0.08);border:1px solid ' + s.color + '66;color:#fff;font-size:11px;opacity:' + (c.ok ? 1 : 0.45) + ';">' +
         '<div style="font-size:20px;">' + s.icon + '</div><div>' + s.lesson + '</div>' +
-        '<div style="font-size:10px;font-weight:700;min-height:13px;">' + tag + '</div></button>';
+        '<div style="font-size:10px;font-weight:700;min-height:13px;">' + tag + '</div>' +
+        '<div style="font-size:10px;font-weight:900;color:' + (have < costOf(st, cid, s.k) ? '#ff8a8a' : '#ffe08a') + ';">🪙' + manTxt(costOf(st, cid, s.k)) + '</div></button>';
     }).join('');
     var ctrl = done
       ? '<div style="text-align:center;font-size:12px;font-weight:900;color:#7ee8a5;background:rgba(126,232,165,.1);border:1px solid rgba(126,232,165,.35);border-radius:10px;padding:9px;">✅ 오늘 레슨 완료! 🌙 하루를 보내면 다시 할 수 있어요</div>'
       : '<div style="font-size:12px;font-weight:900;color:#ddd;margin-bottom:6px;display:flex;justify-content:space-between;"><span>📚 오늘의 레슨 <span style="color:#aaa;font-weight:700;">(하루 1번)</span></span>' +
-        '<span style="color:' + (have < LESSON_COST ? '#ff8a8a' : '#ffe08a') + ';">' + LESSON_COST.toLocaleString() + '코인 · 체력 −' + LESSON_TIRED + '</span></div>' +
+        '<span style="color:#ffe08a;">체력 −' + LESSON_TIRED + '</span></div>' +
+        ((st.count[cid] || 0) < FREE_LESSONS ? '<div style="font-size:11px;color:#7ee8a5;margin-bottom:6px;">🎀 신입 할인! 앞으로 ' + (FREE_LESSONS - (st.count[cid] || 0)) + '번은 1,000코인 · 그 뒤엔 능력치가 높을수록 비싸져요</div>' : '') +
         (warn ? '<div style="font-size:11px;color:#ffcf9a;margin-bottom:6px;">' + warn + '</div>' : '') +
         '<div id="ls-grid" style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;">' + lessons + '</div>';
     return head + barsHtml(st, cid, from) + fxLine(cid) + '<div style="margin-top:10px;padding-top:10px;border-top:1px dashed rgba(255,255,255,0.15);">' + ctrl + '</div>';
@@ -302,7 +312,7 @@
       toast(c.why === 'done' ? '오늘 레슨은 이미 했어요' : c.why === 'tired' ? '😵 체력이 너무 낮아요. 식사로 채워주세요' : c.why === 'coin' ? '코인이 모자라요' : '아직 열리지 않았어요');
       return;
     }
-    spend(LESSON_COST);
+    spend(costOf(st, cid, k));
     var res = doLesson(st, cid, k, ms.day, cond);
     save(st);
     cond.s = clamp(cond.s - LESSON_TIRED, 0, 100);
@@ -363,7 +373,7 @@
   // 다른 기능(2단계: 드라마·CF·기획사 연결)이 읽어갈 수 있게 열어둔다
   window.getIdolTrainStat = function (cid, k) { var o = statOf(load(), cid); return k ? o[k] : Object.assign({}, o); };
   window.__lessonTest = {
-    STATS: STATS, CFG: { LESSON_COST: LESSON_COST, LESSON_TIRED: LESSON_TIRED, LESSON_MOOD: LESSON_MOOD, MIN_STAMINA: MIN_STAMINA, ENABLED: ENABLED },
-    load: load, save: save, statOf: statOf, gradeOf: gradeOf, totalOf: totalOf, gainFor: gainFor, canLesson: canLesson, doLesson: doLesson, doneToday: doneToday
+    STATS: STATS, CFG: { LESSON_COST: LESSON_COST, FREE_LESSONS: FREE_LESSONS, COST_COEF: COST_COEF, LESSON_TIRED: LESSON_TIRED, LESSON_MOOD: LESSON_MOOD, MIN_STAMINA: MIN_STAMINA, ENABLED: ENABLED },
+    load: load, save: save, statOf: statOf, gradeOf: gradeOf, totalOf: totalOf, gainFor: gainFor, canLesson: canLesson, costOf: costOf, doLesson: doLesson, doneToday: doneToday
   };
 })();
