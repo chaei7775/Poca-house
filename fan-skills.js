@@ -760,11 +760,32 @@
     gbtn.style.cssText = gear.style.cssText;
     gbtn.onpointerdown = function (e) { e.stopPropagation(); e.preventDefault(); try { if (window.FanGear) window.FanGear.open(F && F.cid); } catch (x) {} };
     gearRow.appendChild(gear); gearRow.appendChild(gbtn);
+    // 🔁 맵 안에서 스킬 세트 1·2·3번 바로 바꾸기
+    var setRow = document.createElement('div');
+    setRow.style.cssText = 'display:flex;gap:5px;align-items:center;';
+    var setLab = document.createElement('div');
+    setLab.textContent = '세트';
+    setLab.style.cssText = 'font-size:10px;font-weight:900;color:#fff;background:rgba(0,0,0,.62);border-radius:999px;padding:2px 8px;';
+    setRow.appendChild(setLab);
+    var setBtns = [];
+    for (var sn = 1; sn <= SET_N; sn++) (function (sn) {
+      var sb = document.createElement('div');
+      sb.textContent = sn;
+      sb.style.cssText = 'width:26px;height:22px;line-height:22px;text-align:center;border-radius:999px;font-size:12px;font-weight:900;color:#fff;cursor:pointer;background:rgba(0,0,0,.62);border:1.5px solid #C084FC;';
+      sb.onpointerdown = function (e) {
+        e.stopPropagation(); e.preventDefault();
+        if (!F || activeSet(F.cid) === sn) return;
+        try { switchSet(F.cid, sn); showNote('🔁 스킬 세트 ' + sn + '번으로 바꿨어요'); } catch (x) {}
+        refreshBar();
+      };
+      setRow.appendChild(sb); setBtns.push(sb);
+    })(sn);
     bar.appendChild(hint);
     bar.appendChild(gearRow);
+    bar.appendChild(setRow);
     bar.appendChild(row);
     view.appendChild(bar);
-    F.bar = bar; F.hint = hint; F.btns = btns;
+    F.bar = bar; F.hint = hint; F.btns = btns; F.setBtns = setBtns;
   }
 
   function refreshBar() {
@@ -773,6 +794,7 @@
     var near = nearestTarget();
     var now = Date.now();
     var L = loadLoadout();
+    if (F.setBtns) { var as_ = activeSet(F.cid); F.setBtns.forEach(function (sb, i) { var on = (i + 1) === as_; sb.style.background = on ? 'linear-gradient(135deg,#FF6B9D,#C084FC)' : 'rgba(0,0,0,.62)'; sb.style.borderColor = on ? '#FFD700' : '#C084FC'; }); }
     for (var si = 0; si < SLOTS; si++) {
       var s = L[si] ? skillById(L[si]) : null, b = F.btns[si];
       var ic = b.querySelector('.fs-ic'), lb = b.querySelector('.fs-lb');
