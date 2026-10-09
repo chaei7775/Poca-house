@@ -59,11 +59,11 @@
   var STEP_GAIN = 25;            // 단타 스킬 하나가 채우는 하트 게이지(%)
   var AOE_GAIN = 50;             // 광역 스킬이 채우는 하트 게이지(%) — 순서 중 2칸을 건너뜀
   var FANS = [
-    { name: '매일 오는 팬', emoji: '🙋‍♀️' },
-    { name: '금손 팬',      emoji: '🎨' },
-    { name: '포카 수집광',  emoji: '🃏' },
-    { name: '공연마다 오는 팬', emoji: '🎤' },
-    { name: '고인물 팬',    emoji: '👑' }
+    { name: '매일 오는 팬', emoji: '🙋‍♀️', img: 'fskfan-1.png' },
+    { name: '금손 팬',      emoji: '🎨', img: 'fskfan-2.png' },
+    { name: '포카 수집광',  emoji: '🃏', img: 'fskfan-3.png' },
+    { name: '공연마다 오는 팬', emoji: '🎤', img: 'fskfan-4.png' },
+    { name: '고인물 팬',    emoji: '👑', img: 'fskfan-5.png' }
   ];
   var BOUNDS = { x0: 0.08, x1: 0.92, y0: 0.22, y1: 0.84 };   // 팬이 나타날 수 있는 범위 (이미지 가로/세로 0~1)
 
@@ -524,13 +524,16 @@
   }
 
   // ════════ 팬 ════════
+  function setMood(fc, emo) {   // 그림 얼굴이면 오른쪽 위에 작은 표정 이모지, 이모지 얼굴이면 얼굴 자체를 바꿈
+    if (fc.getAttribute('data-img')) { var m = fc.querySelector('.fs-mood'); if (m) m.textContent = emo; } else fc.textContent = emo;
+  }
   function buildFanEl(f) {
     var el = document.createElement('div');
     el.style.cssText = 'position:absolute;left:' + (f.x * 100) + '%;top:' + (f.y * 100) + '%;transform:translate(-50%,-50%);z-index:12;pointer-events:none;text-align:center;';
     el.innerHTML =
       '<div style="position:relative;animation:fsIn .45s ease-out;">' +
         '<div style="position:absolute;left:-40px;right:-40px;top:-50px;text-align:center;"><div class="fs-bubble"></div></div>' +
-        '<div class="fs-face" style="width:40px;height:40px;border-radius:50%;background:#fff;border:3px solid #fff;display:flex;align-items:center;justify-content:center;font-size:22px;box-shadow:0 3px 10px rgba(0,0,0,.5);margin:0 auto;">' + f.emoji + '</div>' +
+        (f.img ? '<div class="fs-face" data-img="1" style="position:relative;width:48px;height:48px;margin:0 auto;"><img src="https://raw.githubusercontent.com/chaei7775/Poca-house/main/' + f.img + '" alt="" draggable="false" style="width:48px;height:48px;object-fit:contain;filter:drop-shadow(0 2px 4px rgba(0,0,0,.55));"><span class="fs-mood" style="position:absolute;right:-6px;top:-6px;font-size:20px;"></span></div>' : '<div class="fs-face" style="width:40px;height:40px;border-radius:50%;background:#fff;border:3px solid #fff;display:flex;align-items:center;justify-content:center;font-size:22px;box-shadow:0 3px 10px rgba(0,0,0,.5);margin:0 auto;">' + f.emoji + '</div>') +
         '<div style="margin-top:2px;font-size:9px;font-weight:900;color:#fff;text-shadow:0 1px 4px #000;white-space:nowrap;">' + f.name + '</div>' +
       '</div>';
     var layer = $('bc-layer');
@@ -548,7 +551,7 @@
     var x = clamp(me.x + Math.cos(a) * r / ws.w, BOUNDS.x0, BOUNDS.x1);
     var y = clamp(me.y + Math.sin(a) * r / ws.h, BOUNDS.y0, BOUNDS.y1);
     var type = FANS[Math.floor(Math.random() * FANS.length)];
-    var f = { id: ++F.nid, x: x, y: y, name: type.name, emoji: type.emoji, until: Date.now() + FAN_TTL * 1000, el: null };
+    var f = { id: ++F.nid, x: x, y: y, name: type.name, emoji: type.emoji, img: type.img, until: Date.now() + FAN_TTL * 1000, el: null };
     f.el = buildFanEl(f);
     F.fans.push(f);
     showNote('💬 ' + f.name + '이(가) 찾아왔어요! 머리 위에 뜬 스킬을 써서 하트 게이지를 채워요 (틀리면 실패!)');
@@ -682,7 +685,7 @@
         floatText(tg.x, tg.y - 0.03, '<div style="font-size:14px;font-weight:900;color:#ff6b6b;text-shadow:0 2px 6px #000;white-space:nowrap;">😤 순서가 틀렸어요! 실패</div>');
         sfx('fail');
         if (isEv) { var evF = o; setTimeout(function () { try { hk.fail(evF); } catch (e) {} }, 800); }
-        else { var i0 = F.fans.indexOf(o); if (i0 !== -1) F.fans.splice(i0, 1); var fc0 = o.el && o.el.querySelector('.fs-face'); if (fc0) fc0.textContent = '😤'; setTimeout(function () { removeFan(o, true); }, 900); }
+        else { var i0 = F.fans.indexOf(o); if (i0 !== -1) F.fans.splice(i0, 1); var fc0 = o.el && o.el.querySelector('.fs-face'); if (fc0) setMood(fc0, '😤'); setTimeout(function () { removeFan(o, true); }, 900); }
         return;
       }
       if (st === 'ok') {
@@ -706,7 +709,7 @@
       } else {
         var i1 = F.fans.indexOf(o); if (i1 !== -1) F.fans.splice(i1, 1);
         var r = grant(love, 1 + 0.04 * mlv); addServe(F.cid); maybeBook('fan', id);
-        var fc = o.el && o.el.querySelector('.fs-face'); if (fc) fc.textContent = love ? '😍' : '😊';
+        var fc = o.el && o.el.querySelector('.fs-face'); if (fc) setMood(fc, love ? '😍' : '😊');
         floatText(o.x, o.y - 0.09, '<div style="text-align:center;">' + r.lines.join('') + '</div>');
         setTimeout(function () { removeFan(o, true); }, 900);
       }
@@ -842,7 +845,8 @@
     var near = nearestFan();
     F.fans.forEach(function (f) {
       var fc = f.el && f.el.querySelector('.fs-face');
-      if (fc) fc.style.borderColor = (near === f) ? '#FFD700' : '#fff';
+      if (fc && fc.getAttribute('data-img')) { var fim = fc.querySelector('img'); if (fim) fim.style.filter = (near === f) ? 'drop-shadow(0 0 6px #FFD700) drop-shadow(0 0 3px #FFD700)' : 'drop-shadow(0 2px 4px rgba(0,0,0,.55))'; }
+      else if (fc) fc.style.borderColor = (near === f) ? '#FFD700' : '#fff';
     });
     refreshBar();
   }
