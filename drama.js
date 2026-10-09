@@ -915,7 +915,7 @@ function finish(ok){
    ${promoted?'<div class="drop" style="border-color:var(--slate)"><b>탑스타 승급! 이 캐릭터의 모든 카드 슬롯 +1, 출연료 ×1.5</b></div>':''}
    <div class="drop"><span class="sl c-${dk.cat} g-${dk.gr} ic ic-${drop}" style="width:40px;height:40px">${dk.i}</span><div><b>스킬 획득 · ${dk.n}</b><div class="s" style="color:var(--muted);font-size:12px">${dk.gr} · ${dk.d()}</div></div></div>
    <div class="btns">
-     <button class="btn pri" data-r="again" ${left<1?'disabled':''}>${left<1?'체력 음료가 필요해요':'같은 설정으로 다시 촬영'}</button>
+     <button class="btn pri" data-r="${left<1?'prep':'again'}">${left<1?'체력 음료 사러 가기 🥤':'같은 설정으로 다시 촬영'}</button>
      <button class="btn" data-r="prep">준비 화면으로</button>
    </div>`;
   G=null;
