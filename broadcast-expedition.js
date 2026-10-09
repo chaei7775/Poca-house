@@ -109,7 +109,7 @@
     broadcast_front: {
       id: 'broadcast_front', name: '방송국 앞', emoji: '🎬', color: '#A78BFA',
       bg: 'https://raw.githubusercontent.com/chaei7775/Poca-house/main/special-broadcast_front.png',
-      desc: '프리미엄 조각을 모아요', pieces: true, coinMult: 40,
+      desc: '이벤트 100번마다 프리미엄 조각 상자 뽑기', pieces: true, coinMult: 40,
       start: START, normal: NORMAL_SPOTS, rare: RARE_SPOTS, legend: LEGEND_SPOT, bounds: BOUNDS,
       enh: { normal: { stone: 0.005, protect: 0.003, trans: 0 }, variant: { stone: 0.03, protect: 0.015, trans: 0.005 }, npcStone: 1 },
       film: { normal: 0.015, golden: 0.10, npc: 1 }       // 임시 낮은 확률
@@ -546,7 +546,7 @@
         ef.innerHTML = gearLine;
       } else ef.style.display = 'none';
     }
-    if (el && typeof stamina !== 'undefined') el.textContent = '⚡ ' + stamina + '/' + (typeof STAMINA_MAX !== 'undefined' ? STAMINA_MAX : '') + ' · 이벤트 ⚡' + staminaCost();
+    if (el && typeof stamina !== 'undefined') el.textContent = '⚡ ' + stamina + '/' + (typeof STAMINA_MAX !== 'undefined' ? STAMINA_MAX : '') + ' · 이벤트 ⚡' + staminaCost() + (MAP.pieces ? ' · 🎁 ' + boxLoad().n + '/' + BOX_NEED : '');
   }
 
   var bannerTimer = null;
@@ -812,6 +812,64 @@
     return [{ icon: bk.emoji, text: bk.name + ' +1', color: '#60a5fa' }];
   }
 
+
+  // ════════ 🎁 조각 상자 (뽑기) ════════
+  //  방송국 앞에서 이벤트를 BOX_NEED 번 하면 상자가 열리고, 프리미엄 조각이 랜덤 개수로 나온다.
+  //  평균 약 25개 (스태미나 3,000 = 이벤트 100번 기준). 확률/개수는 아래 BOX_TIERS 만 고치면 됨.
+  var BOX_KEY = 'ph_pieceBox', BOX_NEED = 100;
+  var BOX_IMG = 'https://raw.githubusercontent.com/chaei7775/Poca-house/main/box-piece-gacha.png';
+  var BOX_TIERS = [   // w: 확률(%), min~max: 조각 개수
+    { name: '아쉬운 상자', w: 8,  min: 5,   max: 10,  color: '#9ca3af' },
+    { name: '일반 상자',   w: 57, min: 12,  max: 25,  color: '#7dd3fc' },
+    { name: '레어 상자',   w: 25, min: 29,  max: 40,  color: '#c084fc' },
+    { name: '에픽 상자',   w: 8,  min: 41,  max: 60,  color: '#fbbf24' },
+    { name: '🌟 대박 상자', w: 2,  min: 100, max: 100, color: '#ff6b9d' }
+  ];
+  function boxLoad() { try { var o = JSON.parse(localStorage.getItem(BOX_KEY) || 'null'); if (o && isFinite(o.n)) return { n: o.n | 0, bonus: o.bonus | 0 }; } catch (e) {} return { n: 0, bonus: 0 }; }
+  function boxSave(o) { try { localStorage.setItem(BOX_KEY, JSON.stringify(o)); } catch (e) {} }
+  function boxAdd(bonus) { var o = boxLoad(); o.n += 1; o.bonus += (bonus | 0); boxSave(o); }
+  function boxRoll() {
+    var r = Math.random() * 100, acc = 0, t = BOX_TIERS[1];
+    for (var i = 0; i < BOX_TIERS.length; i++) { acc += BOX_TIERS[i].w; if (r < acc) { t = BOX_TIERS[i]; break; } }
+    return { tier: t, n: t.min + Math.floor(Math.random() * (t.max - t.min + 1)) };
+  }
+  function boxOpen() {
+    if ($('bc-box-ov')) return;
+    var ov = document.createElement('div'); ov.id = 'bc-box-ov';
+    ov.style.cssText = 'position:fixed;inset:0;z-index:99998;background:rgba(0,0,0,.85);display:flex;align-items:center;justify-content:center;padding:18px;font-family:"Noto Sans KR",sans-serif;';
+    ['pointerdown', 'touchstart', 'mousedown'].forEach(function (t) { ov.addEventListener(t, function (e) { e.stopPropagation(); }); });
+    ov.innerHTML = '<style>@keyframes bcBoxPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.07)}}</style><div style="width:100%;max-width:320px;text-align:center;color:#fff;">' +
+      '<div style="font-size:15px;font-weight:900;color:#ffe08a;margin-bottom:10px;">🎁 조각 상자가 도착했어요!</div>' +
+      '<div id="bc-box-art" style="width:150px;height:150px;margin:0 auto;border-radius:24px;background:rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;font-size:80px;animation:bcBoxPulse 1.1s ease-in-out infinite;cursor:pointer;">' +
+      '<img src="' + BOX_IMG + '" alt="" style="width:100%;height:100%;object-fit:contain;" onerror="var p=this.parentNode;if(p)p.textContent=\'🎁\'"></div>' +
+      '<div id="bc-box-res" style="min-height:70px;margin-top:14px;font-size:13px;color:#ddd;">상자를 눌러서 열어봐요</div>' +
+      '<button id="bc-box-btn" style="display:block;width:100%;margin-top:10px;padding:13px;border:none;border-radius:12px;background:linear-gradient(135deg,#FF6B9D,#C084FC);color:#fff;font-size:15px;font-weight:900;font-family:inherit;">상자 열기</button></div>';
+    document.body.appendChild(ov);
+    var done = false;
+    function open() {
+      if (done) { ov.remove(); return; }
+      var st = boxLoad(), rr = boxRoll(), total = rr.n + st.bonus;
+      var ok = false;
+      try { ok = !!addToBag(PIECE_EMOJI, PIECE_NAME, 'piece', total, '프리미엄 카드 조각 · ' + PIECE_GOAL + '개를 모으면 더보기 > 프리미엄 카드에서 교환'); } catch (e) {}
+      if (!ok) { $('bc-box-res').innerHTML = '<span style="color:#ff9a9a;">가방이 꽉 차서 못 열었어요. 슬롯을 비우고 다시 열어요</span>'; return; }
+      done = true;
+      boxSave({ n: Math.max(0, st.n - BOX_NEED), bonus: 0 });
+      if (typeof saveAll === 'function') saveAll();
+      var have = pieceCount();
+      $('bc-box-art').style.animation = 'none';
+      $('bc-box-res').innerHTML = '<div style="font-size:14px;font-weight:900;color:' + rr.tier.color + ';">' + rr.tier.name + '</div>' +
+        '<div style="font-size:26px;font-weight:900;color:#7dd3fc;margin-top:4px;">🖼️ 프리미엄 조각 +' + total + '</div>' +
+        '<div style="font-size:12px;color:#ddd;margin-top:4px;">' + (st.bonus ? '(상자 ' + rr.n + ' + 카드 효과 ' + st.bonus + ') · ' : '') + '모은 조각 ' + have + '/' + PIECE_GOAL + '</div>';
+      $('bc-box-btn').textContent = '확인';
+      hud();
+    }
+    $('bc-box-btn').onclick = open;
+    $('bc-box-art').onclick = open;
+  }
+  setInterval(function () {
+    try { if (MAP && MAP.pieces && $('bc-layer') && boxLoad().n >= BOX_NEED) boxOpen(); } catch (e) {}
+  }, 1500);
+
   function grant(r) {
     var lines = [];
     if (r.coins > 0) {
@@ -862,7 +920,7 @@
     var success = grade !== 'MISS' && grade !== 'FAIL';
     if (success) r.ticketOf = type;
     // 프리미엄 카드 효과 (premium-cards.js): 이 캐릭터의 카드를 갖고 있을 때만 적용
-    if (!MAP.pieces) r.pieces = 0;     // 팬미팅장 등: 프리미엄 조각 없음
+    r.pieces = 0;                      // 조각은 이벤트마다 안 나오고 '조각 상자'에서 한 번에 나온다 (아래 boxAdd)
     var pb = (MAP.pieces && typeof window.getPremiumBonus === 'function') ? (window.getEquippedPremiumBonus ? window.getEquippedPremiumBonus() : null) : null;
     var notes = [];
     if (pb && success) {
@@ -870,6 +928,8 @@
       if (r.pieces > 0 && Math.random() < pb.extra) { r.pieces += 1; notes.push({ icon: '🎬', text: pb.effectName + ' 발동! 조각 +1', color: '#7dd3fc' }); }
     }
     if (MAP.pieces && success && r.pieces > 0 && Math.random() < engB('pieceExtra')) { r.pieces += 1; notes.push({ icon: '✨', text: '현상 효과! 조각 +1', color: '#7dd3fc' }); }
+    if (MAP.pieces) boxAdd(r.pieces);   // 이벤트 1번 = 상자 진행 +1 (프리미엄 카드 효과로 나온 조각은 상자에 덤으로 쌓임)
+    r.pieces = 0;
     var lines = grant(r).concat(notes).concat(enhDrop(type, success)).concat(filmDrop(type, success)).concat(devDrop(type, success)).concat(bookDrop(type, success));
     var heads = {
       PERFECT: '✨ PERFECT!', GREAT: '👍 GREAT!', GOOD: '😊 GOOD', MISS: '💦 MISS…',
