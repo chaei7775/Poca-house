@@ -23,7 +23,7 @@
   var STAT_MAX = 100;
   var LESSON_COST = 1000;          // 코인 (신입 할인가: 아이돌마다 첫 FREE_LESSONS번)
   var FREE_LESSONS = 5;            // 이 횟수까지는 LESSON_COST 그대로 (초반 퀘스트·뉴비 보호)
-  var COST_COEF = 1000;            // 그 뒤로는 비용 = COST_COEF × (그 능력치 현재값)²  → 10:10만 / 30:90만 / 50:250만 / 100:1000만
+  var COST_COEF = 5000;            // 그 뒤로는 비용 = COST_COEF × (그 능력치 현재값)² (신입 코치 기준)  → 10:50만 / 30:450만 / 50:1250만 / 100:5000만
   var LESSON_TIRED = 10;           // 체력 −
   var LESSON_MOOD = 3;             // 기분 −
   var MIN_STAMINA = 15;            // 이보다 체력이 낮으면 레슨 불가
