@@ -46,11 +46,11 @@
     { id: 'photo', name: '사진촬영',   short: '사진', icon: '📸', price: 0,       useLv: 1,  desc: '찰칵! 폴라로이드 한 장을 남겨요' },
     { id: 'shake', name: '악수',       short: '악수', icon: '🤝', price: 300000,  useLv: 10, desc: '손을 맞잡고 반짝이를 터뜨려요' },
     { id: 'heart', name: '손하트',     short: '하트', icon: '💗', price: 1000000, useLv: 15, desc: '하트를 날려서 팬 마음을 저격해요' },
-    { id: 'highlight', name: '하이라이트 부르기', short: '하이라이트', icon: '🎤', price: 2000000, useLv: 20, aoe: true, reach: 170, desc: '광역! 주변 팬들을 확 사로잡아요' },
-    { id: 'wink',  name: '윙크 샤워',  short: '윙크샤워', icon: '💖', price: 3000000, useLv: 25, aoe: true, reach: 250, desc: '넓은 광역! 넓은 범위에 윙크 세례' },
-    { id: 'encore', name: '앵콜 폭죽', short: '앵콜폭죽', icon: '✨', price: 5000000, useLv: 30, aoe: true, reach: 320, desc: '대광역! 전방위 대폭발' },
-    { id: 'rose',  name: '장미 세례',  short: '장미세례', icon: '🌹', price: 8000000,  useLv: 35, aoe: true, reach: 360, desc: '초광역! 장미꽃이 쏟아져요 (공항 입국장에선 팬들이 느려져요)' },
-    { id: 'finale', name: '피날레 불꽃쇼', short: '불꽃쇼', icon: '🎆', price: 12000000, useLv: 40, aoe: true, reach: 440, desc: '화면 전체급 광역! 불꽃이 터지며 팬들을 확 밀어내요' }
+    { id: 'highlight', name: '하이라이트 부르기', short: '하이라이트', icon: '🪩', price: 2000000, useLv: 20, aoe: true, reach: 170, desc: '광역! 주변 팬들을 확 사로잡아요' },
+    { id: 'wink',  name: '윙크 샤워',  short: '윙크샤워', icon: '😘', price: 3000000, useLv: 25, aoe: true, reach: 250, desc: '넓은 광역! 넓은 범위에 윙크 세례' },
+    { id: 'encore', name: '앵콜 폭죽', short: '앵콜폭죽', icon: '🧨', price: 5000000, useLv: 30, aoe: true, reach: 320, desc: '대광역! 전방위 대폭발' },
+    { id: 'rose',  name: '장미 세례',  short: '장미세례', icon: '🎠', price: 8000000,  useLv: 35, aoe: true, reach: 360, desc: '초광역! 장미꽃이 쏟아져요 (공항 입국장에선 팬들이 느려져요)' },
+    { id: 'finale', name: '피날레 불꽃쇼', short: '불꽃쇼', icon: '🎑', price: 12000000, useLv: 40, aoe: true, reach: 440, desc: '화면 전체급 광역! 불꽃이 터지며 팬들을 확 밀어내요' }
   ];
   var FAV_IDS = ['sign', 'photo', 'shake', 'heart'];   // 팬이 좋아하는 스킬은 기본 4종 중에서만 (광역 스킬은 누구에게나 50% 확률로 대만족)
   var AOE_LOVE = 0.5;

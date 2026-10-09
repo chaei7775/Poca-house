@@ -19,6 +19,8 @@
     '💖': 'heart', '💝': 'heart', '💗': 'heart', '💓': 'heart', '❤': 'heart', '💞': 'heart', '💕': 'heart',
     '💜': 'heart', '🤍': 'heart', '💔': 'heartbroken', '♥': 'heart', '🩷': 'heart', '💌': 'letter', '😊': 'smile', '😢': 'cry', '😴': 'sleep',
     '💪': 'muscle', '👑': 'crown', '🌹': 'rose', '🌸': 'blossom', '🌷': 'blossom', '🦋': 'butterfly',
+    // 광역 스킬 아이콘 (전용 이모지 → em-sk-○○.png)
+    '🪩': 'sk-highlight', '😘': 'sk-wink', '🧨': 'sk-encore', '🎠': 'sk-rose', '🎑': 'sk-finale',
     // 생활/UI
     '🔒': 'lock', '🔥': 'fire', '⚡': 'bolt', '🛡': 'shield', '🚨': 'siren', '🔮': 'crystal', '📖': 'book', '📘': 'book', '📚': 'book',
     '📅': 'calendar', '📋': 'clipboard', '👗': 'dress', '🎽': 'dress', '🧵': 'thread', '☕': 'coffee', '🥤': 'drink', '🌙': 'moon', '💡': 'bulb', '🏠': 'house'
