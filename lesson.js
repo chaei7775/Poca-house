@@ -576,7 +576,7 @@
         if (amt > 0) { gainCoins(amt); changes.push('코인 +' + amt.toLocaleString()); }
       }
       save(st); m.save(ms);
-      var good = !/(지쳐|상했|떨어|졌|빠졌|상한)/.test(out.text);
+      var fxo = out.fx || {}, good = !(fxo.mood < 0 || fxo.stamina < 0 || fxo.coin < 0);   // 기분·체력·코인이 깎이면 실패 연출
       ov.innerHTML = '<div style="width:100%;max-width:340px;background:linear-gradient(160deg,#1b1330,#2d1b4e);border:1.5px solid ' + (good ? '#7ee8a5' : '#ff9d9d') + ';border-radius:20px;padding:18px;text-align:center;animation:lsPop .3s ease-out;">' +
         '<div>' + (good ? ico('ok', 60, '✨') : ico('fail', 60, '💦')) + '</div>' +
         '<div style="font-size:14px;font-weight:900;color:#fff;margin:6px 0;line-height:1.5;">' + esc(fillTxt(out.text, name, k)) + '</div>' +
