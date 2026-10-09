@@ -597,7 +597,10 @@ function info(o){const ch=charOf(o.char),g=TIER_OF[o.raw]||'일반';return {id:o
 const cardsOf=ch=>ownedCards().filter(x=>x.char===ch).sort((a,b)=>(RANK[b.raw]||0)-(RANK[a.raw]||0)).map(info);
 const card=id=>{const o=ownedCards().find(x=>x.id===id);return o?info(o):null};
 function pickDefault(){const ok=CHARS.find(c=>isDebut(c.id)&&cardsOf(c.id).length);return ok?ok.id:CHARS[0].id}
-const script=()=>SCRIPTS.find(s=>s.id===S.sel.script);
+const CAST_LOCK_LV=25;   // 2인·3인 대본은 이 레벨부터 (그 전엔 1인 대본만)
+const plv_=()=>{try{return Number(window.playerLevel!==undefined?window.playerLevel:(typeof playerLevel!=='undefined'?playerLevel:99))||1}catch(e){return 99}};
+const castLocked=sc=>!!sc&&(sc.cast||1)>1&&plv_()<CAST_LOCK_LV;
+const script=()=>{const sc=SCRIPTS.find(s=>s.id===S.sel.script);if(castLocked(sc)){S.sel.script='letter';return SCRIPTS.find(s=>s.id==='letter')}return sc};
 const dir=()=>DIRS.find(d=>d.id===S.sel.dir);
 const eq=cid=>(S.equip[cid]||[]).map(u=>S.inv.find(i=>i.u===u)).filter(Boolean);
 /* 스킬 세트: 카드마다 1·2·3번 세트를 저장해 두고 한 번에 갈아끼운다. 장착을 바꾸면 쓰는 세트에도 자동 저장 */
@@ -628,12 +631,13 @@ function renderBookPop(flip){
   const page=isS
     ?`<div class="bk-top"><span class="dav sth bg-${bgKey(it)}"></span><div><div class="bk-t">${it.title}</div><div><span class="tag">${it.genre}</span> <span class="tag">${it.cast}인</span></div></div></div>
       <div class="bk-d">${it.desc}</div><div class="bk-s">${scriptInfo(it)}</div>
+      ${isS&&castLocked(it)?`<div class="bk-n" style="color:#ffb3b3">🔒 2인·3인 대본은 Lv.${CAST_LOCK_LV}부터 열려요 (지금 Lv.${plv_()})</div>`:''}
       ${it.cast>1?`<div class="bk-n">💞 상대역은 촬영할 때 랜덤으로 정해져요 · 출연료 +${it.cast>=3?30:20}% · 케미 부스트 스킬이 효과를 내요</div>`:''}`
     :`<div class="bk-top"><span class="dav dr bk-dir dr-${it.id}" style="margin:0"></span><div><div class="bk-t">${it.name}</div><div>${S.learned[it.id]?`<span class="tag">${it.style} · 성향 파악 완료</span>`:'<span class="tag">성향 미확인</span>'}</div></div></div>
       <div class="bk-d">${it.hint}</div>`;
   $('#dr-book').innerHTML=`<div class="bk"><div class="bk-spine"></div><div class="bk-page ${flip?'flip':''}" data-b="next">${page}<span class="bk-tap">탭하면 다음 ▸</span></div></div>
     <div class="bk-pg">${bookI+1} / ${L.length}</div>
-    <div class="bk-btns"><button class="btn" data-b="prev">◂ 이전</button><button class="btn pri" data-b="pick" style="font-size:16px">${on?'✔ 선택됨':'이걸로 결정'}</button><button class="btn" data-b="x">닫기</button></div>`;
+    <div class="bk-btns"><button class="btn" data-b="prev">◂ 이전</button><button class="btn pri" data-b="pick" style="font-size:16px" ${isS&&castLocked(it)?'disabled':''}>${isS&&castLocked(it)?'🔒 Lv.'+CAST_LOCK_LV:(on?'✔ 선택됨':'이걸로 결정')}</button><button class="btn" data-b="x">닫기</button></div>`;
 }
 $('#dr-book').addEventListener('click',e=>{
   const t=e.target.closest('[data-b]');
@@ -642,7 +646,7 @@ $('#dr-book').addEventListener('click',e=>{
   if(b==='next'){bookI=(bookI+1)%L.length;renderBookPop(true)}
   else if(b==='prev'){bookI=(bookI-1+L.length)%L.length;renderBookPop(true)}
   else if(b==='x'){$('#dr-book').hidden=true}
-  else if(b==='pick'){if(bookK==='script')S.sel.script=L[bookI].id;else S.sel.dir=L[bookI].id;$('#dr-book').hidden=true;renderPrep()}
+  else if(b==='pick'){if(bookK==='script'&&castLocked(L[bookI]))return;if(bookK==='script')S.sel.script=L[bookI].id;else S.sel.dir=L[bookI].id;$('#dr-book').hidden=true;renderPrep()}
 });
 /* ====================== PREP ====================== */
 function renderPrep(){
