@@ -218,6 +218,27 @@ const CSS=`#dr-root{position:fixed;inset:0;z-index:780;overflow:hidden;
 #dr-root .bg-comedy{background-image:url(drama/bg/thumb-comedy.jpg)}
 #dr-root .bg-horror{background-image:url(drama/bg/thumb-horror.jpg)}
 #dr-root .face{background-image:var(--face);background-color:var(--panel-2)}
+#dr-root .bookbtn{display:grid;grid-template-columns:64px 1fr;column-gap:12px;align-items:center;width:100%;text-align:left;padding:12px 14px 12px 18px;border-radius:6px 16px 16px 6px;border:1.5px solid var(--line);border-left:10px solid var(--slate);background:linear-gradient(135deg,var(--panel),var(--panel-2));box-shadow:2px 3px 0 rgba(0,0,0,.25);position:relative}
+#dr-root .bookbtn>div{display:grid;gap:3px;min-width:0}
+#dr-root .bookbtn .hintl{font-size:12px;color:var(--slate);font-weight:700;text-align:right}
+#dr-root #dr-book{position:fixed;inset:0;z-index:60;background:rgba(0,0,0,.78);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px;gap:12px}
+#dr-root #dr-book[hidden]{display:none}
+#dr-root .bk{display:flex;width:100%;max-width:360px;min-height:300px;border-radius:8px 18px 18px 8px;overflow:hidden;box-shadow:0 8px 28px rgba(0,0,0,.5);perspective:900px}
+#dr-root .bk-spine{width:22px;flex:none;background:linear-gradient(90deg,#6b4a1e,#a8782f 60%,#8d6325);box-shadow:inset -3px 0 6px rgba(0,0,0,.35)}
+#dr-root .bk-page{flex:1;padding:18px 16px;background:linear-gradient(135deg,#fff8e6,#f3e3bd);color:#2a1d0a;display:grid;gap:10px;align-content:start;cursor:pointer;transform-origin:left center;position:relative}
+#dr-root .bk-page.flip{animation:bkFlip .32s ease-out}
+@keyframes bkFlip{from{transform:rotateY(-75deg);opacity:.3}to{transform:rotateY(0);opacity:1}}
+#dr-root .bk-top{display:flex;gap:12px;align-items:center}
+#dr-root .bk-t{font-family:var(--f-display);font-size:22px;line-height:1.2}
+#dr-root .bk-page .tag{background:rgba(0,0,0,.1);color:#4a3715;border-color:rgba(0,0,0,.15)}
+#dr-root .bk-d{font-size:14px;line-height:1.55}
+#dr-root .bk-s{font-size:12.5px;color:#6b5527;line-height:1.5}
+#dr-root .bk-n{font-size:12.5px;color:#a8460f;font-weight:700}
+#dr-root .bk-tap{position:absolute;right:12px;bottom:8px;font-size:12px;color:#8d6325;font-weight:700}
+#dr-root .bk-pg{color:#fff;font-weight:700;font-size:13px}
+#dr-root .bk-btns{display:flex;gap:8px;width:100%;max-width:360px}
+#dr-root .bk-btns .btn{flex:1;padding:12px 8px}
+#dr-root .bk-dir{width:92px;height:92px;border-radius:50%;margin:4px auto 0}
 `;
 const HTML=`<div id="dr-app">
   <section id="dr-prep" class="screen"></section>
@@ -243,7 +264,8 @@ const HTML=`<div id="dr-app">
   </section>
   <section id="dr-result" hidden></section>
 </div>
-<div id="dr-snack" hidden></div>`;
+<div id="dr-snack" hidden></div>
+<div id="dr-book" hidden></div>`;
 (function fonts(){if(document.getElementById('dr-fonts'))return;const l=document.createElement('link');l.id='dr-fonts';l.rel='stylesheet';l.href='https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=JetBrains+Mono:wght@500;700&family=Noto+Sans+KR:wght@400;500;700&display=swap';document.head.appendChild(l)})();
 const st=document.createElement('style');st.id='dr-style';st.textContent=CSS;document.head.appendChild(st);
 const R=document.createElement('div');R.id='dr-root';R.hidden=true;R.innerHTML=HTML;document.body.appendChild(R);
@@ -389,6 +411,92 @@ const SCRIPTS=[
   {t:46,type:'tap',line:'응답하세요!'},
   {t:50,type:'choice',cue:'(마지막 대사)',o:{plain:'상황 종료.',emotional:'제발… 아무도 없길.',funny:'야근 수당 두 배는 받아야겠다.'}}
  ]}
+ ,{id:'umbrella',title:'우산 하나, 둘이서',genre:'로맨스',cast:2,desc:'비 오는 날 하나뿐인 우산 아래서 벌어지는 2인 단막극',
+  ev:[
+  {t:4,type:'tap',line:'{p1}, 우산 안 가져왔어?'},
+  {t:8,type:'choice',cue:'(처마 밑에 선 {p1}에게 다가가며)',o:{plain:'같이 쓰고 가.',emotional:'네가 젖는 게 싫어서 그래.',funny:'내 우산 비싼 거니까 조심해.'}},
+  {t:14,type:'tap',line:'어깨… 다 젖었잖아.'},
+  {t:18,type:'chance',kind:'emotion',line:'({p1}의 손이 내 손목을 붙잡는다)'},
+  {t:24,type:'choice',cue:'({p1}, 우산을 내 쪽으로 기울인다)',o:{plain:'고마워.',emotional:'왜 자꾸 나한테만 잘해줘.',funny:'우산 요금은 따로 받는다?'}},
+  {t:30,type:'tap',line:'심장 소리, 들리는 거 아니야?'},
+  {t:34,type:'chance',kind:'adlib',line:'(갑자기 우산이 확 뒤집힌다)'},
+  {t:40,type:'choice',cue:'(버스가 도착한다)',o:{plain:'먼저 타.',emotional:'조금만 더 있다 가자.',funny:'버스야, 제발 늦게 와라.'}},
+  {t:46,type:'tap',line:'내일도 비 왔으면 좋겠다.'},
+  {t:50,type:'chance',kind:'emotion',line:'(말없이 {p1}의 눈을 바라본다)'},
+  {t:55,type:'choice',cue:'(마지막 대사)',o:{plain:'잘 가.',emotional:'사실 많이 좋아해.',funny:'우산값은 데이트로 갚아.'}}
+ ]}
+ ,{id:'warehouse',title:'수상한 창고',genre:'액션',cast:2,desc:'어둠 속 창고에서 파트너와 등을 맞대는 2인 액션',
+  ev:[
+  {t:4,type:'tap',line:'{p1}, 신호 줘.'},
+  {t:8,type:'choice',cue:'(창고 문 앞에서 {p1}에게 눈짓하며)',o:{plain:'내가 먼저 들어갈게.',emotional:'무슨 일 있으면 너부터 도망쳐.',funny:'노크부터 할까?'}},
+  {t:14,type:'tap',line:'등 뒤는 맡길게.'},
+  {t:18,type:'chance',kind:'action',line:'(어둠 속에서 누군가 덮쳐 온다)'},
+  {t:24,type:'choice',cue:'(숨죽인 채 {p1}에게 속삭인다)',o:{plain:'왼쪽 통로야.',emotional:'살아서 나가자, 둘 다.',funny:'여기 월세 얼마래?'}},
+  {t:30,type:'tap',line:'증거는 저 금고 안에 있어.'},
+  {t:34,type:'chance',kind:'adlib',line:'(경보음이 요란하게 울린다)'},
+  {t:40,type:'choice',cue:'({p1} 쪽으로 손을 뻗는다)',o:{plain:'뛰어!',emotional:'내 손 놓지 마.',funny:'택시 불렀어, 3분 남았어.'}},
+  {t:46,type:'tap',line:'문 닫히기 전에!'},
+  {t:50,type:'chance',kind:'action',line:'(마지막 몸싸움)'},
+  {t:55,type:'choice',cue:'(마지막 대사)',o:{plain:'작전 종료.',emotional:'네가 있어서 해냈어.',funny:'보너스는 반반이다.'}}
+ ]}
+ ,{id:'cafe',title:'마감 십 분 전',genre:'코미디',cast:2,desc:'카페 마감 직전, 진상 손님과 대참사가 터지는 2인 소동극',
+  ev:[
+  {t:4,type:'tap',line:'마감 십 분 전인데… 손님이 왔어.'},
+  {t:8,type:'choice',cue:'(진상 손님 앞, 옆에 선 {p1} 쪽을 흘끗 본다)',o:{plain:'죄송합니다, 주문 마감이에요.',emotional:'저희 정말 지쳤어요…',funny:'그럼 라떼 아트로 사과드릴게요.'}},
+  {t:14,type:'tap',line:'우유가 왜 바닥에 있지?'},
+  {t:18,type:'chance',kind:'adlib',line:'(쟁반이 공중으로 날아간다)'},
+  {t:24,type:'choice',cue:'({p1} 쪽에서 컵이 와장창 깨진다)',o:{plain:'괜찮아, 같이 치우자.',emotional:'다친 데 없어? 제발.',funny:'저건 월급에서 깐다.'}},
+  {t:30,type:'tap',line:'마감 전에 끝낼 수 있겠지?'},
+  {t:34,type:'chance',kind:'emotion',line:'({p1}의 눈에 눈물이 고인다. 오늘이 마지막 출근이었다)'},
+  {t:40,type:'choice',cue:'(조용해진 매장)',o:{plain:'수고했어.',emotional:'같이 일해서 행복했어.',funny:'퇴사 선물로 머그컵 줄게.'}},
+  {t:46,type:'tap',line:'불 끄기 전에, 한 장 찍자.'},
+  {t:50,type:'chance',kind:'adlib',line:'(폭죽이 갑자기 펑 터진다)'},
+  {t:55,type:'choice',cue:'(마지막 대사)',o:{plain:'내일 보자.',emotional:'그동안 정말 고마웠어.',funny:'마감 알바 구함, 연락 바람.'}}
+ ]}
+ ,{id:'elevator',title:'멈춰 선 엘리베이터',genre:'공포',cast:2,desc:'불이 꺼진 엘리베이터 안, 둘뿐인 줄 알았던 2인 스릴러',
+  ev:[
+  {t:3,type:'tap',line:'엘리베이터가… 멈췄어.'},
+  {t:7,type:'tap',line:'{p1}, 비상벨 눌러 봐.'},
+  {t:11,type:'choice',cue:'(불이 깜빡이다 툭 꺼진다)',o:{plain:'침착해, 곧 올 거야.',emotional:'무서워, 옆에 있어 줘.',funny:'여기 와이파이는 터지나?'}},
+  {t:17,type:'chance',kind:'action',line:'(문틈으로 손이 쑥 들어온다)'},
+  {t:22,type:'tap',line:'방금… 층수가 올라갔어.'},
+  {t:26,type:'tap',line:'({p1}의 숨소리만 들린다)'},
+  {t:30,type:'chance',kind:'emotion',line:'(어둠 속에서 속삭임이 들린다)'},
+  {t:36,type:'tap',line:'누가 우리 이름을 불러.'},
+  {t:40,type:'chance',kind:'adlib',line:'(거울에 비친 건… 우리 둘뿐일까?)'},
+  {t:46,type:'tap',line:'문이 열린다!'},
+  {t:50,type:'chance',kind:'action',line:'(열린 문으로 달려 나간다)'},
+  {t:55,type:'choice',cue:'(마지막 대사)',o:{plain:'나가자, 지금.',emotional:'같이 가, 손 놓지 마.',funny:'다음엔 계단으로 다니자.'}}
+ ]}
+ ,{id:'camp',title:'셋이서 캠핑',genre:'코미디',cast:3,desc:'텐트도 불도 말썽, 세 명이 벌이는 캠핑장 소동극',
+  ev:[
+  {t:4,type:'tap',line:'텐트 폴이 두 개밖에 없는데?'},
+  {t:8,type:'choice',cue:'({p1}, {p2} 모두 나를 쳐다본다)',o:{plain:'내가 알아서 할게.',emotional:'다 같이 자려고 온 건데…',funny:'텐트는 포기, 별 보면서 자자.'}},
+  {t:14,type:'tap',line:'라면 물은 누가 올렸어?'},
+  {t:18,type:'chance',kind:'adlib',line:'(바람에 텐트가 날아간다)'},
+  {t:24,type:'choice',cue:'({p2}, 불씨를 살리려다 눈썹이…)',o:{plain:'일단 물부터!',emotional:'다치지 않아서 다행이야.',funny:'새 헤어스타일 잘 어울려.'}},
+  {t:30,type:'tap',line:'곰이 나온다던 소문, 진짜일까?'},
+  {t:34,type:'chance',kind:'action',line:'(숲속에서 정체불명의 그림자가!)'},
+  {t:40,type:'choice',cue:'({p1}, {p2}, 나… 셋이 등을 맞댄다)',o:{plain:'셋이 있으면 괜찮아.',emotional:'무슨 일 있어도 우리 셋이야.',funny:'곰한테 라면 줄까?'}},
+  {t:46,type:'tap',line:'…그냥 고라니였네.'},
+  {t:50,type:'chance',kind:'emotion',line:'(별빛 아래, 셋이 나란히 눕는다)'},
+  {t:55,type:'choice',cue:'(마지막 대사)',o:{plain:'다음엔 호텔로 가자.',emotional:'오늘 밤, 평생 못 잊을 거야.',funny:'이 사진, 프로필로 쓴다.'}}
+ ]}
+ ,{id:'school',title:'폐교 탐험대',genre:'공포',cast:3,desc:'한밤의 폐교를 셋이서 파헤치는 3인 공포극',
+  ev:[
+  {t:3,type:'tap',line:'여기가 소문의 그 폐교야.'},
+  {t:7,type:'tap',line:'{p1}, 손전등 켜 봐.'},
+  {t:11,type:'choice',cue:'(복도 끝에서 발소리가 들린다)',o:{plain:'조용히, 셋이 같이 움직여.',emotional:'{p2}, 내 뒤에 있어.',funny:'졸업 앨범 찍으러 온 건 아니지?'}},
+  {t:17,type:'chance',kind:'action',line:'(교실 문이 쾅 닫힌다)'},
+  {t:22,type:'tap',line:'칠판에 글씨가… 번지고 있어.'},
+  {t:26,type:'tap',line:'({p1}, {p2}의 얼굴이 하얗게 질린다)'},
+  {t:30,type:'chance',kind:'emotion',line:'(어디선가 아이들 노랫소리가 들린다)'},
+  {t:36,type:'tap',line:'출석부에 우리 이름이 있어.'},
+  {t:40,type:'chance',kind:'adlib',line:'(스피커에서 수업 종소리가 울린다)'},
+  {t:46,type:'tap',line:'교문이 사라졌어!'},
+  {t:50,type:'chance',kind:'action',line:'(셋이 동시에 뛰기 시작한다)'},
+  {t:55,type:'choice',cue:'(마지막 대사)',o:{plain:'다신 안 와.',emotional:'모두 무사해서 다행이야.',funny:'이 학교, 별점 한 개.'}}
+ ]}
 ];
 
 /* skills: use(C) with C={chance,scene,mult} ; G helpers below */
@@ -413,7 +521,7 @@ const SKILLS={
  makeup:{n:'메이크업 수정',cat:'보조',gr:'일반',cd:12,i:'메',d:()=>`화제성 +${bd(5)}`,use:C=>{const b=bu(5);addBuzz(b);popup(`화제성 +${b}`,'sm','var(--aux)')}},
  guard:{n:'NG 방지',cat:'보조',gr:'일반',cd:20,i:'방',d:()=>`다음 NG ${1+(MLV>=5?1:0)+(MLV>=10?1:0)}회 무효`,use:C=>{const n=1+(ML()>=5?1:0)+(ML()>=10?1:0);G.ng+=n;popup(`NG 방지 ${n}회 대기`,'sm','var(--aux)')}},
  extend:{n:'시간 연장',cat:'보조',gr:'레어',cd:30,i:'연',d:()=>`촬영시간 +${fmt(3*MCTX)}초`,use:C=>{const t=3*MM();addTime(t);popup(`촬영시간 +${fmt(t)}초`,'','var(--aux)')}},
- chemi:{n:'케미 부스트',cat:'보조',gr:'레어',cd:18,i:'케',multi:true,d:()=>'2인 이상 대본에서 다음 스킬 ×1.3',use:C=>{popup('1인 대본: 효과 없음','sm','var(--muted)')}},
+ chemi:{n:'케미 부스트',cat:'보조',gr:'레어',cd:18,i:'케',multi:true,d:()=>'2인 이상 대본에서 다음 스킬 ×1.3',use:C=>{if(G.script.cast>1){G.nextMult=1+0.3*mastMult('chemi');popup(`케미 폭발! 다음 ×${fmt(G.nextMult)}`,'sm','var(--aux)')}else popup('1인 대본: 효과 없음','sm','var(--muted)')}},
  close:{n:'클로즈업',cat:'보조',gr:'히든',cd:25,i:'클',d:()=>`다음 스킬 효과 ×${fmt(1+0.5*MCTX)}`,use:C=>{G.nextMult=1+0.5*MM();popup(`클로즈업! 다음 ×${fmt(G.nextMult)}`,'sm','var(--aux)')}},
  memo:{n:'대본 암기',cat:'보조',gr:'일반',cd:0,i:'암',passive:true,d:()=>`판정 구간 +${fmt(0.5*MCTX)}초 (패시브)`,use:C=>{}},
  one:{n:'원테이크',cat:'보조',gr:'프리미엄',cd:40,i:'원',d:()=>`${fmt(10*MCTX)}초간 NG 무효, 게이지 상승 ×1.5`,use:C=>{G.oneUntil=G.t+10*MM();popup('원테이크!','','var(--slate)')}}
@@ -496,6 +604,39 @@ let snackT;
 function snack(t){const e=$('#dr-snack');e.textContent=t;e.hidden=false;clearTimeout(snackT);snackT=setTimeout(()=>e.hidden=true,1800)}
 const stam=()=>S.free+S.potion;
 
+function scriptInfo(s){
+  const k={};s.ev.filter(e=>e.type==='chance').forEach(e=>k[e.kind]=(k[e.kind]||0)+1);
+  return `찬스 ${Object.keys(k).map(x=>KIND_LABEL[x]+' '+k[x]).join(' · ')} · 선택 대사 ${s.ev.filter(e=>e.type==='choice').length}회 · 촬영 ${CFG.TIME}초`;
+}
+/* 책 팝업: 대본/감독을 한 장씩 보여주고, 페이지를 탭하면 다음 장으로 넘어간다 */
+let bookK='script',bookI=0;
+function bookList(){return bookK==='script'?SCRIPTS:DIRS}
+function openBookPop(k){
+  bookK=k;const cur=k==='script'?S.sel.script:S.sel.dir;
+  bookI=Math.max(0,bookList().findIndex(x=>x.id===cur));
+  renderBookPop(false);$('#dr-book').hidden=false;
+}
+function renderBookPop(flip){
+  const L=bookList(),it=L[bookI],isS=bookK==='script',on=(isS?S.sel.script:S.sel.dir)===it.id;
+  const page=isS
+    ?`<div class="bk-top"><span class="dav sth bg-${GENRE_KEY[it.genre]||'romance'}"></span><div><div class="bk-t">${it.title}</div><div><span class="tag">${it.genre}</span> <span class="tag">${it.cast}인</span></div></div></div>
+      <div class="bk-d">${it.desc}</div><div class="bk-s">${scriptInfo(it)}</div>
+      ${it.cast>1?`<div class="bk-n">💞 상대역은 촬영할 때 랜덤으로 정해져요 · 출연료 +${it.cast>=3?30:20}% · 케미 부스트 스킬이 효과를 내요</div>`:''}`
+    :`<div class="bk-top"><span class="dav dr bk-dir dr-${it.id}" style="margin:0"></span><div><div class="bk-t">${it.name}</div><div>${S.learned[it.id]?`<span class="tag">${it.style} · 성향 파악 완료</span>`:'<span class="tag">성향 미확인</span>'}</div></div></div>
+      <div class="bk-d">${it.hint}</div>`;
+  $('#dr-book').innerHTML=`<div class="bk"><div class="bk-spine"></div><div class="bk-page ${flip?'flip':''}" data-b="next">${page}<span class="bk-tap">탭하면 다음 ▸</span></div></div>
+    <div class="bk-pg">${bookI+1} / ${L.length}</div>
+    <div class="bk-btns"><button class="btn" data-b="prev">◂ 이전</button><button class="btn pri" data-b="pick" style="font-size:16px">${on?'✔ 선택됨':'이걸로 결정'}</button><button class="btn" data-b="x">닫기</button></div>`;
+}
+$('#dr-book').addEventListener('click',e=>{
+  const t=e.target.closest('[data-b]');
+  if(!t){if(e.target.id==='dr-book')$('#dr-book').hidden=true;return}
+  const L=bookList(),b=t.dataset.b;
+  if(b==='next'){bookI=(bookI+1)%L.length;renderBookPop(true)}
+  else if(b==='prev'){bookI=(bookI-1+L.length)%L.length;renderBookPop(true)}
+  else if(b==='x'){$('#dr-book').hidden=true}
+  else if(b==='pick'){if(bookK==='script')S.sel.script=L[bookI].id;else S.sel.dir=L[bookI].id;$('#dr-book').hidden=true;renderPrep()}
+});
 /* ====================== PREP ====================== */
 function renderPrep(){
   if(!S.sel.char||!charOf(S.sel.char))S.sel.char=pickDefault();
@@ -528,12 +669,13 @@ function renderPrep(){
       <div class="wide"><div class="lab">소원의조각 <span class="mono" style="color:var(--fg)">${wishFragments}/100</span> · 소원의 결정까지</div><div class="bar"><i style="width:${Math.min(100,wishFragments)}%"></i></div></div>
     </div>
 
-    <div class="sec"><h2><span class="n">1</span>대본 선택</h2><div class="opts">${SCRIPTS.map(s=>{
-      const k={};s.ev.filter(e=>e.type==='chance').forEach(e=>k[e.kind]=(k[e.kind]||0)+1);
-      return `<button class="opt dopt sc ${s.id===S.sel.script?'on':''}" data-a="script" data-id="${s.id}"><span class="dav sth bg-${GENRE_KEY[s.genre]||'romance'}"></span><div><div class="t">${s.title}<span class="tag">${s.genre}</span><span class="tag">${s.cast}인</span></div><div class="s">${s.desc}</div><div class="s">찬스 ${Object.keys(k).map(x=>KIND_LABEL[x]+' '+k[x]).join(' · ')} · 선택 대사 ${s.ev.filter(e=>e.type==='choice').length}회 · 촬영 ${CFG.TIME}초</div></div></button>`}).join('')}</div></div>
+    <div class="sec"><h2><span class="n">1</span>대본 선택</h2>
+      <button class="bookbtn" data-a="bookpop" data-k="script"><span class="dav sth bg-${GENRE_KEY[sc_.genre]||'romance'}"></span><div><div class="t">📖 ${sc_.title}<span class="tag">${sc_.genre}</span><span class="tag">${sc_.cast}인</span></div><div class="s">${sc_.desc}</div><div class="s">${scriptInfo(sc_)}</div><div class="hintl">📖 눌러서 다른 대본 보기 ▸</div></div></button>
+    </div>
 
-    <div class="sec"><h2><span class="n">2</span>감독 선택</h2><div class="opts">${DIRS.map(x=>`
-      <button class="opt dopt ${x.id===S.sel.dir?'on':''}" data-a="dir" data-id="${x.id}"><span class="dav dr dr-${x.id}"></span><div><div class="t">${x.name}${S.learned[x.id]?`<span class="tag learned">${x.style} · 성향 파악 완료</span>`:'<span class="tag">성향 미확인</span>'}</div><div class="s">${x.hint}</div></div></button>`).join('')}</div></div>
+    <div class="sec"><h2><span class="n">2</span>감독 선택</h2>
+      <button class="bookbtn" data-a="bookpop" data-k="dir"><span class="dav dr dr-${d_.id}"></span><div><div class="t">🎬 ${d_.name}${S.learned[d_.id]?`<span class="tag learned">${d_.style} · 성향 파악 완료</span>`:'<span class="tag">성향 미확인</span>'}</div><div class="s">${d_.hint}</div><div class="hintl">🎬 눌러서 다른 감독 보기 ▸</div></div></button>
+    </div>
 
     <div class="sec"><h2><span class="n">3</span>캐스팅</h2>
       <div class="cards">${CHARS.map(c=>{const open=isDebut(c.id);return `<button class="pc ${c.id===ch_.id?'on':''} ${open?'':'lock'}" data-a="char" data-id="${c.id}"><div class="face ${open?'':'lockd'}" style="--face:url(face-${c.id}.png);background-size:cover;background-position:center top;border:2px solid ${c.color}"></div><b>${c.name}</b><small>${open?(S.star[c.id]?'탑스타':'데뷔 완료'):'연습생'}</small></button>`}).join('')}</div>
@@ -567,7 +709,8 @@ function renderPrep(){
 }
 $('#dr-prep').addEventListener('click',e=>{
   const b=e.target.closest('[data-a]');if(!b||b.disabled)return;const a=b.dataset.a;if(a!=='pick'&&a!=='eq')pickU=0;
-  if(a==='script')S.sel.script=b.dataset.id;
+  if(a==='bookpop'){openBookPop(b.dataset.k);return}
+  else if(a==='script')S.sel.script=b.dataset.id;
   else if(a==='dir')S.sel.dir=b.dataset.id;
   else if(a==='card')S.sel.card=b.dataset.id;
   else if(a==='char'){S.sel.char=b.dataset.id;const l=cardsOf(S.sel.char);S.sel.card=l[0].id}
@@ -640,9 +783,18 @@ function startShoot(){
   if(S.free>0)S.free--;else S.potion--;
   const c=card(S.sel.card),sc_=script(),d_=dir();
   const sk=eq(c.id).map(i=>({...SKILLS[i.s],id:i.s,u:i.u,cdl:0}));
+  /* 2인·3인 대본: 상대역 멤버를 랜덤으로 정한다 (데뷔한 멤버 먼저) */
+  const partners=[];
+  if((sc_.cast||1)>1){
+    const others=CHARS.filter(x=>x.id!==c.char).sort(()=>Math.random()-.5);
+    others.sort((a,b)=>(isDebut(b.id)?1:0)-(isDebut(a.id)?1:0));
+    others.slice(0,sc_.cast-1).forEach(x=>partners.push(x.name));
+  }
+  const fillP=t=>typeof t==='string'?t.replace(/\{p(\d)\}/g,(m,n)=>partners[n-1]||'상대'):t;
+  const evFill=sc_.ev.map(e=>{const o={...e};if(o.line)o.line=fillP(o.line);if(o.cue)o.cue=fillP(o.cue);if(o.o){o.o={...o.o};for(const k in o.o)o.o[k]=fillP(o.o[k])}return o});
   G={t:0,limit:CFG.TIME,gauge:0,buzz:0,ng:0,nextMult:1,nextWin:0,chExt:0,good:false,oneUntil:0,chaseUntil:0,
     card:c,script:sc_,dir:d_,skills:sk,memo:sk.some(k=>k.id==='memo'),active:null,idx:0,
-    ev:sc_.ev.slice().sort((a,b)=>a.t-b.t),correct:0,choices:0,ngCount:0,frozen:false,ended:false,okRemain:0,bubbleUntil:0,dirUntil:0,perfects:0};
+    ev:evFill.sort((a,b)=>a.t-b.t),partners,correct:0,choices:0,ngCount:0,frozen:false,ended:false,okRemain:0,bubbleUntil:0,dirUntil:0,perfects:0};
   $('#dr-prep').hidden=true;$('#dr-result').hidden=true;$('#dr-shoot').hidden=false;G.bg=bgFor(G.script.genre);
   $('#dr-dirName').textContent=d_.name+' · PERFECT';$('#dr-dirPic').className='dav dr dr-'+d_.id;
   $('#dr-cut').hidden=true;$('#dr-banner').hidden=true;$('#dr-bubble').hidden=true;$('#dr-dirSay').hidden=true;$('#dr-choices').innerHTML='';$('#dr-fx').innerHTML='';
@@ -651,7 +803,7 @@ function startShoot(){
   parts=[];
   cv=$('#dr-stage');cx=cv.getContext('2d');resize();
   last=0;cancelAnimationFrame(raf);raf=requestAnimationFrame(frame);
-  dirSay('레디… 액션!',1.4);
+  dirSay(partners.length?`레디… 액션! (상대역 ${partners.join('·')})`:'레디… 액션!',partners.length?2.2:1.4);
 }
 function resize(){const r=cv.getBoundingClientRect(),d=Math.min(2,window.devicePixelRatio||1);W=r.width;H=r.height;cv.width=Math.max(1,W*d);cv.height=Math.max(1,H*d);cx.setTransform(d,0,0,d,0,0)}
 window.addEventListener('resize',()=>{if(G&&!$('#dr-shoot').hidden)resize()});
@@ -712,6 +864,7 @@ function useSkill(i){
   {const up=addMast(k.id,inChance?MAST_HIT:1);G.mast=G.mast||{};const m=G.mast[k.id]||(G.mast[k.id]={xp:0,up:false});m.xp+=inChance?MAST_HIT:1;if(up){m.up=true;popup(`${k.n} 숙련 Lv.${mastLv(k.id)}!`,'sm','var(--ok)')}}
   const pz=POSE_OF[k.id];if(pz){G.pose={k:pz,t0:G.t,until:G.t+1.6};poseFx(pz)}
   if(k.id==='close')G.nextMult=1+0.5*mastMult('close');
+  if(k.id==='chemi'&&G.script.cast>1)G.nextMult=1+0.3*mastMult('chemi');
 }
 /* --- judgement --- */
 function judgeGain(kind){
@@ -877,7 +1030,8 @@ function finish(ok){
   const capped=!hid&&!star&&raw>CAP,r=capped?CAP:raw;
   const remain=ok?G.okRemain:0;
   const buzz=G.buzz;
-  const pay=Math.round(((r*43000+buzz*2500+remain*5000)*PAY_MULT*(star?1.5:1)*(typeof window.__actorPayMult==='function'?window.__actorPayMult():1))/100)*100;
+  const castN=G.script.cast||1,castMult=castN>=3?1.3:castN===2?1.2:1;
+  const pay=Math.round(((r*43000+buzz*2500+remain*5000)*PAY_MULT*castMult*(star?1.5:1)*(typeof window.__actorPayMult==='function'?window.__actorPayMult():1))/100)*100;
   const shards=r>=10?10:r>=5?5:0;
   const drop=rollSkill(hid);
   const learned=G.correct>=3;
@@ -902,6 +1056,7 @@ function finish(ok){
      <div class="big mono">${r.toFixed(1)}<small>%</small></div><p>${ok?'PERFECT SCENE · ':''}퍼펙트 ${Math.floor(g)}% 시청률</p><p>${comment}</p></div>
    <div class="rows">
      <div><span>출연료</span><b>${won(pay)}</b></div>
+     ${castN>1?`<div><span>케미 보너스 (상대역 ${G.partners.join('·')})</span><b>출연료 +${Math.round((castMult-1)*100)}%</b></div>`:''}
      <div><span>소원의조각</span><b>+${shards}</b></div>
      ${slotGot===1?`<div><span>🎟️ 슬롯 확장권</span><b>획득!</b></div>`:slotGot===-1?`<div><span>🎟️ 슬롯 확장권</span><b>가방이 꽉 차서 못 받았어요</b></div>`:''}
      <div><span>화제성</span><b>+${buzz}</b></div>
