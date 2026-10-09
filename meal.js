@@ -28,7 +28,7 @@
   var ASSET = 'meal-assets/';
   var STAT_START = 50;           // 처음 수치
   var MEALS_PER_DAY = 2;         // 하루 식사 횟수 (점심/저녁)
-  var COOLDOWN_MS = 30 * 60 * 1000;   // 같은 날 첫 끼니 → 다음 끼니까지 기다려야 하는 시간 (실제 30분)
+  var COOLDOWN_MS = 3 * 60 * 60 * 1000;   // 같은 날 첫 끼니 → 다음 끼니까지 기다려야 하는 시간 (실제 3시간)
   var DRIFT = 5;                 // 하루 지나면 50쪽으로 돌아오는 양
   var PREP_DAYS = 3;             // 촬영/컴백 며칠 전부터 준비 기간인지
   var BOOK_MIN = 3, BOOK_MAX = 7;// 촬영/컴백은 오늘로부터 며칠 뒤까지 잡을 수 있는지
