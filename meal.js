@@ -374,6 +374,10 @@
   // ════════ 화면 ════════
   var FONT = "font-family:'Noto Sans KR',sans-serif;";
   var BTN = 'border:none;border-radius:12px;font-weight:900;cursor:pointer;' + FONT;
+  function uiIco(m, px) {   // 🖼️ 컨디션 아이콘 (meal-assets/ui/*.png, 없으면 이모지)
+    var nm = m.k === 'v' ? 'visual' : m.k === 's' ? 'stamina' : 'mood';
+    return '<img src="meal-assets/ui/' + nm + '.png" alt="" draggable="false" decoding="async" style="width:' + px + 'px;height:' + px + 'px;object-fit:contain;vertical-align:middle;" onerror="this.outerHTML=\'' + m.icon + '\'">';
+  }
   var STAT_META = [
     { k: 'v', name: '비주얼', color: '#ff9ec7', icon: '✨' },
     { k: 's', name: '체력',   color: '#7fd1ae', icon: '💪' },
@@ -425,7 +429,7 @@
     var rows = STAT_META.map(function (m) {
       var shown = (from && from[m.k] !== undefined) ? from[m.k] : s[m.k];
       return '<div style="display:flex;align-items:center;gap:8px;margin-bottom:7px;">' +
-        '<div style="width:62px;font-size:12px;font-weight:900;color:#fff;">' + m.icon + ' ' + m.name + '</div>' +
+        '<div style="width:62px;font-size:12px;font-weight:900;color:#fff;">' + uiIco(m, 16) + ' ' + m.name + '</div>' +
         '<div style="flex:1;height:10px;border-radius:6px;background:rgba(255,255,255,0.12);overflow:hidden;">' +
         '<div class="ml-bar" data-final="' + s[m.k] + '" style="height:100%;width:' + shown + '%;background:' + m.color + ';border-radius:6px;"></div></div>' +
         '<div style="width:30px;text-align:right;font-size:13px;font-weight:900;color:' + m.color + ';">' + s[m.k] + '</div></div>';
@@ -661,7 +665,7 @@
         var after = statOf(load(), cid);
         var rows = STAT_META.map(function (m) {
           var dv = res.d[m.k], c2 = dv > 0 ? '#7ee8a5' : dv < 0 ? '#ff8a8a' : '#aaa';
-          return '<div style="display:flex;justify-content:space-between;font-size:13px;padding:5px 0;color:#fff;"><span>' + m.icon + ' ' + m.name + '</span>' +
+          return '<div style="display:flex;justify-content:space-between;font-size:13px;padding:5px 0;color:#fff;"><span>' + uiIco(m, 16) + ' ' + m.name + '</span>' +
             '<span><span style="color:#9aa0c8;">' + res.before[m.k] + '</span> → <b>' + after[m.k] + '</b> <span style="color:' + c2 + ';font-weight:900;">(' + (dv > 0 ? '+' : '') + dv + ')</span></span></div>';
         }).join('');
         var caughtNote = res.caught ? '<div style="font-size:12px;color:#ffb36b;margin-top:6px;text-align:center;">🚨 야식을 먹다 들켰어요! 비주얼 −' + SNEAK_V + ', 기분 −' + SNEAK_M + ' 추가</div>' : '';

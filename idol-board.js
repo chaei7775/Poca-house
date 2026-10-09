@@ -17,6 +17,9 @@
     { k: 'm', name: '기분', color: '#ffcf4a' }
   ];
 
+  function ico(name, px, emo) {   // 🖼️ meal-assets/ui/<이름>.png (없으면 이모지)
+    return '<img src="meal-assets/ui/' + name + '.png" alt="" draggable="false" decoding="async" style="width:' + px + 'px;height:' + px + 'px;object-fit:contain;vertical-align:middle;" onerror="this.outerHTML=\'' + emo + '\'">';
+  }
   function M() { return window.__mealTest || null; }
   function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
   function toast(m) { try { if (typeof showBagToast === 'function') showBagToast(m); } catch (e) {} }
@@ -64,17 +67,17 @@
       return '<div data-go="' + r.cid + '" style="cursor:pointer;background:rgba(255,255,255,0.07);border:1.5px solid ' + (r.low ? '#ff6b6b99' : r.color + '66') + ';border-radius:14px;padding:10px;margin-bottom:8px;">' +
         '<div style="display:flex;align-items:center;gap:8px;margin-bottom:7px;">' +
           '<span style="font-size:14px;font-weight:900;color:' + r.color + ';">' + esc(r.name) + '</span>' +
-          (r.low ? '<span style="font-size:10px;font-weight:900;color:#ff9d9d;background:rgba(255,107,107,0.18);border-radius:8px;padding:2px 6px;">😵 체력 낮음</span>' : '') +
-          '<span style="margin-left:auto;font-size:10.5px;color:#cfd3ee;font-weight:800;">🎓 ' + r.total + '/500</span></div>' +
+          (r.low ? '<span style="font-size:10px;font-weight:900;color:#ff9d9d;background:rgba(255,107,107,0.18);border-radius:8px;padding:2px 6px;">' + ico('lowstam', 13, '😵') + ' 체력 낮음</span>' : '') +
+          '<span style="margin-left:auto;font-size:10.5px;color:#cfd3ee;font-weight:800;">' + ico('lesson', 14, '🎓') + ' ' + r.total + '/500</span></div>' +
         '<div style="display:flex;gap:8px;margin-bottom:6px;">' + BARS.map(function (b) { return barHtml(b, r[b.k]); }).join('') + '</div>' +
         '<div style="display:flex;gap:8px;font-size:10.5px;font-weight:800;color:#c9d0f5;">' +
           '<span>' + (r.lessonDone ? '✅ 오늘 레슨 완료' : '⬜ 오늘 레슨 전') + '</span>' +
           '<span style="margin-left:auto;">' + (r.sched ? esc(r.sched) : '일정 없음') + '</span></div></div>';
     }).join('') : '<div style="text-align:center;color:#aab4d6;font-size:12px;padding:30px 8px;line-height:1.7;">아직 데뷔한 아이돌이 없어요.<br>기획사에서 데뷔시키면 여기서 한눈에 볼 수 있어요.</div>';
     ov.innerHTML = '<div style="width:100%;max-width:360px;max-height:88vh;overflow-y:auto;background:linear-gradient(160deg,#1b1330,#2a1745);border:1.5px solid #b793ff;border-radius:20px;padding:16px;">' +
-      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;"><div style="font-size:16px;font-weight:900;color:#fff;">📋 아이돌 한눈에</div>' +
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;"><div style="font-size:16px;font-weight:900;color:#fff;">' + ico('board', 22, '📋') + ' 아이돌 한눈에</div>' +
       '<button id="ib-x" style="' + BTN + 'padding:6px 12px;background:rgba(255,255,255,0.12);color:#fff;font-size:12px;">닫기</button></div>' +
-      '<div style="font-size:11px;color:#aab4d6;margin-bottom:10px;">' + (lowN ? '<span style="color:#ff9d9d;font-weight:900;">😵 체력이 낮은 아이돌 ' + lowN + '명</span> · ' : '') + '줄을 누르면 그 아이돌 화면으로 가요</div>' + body + '</div>';
+      '<div style="font-size:11px;color:#aab4d6;margin-bottom:10px;">' + (lowN ? '<span style="color:#ff9d9d;font-weight:900;">' + ico('lowstam', 14, '😵') + ' 체력이 낮은 아이돌 ' + lowN + '명</span> · ' : '') + '줄을 누르면 그 아이돌 화면으로 가요</div>' + body + '</div>';
     document.body.appendChild(ov);
     ov.querySelector('#ib-x').onclick = function () { ov.remove(); };
     Array.prototype.forEach.call(ov.querySelectorAll('[data-go]'), function (el) {
@@ -94,7 +97,7 @@
     var b = document.createElement('button');
     b.id = 'idol-board-btn';
     b.style.cssText = BTN + 'width:100%;margin:-4px 0 12px;padding:10px;background:rgba(183,147,255,0.14);border:1.5px solid rgba(183,147,255,0.5);color:#fff;font-size:13px;';
-    b.innerHTML = '📋 전체 한눈에 보기' + (lowN ? ' <span style="color:#ff9d9d;">· 😵 체력 낮음 ' + lowN + '</span>' : '');
+    b.innerHTML = ico('board', 20, '📋') + ' 전체 한눈에 보기' + (lowN ? ' <span style="color:#ff9d9d;">· ' + ico('lowstam', 15, '😵') + ' 체력 낮음 ' + lowN + '</span>' : '');
     b.onclick = openBoard;
     anchor.insertAdjacentElement('afterend', b);
   }

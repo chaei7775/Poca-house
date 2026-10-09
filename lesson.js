@@ -120,6 +120,11 @@
     ['여기서 한 단계 더 올라가자. 따라와.', '포인트만 짚어줄게. 바로 달라질 거야.', '프로는 디테일이야.'],
     ['…좋은 재목이군. 내 모든 걸 가르쳐주마.', '한 번 보면 알지. 너는 더 갈 수 있어.', '이 정도 열정이라면 무대가 너를 기다린다.']
   ];
+  // 🖼️ UI 아이콘: meal-assets/ui/<이름>.png (없으면 이모지로 대신 보임)
+  function ico(name, px, emo) {
+    return '<img src="meal-assets/ui/' + name + '.png" alt="" draggable="false" decoding="async" style="width:' + px + 'px;height:' + px + 'px;object-fit:contain;vertical-align:middle;" onerror="this.outerHTML=\'' + emo + '\'">';
+  }
+  window.__lessonIco = ico;
   function coachImg(t, k, px) {   // 코치 초상화 (없으면 이모지). 선택창엔 3장만, 결과창엔 1장만 불러서 가볍게
     var emo = '<span style="font-size:' + Math.round(px * 0.7) + 'px;">' + TIERS[t].icon + '</span>';
     return '<span style="display:inline-flex;align-items:center;justify-content:center;width:' + px + 'px;height:' + px + 'px;">' + emo +
@@ -294,7 +299,7 @@
     return STATS.map(function (m) {
       var shown = (from && from[m.k] !== undefined) ? from[m.k] : o[m.k];
       return '<div style="display:flex;align-items:center;gap:8px;margin-bottom:7px;">' +
-        '<div style="width:62px;font-size:12px;font-weight:900;color:#fff;">' + m.icon + ' ' + m.name + '</div>' +
+        '<div style="width:62px;font-size:12px;font-weight:900;color:#fff;">' + ico(m.k, 16, m.icon) + ' ' + m.name + '</div>' +
         '<div style="flex:1;height:10px;border-radius:6px;background:rgba(255,255,255,0.12);overflow:hidden;">' +
         '<div class="ls-bar" data-final="' + o[m.k] + '" style="height:100%;width:' + shown + '%;background:' + m.color + ';border-radius:6px;transition:width .9s ease-out;"></div></div>' +
         '<div style="width:56px;text-align:right;font-size:12px;font-weight:900;color:' + m.color + ';">' + o[m.k] + ' <span style="font-size:10px;opacity:.8;">' + gradeOf(o[m.k]) + '</span></div></div>';
@@ -304,7 +309,7 @@
   function boxHtml(cid, from) {
     var m = M(), st = load(), name = m.CH[cid].name;
     var head = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">' +
-      '<div style="font-size:14px;font-weight:900;color:#fff;">🎓 ' + esc(name) + '의 능력치</div>';
+      '<div style="font-size:14px;font-weight:900;color:#fff;">' + ico('lesson', 20, '🎓') + ' ' + esc(name) + '의 능력치</div>';
     if (ENABLED.indexOf(cid) === -1) {
       return head + '</div><div style="font-size:12px;color:#cfd3ee;line-height:1.6;">🔒 ' + esc(name) + '의 레슨은 곧 열려요.<br>먼저 시온으로 시작해요!</div>';
     }
@@ -313,7 +318,7 @@
     var done = doneToday(st, cid, day);
     var warn = '';
     if (!done) {
-      if (cond.s < MIN_STAMINA) warn = '😵 체력이 너무 낮아서 레슨을 못 해요. 식사로 체력을 채워주세요';
+      if (cond.s < MIN_STAMINA) warn = ico('lowstam', 16, '😵') + ' 체력이 너무 낮아서 레슨을 못 해요. 식사로 체력을 채워주세요';
       else if (cond.s < STAMINA_LOW) warn = '😥 체력이 낮아서 효과가 줄어요';
       else if (cond.m >= MOOD_HIGH) warn = '😊 기분이 좋아서 효과가 올라요';
       else if (cond.m < MOOD_LOW) warn = '😔 기분이 안 좋아서 효과가 줄어요';
@@ -323,7 +328,7 @@
       var apt = (APT[cid] && APT[cid][s.k]) || 1;
       var tag = apt > 1 ? '<span style="color:#7ee8a5;">잘해요</span>' : (apt < 1 ? '<span style="color:#ffb36b;">서툴러요</span>' : '');
       return '<button data-lesson="' + s.k + '" style="' + BTN + 'padding:9px 4px;background:rgba(255,255,255,0.08);border:1px solid ' + s.color + '66;color:#fff;font-size:11px;opacity:' + (c.ok ? 1 : 0.45) + ';">' +
-        '<div style="font-size:20px;">' + s.icon + '</div><div>' + s.lesson + '</div>' +
+        '<div>' + ico(s.k, 32, s.icon) + '</div><div>' + s.lesson + '</div>' +
         '<div style="font-size:10px;font-weight:700;min-height:13px;">' + tag + '</div>' +
         '<div style="font-size:10px;font-weight:900;color:' + (have < costOf(st, cid, s.k) ? '#ff8a8a' : '#ffe08a') + ';">🪙' + manTxt(costOf(st, cid, s.k)) + '</div></button>';
     }).join('');
@@ -389,11 +394,11 @@
       var bg = cond.s >= STAMINA_LOW ? Math.round((bigNow + T.big) * 100) + '%' : '체력 낮아서 불가';
       return '<button data-tier="' + i + '" style="' + BTN + 'width:100%;display:flex;align-items:center;gap:10px;text-align:left;padding:11px 12px;margin-bottom:8px;background:rgba(255,255,255,0.08);border:1.5px solid ' + (ok ? S.color : '#ffffff22') + ';color:#fff;opacity:' + (ok ? 1 : 0.5) + ';">' +
         '<span style="position:relative;display:inline-block;width:54px;height:54px;flex:none;">' + coachImg(i, k, 54) + '</span><span style="flex:1;"><span style="font-size:13px;">' + esc(coachName(i, k)) + '</span><br>' +
-        '<span style="font-size:11px;color:#c9d0f5;font-weight:700;">성장 ×' + T.gain + ' · 🌟대성공 ' + bg + '</span></span>' +
+        '<span style="font-size:11px;color:#c9d0f5;font-weight:700;">성장 ×' + T.gain + ' · ' + ico('great', 13, '🌟') + '대성공 ' + bg + '</span></span>' +
         '<span style="font-size:12px;color:' + (ok ? '#ffe08a' : '#ff8a8a') + ';">🪙' + manTxt(cost) + '</span></button>';
     }).join('');
     ov.innerHTML = '<div style="width:100%;max-width:340px;background:linear-gradient(160deg,#1b1330,#2a1745);border:1.5px solid ' + S.color + ';border-radius:20px;padding:16px;">' +
-      '<div style="text-align:center;font-size:14px;font-weight:900;color:#fff;margin-bottom:2px;">' + S.icon + ' ' + S.lesson + ' · 누구에게 배울까요?</div>' +
+      '<div style="text-align:center;font-size:14px;font-weight:900;color:#fff;margin-bottom:2px;">' + ico(S.k, 22, S.icon) + ' ' + S.lesson + ' · 누구에게 배울까요?</div>' +
       '<div style="text-align:center;font-size:11px;color:#aab4d6;margin-bottom:10px;">비싼 코치일수록 많이 오르고, 🌟대성공(상승 ×2)이 잘 터져요</div>' + rows +
       '<button id="lc-x" style="' + BTN + 'width:100%;padding:10px;background:rgba(255,255,255,0.1);color:#ccc;font-size:12px;">닫기</button></div>';
     document.body.appendChild(ov);
@@ -440,13 +445,13 @@
       document.head.appendChild(sty);
     }
     var T = TIERS[res.tier | 0] || TIERS[0];
-    var bigBanner = res.big ? '<div style="font-size:20px;font-weight:900;color:#ffd700;text-shadow:0 0 12px rgba(255,215,0,.8);margin-bottom:4px;">🌟 대성공! 🌟</div>' +
+    var bigBanner = res.big ? '<div style="font-size:20px;font-weight:900;color:#ffd700;text-shadow:0 0 12px rgba(255,215,0,.8);margin-bottom:4px;">' + ico('great', 30, '🌟') + ' 대성공! ' + ico('great', 30, '🌟') + '</div>' +
       '<div style="font-size:11px;font-weight:900;color:#ffe9a8;margin-bottom:4px;">오늘은 감이 왔어요 · 상승 ×2</div>' : '';
     var sparks = res.big ? '<div style="position:absolute;inset:0;pointer-events:none;overflow:hidden;border-radius:20px;">' + [12, 28, 46, 64, 80].map(function (x, i) { return '<span style="position:absolute;left:' + x + '%;top:' + (30 + (i % 3) * 18) + '%;font-size:18px;animation:lsSpark 1.4s ease-out ' + (i * 0.18) + 's infinite;">✨</span>'; }).join('') + '</div>' : '';
     ov.innerHTML = '<div style="position:relative;width:100%;max-width:340px;background:linear-gradient(160deg,#1b1330,#2a1745);border:1.5px solid ' + (res.big ? '#ffd700' : s.color) + ';border-radius:20px;padding:18px;text-align:center;animation:' + (res.big ? 'lsPop .45s ease-out,lsGlow 1.6s ease-in-out infinite' : 'lsPop .3s ease-out') + ';">' + sparks + bigBanner +
       '<div style="font-size:13px;font-weight:900;color:#cfd3ee;">' + esc(name) + ' · ' + s.lesson + '</div>' +
       '<div style="display:flex;align-items:center;gap:8px;justify-content:center;margin-top:6px;text-align:left;"><span style="position:relative;display:inline-block;width:56px;height:56px;flex:none;">' + coachImg(res.tier | 0, res.k, 56) + '</span><span style="font-size:11px;color:#c9d0f5;line-height:1.45;"><b>' + esc(coachName(res.tier | 0, res.k)) + '</b><br>“' + esc(res.coachLine || '') + '”</span></div>' +
-      '<div style="font-size:44px;margin:8px 0 2px;">' + s.icon + '</div>' +
+      '<div style="margin:8px 0 2px;">' + ico(s.k, 68, s.icon) + '</div>' +
       '<div style="font-size:22px;font-weight:900;color:' + s.color + ';">' + s.name + ' +' + res.gain + '</div>' +
       '<div style="font-size:12px;color:#aab4d6;margin-top:2px;">' + res.before + ' → <b style="color:#fff;">' + res.after + '</b></div>' +
       (res.gradeUp ? '<div style="margin-top:8px;font-size:13px;font-weight:900;color:#ffd700;">🎉 ' + s.name + ' 등급 상승! [' + res.gradeUp + ']</div>' : '') +
@@ -551,7 +556,7 @@
     function drawAsk() {
       ov.innerHTML = '<div style="width:100%;max-width:340px;background:linear-gradient(160deg,#1b1330,#2d1b4e);border:1.5px solid ' + (ev.id === 'break' ? '#ffd700' : '#b793ff') + ';border-radius:20px;padding:18px;animation:lsPop .35s ease-out;">' +
         '<img src="meal-assets/event/' + ev.id + '.jpg" loading="lazy" decoding="async" alt="" draggable="false" style="display:block;width:100%;border-radius:12px;margin:0 0 10px;" onerror="this.style.display=\'none\'">' +
-        '<div style="text-align:center;font-size:12px;font-weight:900;color:' + (ev.id === 'break' ? '#ffd700' : '#c9b6ff') + ';">' + (ev.id === 'break' ? '🌟' : '💬') + ' 돌발 상황!</div>' +
+        '<div style="text-align:center;font-size:12px;font-weight:900;color:' + (ev.id === 'break' ? '#ffd700' : '#c9b6ff') + ';">' + (ev.id === 'break' ? ico('great', 18, '🌟') : ico('event', 18, '💬')) + ' 돌발 상황!</div>' +
         '<div style="text-align:center;font-size:16px;font-weight:900;color:#fff;margin:4px 0 8px;">' + esc(ev.title) + '</div>' +
         '<div style="background:rgba(255,255,255,0.08);border-radius:12px;padding:11px;font-size:12.5px;color:#e8eaff;line-height:1.6;margin-bottom:12px;">' + esc(fillTxt(ev.text, name, k)) + '</div>' +
         ev.choices.map(function (c, i) {
@@ -573,7 +578,7 @@
       save(st); m.save(ms);
       var good = !/(지쳐|상했|떨어|졌|빠졌|상한)/.test(out.text);
       ov.innerHTML = '<div style="width:100%;max-width:340px;background:linear-gradient(160deg,#1b1330,#2d1b4e);border:1.5px solid ' + (good ? '#7ee8a5' : '#ff9d9d') + ';border-radius:20px;padding:18px;text-align:center;animation:lsPop .3s ease-out;">' +
-        '<div style="font-size:34px;">' + (good ? '✨' : '💦') + '</div>' +
+        '<div>' + (good ? ico('ok', 60, '✨') : ico('fail', 60, '💦')) + '</div>' +
         '<div style="font-size:14px;font-weight:900;color:#fff;margin:6px 0;line-height:1.5;">' + esc(fillTxt(out.text, name, k)) + '</div>' +
         (changes.length ? '<div style="font-size:12px;font-weight:900;color:' + (good ? '#7ee8a5' : '#ffb3b3') + ';margin-bottom:10px;">' + esc(changes.join(' · ')) + '</div>' : '') +
         '<button id="le-ok" style="' + BTN + 'width:100%;padding:12px;background:linear-gradient(135deg,#b793ff,#7c5cff);color:#fff;font-size:14px;">확인</button></div>';
