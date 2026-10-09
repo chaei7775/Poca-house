@@ -13,6 +13,7 @@
   var KEY = 'ph_signature';
   var NEED = { stat: 90, lessons: 120, drama: 30, cf: 30, show: 10, fans: 100, trans: 2, cond: 80 };
   var BONUS = 0.20;
+  var READY = false;   // false 면 화면·받기를 막고 '준비 중'만 보여줌 (횟수 세기는 계속함)
   var CIDS = ['minjun', 'sion', 'doyun', 'harin', 'yuna', 'ara'];
   var NAMES = { minjun: '민준', sion: '시온', doyun: '도윤', harin: '하린', yuna: '윤아', ara: '아라' };
   var COLORS = { minjun: '#F59E0B', sion: '#818cf8', doyun: '#9ca3af', harin: '#a78bfa', yuna: '#f472b6', ara: '#fb7185' };
@@ -126,6 +127,7 @@
 
   // ── 받기 ──
   function claim(cid) {
+    if (!READY) { toast('🏅 시그니처 카드는 준비 중이에요'); return; }
     var p = progress(cid);
     if (has(cid) || !debuted(cid)) return;
     if (!p.allOk) { toast('아직 조건이 남았어요'); return; }
@@ -134,9 +136,24 @@
     celebrate(cid);
   }
   function cardImg(cid, w) {
-    return '<div style="position:relative;width:' + w + 'px;aspect-ratio:3/4;border-radius:14px;overflow:hidden;background:linear-gradient(160deg,' + COLORS[cid] + ',#1b1033);border:2px solid #FFD700;box-shadow:0 0 18px rgba(255,215,0,0.45);">' +
-      '<img src="signature-' + cid + '.jpg" loading="lazy" decoding="async" alt="" onerror="this.style.display=\'none\'" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;">' +
-      '<div style="position:absolute;left:0;right:0;bottom:6px;text-align:center;color:#FFE27A;font-weight:900;font-size:11px;text-shadow:0 1px 3px #000;">🏅 ' + NAMES[cid] + ' SIGNATURE</div></div>';
+    var k = w / 150, c = COLORS[cid];
+    var corner = function (pos) { return '<div style="position:absolute;' + pos + ';font-size:' + Math.max(8, 11 * k) + 'px;line-height:1;color:#FFE27A;text-shadow:0 0 4px #ff9f45;">✦</div>'; };
+    return '<div style="position:relative;width:' + w + 'px;aspect-ratio:3/4;flex:none;border-radius:' + (12 * k) + 'px;padding:' + Math.max(2, 3.5 * k) + 'px;background:linear-gradient(135deg,#FFF3B0,#FFD700 28%,#B8860B 52%,#FFE27A 76%,#C98A00);box-shadow:0 0 ' + (16 * k) + 'px rgba(255,215,0,0.5),0 3px 8px rgba(0,0,0,0.5);box-sizing:border-box;">' +
+      '<div style="position:relative;width:100%;height:100%;border-radius:' + (9 * k) + 'px;overflow:hidden;background:radial-gradient(circle at 50% 30%,' + c + ' 0%,#2a1850 55%,#120a26 100%);">' +
+        '<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:' + (44 * k) + 'px;opacity:0.35;">🏅</div>' +
+        '<img src="signature-' + cid + '.jpg" loading="lazy" decoding="async" alt="" onerror="this.style.display=\'none\'" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;">' +
+        '<div style="position:absolute;inset:' + Math.max(2, 4 * k) + 'px;border:1px solid rgba(255,226,122,0.85);border-radius:' + (7 * k) + 'px;pointer-events:none;"></div>' +
+        corner('left:' + (6 * k) + 'px;top:' + (4 * k) + 'px') + corner('right:' + (6 * k) + 'px;top:' + (4 * k) + 'px') +
+        '<div style="position:absolute;left:0;right:0;bottom:0;padding:' + (14 * k) + 'px 0 ' + (7 * k) + 'px;text-align:center;background:linear-gradient(0deg,rgba(10,5,25,0.92) 0%,rgba(10,5,25,0.6) 60%,transparent 100%);">' +
+          '<div style="font-size:' + Math.max(9, 15 * k) + 'px;font-weight:900;color:#fff;text-shadow:0 1px 4px #000;letter-spacing:1px;">' + NAMES[cid] + '</div>' +
+          '<div style="font-size:' + Math.max(5.5, 8 * k) + 'px;font-weight:900;color:#FFE27A;letter-spacing:' + Math.max(1, 2.5 * k) + 'px;margin-top:1px;">✦ SIGNATURE ✦</div></div>' +
+        '<div class="sig-shine" style="position:absolute;top:0;bottom:0;width:40%;left:-60%;background:linear-gradient(100deg,transparent,rgba(255,255,255,0.35),transparent);transform:skewX(-18deg);animation:sigShine 3.4s ease-in-out infinite;pointer-events:none;"></div>' +
+      '</div></div>' + shineCss();
+  }
+  var cssDone = false;
+  function shineCss() {
+    if (cssDone) return ''; cssDone = true;
+    return '<style>@keyframes sigShine{0%{left:-60%}55%,100%{left:130%}}</style>';
   }
   function celebrate(cid) {
     var ov = document.createElement('div');
@@ -168,6 +185,7 @@
       '<div style="margin-top:6px;">' + p.rows.map(bar).join('') + '</div>' + cond + btn + '</div>';
   }
   function open() {
+    if (!READY) { toast('🏅 시그니처 카드는 준비 중이에요. 곧 열려요!'); return; }
     var old = document.getElementById('sig-overlay'); if (old) old.remove();
     var ov = document.createElement('div');
     ov.id = 'sig-overlay';
@@ -191,7 +209,7 @@
     b.id = 'sig-btn';
     b.style.cssText = BTN + 'width:100%;margin:-4px 0 12px;padding:10px;background:rgba(255,215,0,0.12);border:1.5px solid rgba(255,215,0,0.5);color:#fff;font-size:13px;';
     var n = Object.keys(load().got).length;
-    b.innerHTML = '🏅 시그니처 카드 <span style="color:#FFE27A;">· ' + n + ' / 6</span>';
+    b.innerHTML = '🏅 시그니처 카드 <span style="color:#FFE27A;">' + (READY ? '· ' + n + ' / 6' : '· 준비 중') + '</span>';
     b.onclick = open;
     anchor.insertAdjacentElement('afterend', b);
   }
