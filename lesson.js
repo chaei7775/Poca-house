@@ -142,18 +142,19 @@
   }
 
   // ════════ 🎓 능력치 효과 (드라마·CF·음방·기획사 수익에 연결) ════════
-  //  f(k) = (능력치 − 10) / 90  → 처음 0, 100이면 1
+  //  f(k) = ((능력치 − 10) / 90) ^ 0.6  → 처음 0, 100이면 1
   var FX = {
-    actDrama: 0.30,     // 연기 100 → 드라마 촬영·일정 정산 +30%
-    charmCf: 0.30,      // 매력 100 → CF 보상 +30%
-    stageVD: 0.15,      // 보컬 100 → 음방·컴백 정산 +15%, 댄스 100 → 또 +15%
-    incomeFun: 0.10,    // 예능 100 → 기획사 수익 +10%
-    incomeCharm: 0.10   // 매력 100 → 기획사 수익 +10%
+    actDrama: 1.00,     // 연기 100 → 드라마 촬영·일정 정산 +100%
+    charmCf: 1.00,      // 매력 100 → CF 보상 +100%
+    stageVD: 0.30,      // 보컬 100 → 음방·컴백 정산 +30%, 댄스 100 → 또 +30%
+    incomeFun: 0.15,    // 예능 100 → 기획사 수익 +15%
+    incomeCharm: 0.15   // 매력 100 → 기획사 수익 +15%
   };
   function fOf(cid, k) {
     var v = STAT_START_VAL; try { if (typeof window.getIdolTrainStat === 'function') v = Number(window.getIdolTrainStat(cid, k)); } catch (e) {}
     if (!(v >= 0)) v = STAT_START_VAL;
-    return Math.max(0, Math.min(1, (v - STAT_START_VAL) / (STAT_MAX - STAT_START_VAL)));
+    var f = Math.max(0, Math.min(1, (v - STAT_START_VAL) / (STAT_MAX - STAT_START_VAL)));
+    return Math.pow(f, 0.6);   // 초반에 올린 만큼 바로 체감되게 (능력치 30 → 효과 약 38%)
   }
   var STAT_START_VAL = STAT_START;
   function payMult(cid, type) {
@@ -180,11 +181,11 @@
   try {
     window.addEventListener('ph-drama-shot', function (e) {
       var d = (e && e.detail) || {}; if (!d.ch || !(d.pay > 0)) return;
-      bonusToast('연기력 보너스', Math.round(d.pay * FX.actDrama * fOf(d.ch, 'act') / 100) * 100);
+      bonusToast('연기력 보너스', Math.round(d.pay * FX.actDrama * fOf(d.ch, 'act') / 10) * 10);
     });
     window.addEventListener('ph-cf-shot', function (e) {
       var d = (e && e.detail) || {}; if (!d.cid || !(d.pay > 0)) return;
-      bonusToast('매력 보너스', Math.round(d.pay * FX.charmCf * fOf(d.cid, 'charm') / 100) * 100);
+      bonusToast('매력 보너스', Math.round(d.pay * FX.charmCf * fOf(d.cid, 'charm') / 10) * 10);
     });
   } catch (e) {}
 
