@@ -477,6 +477,35 @@
     };
   })();
 
+  // 가방 칸·상세 창의 간식 이모지 → 그림
+  (function hookBagArt() {
+    if (typeof window.renderBag !== 'function') { setTimeout(hookBagArt, 150); return; }
+    if (window.__swArtHooked) return; window.__swArtHooked = true;
+    var origRender = window.renderBag;
+    window.renderBag = function () {
+      var r0 = origRender.apply(this, arguments);
+      try {
+        var slots = document.querySelectorAll('#bag-grid .bag-slot.has-item');
+        for (var i = 0; i < slots.length && i < bagItems.length; i++) {
+          var it = bagItems[i], r = it && it.type === TYPE ? BY_NAME[it.name] : null, e = r && slots[i].querySelector('.bag-item-emoji');
+          if (e) e.innerHTML = sweetImg(r, 40);
+        }
+      } catch (e) {}
+      return r0;
+    };
+    try { window.renderBag(); } catch (e) {}
+    var origDetail = window.showBagItemDetail;
+    if (typeof origDetail === 'function') window.showBagItemDetail = function (idx) {
+      var r1 = origDetail.apply(this, arguments);
+      try {
+        var it = bagItems[idx], r = it && it.type === TYPE ? BY_NAME[it.name] : null, ov = document.getElementById('bag-detail-overlay');
+        var box = ov && ov.firstChild, em = box && box.firstChild;
+        if (r && em && !em.querySelector('img')) em.innerHTML = sweetImg(r, 60);
+      } catch (e) {}
+      return r1;
+    };
+  })();
+
   // ════════ 거래소 품목 (trade.js 가 불러감) ════════
   window.__sweetsItems = function () {
     var out = {};
