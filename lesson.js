@@ -18,7 +18,7 @@
 
   // ════════ 설정 ════════
   var STORAGE_KEY = 'ph_training';
-  var ENABLED = ['sion'];          // 레슨이 열린 아이돌
+  var ENABLED = ['minjun', 'sion', 'doyun', 'harin', 'yuna', 'ara'];          // 레슨이 열린 아이돌
   var STAT_START = 10;
   var STAT_MAX = 100;
   var LESSON_COST = 1000;          // 코인
@@ -42,7 +42,12 @@
   STATS.forEach(function (s) { STAT_BY_K[s.k] = s; });
 
   var APT = {                       // 아이돌별 적성 (없으면 ×1)
-    sion: { vocal: 1.3, fun: 0.8, charm: 1.1 }
+    minjun: { dance: 1.2, fun: 1.3, act: 0.9, vocal: 0.9 },
+    sion: { vocal: 1.3, fun: 0.8, charm: 1.1 },
+    doyun: { dance: 1.3, vocal: 1.1, charm: 0.9, fun: 0.9 },
+    harin: { vocal: 1.2, act: 1.1, fun: 0.8, dance: 0.9 },
+    yuna: { charm: 1.3, fun: 1.1, dance: 0.9, act: 0.9 },
+    ara: { act: 1.3, vocal: 1.1, charm: 1.1, dance: 0.8 }
   };
   var GRADES = [                    // 한 능력치 기준 등급
     { min: 80, label: '에이스' },
