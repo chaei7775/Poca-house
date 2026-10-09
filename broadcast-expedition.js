@@ -817,8 +817,7 @@
   //  방송국 앞에서 이벤트를 BOX_NEED 번 하면 상자가 열리고, 프리미엄 조각이 랜덤 개수로 나온다.
   //  평균 약 25개 (스태미나 3,000 = 이벤트 100번 기준). 확률/개수는 아래 BOX_TIERS 만 고치면 됨.
   var BOX_KEY = 'ph_pieceBox', BOX_NEED = 100;
-  var BOX_IMG = 'https://raw.githubusercontent.com/chaei7775/Poca-house/main/box-piece-gacha.png';
-  var BOX_TIERS = [   // w: 확률(%), min~max: 조각 개수
+    var BOX_TIERS = [   // w: 확률(%), min~max: 조각 개수
     { name: '아쉬운 상자', w: 8,  min: 5,   max: 10,  color: '#9ca3af' },
     { name: '일반 상자',   w: 57, min: 12,  max: 25,  color: '#7dd3fc' },
     { name: '레어 상자',   w: 25, min: 29,  max: 40,  color: '#c084fc' },
@@ -835,59 +834,63 @@
   }
   var boxSnooze = 0;
   window.__bcBoxOpen = function () { boxOpen(); };   // 테스트용
+  var RAW = 'https://raw.githubusercontent.com/chaei7775/Poca-house/main/';
   function boxOpen() {
     if ($('bc-box-ov')) return;
-    var W = Math.min(window.innerWidth - 24, 360), H = Math.min(window.innerHeight - 40, 560);
+    // 뽑기 기계 그림 기준 좌표 (그림 크기 1086 x 1448)
+    var IW = 1086, IH = 1448, WIN = { x: 215, y: 365, w: 649, h: 618 }, CHUTE = { x: 148, y: 1186, w: 324, h: 178 }, BTN = { x: 868, y: 1175, r: 62 };
+    var W = Math.floor(Math.min(window.innerWidth - 16, (window.innerHeight - 90) * IW / IH, 440)), s = W / IW, H = Math.round(IH * s);
+    var ww = Math.round(WIN.w * s), wh = Math.round(WIN.h * s);
+    var cw = Math.round(W * 0.17), spH = Math.round(cw * 464 / 360), bs = Math.round(W * 0.125);
     var ov = document.createElement('div'); ov.id = 'bc-box-ov';
-    ov.style.cssText = 'position:fixed;inset:0;z-index:99998;background:radial-gradient(circle at 50% 30%,#3b1a5c,#120a24 70%);display:flex;align-items:center;justify-content:center;font-family:"Noto Sans KR",sans-serif;color:#fff;overflow:hidden;';
+    ov.style.cssText = 'position:fixed;inset:0;z-index:99998;background:radial-gradient(circle at 50% 30%,#3b1a5c,#120a24 70%);display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:"Noto Sans KR",sans-serif;color:#fff;overflow:hidden;';
     ['pointerdown', 'touchstart', 'mousedown'].forEach(function (t) { ov.addEventListener(t, function (e) { e.stopPropagation(); }); });
-    var BOXN = 6, bw = 52;
     ov.innerHTML = '<style>' +
-      '@keyframes cmBlink{0%,100%{opacity:1}50%{opacity:.35}}' +
-      '@keyframes cmShake{0%,100%{transform:translateX(0) rotate(0)}20%{transform:translateX(-6px) rotate(-8deg)}40%{transform:translateX(6px) rotate(8deg)}60%{transform:translateX(-5px) rotate(-6deg)}80%{transform:translateX(5px) rotate(6deg)}}' +
+      '@keyframes cmBlink{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.6;transform:scale(1.06)}}' +
+      '@keyframes cmShake{0%,100%{transform:translate(-50%,-50%) rotate(0)}20%{transform:translate(-56%,-50%) rotate(-10deg)}40%{transform:translate(-44%,-50%) rotate(10deg)}60%{transform:translate(-55%,-50%) rotate(-8deg)}80%{transform:translate(-45%,-50%) rotate(8deg)}}' +
       '@keyframes cmPop{0%{transform:scale(.3);opacity:0}70%{transform:scale(1.15)}100%{transform:scale(1);opacity:1}}' +
-      '.cm-arm{transition:transform .35s ease;transform-origin:50% 0}' +
-      '#cm-claw.closed .cm-l{transform:rotate(22deg)}#cm-claw.closed .cm-r{transform:rotate(-22deg)}' +
       '</style>' +
-      '<div id="cm" style="position:relative;width:' + W + 'px;height:' + H + 'px;border:4px solid #FF9EC4;border-radius:22px;background:linear-gradient(180deg,rgba(255,158,196,.14),rgba(192,132,252,.10));box-shadow:0 0 30px rgba(255,107,157,.45);overflow:hidden;">' +
-        '<div style="position:absolute;left:0;right:0;top:0;height:34px;background:linear-gradient(90deg,#FF6B9D,#C084FC);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:900;letter-spacing:1px;">🎁 조각 뽑기방 🎁</div>' +
-        '<div style="position:absolute;left:14px;right:14px;top:44px;height:5px;border-radius:3px;background:#d1b3ff;"></div>' +
-        '<div id="cm-claw" style="position:absolute;top:46px;left:' + (W / 2 - 20) + 'px;width:40px;">' +
-          '<div id="cm-line" style="width:4px;height:36px;margin:0 auto;background:#e9d5ff;"></div>' +
-          '<div style="position:relative;width:40px;height:34px;">' +
-            '<div style="position:absolute;left:12px;top:0;width:16px;height:12px;border-radius:5px;background:#FFD700;"></div>' +
-            '<div class="cm-arm cm-l" style="position:absolute;left:4px;top:8px;width:6px;height:26px;border-radius:4px;background:#FFD700;"></div>' +
-            '<div class="cm-arm cm-r" style="position:absolute;left:30px;top:8px;width:6px;height:26px;border-radius:4px;background:#FFD700;"></div>' +
-            '<div id="cm-hold" style="position:absolute;left:-6px;top:20px;width:52px;height:52px;"></div>' +
+      '<div id="cm" style="position:relative;width:' + W + 'px;height:' + H + 'px;">' +
+        '<div id="cm-win" style="position:absolute;left:' + Math.round(WIN.x * s) + 'px;top:' + Math.round(WIN.y * s) + 'px;width:' + ww + 'px;height:' + wh + 'px;overflow:hidden;background:linear-gradient(180deg,#6b3a9c,#2f1650);">' +
+          '<div id="cm-pile"></div>' +
+          '<div id="cm-claw" style="position:absolute;top:0;left:' + Math.round(ww / 2 - cw / 2) + 'px;width:' + cw + 'px;z-index:2;">' +
+            '<div id="cm-line" style="width:' + Math.round(cw * 0.16) + 'px;height:10px;margin:0 auto;background:linear-gradient(90deg,#c9b3f7,#9d7be0,#c9b3f7);"></div>' +
+            '<div style="position:relative;width:' + cw + 'px;height:' + spH + 'px;">' +
+              '<div id="cm-hold" style="position:absolute;left:0;top:0;width:' + cw + 'px;height:' + spH + 'px;z-index:1;"></div>' +
+              '<img id="cm-open" src="' + RAW + 'claw-hook.png" alt="" style="display:block;width:' + cw + 'px;height:' + spH + 'px;position:relative;z-index:2;">' +
+              '<img id="cm-closed" src="' + RAW + 'claw-hook-closed.png" alt="" style="display:none;width:' + cw + 'px;height:' + spH + 'px;position:relative;z-index:2;">' +
+            '</div>' +
           '</div>' +
         '</div>' +
-        '<div id="cm-pile" style="position:absolute;left:0;right:0;bottom:78px;height:70px;"></div>' +
-        '<div style="position:absolute;left:0;right:0;bottom:70px;height:8px;background:#7c3aed;"></div>' +
-        '<div id="cm-chute" style="position:absolute;left:8px;bottom:8px;width:' + (bw + 14) + 'px;height:62px;border:3px dashed #FFD700;border-radius:10px;background:rgba(0,0,0,.35);text-align:center;font-size:10px;color:#FFD700;font-weight:900;padding-top:2px;">꺼내는 곳</div>' +
-        '<div id="cm-msg" style="position:absolute;left:' + (bw + 30) + 'px;right:12px;bottom:46px;text-align:center;font-size:12px;color:#e9d5ff;">버튼을 누르면 갈고리가 움직여요!</div>' +
-        '<button id="cm-btn" style="position:absolute;left:' + (bw + 30) + 'px;right:12px;bottom:10px;height:34px;border:none;border-radius:17px;background:linear-gradient(135deg,#FF6B9D,#C084FC);color:#fff;font-size:15px;font-weight:900;font-family:inherit;animation:cmBlink 1.1s ease-in-out infinite;">🕹️ 뽑기 시작!</button>' +
-        '<div id="cm-fx" style="position:absolute;inset:0;pointer-events:none;"></div>' +
-        '<div id="cm-res" style="position:absolute;inset:0;display:none;align-items:center;justify-content:center;background:rgba(10,5,25,.82);"></div>' +
-      '</div>';
+        '<img src="' + RAW + 'claw-machine.png" alt="" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:3;">' +
+        '<div id="cm-chute" style="position:absolute;left:' + Math.round((CHUTE.x + CHUTE.w / 2) * s) + 'px;top:' + Math.round((CHUTE.y + CHUTE.h * 0.62) * s) + 'px;width:0;height:0;z-index:4;"></div>' +
+        '<div id="cm-hit" style="position:absolute;left:' + Math.round((BTN.x - BTN.r) * s) + 'px;top:' + Math.round((BTN.y - BTN.r) * s) + 'px;width:' + Math.round(BTN.r * 2 * s) + 'px;height:' + Math.round(BTN.r * 2 * s) + 'px;border-radius:50%;z-index:5;cursor:pointer;animation:cmBlink 1.1s ease-in-out infinite;box-shadow:0 0 0 3px #fff8,0 0 14px 4px #ffe08a;"></div>' +
+        '<div id="cm-fx" style="position:absolute;inset:0;pointer-events:none;z-index:6;"></div>' +
+        '<div id="cm-res" style="position:absolute;inset:0;display:none;align-items:center;justify-content:center;background:rgba(10,5,25,.84);z-index:7;"></div>' +
+      '</div>' +
+      '<div id="cm-msg" style="margin-top:8px;font-size:12px;color:#e9d5ff;text-align:center;">버튼을 눌러서 뽑아봐요!</div>' +
+      '<button id="cm-btn" style="margin-top:6px;padding:11px 36px;border:none;border-radius:22px;background:linear-gradient(135deg,#FF6B9D,#C084FC);color:#fff;font-size:15px;font-weight:900;font-family:inherit;animation:cmBlink 1.1s ease-in-out infinite;">🕹️ 뽑기 시작!</button>';
     document.body.appendChild(ov);
     var cm = $('cm'), claw = $('cm-claw'), line = $('cm-line'), hold = $('cm-hold'), pile = $('cm-pile'), btn = $('cm-btn'), msg = $('cm-msg');
-    var hues = [0, 40, 200, 280, 330, 120];
-    var xs = [], boxes = [];
+    var openI = $('cm-open'), closedI = $('cm-closed');
+    var BOXN = 6, hues = [0, 45, 200, 280, 330, 130], boxes = [], xs = [];
+    var gap = (ww - bs - 10) / (BOXN - 1);
     for (var i = 0; i < BOXN; i++) {
-      var left = 18 + i * ((W - 36 - bw) / (BOXN - 1));
-      var b = document.createElement('div');
-      b.style.cssText = 'position:absolute;bottom:' + (i % 2 ? 0 : 6) + 'px;left:' + left + 'px;width:' + bw + 'px;height:' + bw + 'px;transition:transform .2s;';
-      b.innerHTML = '<img src="' + BOX_IMG + '" alt="" style="width:100%;height:100%;object-fit:contain;filter:hue-rotate(' + hues[i] + 'deg);" onerror="var p=this.parentNode;if(p){p.textContent=\'🎁\';p.style.fontSize=\'44px\';p.style.textAlign=\'center\';}">';
-      pile.appendChild(b); boxes.push(b); xs.push(left + bw / 2 - 20);
+      var bl = 5 + i * gap, bb = (i % 2 ? bs * 0.28 : 0) - bs * 0.08;
+      var b = document.createElement('img');
+      b.src = RAW + 'box-piece-gacha.png'; b.alt = '';
+      b.style.cssText = 'position:absolute;left:' + bl + 'px;bottom:' + bb + 'px;width:' + bs + 'px;height:' + bs + 'px;object-fit:contain;filter:hue-rotate(' + hues[i] + 'deg);z-index:' + (i % 2 ? 0 : 1) + ';';
+      pile.appendChild(b); boxes.push(b); xs.push(bl + bs / 2);
     }
-    var chuteX = 8 + (bw + 14) / 2 - 20;
+    var minX = cw / 2 + 4, maxX = ww - cw / 2 - 4;
     function wait(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
-    function moveX(x, ms) { claw.style.transition = 'left ' + ms + 'ms ease-in-out'; claw.style.left = x + 'px'; return wait(ms + 40); }
+    function moveX(cx, ms) { cx = Math.max(minX, Math.min(maxX, cx)); claw.style.transition = 'left ' + ms + 'ms ease-in-out'; claw.style.left = (cx - cw / 2) + 'px'; return wait(ms + 40); }
     function lineTo(h, ms) { line.style.transition = 'height ' + ms + 'ms ease-in-out'; line.style.height = h + 'px'; return wait(ms + 40); }
+    function setClosed(c) { openI.style.display = c ? 'none' : 'block'; closedI.style.display = c ? 'block' : 'none'; }
     function burst(cx, cy, color) {
       var fx = $('cm-fx'), em = ['🖼️', '✨', '💖', '⭐', '🎁', '💫'];
-      for (var k = 0; k < 26; k++) {
-        var p = document.createElement('div'), a = Math.random() * Math.PI * 2, d = 70 + Math.random() * 130;
+      for (var k = 0; k < 28; k++) {
+        var p = document.createElement('div'), a = Math.random() * Math.PI * 2, d = 60 + Math.random() * 130;
         p.textContent = em[k % em.length];
         p.style.cssText = 'position:absolute;left:' + cx + 'px;top:' + cy + 'px;font-size:' + (16 + Math.random() * 14) + 'px;transition:transform .9s cubic-bezier(.1,.7,.3,1),opacity .9s ease-in;transform:translate(-50%,-50%);opacity:1;';
         fx.appendChild(p);
@@ -898,41 +901,49 @@
       fx.appendChild(fl); setTimeout(function () { fl.style.transform = 'scale(2.4)'; fl.style.opacity = '0'; }, 30);
       setTimeout(function () { fx.innerHTML = ''; }, 1200);
     }
-    var running = false;
-    btn.onclick = function () {
+    var running = false, h0 = 10;
+    line.style.height = h0 + 'px';
+    function start() {
       if (running) return; running = true;
       btn.style.animation = 'none'; btn.disabled = true; btn.style.opacity = '.5'; btn.textContent = '뽑는 중…';
+      $('cm-hit').style.animation = 'none'; $('cm-hit').style.boxShadow = 'none';
       var target = Math.floor(Math.random() * BOXN);
-      var mid = [W * 0.2, W * 0.75, W * 0.4, W * 0.62];
+      var mid = [ww * 0.2, ww * 0.8, ww * 0.4, ww * 0.65];
       msg.textContent = '갈고리가 움직여요…';
       (async function () {
         for (var m = 0; m < mid.length; m++) await moveX(mid[m], 480);
         await moveX(xs[target], 520);
         msg.textContent = '내려간다!';
-        var pileTop = H - 78 - 70 + 4;           // 상자 위쪽 y
-        var drop = pileTop - 46 - 34 + 22;
-        await lineTo(drop, 800);
-        claw.classList.add('closed'); await wait(450);
-        var bx = boxes[target]; hold.appendChild(bx);
-        bx.style.cssText = 'position:absolute;left:0;top:0;width:' + bw + 'px;height:' + bw + 'px;';
+        var h1 = Math.max(h0 + 20, wh - bs * 1.1 - spH * 0.85);
+        await lineTo(h1, 800);
+        setClosed(true); await wait(450);
+        var bx = boxes[target], pr = bx.getBoundingClientRect(), gr = claw.getBoundingClientRect();
+        hold.appendChild(bx);
+        bx.style.cssText = 'position:absolute;left:' + ((cw - bs) / 2) + 'px;top:' + (spH * 0.7) + 'px;width:' + bs + 'px;height:' + bs + 'px;object-fit:contain;filter:hue-rotate(' + hues[target] + 'deg);';
         msg.textContent = '잡았다!';
-        await lineTo(36, 800);
-        await moveX(chuteX, 800);
-        claw.classList.remove('closed'); await wait(200);
-        // 상자를 꺼내는 곳으로 떨어뜨림
-        var rect = cm.getBoundingClientRect(), br = bx.getBoundingClientRect();
-        cm.appendChild(bx);
-        bx.style.cssText = 'position:absolute;left:' + (br.left - rect.left) + 'px;top:' + (br.top - rect.top) + 'px;width:' + bw + 'px;height:' + bw + 'px;transition:top .45s cubic-bezier(.5,0,1,.6);z-index:5;';
+        await lineTo(h0, 800);
+        await moveX(minX, 800);
+        setClosed(false); await wait(150);
+        // 상자 떨어뜨림 → 꺼내는 곳에 나타남
+        var fall = bx.getBoundingClientRect(), wr = $('cm-win').getBoundingClientRect();
+        $('cm-win').appendChild(bx);
+        bx.style.cssText = 'position:absolute;left:' + (fall.left - wr.left) + 'px;top:' + (fall.top - wr.top) + 'px;width:' + bs + 'px;height:' + bs + 'px;object-fit:contain;filter:hue-rotate(' + hues[target] + 'deg);transition:top .5s cubic-bezier(.5,0,1,.6),opacity .3s .3s;z-index:3;';
         await wait(30);
-        var fy = H - 8 - 62 + 6; bx.style.top = fy + 'px'; await wait(520);
+        bx.style.top = (wh + 4) + 'px'; bx.style.opacity = '0'; await wait(620);
+        bx.remove();
+        var ch = $('cm-chute'), cb = document.createElement('img');
+        cb.src = RAW + 'box-piece-gacha.png'; cb.alt = '';
+        var cbs = Math.round(bs * 1.35);
+        cb.style.cssText = 'position:absolute;left:0;top:0;width:' + cbs + 'px;height:' + cbs + 'px;object-fit:contain;transform:translate(-50%,-50%) scale(.2);transition:transform .35s cubic-bezier(.2,1.6,.4,1);filter:hue-rotate(' + hues[target] + 'deg);';
+        ch.appendChild(cb); await wait(30); cb.style.transform = 'translate(-50%,-50%) scale(1)'; await wait(450);
         msg.textContent = '두근두근…';
-        bx.style.animation = 'cmShake .6s ease-in-out 2'; await wait(1250);
+        cb.style.transition = 'none'; cb.style.animation = 'cmShake .6s ease-in-out 2'; await wait(1250);
         // 결과 결정 + 가방에 넣기
         var st = boxLoad(), rr = boxRoll(), total = rr.n + st.bonus, ok = false;
         try { ok = !!addToBag(PIECE_EMOJI, PIECE_NAME, 'piece', total, '프리미엄 카드 조각 · ' + PIECE_GOAL + '개를 모으면 더보기 > 프리미엄 카드에서 교환'); } catch (e) {}
         var res = $('cm-res');
         if (!ok) {
-          bx.remove();
+          cb.remove();
           res.style.display = 'flex';
           res.innerHTML = '<div style="text-align:center;padding:20px;"><div style="font-size:15px;font-weight:900;color:#ff9a9a;">가방이 꽉 차서 못 열었어요</div><div style="font-size:12px;margin-top:6px;color:#ddd;">슬롯을 비우면 다시 뽑을 수 있어요</div><button id="cm-close" style="margin-top:14px;padding:12px 26px;border:none;border-radius:12px;background:linear-gradient(135deg,#FF6B9D,#C084FC);color:#fff;font-size:14px;font-weight:900;font-family:inherit;">닫기</button></div>';
           $('cm-close').onclick = function () { boxSnooze = Date.now() + 60000; ov.remove(); };
@@ -941,10 +952,10 @@
         boxSave({ n: Math.max(0, st.n - BOX_NEED), bonus: 0 });
         if (typeof saveAll === 'function') saveAll();
         try { if (window.pocaSfx && pocaSfx.play) pocaSfx.play('rarePick'); } catch (e) {}
-        var cr = bx.getBoundingClientRect();
-        bx.style.animation = 'none'; bx.style.transition = 'transform .25s,opacity .25s'; bx.style.transform = 'scale(1.8)'; bx.style.opacity = '0';
-        burst(cr.left - rect.left + bw / 2, cr.top - rect.top + bw / 2, rr.tier.color);
-        await wait(700);
+        var cr = cb.getBoundingClientRect(), mr = cm.getBoundingClientRect();
+        cb.style.animation = 'none'; cb.style.transition = 'transform .25s,opacity .25s'; cb.style.transform = 'translate(-50%,-50%) scale(2)'; cb.style.opacity = '0';
+        burst(cr.left - mr.left + cr.width / 2, cr.top - mr.top + cr.height / 2, rr.tier.color);
+        await wait(800);
         var have = pieceCount();
         res.style.display = 'flex';
         res.innerHTML = '<div style="text-align:center;padding:20px;animation:cmPop .5s ease-out;">' +
@@ -955,7 +966,9 @@
           '<button id="cm-ok" style="margin-top:16px;padding:12px 34px;border:none;border-radius:12px;background:linear-gradient(135deg,#FF6B9D,#C084FC);color:#fff;font-size:15px;font-weight:900;font-family:inherit;">확인</button></div>';
         $('cm-ok').onclick = function () { ov.remove(); hud(); };
       })();
-    };
+    }
+    btn.onclick = start;
+    $('cm-hit').onclick = start;
   }
   setInterval(function () {
     try { if (MAP && MAP.pieces && $('bc-layer') && !$('bc-panel') && Date.now() > boxSnooze && boxLoad().n >= BOX_NEED) boxOpen(); } catch (e) {}
