@@ -114,6 +114,8 @@
     // ───── 매니저 ─────
     main_mgr_actor: { title:'배우 전담 매니저', desc:'🎭 드라마 촬영을 한 번 하면 윤서진 매니저가 찾아와. 맵 → 광장 → 🎤 기획사 매니저 카드에서 만나보자. 드라마 출연료가 올라가.',
       condition:'q2_mgr_actor', rewardCoins:1000, rewardExp:150, type:'main', detect:function () { return !!(J('ph_manager', {}) || {}).actMet; } },
+    main_mgr_top: { title:'탑스타 전담 매니저', desc:'🌟 탑스타가 되면 차민재 매니저가 찾아와. 맵 → 광장 → 🎤 기획사 매니저 카드에서 만나보자. 출연료가 오르고 수익 한도가 늘어나.',
+      condition:'q2_mgr_top', rewardCoins:5000, rewardExp:600, type:'main', detect:function () { return !!(J('ph_manager', {}) || {}).topMet; } },
     main_mgr_event: { title:'매니저 사건 사고', desc:'매니저를 만난 뒤 플레이하다 보면 간식·기사·스캔들 같은 사건이 터져. 선택지를 골라 첫 사건을 해결해봐. 경험치 보상이 있어!',
       condition:'q2_mgr_event', rewardCoins:1500, rewardExp:200, type:'main', detect:function () { return ((J('ph_mgrevent', {}) || {}).count || 0) >= 1; } },
     main_mgr_road: { title:'로드 매니저 계약', desc:'(Lv.12~) ⋯ 더보기 → 🚗 로드 매니저. 박현수 매니저를 만나 계약하면 대신 심부름을 다녀와 줘.',

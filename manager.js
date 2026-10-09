@@ -86,7 +86,7 @@
     if (load().actReady) return true;
     try { var d = JSON.parse(localStorage.getItem('ph_drama') || '{}'); return (d.shoots || 0) >= 1; } catch (e) { return false; }
   }
-  window.__actorPayMult = function () { return actorMet() ? 1 + ACT.pay / 100 : 1; };
+  window.__actorPayMult = function () { return (actorMet() ? 1 + ACT.pay / 100 : 1) * (typeof topMet === 'function' && topMet() ? 1 + TOP.pay / 100 : 1); };
   window.addEventListener('ph-drama-shot', function () { var s = load(); s.actReady = true; save(s); });
   function actAvatar(px) {
     return '<span style="position:relative;display:inline-flex;align-items:center;justify-content:center;width:' + px + 'px;height:' + px + 'px;border-radius:50%;background:linear-gradient(135deg,#be123c,#C084FC);overflow:hidden;font-size:' + Math.round(px * 0.55) + 'px;flex:none;">🎭' +
@@ -115,6 +115,48 @@
     draw();
   }
 
+  // ════════ 🌟 4단계: 탑스타 전담 매니저 (탑스타가 한 명이라도 나오면 만나요) ════════
+  var TOP = { name: '차민재', title: '탑스타 전담 매니저', img: 'manager-topstar.png?v=1', pay: 10, cap: 8 };   // 드라마 출연료 +pay% · 기획사 수익 쌓이는 한도 +cap시간
+  var TOP_STORY = [
+    '드디어 정상에 올랐구나. 나는 탑스타 전담 매니저 ' + TOP.name + '이야.',
+    '여기부터는 일정이 달라져. 잡지, 방송, 시상식… 사방에서 연락이 올 거야. 그걸 걸러내는 게 내 일이지.',
+    '바쁜 스타가 매번 사무실에 들를 순 없잖아. 수익은 내가 묶어서 넉넉하게 보관해 둘게. 이제 쌓이는 한도가 ' + TOP.cap + '시간 늘어나.',
+    '촬영 현장에는 내가 먼저 가서 대우도 협상해 둘 거야. 드라마 출연료가 +' + TOP.pay + '% 더 붙을 거고.',
+    '자, 스타답게 가자. 나머지는 나한테 맡겨.'
+  ];
+  function topMet() { return !!load().topMet; }
+  function topReady() {
+    if (load().topReady) return true;
+    try { var d = JSON.parse(localStorage.getItem('ph_drama') || '{}'); return !!(d.star && Object.keys(d.star).some(function (k) { return d.star[k]; })); } catch (e) { return false; }
+  }
+  window.__incomeCapBonus = function () { return topMet() ? TOP.cap : 0; };
+  function topAvatar(px) {
+    return '<span style="position:relative;display:inline-flex;align-items:center;justify-content:center;width:' + px + 'px;height:' + px + 'px;border-radius:50%;background:linear-gradient(135deg,#f59e0b,#C084FC);overflow:hidden;font-size:' + Math.round(px * 0.5) + 'px;flex:none;">🌟' +
+      '<img src="' + TOP.img + '" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 25%;" onload="this.parentNode.style.fontSize=\'0\'" onerror="this.remove()"></span>';
+  }
+  function showTopStory() {
+    if (document.getElementById('mgr-story')) return;
+    var i = 0, ov = document.createElement('div'); ov.id = 'mgr-story';
+    ov.style.cssText = 'position:fixed;inset:0;z-index:1300;background:rgba(0,0,0,.85);display:flex;align-items:flex-end;justify-content:center;padding:16px 16px 40px;' + FONT;
+    document.body.appendChild(ov);
+    function draw() {
+      var last = i >= TOP_STORY.length - 1;
+      ov.innerHTML = '<div style="width:100%;max-width:360px;"><div style="text-align:center;margin-bottom:14px;">' + topAvatar(130) + '</div>' +
+        '<div style="background:linear-gradient(135deg,#1a1a2e,#3b2a05);border:2px solid #fbbf24;border-radius:18px;padding:16px 18px;color:#fff;">' +
+        '<div style="font-size:12px;font-weight:900;color:#fde68a;margin-bottom:6px;">🌟 ' + esc(TOP.name) + ' <span style="color:#aaa;font-weight:400;">· ' + esc(TOP.title) + '</span></div>' +
+        '<div style="font-size:14px;line-height:1.7;min-height:72px;">' + esc(TOP_STORY[i]) + '</div>' +
+        '<div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px;"><span style="font-size:11px;color:#888;">' + (i + 1) + ' / ' + TOP_STORY.length + '</span>' +
+        '<button id="mgr-next" style="border:none;border-radius:12px;padding:10px 20px;font-weight:900;font-size:14px;color:#fff;cursor:pointer;background:linear-gradient(135deg,#f59e0b,#C084FC);' + FONT + '">' + (last ? '계약하기' : '다음') + '</button></div></div></div>';
+      ov.querySelector('#mgr-next').onclick = function () {
+        if (!last) { i++; draw(); return; }
+        var s = load(); s.topMet = true; s.topMetAt = Date.now(); save(s); ov.remove();
+        if (typeof showBagToast === 'function') showBagToast('🌟 ' + TOP.name + ' 매니저가 함께해요! 출연료 +' + TOP.pay + '% · 수익 한도 +' + TOP.cap + '시간');
+        var c = document.getElementById('mgr-card'); if (c) { var n = document.createElement('div'); n.innerHTML = cardHtml(); c.replaceWith(n.firstChild); }
+      };
+    }
+    draw();
+  }
+
   // ════════ 기획사 화면 / 데뷔 도전 화면에 매니저 표시 ════════
   function cardHtml() {
     var met = !!load().met;
@@ -130,6 +172,14 @@
       h += '<div id="mgr-act-meet" style="display:flex;align-items:center;gap:10px;margin-top:8px;padding:8px;border-radius:12px;background:rgba(251,113,133,.15);border:1.5px dashed #fb7185;cursor:pointer;">' + actAvatar(40) +
         '<div style="flex:1;font-size:12px;color:#fff;font-weight:900;">🎭 배우 전담 매니저가 찾아왔어요!<div style="font-size:10px;color:#fda4af;font-weight:400;">눌러서 만나보기</div></div></div>';
     }
+    if (topMet()) {
+      h += '<div style="display:flex;align-items:center;gap:10px;margin-top:8px;padding-top:8px;border-top:1px solid rgba(251,191,36,.35);">' + topAvatar(44) +
+        '<div style="flex:1;min-width:0;"><div style="font-size:13px;font-weight:900;color:#fff;">' + esc(TOP.name) + ' <span style="font-size:11px;color:#fde68a;font-weight:400;">' + esc(TOP.title) + '</span></div>' +
+        '<div style="font-size:11px;color:#fef3c7;margin-top:2px;">드라마 출연료 <b style="color:#FFD700;">+' + TOP.pay + '%</b> · 수익 한도 <b style="color:#FFD700;">+' + TOP.cap + '시간</b></div></div></div>';
+    } else if (topReady()) {
+      h += '<div id="mgr-top-meet" style="display:flex;align-items:center;gap:10px;margin-top:8px;padding:8px;border-radius:12px;background:rgba(251,191,36,.15);border:1.5px dashed #fbbf24;cursor:pointer;">' + topAvatar(40) +
+        '<div style="flex:1;font-size:12px;color:#fff;font-weight:900;">🌟 탑스타 전담 매니저가 찾아왔어요!<div style="font-size:10px;color:#fde68a;font-weight:400;">눌러서 만나보기</div></div></div>';
+    }
     (function () {          // 🚗 로드 매니저 (road-manager.js): 기획사에서도 바로 파견 화면으로
       var T = window.__roadMgrTest, lv = plv(), RM = 12;
       if (!T) return;
@@ -142,7 +192,7 @@
         '<div style="flex:1;min-width:0;"><div style="font-size:13px;font-weight:900;color:#fff;">박현수 <span style="font-size:11px;color:#6ee7b7;font-weight:400;">로드 매니저</span></div>' +
         '<div style="font-size:11px;color:#d1fae5;margin-top:2px;">' + (lock ? '🔒 ' : '') + line + '</div></div></div>';
     })();
-    h += '<div style="display:flex;gap:6px;margin-top:8px;">' + LOCKED.filter(function (l) { return l.icon !== '🎭' || !(actorMet() || actorReady()); }).map(function (l) {
+    h += '<div style="display:flex;gap:6px;margin-top:8px;">' + LOCKED.filter(function (l) { return (l.icon !== '🎭' || !(actorMet() || actorReady())) && (l.icon !== '🌟' || !(topMet() || topReady())); }).map(function (l) {
       return '<div style="flex:1;text-align:center;padding:6px 2px;border-radius:10px;background:rgba(0,0,0,.25);opacity:.75;"><div style="font-size:16px;">' + l.icon + '🔒</div><div style="font-size:9px;color:#aaa;line-height:1.3;margin-top:2px;">' + esc(l.title.replace(' 전담 매니저', '')) + '<br>매니저</div></div>';
     }).join('') + '</div></div>';
     return h;
@@ -174,6 +224,7 @@
   }
 
   document.addEventListener('click', function (e) { if (e.target && e.target.closest && e.target.closest('#mgr-act-meet')) showActorStory(); }, true);
+  document.addEventListener('click', function (e) { if (e.target && e.target.closest && e.target.closest('#mgr-top-meet')) showTopStory(); }, true);
   document.addEventListener('click', function (e) { if (e.target && e.target.closest && e.target.closest('#mgr-road') && typeof window.openRoadManager === 'function') window.openRoadManager(); }, true);
   var lastCid = '';
   document.addEventListener('click', function (e) { var b = e.target && e.target.closest && e.target.closest('[data-debut]'); if (b) lastCid = b.getAttribute('data-debut'); }, true);
@@ -181,5 +232,5 @@
   var tm = null;
   new MutationObserver(function () { if (tm) return; tm = setTimeout(function () { tm = null; decorate(); }, 120); }).observe(document.body, { childList: true, subtree: true });
 
-  window.__manager = { load: load, bonus: BONUS, showStory: showStory, showActorStory: showActorStory };
+  window.__manager = { load: load, bonus: BONUS, showStory: showStory, showActorStory: showActorStory, showTopStory: showTopStory };
 })();

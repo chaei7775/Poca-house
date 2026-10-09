@@ -163,6 +163,11 @@
       when: function () { var d = J('ph_drama', {}) || {}; return keys(d.fame).some(function (k) { return d.fame[k] > 0; }) || keys(d.star).some(function (k) { return d.star[k]; }); },
       done: function () { var d = J('ph_drama', {}) || {}; return keys(d.star).some(function (k) { return d.star[k]; }); }, reward: 3000,
       go: function () { goTo('map'); }, target: '#nav-map' },
+    { id: 'mgr_top', icon: '🌟', title: '탑스타 전담 매니저 만나기',
+      hint: '탑스타가 한 명이라도 나오면 🌟 탑스타 전담 매니저 차민재가 찾아와요. 맵 → 광장 → 🎤 기획사의 매니저 카드에서 만나요. 출연료가 오르고 수익이 쌓이는 한도가 늘어나요!',
+      when: function () { var m = J('ph_manager', {}) || {}; var d = J('ph_drama', {}) || {}; return !!(m.topReady || m.topMet) || keys(d.star).some(function (k) { return d.star[k]; }); },
+      done: function () { return !!(J('ph_manager', {}) || {}).topMet; }, reward: 1500,
+      go: function () { if (window.__manager && window.__manager.showTopStory) window.__manager.showTopStory(); else if (typeof openAgency === 'function') openAgency(); else goTo('map'); }, target: '#nav-map' },
     { id: 'mgr_actor', icon: '🎭', title: '배우 전담 매니저 만나기',
       hint: '드라마 촬영을 한 번 하면 🎭 배우 전담 매니저 윤서진이 찾아와요. 맵 → 광장 → 🎤 기획사의 매니저 카드에서 만나요. 드라마 출연료가 올라가요!',
       when: function () { var m = J('ph_manager', {}) || {}; return !!(m.actReady || m.actMet); },
@@ -317,7 +322,7 @@
 
 
   // 🔒 unlock-gate.js 의 해금 레벨과 맞춤: 레벨이 모자란 단계는 길잡이가 건너뛴다 (잠긴 곳으로 보내지 않게)
-  var STEP_LV = { agency: 5, explore: 3, school: 3, lv3: 3, room: 3, fishing: 3, mystery: 3, recombine: 12, hidden: 12, premium: 12, prem_equip: 12, enhance: 10, transcend: 10, studio: 15, album: 15, royalty: 15, goods: 15, goods_equip: 15, drama: 8, star_fame: 8, star_top: 8, cf: 10, fancafe: 12, invest: 20, invest_done: 20, invest_grade: 20 };
+  var STEP_LV = { agency: 5, explore: 3, school: 3, lv3: 3, room: 3, fishing: 3, mystery: 3, recombine: 12, hidden: 12, premium: 12, prem_equip: 12, enhance: 10, transcend: 10, studio: 15, album: 15, royalty: 15, goods: 15, goods_equip: 15, drama: 8, star_fame: 8, star_top: 8, mgr_top: 8, cf: 10, fancafe: 12, invest: 20, invest_done: 20, invest_grade: 20 };
   STEPS.forEach(function (st) {
     var need = STEP_LV[st.id]; if (!need) return;
     var prev = st.when;

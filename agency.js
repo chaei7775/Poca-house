@@ -34,6 +34,7 @@
   var REFUND_RATE = 0.5;        // 실패했을 때 돌려받는 재료 비율
   var INCOME_PER_HOUR = 10000;  // 데뷔한 캐릭터 1명당 시간당 기본 수익(코인) — 히든카드 강화/초월하면 enhance.js가 배율을 곱함
   var INCOME_CAP_HOURS = 8;     // 정산 안 하고 쌓아둘 수 있는 최대 시간
+  function capHours() { var x = 0; try { if (typeof window.__incomeCapBonus === 'function') x = Number(window.__incomeCapBonus()) || 0; } catch (e) {} return INCOME_CAP_HOURS + x; }   // 탑스타 매니저(manager.js)가 한도를 늘려줌
   var STORAGE_KEY = 'ph_agency';
 
   // ════════ 순수 로직 (화면 없이도 테스트 가능) ════════
@@ -65,7 +66,7 @@
     var sum = 0;
     Object.keys(debutTimes || {}).forEach(function (cid) {
       var hours = Math.max(0, (now - debutTimes[cid]) / 3600000);
-      sum += Math.min(INCOME_CAP_HOURS, hours) * INCOME_PER_HOUR * incomeMult(cid);
+      sum += Math.min(capHours(), hours) * INCOME_PER_HOUR * incomeMult(cid);
     });
     return Math.floor(sum);
   }
@@ -164,7 +165,7 @@
 
     var settle = debutedN === 0
       ? '<div style="font-size:12px;color:#aaa;line-height:1.6;">아직 데뷔한 아이돌이 없어요.<br>준비물을 모아 연습생을 데뷔시켜 보세요!</div>'
-      : '<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;"><div><div style="font-size:12px;color:#aaa;">쌓인 수익 (최대 ' + INCOME_CAP_HOURS + '시간치)</div><div style="font-size:20px;font-weight:900;color:#FFD700;">🍔 ' + money.toLocaleString() + '</div></div>' +
+      : '<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;"><div><div style="font-size:12px;color:#aaa;">쌓인 수익 (최대 ' + capHours() + '시간치)</div><div style="font-size:20px;font-weight:900;color:#FFD700;">🍔 ' + money.toLocaleString() + '</div></div>' +
         '<button id="agency-claim" style="' + BTN + 'padding:12px 16px;background:' + (money > 0 ? 'linear-gradient(135deg,#FFD700,#F59E0B)' : 'rgba(255,255,255,0.1)') + ';color:' + (money > 0 ? '#3a2600' : '#888') + ';font-size:14px;">정산하기</button></div>';
 
     ov.innerHTML = '<div style="max-width:430px;margin:0 auto;padding:18px 16px 40px;">' +
