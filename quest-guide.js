@@ -31,6 +31,7 @@
     var d = (J('ph_agency', {}) || {}).done || {};
     return keys(d).filter(function (k) { return d[k]; }).length;
   }
+  function lessonN(d) { var n = 0; if (d && d.count) keys(d.count).forEach(function (k) { n += d.count[k] || 0; }); return n; }
   function sionDebut() { var d = (J('ph_agency', {}) || {}); return !!((d.done && d.done.sion) || (d.debut && d.debut.sion)); }
   function cfDone() {
     var c = J('ph_cf', {}) || {};
@@ -246,20 +247,20 @@
       when: function () { try { return Number(playerLevel) >= 10; } catch (e) { return false; } },
       done: function () { var d = J('ph_royalty', {}); return !!(d && ((d.slots && d.slots.length) || d.ever)); }, reward: 1500,
       go: function () { goTo('map'); }, target: '#nav-map' },
-    { id: 'lesson1', icon: '🎓', title: '시온에게 첫 레슨 시키기',
-      hint: '더보기 → 📅 스케줄·식사 → 시온 화면 아래 🎓 레슨! 레슨을 하면 능력치가 영구히 올라가요. (하루 1번)',
-      when: function () { try { return Number(playerLevel) >= 12 && sionDebut(); } catch (e) { return false; } },
-      done: function () { var d = J('ph_training', {}); return !!(d && d.count && (d.count.sion || 0) >= 1); }, reward: 500,
+    { id: 'lesson1', icon: '🎓', title: '아이돌에게 첫 레슨 시키기',
+      hint: '더보기 → 📅 스케줄·식사 → 데뷔한 아이돌 화면 아래 🎓 레슨! 레슨을 하면 능력치가 영구히 올라가요. (하루 1번)',
+      when: function () { try { return Number(playerLevel) >= 12 && debutCount() >= 1; } catch (e) { return false; } },
+      done: function () { var d = J('ph_training', {}); return lessonN(d) >= 1; }, reward: 500,
       go: function () { if (typeof window.openMealSchedule === 'function') window.openMealSchedule(); else goTo('home'); }, target: '#nav-shop' },
     { id: 'sweet1', icon: '🧁', title: '디저트 공방에서 간식 만들기',
       hint: '📅 스케줄·식사 → 디저트 공방! 탐험 재료로 별빛 마카롱 같은 간식을 만들어 가방에 넣어요.',
       when: function () { try { return Number(playerLevel) >= 13; } catch (e) { return false; } },
       done: function () { var d = J('ph_sweets', {}); return !!(d && d.cooked && Object.keys(d.cooked).some(function (k) { return d.cooked[k] > 0; })); }, reward: 600,
       go: function () { if (typeof window.openMealSchedule === 'function') window.openMealSchedule(); else goTo('home'); }, target: '#nav-shop' },
-    { id: 'lesson5', icon: '📚', title: '시온 레슨 5번 하기',
+    { id: 'lesson5', icon: '📚', title: '아이돌 레슨 5번 하기',
       hint: '하루 1번씩 꾸준히! 기분이 좋을 때 레슨하면 더 많이 올라요. 간식을 먹이면 기분이 올라가요.',
-      when: function () { try { return Number(playerLevel) >= 14 && sionDebut(); } catch (e) { return false; } },
-      done: function () { var d = J('ph_training', {}); return !!(d && d.count && (d.count.sion || 0) >= 5); }, reward: 1200,
+      when: function () { try { return Number(playerLevel) >= 14 && debutCount() >= 1; } catch (e) { return false; } },
+      done: function () { var d = J('ph_training', {}); return lessonN(d) >= 5; }, reward: 1200,
       go: function () { if (typeof window.openMealSchedule === 'function') window.openMealSchedule(); else goTo('home'); }, target: '#nav-shop' },
     { id: 'sweet_fed', icon: '🍬', title: '아이돌에게 간식 먹이기',
       hint: '만든 간식을 먹이면 기분이 쑥! 아이돌마다 좋아하는 간식이 있어요 (좋아하면 기분 +4 더).',
