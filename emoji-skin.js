@@ -21,7 +21,7 @@
     '💪': 'muscle', '👑': 'crown', '🌹': 'rose', '🌸': 'blossom', '🌷': 'blossom', '🦋': 'butterfly',
     // 생활/UI
     '🔒': 'lock', '🔥': 'fire', '⚡': 'bolt', '🛡': 'shield', '🚨': 'siren', '🔮': 'crystal', '📖': 'book', '📘': 'book', '📚': 'book',
-    '📅': 'calendar', '📋': 'clipboard', '👗': 'dress', '🧵': 'thread', '☕': 'coffee', '🥤': 'drink', '🌙': 'moon', '💡': 'bulb', '🏠': 'house'
+    '📅': 'calendar', '📋': 'clipboard', '👗': 'dress', '🎽': 'dress', '🧵': 'thread', '☕': 'coffee', '🥤': 'drink', '🌙': 'moon', '💡': 'bulb', '🏠': 'house'
   };
   var KEYS = Object.keys(MAP);
   var RE = new RegExp('(?:' + KEYS.join('|') + ')\\uFE0F?', 'g');
