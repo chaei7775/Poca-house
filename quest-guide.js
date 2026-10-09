@@ -492,10 +492,22 @@
     document.head.appendChild(st);
   }
 
+  // 진행도: 지금 열려 있는(레벨·조건이 맞는) 퀘스트 중 끝낸 수 / 열린 수. (잠긴 퀘스트는 세지 않아서 레벨이 낮아도 '거의 다 끝남'처럼 안 보임)
+  function progressOf() {
+    var done = 0, total = 0;
+    STEPS.forEach(function (x) {
+      var d = false, open = true;
+      try { d = !!x.done(); } catch (e) {}
+      try { if (x.when && !x.when()) open = false; } catch (e) { open = false; }
+      if (d) { done++; total++; } else if (open) total++;
+    });
+    return { done: done, total: total };
+  }
   function cardHtml(idx) {
     var st = STEPS[idx];
-    var pct = Math.round((idx / STEPS.length) * 100);
-    return '<div class="qg-top"><span class="qg-label">🧭 다음 할 일</span><span class="qg-prog">' + idx + ' / ' + STEPS.length + '</span></div>' +
+    var pg = progressOf();
+    var pct = pg.total ? Math.round((pg.done / pg.total) * 100) : 0;
+    return '<div class="qg-top"><span class="qg-label">🧭 다음 할 일</span><span class="qg-prog">' + pg.done + ' / ' + pg.total + '</span></div>' +
       '<div class="qg-bar"><div style="width:' + pct + '%"></div></div>' +
       '<div class="qg-title">' + st.icon + ' ' + st.title + (st.reward ? ' <span style="font-size:11px;color:#F59E0B;">🍔+' + st.reward + '</span>' : '') + '</div>' +
       '<div class="qg-hint">' + hintOf(st) + '</div>' +
