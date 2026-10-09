@@ -189,7 +189,7 @@
   }
   function sweetImg(r, px) {
     return '<span style="position:relative;display:inline-block;width:' + px + 'px;height:' + px + 'px;font-size:' + Math.round(px * 0.8) + 'px;line-height:' + px + 'px;text-align:center;">' + r.emoji +
-      '<img src="' + ASSET + r.id + '.png" alt="" loading="lazy" decoding="async" style="position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:transparent;" onload="var p=this.parentNode;if(p&&p.firstChild&&p.firstChild.nodeType===3)p.firstChild.nodeValue=''" onerror="this.remove()"></span>';
+      '<img src="' + ASSET + r.id + '.png" alt="" loading="lazy" decoding="async" style="position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:transparent;" onload="var p=this.parentNode;if(p&&p.firstChild&&p.firstChild.nodeType===3)p.firstChild.nodeValue=\'\'" onerror="this.remove()"></span>';
   }
   function chip(label, val) {
     var c = val > 0 ? '#7ee8a5' : val < 0 ? '#ff8a8a' : '#777';
