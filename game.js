@@ -1297,12 +1297,19 @@ function renderAutoIdols() {
   const section = document.getElementById('auto-idols-section');
   if (section) section.style.display = 'none';
 }
+// 컬렉션은 카드가 수십 장이라 원본(2~3MB)을 다 받으면 폰(특히 아이폰 사파리)이 메모리 부족으로 꺼져요 → 작은 미리보기(cardthumb/)를 쓴다
+function cardThumbSrc(img) {
+  try {
+    if (typeof img === 'string' && img.indexOf(B) === 0 && img.slice(B.length).indexOf('/') === -1) return B + 'cardthumb/' + img.slice(B.length).replace(/\.[A-Za-z0-9]+$/, '.jpg');
+  } catch (e) {}
+  return img;
+}
 function renderCollection() {
   const grid = document.getElementById('collection-grid');
   document.getElementById('collection-count').textContent = `${owned.length} / ${CARDS.length} 보유`;
   grid.innerHTML = CARDS.map(card => {
     const isOwned = owned.includes(card.id);
-    return `<div class="card-item"><div style="aspect-ratio:3/4;background:#1a1a2e;position:relative;overflow:hidden;" class="${isOwned ? '' : 'card-locked'}">${isOwned && card.img ? `<img src="${card.img}" style="width:100%;height:100%;object-fit:cover;">` : '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:40px;">🎴</div>'}${!isOwned ? '<div class="card-locked-overlay">🔒</div>' : ''}</div><div class="card-item-info"><div class="card-item-name">${isOwned ? card.name : '???'}</div><div class="card-item-grade" style="color:${isOwned ? card.gradeColor : '#ccc'}">${card.grade}</div></div></div>`;
+    return `<div class="card-item"><div style="aspect-ratio:3/4;background:#1a1a2e;position:relative;overflow:hidden;" class="${isOwned ? '' : 'card-locked'}">${isOwned && card.img ? `<img src="${cardThumbSrc(card.img)}" loading="lazy" decoding="async" onerror="if(!this.dataset.f){this.dataset.f=1;this.src='${card.img}';}" style="width:100%;height:100%;object-fit:cover;">` : '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:40px;">🎴</div>'}${!isOwned ? '<div class="card-locked-overlay">🔒</div>' : ''}</div><div class="card-item-info"><div class="card-item-name">${isOwned ? card.name : '???'}</div><div class="card-item-grade" style="color:${isOwned ? card.gradeColor : '#ccc'}">${card.grade}</div></div></div>`;
   }).join('');
 }
 function renderHomeIdols() {
