@@ -31,29 +31,26 @@
     ov.appendChild(sheet);
     document.body.appendChild(ov);
     function draw() {
+      // 원래 가방 화면의 칸 그림/이름을 그대로 가져와서 똑같이 보이게 함
+      var g = $('bag-grid');
       var h = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;"><b style="font-size:16px;">🎒 내 가방</b><button id="mapbag-x" style="background:none;border:none;color:#fff;font-size:22px;">✕</button></div>';
-      h += '<div style="font-size:12px;color:#ffd6e8;margin-bottom:10px;">⚡ 스태미나 ' + stamina + ' / ' + STAMINA_MAX + ' · 음료를 눌러서 바로 마셔요</div>';
-      h += '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;">';
-      bagItems.forEach(function (it, i) {
-        var usable = it.type === 'drink';
-        var vis = it.img ? '<img src="' + it.img + '" loading="lazy" style="width:36px;height:36px;object-fit:contain;" onerror="this.style.display=\'none\'">' : '<div style="font-size:26px;">' + (it.emoji || '📦') + '</div>';
-        h += '<div data-i="' + i + '" style="position:relative;background:' + (usable ? 'rgba(96,165,250,.25)' : 'rgba(255,255,255,.08)') + ';border:1px solid ' + (usable ? '#60a5fa' : '#fff2') + ';border-radius:12px;padding:8px 2px;text-align:center;">' + vis +
-          '<div style="font-size:10px;margin-top:2px;line-height:1.2;word-break:keep-all;">' + String(it.name).replace(/[\u{1F300}-\u{1FFFF}]/gu, '').trim().slice(0, 7) + '</div>' +
-          '<div style="position:absolute;top:2px;right:4px;font-size:10px;font-weight:900;color:#ffd700;">' + (it.qty > 1 ? '×' + it.qty : '') + '</div></div>';
-      });
-      h += '</div>';
-      if (!bagItems.length) h += '<div style="text-align:center;opacity:.6;padding:24px;">가방이 비어 있어요</div>';
+      h += '<div style="font-size:12px;color:#ffd6e8;margin-bottom:10px;">⚡ 스태미나 ' + stamina + ' / ' + STAMINA_MAX + ' · 음료(파란 칸)를 눌러서 바로 마셔요</div>';
+      h += '<div id="mapbag-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;">' + (g ? g.innerHTML : '') + '</div>';
       sheet.innerHTML = h;
       var x = $('mapbag-x'); if (x) x.onclick = function () { ov.remove(); };
-      sheet.querySelectorAll('[data-i]').forEach(function (el) {
+      var slots = sheet.querySelectorAll('#mapbag-grid .bag-slot');
+      Array.prototype.forEach.call(slots, function (el, i) {
+        var it = bagItems[i];
+        if (!it) { el.style.display = 'none'; return; }
+        el.removeAttribute('onclick');
+        if (it.type === 'drink') el.style.outline = '2px solid #60a5fa';
         el.onclick = function () {
-          var it = bagItems[+el.getAttribute('data-i')];
-          if (!it) return;
-          if (it.type === 'drink' || it.type === 'crystal') { showBagItemDetail(+el.getAttribute('data-i')); }
-          else if (typeof showBagToast === 'function') showBagToast((it.emoji || '') + ' ' + it.name + (it.desc ? ' · ' + it.desc : '') + ' (맵 밖에서 쓰는 아이템이에요)');
+          if (it.type === 'drink' || it.type === 'crystal') showBagItemDetail(i);
+          else if (typeof showBagToast === 'function') showBagToast((it.emoji || '') + ' ' + it.name + ' · 맵 밖에서 쓰는 아이템이에요');
         };
       });
     }
+    try { if (typeof renderBag === 'function') renderBag(); } catch (e) {}
     draw();
     ov._redraw = draw;
   }
