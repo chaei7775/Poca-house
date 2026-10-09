@@ -367,37 +367,37 @@
     var fx = fan.x, fy = fan.y;
     if (id === 'sign') {
       addAt(fx, fy, '<div style="font-size:34px;">🖋</div>', 'animation:fsPen .95s ease-out forwards;', 1000);
-      setTimeout(function () { burst(fx, fy, ['✨', '💖', '⭐'], love ? 12 : 7, 64); }, 380);
+      setTimeout(function () { burst(fx, fy, ['🔆', '🎗', '🏵'], love ? 12 : 7, 64); }, 380);
     } else if (id === 'photo') {
       addAt(fx, fy, '', 'width:20px;height:20px;border-radius:50%;background:#fff;animation:fsFlashC .5s ease-out forwards;', 600);
       addAt(fx, fy, '<div style="width:36px;height:44px;background:#fff;border-radius:3px;padding:3px 3px 10px;box-shadow:0 3px 10px rgba(0,0,0,.5);">' +
         '<div style="width:100%;height:100%;background:linear-gradient(135deg,#FF6B9D,#C084FC);display:flex;align-items:center;justify-content:center;font-size:18px;">' + fan.emoji + '</div></div>',
         'animation:fsPolaroid 1.2s ease-in forwards;', 1250);
-      burst(fx, fy, ['🫱', '✨'], love ? 9 : 5, 56);
+      burst(fx, fy, ['🫱', '🔆'], love ? 9 : 5, 56);
     } else if (id === 'shake') {
       var mx = (fx + me.x) / 2, my = (fy + me.y) / 2;
       addAt(mx, my, '<div style="font-size:38px;">🫰</div>', 'animation:fsPulse .9s ease-out forwards;', 950);
-      setTimeout(function () { burst(mx, my, ['✨', '💫', '⭐'], love ? 12 : 7, 60); }, 350);
+      setTimeout(function () { burst(mx, my, ['🔆', '🏵', '🏵'], love ? 12 : 7, 60); }, 350);
     } else if (id === 'highlight' || id === 'wink' || id === 'encore' || id === 'rose' || id === 'finale') {
       var col = id === 'wink' ? 'rgba(255,205,90,.55)' : (id === 'encore' ? 'rgba(190,140,255,.55)' : (id === 'rose' ? 'rgba(255,90,120,.55)' : (id === 'finale' ? 'rgba(120,200,255,.55)' : 'rgba(255,120,170,.55)')));
       addAt(me.x, me.y, '', 'width:40px;height:40px;border-radius:50%;border:4px solid ' + col + ';background:' + col.replace('.55', '.18') + ';animation:fsFlashC .8s ease-out forwards;', 900);
       addAt(me.x, me.y, '<div style="font-size:34px;">' + skillById(id).icon + '</div>', 'animation:fsPulse .9s ease-out forwards;', 950);
-      setTimeout(function () { burst(fx, fy, id === 'wink' ? ['😘', '💖', '✨'] : (id === 'encore' ? ['🧨', '🎆', '⭐'] : (id === 'rose' ? ['🎠', '🌹', '🌸'] : (id === 'finale' ? ['🎑', '🎆', '🎇', '✨'] : ['🪩', '🎵', '✨']))), love ? 14 : 9, (id === 'encore' || id === 'finale') ? 100 : 70); }, 420);
+      setTimeout(function () { burst(fx, fy, id === 'wink' ? ['😘', '🎗', '🔆'] : (id === 'encore' ? ['🧨', '🎍', '🏵'] : (id === 'rose' ? ['🎠', '🌹', '🪅'] : (id === 'finale' ? ['🎑', '🎍', '🧿', '🔆'] : ['🪩', '🎐', '🔆']))), love ? 14 : 9, (id === 'encore' || id === 'finale') ? 100 : 70); }, 420);
     } else if (id === 'heart') {
       var h = addAt(me.x, me.y, '<div style="font-size:30px;">🫶</div>', 'transition:left .5s ease-in,top .5s ease-in;', 1300);
       if (h) setTimeout(function () { h.style.left = (fx * 100) + '%'; h.style.top = (fy * 100) + '%'; }, 30);
-      setTimeout(function () { burst(fx, fy, ['💗', '💖', '💕'], love ? 14 : 8, 70); }, 520);
+      setTimeout(function () { burst(fx, fy, ['🧧', '🎗', '🧧'], love ? 14 : 8, 70); }, 520);
     }
   }
 
   // ════════ 🎬 광역 스킬 컷인 (파밍 중인 포카 얼굴 + 스킬 이름) — 스킬마다 연출이 달라요 ════════
   //  mode: rise(아래→위) / fall(위→아래) / burst(가운데서 사방으로) / mix(burst+fall)
   var CUT = {
-    highlight: { rgb: '255,225,120', ms: 1300, from: 'left',  tilt: -3, parts: ['🎵','🎶','🪩','✨'], mode: 'rise',  n: 16, flash: 0.55, shake: 0.4, spot: true,  sub: '🪩 스포트라이트!' },
-    wink:      { rgb: '255,120,190', ms: 1300, from: 'right', tilt: 3,  parts: ['😘','💕','💗','✨'], mode: 'rise',  n: 26, flash: 0.45, shake: 0.3, big: '😘', sub: '' },
-    encore:    { rgb: '190,140,255', ms: 1700, from: 'left',  tilt: -2, parts: ['🧨','✨','⭐','🎇'], mode: 'burst', n: 36, flash: 0.75, shake: 0.5, conf: true, sub: '' },
-    rose:      { rgb: '255,90,130',  ms: 1800, from: 'top',   tilt: 0,  parts: ['🎠','🌸','🥀','💖'], mode: 'fall',  n: 30, flash: 0.5,  shake: 0.3, vig: true, sub: '' },
-    finale:    { rgb: '255,235,170', ms: 2100, from: 'zoom',  tilt: 0,  parts: ['🎑','🎇','✨','⭐','💫'], mode: 'mix', n: 46, flash: 0.95, shake: 0.7, conf: true, bars: true, sub: '' }
+    highlight: { rgb: '255,225,120', ms: 1300, from: 'left',  tilt: -3, parts: ['🎐','🎏','🪩','🔆'], mode: 'rise',  n: 16, flash: 0.55, shake: 0.4, spot: true,  sub: '🪩 스포트라이트!' },
+    wink:      { rgb: '255,120,190', ms: 1300, from: 'right', tilt: 3,  parts: ['😘','🧧','🧧','🔆'], mode: 'rise',  n: 26, flash: 0.45, shake: 0.3, big: '😘', sub: '' },
+    encore:    { rgb: '190,140,255', ms: 1700, from: 'left',  tilt: -2, parts: ['🧨','🔆','🏵','🧿','🔅','🪭'], mode: 'burst', n: 36, flash: 0.75, shake: 0.5, conf: true, sub: '' },
+    rose:      { rgb: '255,90,130',  ms: 1800, from: 'top',   tilt: 0,  parts: ['🎠','🪅','🥀','🎗'], mode: 'fall',  n: 30, flash: 0.5,  shake: 0.3, vig: true, sub: '' },
+    finale:    { rgb: '255,235,170', ms: 2100, from: 'zoom',  tilt: 0,  parts: ['🎑','🧿','🎍','🔆','🏵','🔅','🪭'], mode: 'mix', n: 46, flash: 0.95, shake: 0.7, conf: true, bars: true, sub: '' }
   };
   function cutFaceFile(cid) {
     var id = cid || (F && F.cid) || '';
