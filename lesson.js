@@ -68,6 +68,59 @@
       charm: ['카메라 앞에서 시선 두는 법을 배웠어.', '미소의 각도를 거울 앞에서 찾았어.', '무대 밖에서도 눈길이 가는 사람… 되고 싶어.']
     }
   };
+  LINES.minjun = {
+    vocal: ['목소리로 승부 보는 건 자신 있어. 오늘도 시원하게 질렀지!', '고음? 간단하지. 한 번 더 해볼까?', '내 노래가 공연장 끝까지 닿는 상상을 했어.'],
+    dance: ['동선은 내가 먼저 잡아. 거울 앞에서 한 시간 더 했어.', '스텝이 점점 내 것이 되고 있어. 이제 눈 감고도 해.', '파워풀하게! 바닥이 울릴 정도로 밟았어.'],
+    act:   ['카메라 앞에서도 당당하게. 대사가 입에 착 붙었어.', '감정 잡는 건 어렵지만, 눈빛은 자신 있어.', '연기도 결국 무대야. 장면을 장악해봤어.'],
+    fun:   ['예능은 내 체질이지! 분위기 띄우는 건 맡겨둬.', '애드리브가 술술 나왔어. 스태프들이 다 웃더라.', '리액션 하나로도 화면을 차지할 수 있다는 걸 배웠어.'],
+    charm: ['카메라가 나를 좋아하는 것 같아. 아니, 내가 카메라를 좋아하는 건가?', '시선 처리, 오늘은 완벽했지?', '자신감이 곧 매력이래. 그럼 나는 이미 반은 왔네.']
+  };
+  LINES.doyun = {
+    vocal: ['호흡이 짧아서 혼났어. 내일은 꼭 한 마디 더 늘릴 거야.', '음정이 흔들렸는데 다시 잡았어. 끝까지 해냈다.', '목이 쉴 때까지 해봤어. 후회 없어.'],
+    dance: ['박자 하나 놓치는 것도 용납 못 해. 백 번 해서 맞췄어.', '땀이 바닥에 뚝뚝 떨어졌지만 기분은 최고야.', '동작이 칼 같아졌대. 더 날카롭게 갈 거야.'],
+    act:   ['대본을 외우고 또 외웠어. 몸이 먼저 기억하더라.', '감정 연기는 아직 어색해. 그래도 피하진 않을 거야.', '한 장면을 열 번 넘게 다시 찍었어. 이번엔 진짜였어.'],
+    fun:   ['웃기는 건 약한데… 그래도 도전은 해봐야지!', '말이 꼬였지만 끝까지 밀어붙였어. 반응이 괜찮았어.', '예능도 승부야. 지지 않을 거야.'],
+    charm: ['카메라 앵글이 이렇게 중요한 줄 몰랐어. 연구했지.', '표정 근육 운동까지 했어. 노력은 배신 안 해.', '눈빛 하나로 끌어당기는 법을 조금 알 것 같아.']
+  };
+  LINES.harin = {
+    vocal: ['……앗, 목소리가 조금 커졌죠? 저도 놀랐어요.', '노래할 땐 떨리지 않아요. 이상하죠?', '선생님이 조금 더 자신 있게 불러보래요. 해볼게요.'],
+    dance: ['아직 어색하지만… 어제보다는 나아졌죠?', '동작이 크면 부끄러운데, 오늘은 끝까지 해냈어요.', '음악이 시작되면 이상하게 용기가 나요.'],
+    act:   ['다른 사람이 되어보는 건… 생각보다 편해요.', '눈물이 진짜로 났어요. 저도 깜짝 놀랐어요.', '대사 한 줄에도 마음을 담으라고 하셨어요.'],
+    fun:   ['예능은… 아직 너무 무서워요. 그래도 한 마디는 했어요!', '웃음소리가 들렸을 때 조금 뿌듯했어요.', '말하는 게 어렵지만, 조금씩 늘고 있는 것 같아요.'],
+    charm: ['카메라를 똑바로 보는 건 아직 부끄러워요.', '웃어보래서 웃었는데… 괜찮았나요?', '거울 속 제 모습이 조금 낯설지만 좋아요.']
+  };
+  LINES.yuna = {
+    vocal: ['목소리가 맑다고 해주셔서 하루 종일 기분이 좋았어요.', '높은 음에서 살짝 흔들렸지만, 웃으면서 끝냈어요!', '노래하다 보면 시간 가는 줄 몰라요.'],
+    dance: ['스텝이 꼬여서 웃음이 터졌어요. 그래도 재밌었어요!', '손끝까지 신경 쓰라고 하셨어요. 예쁘게 해볼게요.', '오늘은 한 번도 안 틀렸어요! 칭찬받았어요.'],
+    act:   ['대본 속 아이가 저랑 닮은 것 같아서 마음이 갔어요.', '감정이 올라오니까 눈물이 핑 돌더라고요.', '연기하는 건 상상하는 거랑 비슷해서 좋아요.'],
+    fun:   ['사람들이 웃어주면 저도 행복해져요!', '엉뚱한 대답을 했는데 다들 빵 터졌어요.', '예능은 긴장되지만 설레요.'],
+    charm: ['포즈 연습을 했어요. 쑥스럽지만 사진 속 제가 마음에 들어요.', '웃는 법도 연습이 필요하더라고요.', '카메라 앞에서 제일 예쁜 저를 찾는 중이에요.']
+  };
+  LINES.ara = {
+    vocal: ['…목소리에 마음을 얹는 거래. 조금 알 것 같아.', '노래 속 쓸쓸함이 나랑 닮았어. 그래서 오래 불렀어.', '숨을 아껴 쓰는 법을 배웠어. 여운이 길어졌대.'],
+    dance: ['몸이 이야기하는 방법을 배우는 중이야.', '느리게 움직여도 아름다울 수 있다는 걸 알았어.', '음악이 멈춘 뒤의 정적까지 춤이래. 어려워.'],
+    act:   ['다른 사람의 슬픔을 내 안에 들여놓는 일이었어. 무거웠지만 좋았어.', '대사 사이의 침묵이 가장 많은 말을 하더라.', '연기가 끝나고도 한참 그 사람으로 있었어.'],
+    fun:   ['웃기는 건 어렵네. 그래도 웃는 사람들 얼굴은 좋더라.', '엉뚱한 말을 했는데 의외로 반응이 좋았어.', '예능은 낯선 풍경 같아. 천천히 익숙해지는 중이야.'],
+    charm: ['시선이 닿는 곳마다 분위기가 달라진다는 걸 배웠어.', '조명 아래서 나를 마주 보는 일이 조금 덜 낯설어.', '말없이도 전해지는 게 있다고 하더라.']
+  };
+  var BIG_LINES = {
+    sion: '…지금, 소리가 하늘에 닿은 것 같았어!', minjun: '봤지? 이게 내 진짜 실력이야!', doyun: '이거야! 이 느낌 절대 안 잊어!',
+    harin: '앗… 방금 저 대단했던 것 같아요!', yuna: '와아! 저 방금 번개 맞은 것 같아요!', ara: '…알겠어. 지금, 뭔가 열렸어.'
+  };
+  // 🎓 스승·코치: 레슨 전에 고른다. 비쌀수록 많이 오르고 대성공 확률이 높다
+  var BIG_BASE = 0.10, BIG_MOOD = 0.08;     // 대성공(상승 ×2) 기본 확률 / 기분 좋을 때 추가
+  var TIERS = [
+    { name: '신입', icon: '🧑‍🏫', cost: 1, gain: 1.0, big: 0 },
+    { name: '베테랑', icon: '👩‍🏫', cost: 3, gain: 1.4, big: 0.10 },
+    { name: '전설의', icon: '🧙', cost: 8, gain: 2.0, big: 0.20 }
+  ];
+  var COACH_SUBJ = { vocal: '보컬 코치', dance: '댄스 코치', act: '연기 코치', fun: '예능 코치', charm: '워킹 코치' };
+  var COACH_LINES = [
+    ['기본기부터 차근차근 가자.', '좋아, 한 번 더!', '포기하지 말고 끝까지.'],
+    ['여기서 한 단계 더 올라가자. 따라와.', '포인트만 짚어줄게. 바로 달라질 거야.', '프로는 디테일이야.'],
+    ['…좋은 재목이군. 내 모든 걸 가르쳐주마.', '한 번 보면 알지. 너는 더 갈 수 있어.', '이 정도 열정이라면 무대가 너를 기다린다.']
+  ];
+  function coachName(t, k) { return TIERS[t].name + ' ' + COACH_SUBJ[k]; }
   var TIRED_LINE = '…오늘은 몸이 말을 안 들어. 그래도 끝까지 해봤어.';
   var GLOW_LINE = '기분이 좋아서 그런지 오늘은 술술 들어왔어!';
 
@@ -103,7 +156,8 @@
   function doneToday(st, cid, day) { return st.last[cid] === day; }
 
   // 레슨 한 번의 상승량 계산 (랜덤은 rng 로 받아서 테스트 가능)
-  function gainFor(cid, k, cur, cond, rng) {
+  function gainFor(cid, k, cur, cond, rng, tier) {
+    tier = tier | 0; var T = TIERS[tier] || TIERS[0];
     rng = rng || Math.random;
     var g = BASE_GAIN + Math.floor(rng() * 3);                 // 3~5
     var apt = (APT[cid] && APT[cid][k]) || 1;
@@ -113,38 +167,47 @@
     else if (cond.m < MOOD_LOW) { mult *= MOOD_LOW_MULT; }
     if (cond.s < STAMINA_LOW) { mult *= STAMINA_LOW_MULT; note = 'tired'; }
     var slow = Math.max(0.15, 1 - cur / SLOW_DIV);
-    return { gain: Math.max(1, Math.round(g * mult * slow)), note: note };
+    var gain = Math.max(1, Math.round(g * mult * slow * T.gain));
+    var big = false;
+    if (cond.s >= STAMINA_LOW) {
+      var chance = BIG_BASE + T.big + (cond.m >= MOOD_HIGH ? BIG_MOOD : 0);
+      if (rng() < chance) { big = true; gain = gain * 2; note = 'big'; }
+    }
+    return { gain: gain, note: note, big: big };
   }
 
   // 레슨 가능 여부
-  function costOf(st, cid, k) {
-    if ((st.count[cid] || 0) < FREE_LESSONS) return LESSON_COST;
+  function costOf(st, cid, k, tier) {
+    var mul = (TIERS[tier | 0] || TIERS[0]).cost;
+    if ((st.count[cid] || 0) < FREE_LESSONS) return LESSON_COST * mul;
     var cur = statOf(st, cid)[k] || STAT_START;
-    return Math.round(COST_COEF * cur * cur / 100) * 100;
+    return Math.round(COST_COEF * cur * cur * mul / 100) * 100;
   }
   function manTxt(n) { return n >= 10000 ? (Math.round(n / 1000) / 10).toString().replace(/\.0$/, '') + '만' : n.toLocaleString(); }
-  function canLesson(st, cid, k, day, cond, haveCoins) {
+  function canLesson(st, cid, k, day, cond, haveCoins, tier) {
     if (ENABLED.indexOf(cid) === -1) return { ok: false, why: 'locked' };
     if (!STAT_BY_K[k]) return { ok: false, why: 'invalid' };
     if (doneToday(st, cid, day)) return { ok: false, why: 'done' };
     if (cond.s < MIN_STAMINA) return { ok: false, why: 'tired' };
-    if (haveCoins < costOf(st, cid, k)) return { ok: false, why: 'coin' };
+    if (haveCoins < costOf(st, cid, k, tier)) return { ok: false, why: 'coin' };
     return { ok: true };
   }
 
   // 레슨 실행: 능력치/횟수/날짜를 바꾸고 결과를 돌려준다. (컨디션 깎기·코인은 호출하는 쪽에서 함)
-  function doLesson(st, cid, k, day, cond, rng) {
+  function doLesson(st, cid, k, day, cond, rng, tier) {
+    tier = tier | 0;
     rng = rng || Math.random;
     var o = statOf(st, cid);
     var before = o[k];
-    var r = gainFor(cid, k, before, cond, rng);
+    var r = gainFor(cid, k, before, cond, rng, tier);
     o[k] = clamp(before + r.gain, 0, STAT_MAX);
     st.last[cid] = day;
     st.count[cid] = (st.count[cid] || 0) + 1;
     var pool = (LINES[cid] && LINES[cid][k]) || [];
-    var line = r.note === 'tired' ? TIRED_LINE : (r.note === 'glow' ? GLOW_LINE : (pool.length ? pool[Math.floor(rng() * pool.length)] : ''));
+    var line = r.big ? (BIG_LINES[cid] || '대성공!') : r.note === 'tired' ? TIRED_LINE : (r.note === 'glow' ? GLOW_LINE : (pool.length ? pool[Math.floor(rng() * pool.length)] : ''));
     return {
-      k: k, before: before, after: o[k], gain: o[k] - before, note: r.note, line: line,
+      k: k, before: before, after: o[k], gain: o[k] - before, note: r.note, line: line, big: r.big, tier: tier,
+      coachLine: COACH_LINES[tier][Math.floor(rng() * COACH_LINES[tier].length)],
       gradeUp: gradeOf(o[k]) !== gradeOf(before) ? gradeOf(o[k]) : ''
     };
   }
@@ -289,7 +352,7 @@
     var grid = box.querySelector('#ls-grid');
     if (grid) grid.onclick = function (e) {
       var b = e.target.closest ? e.target.closest('[data-lesson]') : null;
-      if (b) startLesson(cid, b.getAttribute('data-lesson'));
+      if (b) openCoachPick(cid, b.getAttribute('data-lesson'));
     };
   }
 
@@ -304,21 +367,53 @@
     drawBox(ov);
   }
 
-  function startLesson(cid, k) {
+  // ── 스승·코치 고르기 ──
+  function openCoachPick(cid, k) {
+    var m = M(); if (!m) return;
+    var ms = m.load(), cond = m.statOf(ms, cid), st = load(), have = money(), S = STAT_BY_K[k];
+    var first = canLesson(st, cid, k, ms.day, cond, 0, 0);
+    if (!first.ok && first.why !== 'coin') { startLesson(cid, k, 0); return; }   // 오늘 이미 했거나 체력이 부족하면 기존 안내를 그대로 보여줌
+    var old = document.getElementById('lesson-coach'); if (old) old.remove();
+    var ov = document.createElement('div');
+    ov.id = 'lesson-coach';
+    ov.style.cssText = 'position:fixed;inset:0;z-index:830;background:rgba(0,0,0,0.78);display:flex;align-items:center;justify-content:center;padding:16px;' + FONT;
+    ov.onclick = function (e) { if (e.target === ov) ov.remove(); };
+    var bigNow = BIG_BASE + (cond.m >= MOOD_HIGH ? BIG_MOOD : 0);
+    var rows = TIERS.map(function (T, i) {
+      var cost = costOf(st, cid, k, i), ok = have >= cost;
+      var bg = cond.s >= STAMINA_LOW ? Math.round((bigNow + T.big) * 100) + '%' : '체력 낮아서 불가';
+      return '<button data-tier="' + i + '" style="' + BTN + 'width:100%;display:flex;align-items:center;gap:10px;text-align:left;padding:11px 12px;margin-bottom:8px;background:rgba(255,255,255,0.08);border:1.5px solid ' + (ok ? S.color : '#ffffff22') + ';color:#fff;opacity:' + (ok ? 1 : 0.5) + ';">' +
+        '<span style="font-size:30px;">' + T.icon + '</span><span style="flex:1;"><span style="font-size:13px;">' + esc(coachName(i, k)) + '</span><br>' +
+        '<span style="font-size:11px;color:#c9d0f5;font-weight:700;">성장 ×' + T.gain + ' · 🌟대성공 ' + bg + '</span></span>' +
+        '<span style="font-size:12px;color:' + (ok ? '#ffe08a' : '#ff8a8a') + ';">🪙' + manTxt(cost) + '</span></button>';
+    }).join('');
+    ov.innerHTML = '<div style="width:100%;max-width:340px;background:linear-gradient(160deg,#1b1330,#2a1745);border:1.5px solid ' + S.color + ';border-radius:20px;padding:16px;">' +
+      '<div style="text-align:center;font-size:14px;font-weight:900;color:#fff;margin-bottom:2px;">' + S.icon + ' ' + S.lesson + ' · 누구에게 배울까요?</div>' +
+      '<div style="text-align:center;font-size:11px;color:#aab4d6;margin-bottom:10px;">비싼 코치일수록 많이 오르고, 🌟대성공(상승 ×2)이 잘 터져요</div>' + rows +
+      '<button id="lc-x" style="' + BTN + 'width:100%;padding:10px;background:rgba(255,255,255,0.1);color:#ccc;font-size:12px;">닫기</button></div>';
+    document.body.appendChild(ov);
+    ov.querySelector('#lc-x').onclick = function () { ov.remove(); };
+    Array.prototype.forEach.call(ov.querySelectorAll('[data-tier]'), function (b) {
+      b.onclick = function () { var t = Number(b.getAttribute('data-tier')); ov.remove(); startLesson(cid, k, t); };
+    });
+  }
+
+  function startLesson(cid, k, tier) {
+    tier = tier | 0;
     var m = M(); if (!m) return;
     var ms = m.load(), cond = m.statOf(ms, cid), st = load();
-    var c = canLesson(st, cid, k, ms.day, cond, money());
+    var c = canLesson(st, cid, k, ms.day, cond, money(), tier);
     if (!c.ok) {
       toast(c.why === 'done' ? '오늘 레슨은 이미 했어요' : c.why === 'tired' ? '😵 체력이 너무 낮아요. 식사로 채워주세요' : c.why === 'coin' ? '코인이 모자라요' : '아직 열리지 않았어요');
       return;
     }
-    spend(costOf(st, cid, k));
-    var res = doLesson(st, cid, k, ms.day, cond);
+    spend(costOf(st, cid, k, tier));
+    var res = doLesson(st, cid, k, ms.day, cond, undefined, tier);
     save(st);
     cond.s = clamp(cond.s - LESSON_TIRED, 0, 100);
     cond.m = clamp(cond.m - LESSON_MOOD, 0, 100);
     m.save(ms);
-    snd('stamp');
+    snd(res.big ? 'reward' : 'stamp');
     showResult(cid, res);
     var ov = document.getElementById('meal-overlay');
     if (ov) {
@@ -334,8 +429,18 @@
     var ov = document.createElement('div');
     ov.id = 'lesson-result';
     ov.style.cssText = 'position:fixed;inset:0;z-index:820;background:rgba(0,0,0,0.8);display:flex;align-items:center;justify-content:center;padding:16px;' + FONT;
-    ov.innerHTML = '<div style="width:100%;max-width:340px;background:linear-gradient(160deg,#1b1330,#2a1745);border:1.5px solid ' + s.color + ';border-radius:20px;padding:18px;text-align:center;">' +
+    if (!document.getElementById('ls-fx-style')) {
+      var sty = document.createElement('style'); sty.id = 'ls-fx-style';
+      sty.textContent = '@keyframes lsPop{0%{transform:scale(.6);opacity:0}60%{transform:scale(1.08)}100%{transform:scale(1);opacity:1}}@keyframes lsGlow{0%,100%{box-shadow:0 0 18px rgba(255,215,0,.45)}50%{box-shadow:0 0 38px rgba(255,215,0,.95)}}@keyframes lsSpark{0%{transform:translateY(0);opacity:1}100%{transform:translateY(-34px);opacity:0}}';
+      document.head.appendChild(sty);
+    }
+    var T = TIERS[res.tier | 0] || TIERS[0];
+    var bigBanner = res.big ? '<div style="font-size:20px;font-weight:900;color:#ffd700;text-shadow:0 0 12px rgba(255,215,0,.8);margin-bottom:4px;">🌟 대성공! 🌟</div>' +
+      '<div style="font-size:11px;font-weight:900;color:#ffe9a8;margin-bottom:4px;">오늘은 감이 왔어요 · 상승 ×2</div>' : '';
+    var sparks = res.big ? '<div style="position:absolute;inset:0;pointer-events:none;overflow:hidden;border-radius:20px;">' + [12, 28, 46, 64, 80].map(function (x, i) { return '<span style="position:absolute;left:' + x + '%;top:' + (30 + (i % 3) * 18) + '%;font-size:18px;animation:lsSpark 1.4s ease-out ' + (i * 0.18) + 's infinite;">✨</span>'; }).join('') + '</div>' : '';
+    ov.innerHTML = '<div style="position:relative;width:100%;max-width:340px;background:linear-gradient(160deg,#1b1330,#2a1745);border:1.5px solid ' + (res.big ? '#ffd700' : s.color) + ';border-radius:20px;padding:18px;text-align:center;animation:' + (res.big ? 'lsPop .45s ease-out,lsGlow 1.6s ease-in-out infinite' : 'lsPop .3s ease-out') + ';">' + sparks + bigBanner +
       '<div style="font-size:13px;font-weight:900;color:#cfd3ee;">' + esc(name) + ' · ' + s.lesson + '</div>' +
+      '<div style="font-size:11px;color:#9aa0c8;margin-top:2px;">' + T.icon + ' ' + esc(coachName(res.tier | 0, res.k)) + ': “' + esc(res.coachLine || '') + '”</div>' +
       '<div style="font-size:44px;margin:8px 0 2px;">' + s.icon + '</div>' +
       '<div style="font-size:22px;font-weight:900;color:' + s.color + ';">' + s.name + ' +' + res.gain + '</div>' +
       '<div style="font-size:12px;color:#aab4d6;margin-top:2px;">' + res.before + ' → <b style="color:#fff;">' + res.after + '</b></div>' +
@@ -374,6 +479,6 @@
   window.getIdolTrainStat = function (cid, k) { var o = statOf(load(), cid); return k ? o[k] : Object.assign({}, o); };
   window.__lessonTest = {
     STATS: STATS, CFG: { LESSON_COST: LESSON_COST, FREE_LESSONS: FREE_LESSONS, COST_COEF: COST_COEF, LESSON_TIRED: LESSON_TIRED, LESSON_MOOD: LESSON_MOOD, MIN_STAMINA: MIN_STAMINA, ENABLED: ENABLED },
-    load: load, save: save, statOf: statOf, gradeOf: gradeOf, totalOf: totalOf, gainFor: gainFor, canLesson: canLesson, costOf: costOf, doLesson: doLesson, doneToday: doneToday
+    load: load, save: save, statOf: statOf, gradeOf: gradeOf, totalOf: totalOf, gainFor: gainFor, canLesson: canLesson, costOf: costOf, openCoachPick: openCoachPick, showResult: showResult, startLesson: startLesson, doLesson: doLesson, doneToday: doneToday
   };
 })();
