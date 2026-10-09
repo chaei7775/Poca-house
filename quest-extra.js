@@ -108,7 +108,7 @@
 
     main_star_fame: { title:'히든 카드로 인지도 올리기', desc:'(Lv.8~) 🎥 드라마 촬영에 히든 카드로 나가면 인지도가 올라(일반·레어 카드는 안 올라). 시청률이 높을수록 많이 올라!',
       condition:'q2_star_fame', rewardCoins:2000, rewardExp:300, type:'main', detect:function () { var d = J('ph_drama', {}) || {}; return keys(d.star).some(function (k) { return d.star[k]; }) || keys(d.fame).some(function (k) { return d.fame[k] > 0; }); } },
-    main_star_top: { title:'탑스타 승급', desc:'(Lv.8~) 🎥 히든 카드로 촬영을 계속해 인지도 400을 채워봐. 탑스타가 되면 기획사 수익 ×2, 출연료 ×1.5, 카드 슬롯 +1!',
+    main_star_top: { title:'탑스타 승급', desc:'(Lv.8~) 🎥 히든 카드로 촬영해 인지도 400을 채워봐 (인지도는 하루 첫 3번 촬영만 올라!). 탑스타가 되면 기획사 수익 ×2, 출연료 ×1.5, 카드 슬롯 +1!',
       condition:'q2_star_top', rewardCoins:20000, rewardExp:1500, type:'main', detect:function () { var d = J('ph_drama', {}) || {}; return keys(d.star).some(function (k) { return d.star[k]; }); } },
 
     // ───── 매니저 ─────
