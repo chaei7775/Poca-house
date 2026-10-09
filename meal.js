@@ -810,6 +810,7 @@
   }, 1000);
 
   window.openMealSchedule = openMeal;
+  window.__mealRefresh = function (from) { refresh(from); };   // lesson.js 가 레슨 뒤에 컨디션 막대를 다시 그릴 때 씀
   window.__mealTest = {
     FOODS: FOODS, CH: CH, CATERING: CATERING,
     load: load, save: save, statOf: statOf, mealsLeft: mealsLeft, coolLeft: coolLeft, phaseOf: phaseOf, mealDelta: mealDelta, eat: eat,
