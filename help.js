@@ -124,7 +124,7 @@
     }
     if (pos && isFinite(pos.x) && isFinite(pos.y)) place(pos.x, pos.y);
     // 누르면 도움말, 꾹 눌러 끌면 ? 버튼을 원하는 곳으로 옮길 수 있다 (다른 버튼과 겹칠 때)
-    var drag = null;
+    var drag = null, justDragged = false;
     btn.addEventListener('pointerdown', function (e) {
       e.stopPropagation();
       var r = btn.getBoundingClientRect();
@@ -140,11 +140,16 @@
     btn.addEventListener('pointerup', function (e) {
       e.stopPropagation();
       if (!drag) return;
-      if (drag.moved) { var r = btn.getBoundingClientRect(); try { localStorage.setItem('ph_help_pos', JSON.stringify({ x: r.left, y: r.top })); } catch (x) {} }
-      else if (shown) openHelp(shown);
+      if (drag.moved) { justDragged = true; setTimeout(function () { justDragged = false; }, 400); var r = btn.getBoundingClientRect(); try { localStorage.setItem('ph_help_pos', JSON.stringify({ x: r.left, y: r.top })); } catch (x) {} }
       drag = null;
     });
-    ['touchstart', 'mousedown', 'click'].forEach(function (t) { btn.addEventListener(t, function (e) { e.stopPropagation(); }); });
+    btn.addEventListener('pointercancel', function () { drag = null; });
+    btn.addEventListener('click', function (e) {       // 열기는 click 으로 (손가락 뗄 때 pointerup 이 안 와도 열리게)
+      e.stopPropagation();
+      if (justDragged) { justDragged = false; return; }
+      if (shown) openHelp(shown);
+    });
+    ['touchstart', 'mousedown'].forEach(function (t) { btn.addEventListener(t, function (e) { e.stopPropagation(); }); });
     document.body.appendChild(btn);
     return btn;
   }
