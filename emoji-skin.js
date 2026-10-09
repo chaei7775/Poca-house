@@ -72,7 +72,7 @@
   }
   // 페이지가 그려지기 시작할 때부터 지켜본다: 새로 생기는 글자는 화면에 그려지기 전에 바로 그림으로 바꿈
   function start() {
-    preload();
+    setTimeout(preload, 3000);   // 시작할 때는 화면부터 띄우고, 그림 미리받기는 3초 뒤에
     if (document.body) scan(document.body);
     new MutationObserver(function (ms) {
       ms.forEach(function (m) {

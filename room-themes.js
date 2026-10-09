@@ -21,6 +21,12 @@
   var NEW_IDS = ['stage', 'luxury', 'vintage'];
   var OLD_IDS = ['pink', 'plant', 'doll'];
 
+  // 방 목록은 원본(2~3MB)이 아니라 작은 미리보기(roomthumb/)를 쓴다 (아이폰 메모리·로딩 부담)
+  function roomThumb(img) {
+    var m = /^(.*\/)(room_[a-z]+)\.png/.exec(String(img || ''));
+    return m ? m[1] + 'roomthumb/' + m[2] + '.jpg' : img;
+  }
+
   function install() {
     if (typeof ROOM_THEMES === 'undefined' || typeof window.renderRoomShop !== 'function') { setTimeout(install, 80); return; }
     if (window.__roomThemesInstalled) return;
@@ -49,7 +55,7 @@
           : isOwned ? '<button class="shop-btn shop-btn-apply" onclick="applyRoom(\'' + id + '\')">적용</button>'
           : '<button class="shop-btn shop-btn-buy" onclick="buyRoom(\'' + id + '\')">구매</button>';
         html += '<div class="room-card' + (isCurrent ? ' current' : '') + '" id="roomcard-' + id + '">' +
-          '<div class="room-card-img"><img src="' + t.img + '" onerror="this.parentElement.innerHTML=\'' + fallback + '\'"></div>' +
+          '<div class="room-card-img"><img loading="lazy" decoding="async" src="' + roomThumb(t.img) + '" onerror="if(!this.dataset.f){this.dataset.f=1;this.src=\'' + t.img + '\';}else{this.parentElement.innerHTML=\'' + fallback + '\'}"></div>' +
           '<div id="badge-' + id + '">' + badge + '</div>' +
           '<div class="room-card-body"><div><div class="room-card-name">' + t.name + '</div><div class="room-card-price" id="price-' + id + '">' + price + '</div></div>' +
           '<div id="btns-' + id + '">' + btns + '</div></div></div>';
