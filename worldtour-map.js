@@ -1,6 +1,6 @@
 // ════════════════════════════════════════════════════════════
 // 🏟️ 월드투어 스타디움 (worldtour-map.js) — 팬덤 원정 · 플레이어 Lv.35
-// 탑뷰 보스전! 무대에 나타난 사생팬 보스를 상대해요.
+// 월드투어에 사생팬이 쫓아왔어요! 탑뷰로 쫓아내는 미니게임.
 //  · 화면을 누르거나 끌면 멤버가 그쪽으로 걸어가요. 아래 스킬 버튼으로 공격 (그 멤버가 배운 스킬만, 사거리 안에서)
 //  · 보스는 머리 위에 기술 이름이 뜨고 바닥에 붉은 예고가 떠요 → 피하기
 //      📸 몰카 촬영(부채꼴) · 🚗 미행 돌진(일직선) · 📞 전화 폭탄(원형 장판) · 🎁 수상한 선물(🎀 리본만 진짜)
@@ -88,7 +88,7 @@
     wrap.style.cssText = 'position:absolute;inset:0;overflow:hidden;background:#0b0716;font-family:\'Noto Sans KR\',sans-serif;touch-action:none;user-select:none;-webkit-user-select:none;';
     wrap.innerHTML = '<canvas id="wt-cv" width="' + W + '" height="' + H + '" style="position:absolute;left:0;top:0;width:100%;height:100%;"></canvas>' +
       '<div style="position:absolute;left:0;right:0;top:0;padding:10px 14px 0;box-sizing:border-box;pointer-events:none;">' +
-        '<div style="display:flex;justify-content:space-between;align-items:center;font-size:14px;font-weight:900;color:#fff;"><span>🏟️ 월드투어 · 사생팬 보스</span><span id="wt-hearts" style="font-size:16px;"></span></div>' +
+        '<div style="display:flex;justify-content:space-between;align-items:center;font-size:14px;font-weight:900;color:#fff;"><span>🏟️ 월드투어 · 사생팬이 쫓아왔어요!</span><span id="wt-hearts" style="font-size:16px;"></span></div>' +
         '<div style="margin-top:6px;height:16px;border-radius:8px;background:rgba(255,255,255,.14);overflow:hidden;border:1px solid rgba(255,255,255,.25);"><div id="wt-hp" style="height:100%;width:100%;background:linear-gradient(90deg,#ef4444,#f59e0b);"></div></div>' +
         '<div style="display:flex;justify-content:space-between;font-size:11px;color:#d9ccff;margin-top:3px;"><span id="wt-phase">1페이즈</span><span id="wt-time"></span></div>' +
         '<div id="wt-say" style="text-align:center;font-size:12px;color:#ffd1da;margin-top:4px;min-height:16px;"></div></div>' +
@@ -178,7 +178,7 @@
         var dmg = Math.round(dmgBase * (shield ? 0.3 : 1));
         S.hp = Math.max(0, S.hp - dmg);
         floatTxt(S.bx, S.by - BOSS_R - 12, (shield ? '🛡️ ' : '') + '-' + dmg, shield ? '#9ca3af' : '#ffe27a');
-        if (d.stun && !shield) { S.stun = d.stun; banner('🎆 보스가 눈이 부셔 멈췄어요!'); }
+        if (d.stun && !shield) { S.stun = d.stun; banner('🎆 사생팬이 눈이 부셔 멈췄어요!'); }
         drawHud();
         checkPhase();
         if (S.hp <= 0) return end(true);
@@ -426,7 +426,7 @@
         wrap.remove();
         ctx.finish(ExpKit.mergeLoot({
           win: win, title: win ? '사생팬 격퇴 대성공!' : '다음엔 꼭!', coin: coin, exp: exp, items: items, stone: stone, wish: wish,
-          summary: (win ? '남은 하트 ' + S.hearts + ' · 스킬 ' + S.uses + '번 · 졸개 ' + S.kills + '명 정리' : '보스 체력을 ' + Math.round(done * 100) + '% 깎았어요 (스킬 ' + S.uses + '번)') + '<br>🎁 주운 상자 ' + S.loot.length + '개'
+          summary: (win ? '남은 하트 ' + S.hearts + ' · 스킬 ' + S.uses + '번 · 졸개 ' + S.kills + '명 정리' : '사생팬을 ' + Math.round(done * 100) + '%쯤 쫓아냈어요 (스킬 ' + S.uses + '번)') + '<br>🎁 주운 상자 ' + S.loot.length + '개'
         }, S.loot));
       }, 700);
     }
@@ -439,8 +439,8 @@
     if (!window.ExpKit) { setTimeout(reg, 100); return; }
     window.ExpKit.register({
       id: 'world_tour', bg: 'special-world_tour.jpg', name: '월드투어 스타디움', emoji: '🏟️', color: '#f472b6', needLevel: NEED_LEVEL, stamina: STAMINA, daily: DAILY,
-      tagline: '탑뷰 보스전! 소원의 조각·강화석·재조합석', gearChance: 0.45, gearMin: 'great',
-      intro: ['무대에 <b>사생팬 보스</b>가 나타났어요! 화면을 <b>누르거나 끌면</b> 멤버가 걸어가요. 아래 <b>스킬 버튼</b>으로 보스를 공격해요 (사거리 안에서만 먹혀요).', '보스는 머리 위에 <b>기술 이름</b>이 뜨고, 바닥에 <b>붉은 예고</b>가 떠요. 맞기 전에 피하세요! ❤️는 5개예요. 📸 몰카(부채꼴) · 🚗 돌진(일직선) · 📞 전화 폭탄(원) · 🎁 수상한 선물(🎀 리본만 진짜)', '체력이 줄면 <b>페이즈</b>가 바뀌고 🧑‍🤝‍🧑 사생 부대(졸개를 먼저 안 잡으면 보스 피해 30%), 📡 도청기, 마지막엔 📱 <b>라이브 광폭화</b>(초록 안전지대로 대피!)가 나와요. 제한시간 150초.', '스킬은 <b>그 멤버가 배운 스킬</b>만 써요 (🔒는 스킬 상점에서 배우면 열려요). 광역 스킬일수록 사거리와 위력이 커요. 🎆 불꽃쇼는 보스를 2초 기절시켜요!', '졸개를 쓰러뜨리면 가끔 🎁 <b>상자</b>가 떨어져요 → 걸어가서 주워요. 보스를 쓰러뜨리면 🧩 <b>소원의 조각</b>, 🔨 <b>강화석</b>, 🔹 <b>재조합석</b>, 🔶 <b>원석</b>, <b>프리미엄 조각</b>, 가끔 💠 <b>에픽 재조합석</b>!'],
+      tagline: '월드투어에 사생팬이 쫓아왔어요! 소원의 조각·강화석·재조합석', gearChance: 0.45, gearMin: 'great',
+      intro: ['월드투어 무대까지 <b>사생팬이 쫓아왔어요</b>! 화면을 <b>누르거나 끌면</b> 멤버가 걸어가요. 아래 <b>스킬 버튼</b>으로 사생팬을 쫓아내요 (사거리 안에서만 먹혀요).', '사생팬은 머리 위에 <b>기술 이름</b>이 뜨고, 바닥에 <b>붉은 예고</b>가 떠요. 맞기 전에 피하세요! ❤️는 5개예요. 📸 몰카(부채꼴) · 🚗 돌진(일직선) · 📞 전화 폭탄(원) · 🎁 수상한 선물(🎀 리본만 진짜)', '체력이 줄면 <b>페이즈</b>가 바뀌고 🧑‍🤝‍🧑 사생 부대(졸개를 먼저 안 잡으면 사생팬 피해 30%), 📡 도청기, 마지막엔 📱 <b>라이브 광폭화</b>(초록 안전지대로 대피!)가 나와요. 제한시간 150초.', '스킬은 <b>그 멤버가 배운 스킬</b>만 써요 (🔒는 스킬 상점에서 배우면 열려요). 광역 스킬일수록 사거리와 위력이 커요. 🎆 불꽃쇼는 사생팬을 2초 멈추게시켜요!', '졸개를 쓰러뜨리면 가끔 🎁 <b>상자</b>가 떨어져요 → 걸어가서 주워요. 사생팬을 쫓아내면 🧩 <b>소원의 조각</b>, 🔨 <b>강화석</b>, 🔹 <b>재조합석</b>, 🔶 <b>원석</b>, <b>프리미엄 조각</b>, 가끔 💠 <b>에픽 재조합석</b>!'],
       play: play
     });
   }
