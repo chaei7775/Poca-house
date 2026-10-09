@@ -648,7 +648,7 @@
     if (!hasSkill(F.cid, sk)) { openBuyModal(sk); return null; }      // 아직 안 배운 스킬: 구매 창
     var now = Date.now();
     if ((F.cd[id] || 0) > now) return null;
-    var mlv = mLv(id), reachM = sk.reach * (1 + 0.05 * mlv) * gm(F.cid, 'reach');          // 숙련 Lv마다 사거리 +5% · 🎀 소품 사거리
+    var mlv = mLv(id), reachM = (sk.reach || FAN_RANGE) * (1 + 0.05 * mlv) * gm(F.cid, 'reach');          // 숙련 Lv마다 사거리 +5% · 🎀 소품 사거리
     var fan = nearestTarget(reachM);
     if (!fan) { toast(bcHook() ? '가까이에 팬이 없어요! 팬 쪽으로 걸어가 봐요 (닿기 전에 스킬을 써요)' : '가까이에 팬이 없어요! 팬 쪽으로 걸어가 봐요'); return null; }
     var me = playerPos();
@@ -779,7 +779,7 @@
       if (!s) { ic.textContent = '➕'; lb.textContent = '장착'; b.style.opacity = '.5'; b.style.borderColor = '#666'; b.style.animation = 'none'; continue; }
       var lvLock = !levelOk(s), locked = !hasSkill(F.cid, s);
       var left = Math.max(0, Math.ceil(((F.cd[s.id] || 0) - now) / 1000));
-      var nr = nearestTarget(s.reach * (1 + 0.05 * masteryLv(F.cid, s.id)) * gm(F.cid, 'reach'));
+      var nr = nearestTarget((s.reach || FAN_RANGE) * (1 + 0.05 * masteryLv(F.cid, s.id)) * gm(F.cid, 'reach'));
       ic.textContent = (lvLock || locked) ? '🔒' : s.icon;
       lb.textContent = lvLock ? ('Lv.' + s.useLv) : (locked ? ('🍔' + priceLabel(s.price)) : (left > 0 ? left + '초' : s.short));
       var ready = !lvLock && !locked && left === 0 && !!nr;
