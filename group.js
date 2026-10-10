@@ -340,6 +340,39 @@
       p.querySelector('#grp-cb').onclick = function () { pickIt(true); };
     }
   }
+  // ── 🎬 활동 로딩 장면 (결과 팝업 전에 잠깐 연출) ──
+  var SCENE_MS = 2000, sceneBusy = false;
+  var SCENE_TXT = {
+    stage:   ['무대 위로 올라가는 중…', '조명이 켜지고…', '마이크를 잡고…'],
+    album:   ['녹음실에 들어가는 중…', '헤드폰을 쓰고…', '하모니를 맞추는 중…'],
+    dance:   ['연습실 불이 켜지고…', '동선을 맞추는 중…', '카메라가 돌아가요…'],
+    variety: ['스튜디오 입장 중…', '리허설 중…', '큐 사인을 기다리는 중…'],
+    photo:   ['메이크업을 받는 중…', '포즈를 잡고…', '플래시가 터져요…'],
+    drama:   ['대본을 읽는 중…', '슬레이트가 올라가고…', '레디…']
+  };
+  function scene(res, done) {
+    var ov = document.getElementById('grp-ov'); if (!ov) { done(); return; }
+    if (!document.getElementById('grp-scene-css')) {
+      var st = document.createElement('style'); st.id = 'grp-scene-css';
+      st.textContent = '@keyframes grpBob{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-10px) scale(1.06)}}' +
+        '@keyframes grpFill{from{width:0}to{width:100%}}@keyframes grpTw{0%,100%{opacity:.2;transform:scale(.7)}50%{opacity:1;transform:scale(1.2)}}' +
+        '@keyframes grpFade{from{opacity:0}to{opacity:1}}';
+      document.head.appendChild(st);
+    }
+    var lines = SCENE_TXT[res.act.id] || ['준비 중…'], sp = '';
+    for (var i = 0; i < 6; i++) sp += '<span style="position:absolute;left:' + (8 + i * 16) + '%;top:' + (10 + (i % 3) * 28) + '%;font-size:' + (12 + (i % 2) * 6) + 'px;animation:grpTw ' + (1 + i * 0.17) + 's ease-in-out infinite;">✨</span>';
+    var p = document.createElement('div');
+    p.style.cssText = 'position:absolute;inset:0;background:rgba(8,14,32,0.88);display:flex;align-items:center;justify-content:center;z-index:3;animation:grpFade .25s;' + FONT;
+    p.innerHTML = '<div style="position:relative;text-align:center;color:#fff;width:100%;max-width:300px;padding:10px;">' + sp +
+      '<div style="animation:grpBob 1s ease-in-out infinite;">' + aicon(res.act, 110) + '</div>' +
+      '<div style="font-size:15px;font-weight:900;margin-top:6px;">' + esc(res.act.name) + '</div>' +
+      '<div style="font-size:26px;margin-top:6px;">' + res.members.map(function (c) { return esc(emoji(c)); }).join(' ') + '</div>' +
+      '<div id="grp-scene-txt" style="font-size:12.5px;color:#bcd8ff;margin-top:10px;min-height:18px;">' + esc(lines[0]) + '</div>' +
+      '<div style="height:8px;border-radius:6px;background:rgba(255,255,255,0.14);overflow:hidden;margin:12px 10px 0;"><div style="height:100%;border-radius:6px;background:linear-gradient(90deg,#4aa8ff,#c084fc);animation:grpFill ' + SCENE_MS + 'ms linear forwards;"></div></div></div>';
+    ov.appendChild(p);
+    var n = 0, t = setInterval(function () { n++; var el = p.querySelector('#grp-scene-txt'); if (el && lines[n]) el.textContent = lines[n]; }, SCENE_MS / lines.length);
+    setTimeout(function () { clearInterval(t); if (p.parentNode) p.remove(); done(); }, SCENE_MS);
+  }
   function toast(m) {
     try {
       var old = document.getElementById('grp-toast'); if (old) old.remove();
@@ -387,7 +420,7 @@
       };
     });
     Array.prototype.forEach.call(ov.querySelectorAll('[data-act]'), function (b) {
-      b.onclick = function () { var res = doActivity(b.getAttribute('data-act')); if (!res) return; if (res.err) { toast(res.err); return; } popup(res); };
+      b.onclick = function () { if (sceneBusy) return; var res = doActivity(b.getAttribute('data-act')); if (!res) return; if (res.err) { toast(res.err); return; } sceneBusy = true; scene(res, function () { sceneBusy = false; popup(res); }); };
     });
   }
 
