@@ -2485,7 +2485,7 @@ let questProgress = JSON.parse(localStorage.getItem('ph_quest') || '{}');
 
 const QUESTS = {
   // 튜토리얼
-  tut_alba: { title:'일단 살아야지', desc:'주머니를 뒤져봤지만 코인 한 닢 없다. 포카버거에서 알바를 해보자.', condition:'first_alba', rewardCoins:200, rewardExp:10, type:'tutorial' },
+  tut_alba: { title:'일단 살아야지', desc:'할머니가 남긴 기획사는 빚뿐이고, 주머니엔 코인 한 닢 없다. 포카버거에서 알바를 해보자.', condition:'first_alba', rewardCoins:200, rewardExp:10, type:'tutorial' },
   tut_gacha: { title:'저 가게가 궁금해', desc:'마을을 걷다 보니 반짝이는 가게가 눈에 들어왔다. 카드 한 장 뽑아볼까?', condition:'first_gacha', rewardCoins:300, rewardExp:10, type:'tutorial' },
   tut_meet: { title:'처음 만나는 인연', desc:'카드 속 아이돌이 실제로 존재한다고? 직접 찾아가보자.', condition:'first_meet', rewardCoins:200, rewardExp:10, type:'tutorial' },
   // 메인
