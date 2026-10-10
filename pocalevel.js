@@ -106,7 +106,7 @@ function ensurePocaHouseLevelBar() {
     levelWrap.id = 'pocahouse-level-wrap';
     levelWrap.style.cssText = 'flex:1;display:flex;align-items:center;gap:8px;min-width:0;';
     levelWrap.innerHTML =
-      '<span style="font-size:12px;flex-shrink:0;">🏠</span>' +
+      '<span style="font-size:12px;flex-shrink:0;">⭐</span>' +
       '<span id="pocahouse-level-text" style="font-size:12px;font-weight:900;color:#9333ea;white-space:nowrap;flex-shrink:0;">Lv.1</span>' +
       '<div style="flex:1;height:7px;background:#FFE4EF;border-radius:99px;overflow:hidden;min-width:30px;">' +
       '<div id="pocahouse-level-fill" style="height:100%;width:0%;background:linear-gradient(90deg,#FF6B9D,#C084FC);border-radius:99px;transition:width 0.3s;"></div></div>';
@@ -119,11 +119,10 @@ function updatePocaHouseLevelBar() {
   const textEl = document.getElementById('pocahouse-level-text');
   const fillEl = document.getElementById('pocahouse-level-fill');
   if (!textEl || !fillEl) return;
-  const level = getHighestCardLevel();
-  const charId = Object.keys(CHARS).find(function(cid) { return getCardLevel(cid) === level; }) || Object.keys(CHARS)[0];
-  const exp = getCardExp(charId);
-  const required = getCardExpRequired(level);
-  const pct = level >= POCAHOUSE_MAX_LEVEL ? 100 : Math.min(100, Math.round(exp / required * 100));
+  // 홈 줄은 '플레이어 레벨'을 보여줌 (잠금·퀘스트가 전부 이 레벨 기준). 아이돌별 레벨은 줄을 눌러서 봄
+  let level = 1, exp = 0, required = 1;
+  try { level = Number(playerLevel) || 1; exp = Number(playerExp) || 0; required = getExpRequired(level); } catch (e) {}
+  const pct = Math.max(0, Math.min(100, Math.round(exp / required * 100)));
   textEl.textContent = 'Lv.' + level;
   fillEl.style.width = pct + '%';
 }
@@ -143,7 +142,7 @@ function showPocaHouseLockedPopup(unlockLevel, featureName) {
   overlay.innerHTML = '<div style="background:#fff;border:2px solid #000;border-radius:18px;padding:24px;text-align:center;width:88%;max-width:300px;">' +
     '<div style="font-size:40px;margin-bottom:8px;">🔒</div>' +
     '<div class="poca-text-outline" style="font-size:16px;font-weight:900;margin-bottom:8px;">아직 잠겨있어요</div>' +
-    '<div style="font-size:13px;color:#222;line-height:1.6;margin-bottom:16px;">' + featureName + '은 포카하우스 레벨 ' + unlockLevel + '부터 이용할 수 있어요.<br>포카를 학교에 보내거나 알바를 해서 레벨을 올려보세요!</div>' +
+    '<div style="font-size:13px;color:#222;line-height:1.6;margin-bottom:16px;">' + featureName + '은 플레이어 레벨 ' + unlockLevel + '부터 이용할 수 있어요.<br>알바·탐험·퀘스트로 레벨을 올려보세요!</div>' +
     '<button onclick="document.getElementById(\'pocahouse-locked-overlay\').remove()" style="width:100%;padding:12px;background:linear-gradient(135deg,#FF6B9D,#C084FC);border:none;border-radius:12px;color:#fff;font-size:14px;font-weight:900;cursor:pointer;font-family:\'Noto Sans KR\',sans-serif;">확인</button></div>';
   document.body.appendChild(overlay);
 }
@@ -151,7 +150,8 @@ function showPocaHouseLockedPopup(unlockLevel, featureName) {
 function isPocaHouseFeatureUnlocked(key) {
   const need = POCAHOUSE_UNLOCK[key];
   if (typeof need !== 'number') return true;
-  return getHighestCardLevel() >= need;
+  // 잠금은 전부 '플레이어 레벨' 기준 (아이돌(카드) 레벨은 아이돌 성장용으로만 씀)
+  try { return Number(playerLevel) >= need; } catch (e) { return false; }
 }
 
 function patchRoomDecoButton() {
@@ -499,4 +499,14 @@ setTimeout(function() {
     updateHomeBannerWithStory();
     return result;
   };
+})();
+
+
+// ⭐ 플레이어 경험치/레벨이 바뀔 때 홈의 레벨 줄도 같이 갱신
+(function () {
+  if (typeof window.updatePlayerLevelDisplay !== 'function' || window.updatePlayerLevelDisplay.__homeBar) return;
+  var orig = window.updatePlayerLevelDisplay;
+  var w = function () { var r = orig.apply(this, arguments); try { updatePocaHouseLevelBar(); } catch (e) {} return r; };
+  w.__homeBar = true;
+  window.updatePlayerLevelDisplay = w;
 })();

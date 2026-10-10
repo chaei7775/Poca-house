@@ -20,7 +20,7 @@
   function newAcct() { try { return localStorage.getItem('ph_starter_v1') === '1'; } catch (e) { return false; } }   // 새 계정이면 레벨 shortcut 없이 진짜로 해야 단계 완료
   function story(id) { try { return typeof storyProgress !== 'undefined' && storyProgress[id] === 'done'; } catch (e) { return false; } }
   function quest(id) { try { return typeof questProgress !== 'undefined' && questProgress[id] === 'done'; } catch (e) { return false; } }
-  function hiLv() { try { return typeof getHighestCardLevel === 'function' ? getHighestCardLevel() : 1; } catch (e) { return 1; } }
+  function hiLv() { try { return Number(playerLevel) || 1; } catch (e) { return 1; } }   // 플레이어 레벨 기준 (잠금과 같은 레벨)
   function J(key, def) {
     try { var v = JSON.parse(localStorage.getItem(key) || 'null'); return (v === null || v === undefined) ? def : v; } catch (e) { return def; }
   }
@@ -103,15 +103,15 @@
       done: function () { return story('story_10') || !!S.flags.first_explore || (!newAcct() && hiLv() >= 3); }, reward: 300,
       go: function () { goTo('map'); }, target: '.btn-collection' },
     { id: 'school', icon: '🏫', title: '아이돌 학교 보내기',
-      hint: '맵 → 🏫 연성고등학교. 학교 미니게임을 하면 아이돌(포카) 경험치가 올라요. 포카 레벨이 오르면 새 기능이 열려요!',
+      hint: '맵 → 🏫 연성고등학교. 학교 미니게임을 하면 아이돌(포카) 경험치가 올라서 아이돌 레벨이 올라요!',
       done: function () { return story('story_07') || (!newAcct() && hiLv() >= 2); }, reward: 300,
       go: function () { goTo('map'); }, target: '#nav-map' },
-    { id: 'lv3', icon: '🏠', title: '포카 레벨 3 만들기',
-      hint: '학교·알바·탐험으로 포카 경험치를 모아 레벨 3을 찍으면 방 꾸미기가 열려요.',
+    { id: 'lv3', icon: '🏠', title: '플레이어 레벨 3 만들기',
+      hint: '알바·탐험·퀘스트로 경험치를 모아 플레이어 레벨 3을 찍으면 방 꾸미기가 열려요.',
       done: function () { return hiLv() >= 3; },
       go: function () { goTo('map'); }, target: '#nav-map' },
     { id: 'room', icon: '🛋️', title: '내 방 꾸미기',
-      hint: '🛍️ 맵 → 상점거리 → 방 테마 구매 → 🏠 내 집에서 적용! 포카 레벨 3부터 열려요.',
+      hint: '🛍️ 맵 → 상점거리 → 방 테마 구매 → 🏠 내 집에서 적용! 플레이어 레벨 3부터 열려요.',
       done: function () { try { return typeof ownedRooms !== 'undefined' && ownedRooms.length > 0 || quest('tut_room'); } catch (e) { return false; } }, reward: 300,
       go: function () { goTo('map'); }, target: '#nav-map' },
     { id: 'agency', icon: '🎤', title: '기획사에서 데뷔 도전하기',

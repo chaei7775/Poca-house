@@ -141,12 +141,12 @@
       condition:'q2_hidden_all', rewardCoins:10000, rewardExp:1500, type:'main',
       detect:function () { return hiddenCount() >= hiddenTotal() && hiddenTotal() > 0; } },
 
-    // ───── 메인: 포카하우스 레벨 ─────
-    main_lv20: { title:'레벨 20', desc:'⭐ 포카하우스 레벨 20 달성! 알바·탐험·원정을 꾸준히 하면 올라가.',
+    // ───── 메인: 플레이어 레벨 ─────
+    main_lv20: { title:'레벨 20', desc:'⭐ 플레이어 레벨 20 달성! 알바·탐험·원정을 꾸준히 하면 올라가.',
       condition:'q2_lv20', rewardCoins:3000, rewardExp:0, type:'main', detect:function () { return plv() >= 20; } },
-    main_lv30: { title:'레벨 30', desc:'⭐ 포카하우스 레벨 30 달성! 슬슬 중반을 넘겼어.',
+    main_lv30: { title:'레벨 30', desc:'⭐ 플레이어 레벨 30 달성! 슬슬 중반을 넘겼어.',
       condition:'q2_lv30', rewardCoins:5000, rewardExp:0, type:'main', detect:function () { return plv() >= 30; } },
-    main_lv50: { title:'레벨 50', desc:'⭐ 포카하우스 레벨 50 달성! 진짜 베테랑이야.',
+    main_lv50: { title:'레벨 50', desc:'⭐ 플레이어 레벨 50 달성! 진짜 베테랑이야.',
       condition:'q2_lv50', rewardCoins:10000, rewardExp:0, type:'main', detect:function () { return plv() >= 50; } },
   };
 

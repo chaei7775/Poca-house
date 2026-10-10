@@ -53,7 +53,7 @@
       if (!QUESTS[id]) QUESTS[id] = { title: q.title, desc: q.desc, condition: q.condition, rewardCoins: q.rewardCoins, rewardExp: q.rewardExp, type: q.type };
     });
     // 방 꾸미기 튜토리얼: 이제 내 집의 방 꾸미기 버튼으로 산다 (포카 레벨 3부터)
-    if (QUESTS.tut_room) QUESTS.tut_room.desc = '🏠 내 집 → 🛋️ 방 꾸미기(포카 Lv.3부터) → 방 테마를 사서 적용! 방을 바꾸면 기분이 달라져.';
+    if (QUESTS.tut_room) QUESTS.tut_room.desc = '🏠 내 집 → 🛋️ 방 꾸미기(플레이어 Lv.3부터) → 방 테마를 사서 적용! 방을 바꾸면 기분이 달라져.';
     return true;
   }
 
