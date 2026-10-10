@@ -545,7 +545,7 @@ function openMoreMenu() {
 }
 
 // 더보기 타일 아이콘: 이모지 → 전용 이미지 (없는 이모지는 그대로 이모지)
-var MORE_ICON_FILES = { '🔮': 'recomb', '📖': 'dex', '🛍️': 'shop', '🎼': 'compose', '👗': 'wardrobe', '🎤': 'training', '💖': 'fanskill', '📸': 'happening', '🚗': 'road', '🏪': 'trade', '📮': 'mailbox', '🎟️': 'trial', '📋': 'board', '🎀': 'fanclub', '👥': 'friend', '🏷️': 'titles', '💎': 'premium', '📁': 'collection', '☁️': 'account' };
+var MORE_ICON_FILES = { '🔮': 'recomb', '📖': 'dex', '🛍️': 'shop', '🎼': 'compose', '👗': 'wardrobe', '🎤': 'training', '💖': 'fanskill', '📸': 'happening', '🚗': 'road', '🏪': 'trade', '📮': 'mailbox', '📅': 'schedule', '🎟️': 'trial', '📋': 'board', '🎀': 'fanclub', '👥': 'friend', '🏷️': 'titles', '💎': 'premium', '📁': 'collection', '☁️': 'account' };
 window.moreIcon = function (icon) {
   var f = MORE_ICON_FILES[icon];
   return f ? '<img src="more-' + f + '.png" alt="" style="width:36px;height:36px;object-fit:contain;display:block;pointer-events:none;">' : icon;
