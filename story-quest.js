@@ -30,6 +30,8 @@
     c.days = c.days || 0; c.meals = c.meals || 0; c.rests = c.rests || 0;
     c.events = c.events || {}; c.booked = c.booked || {}; c.byChar = c.byChar || {};
     if (!s.flags) s.flags = {};
+    if (!s.last) s.last = {};
+    if (!s.last.sched) s.last.sched = {};
     return s;
   }
   // 예전 버전이 'ph_story' 안에 섞어 저장했던 기록은 새 이름으로 옮김 (game.js 기록은 건드리지 않음)
@@ -978,11 +980,11 @@
       var e = m.eaten[cid], pe = p.eaten[cid], add = 0;
       if (!e) return;
       if (pe && pe.day === e.day) add = (e.n || 0) - pe.n; else add = (e.n || 0);
-      if (add > 0) { c.meals += add; c.byChar[cid] = (c.byChar[cid] || 0) + add; changed = true; }
+      if (add > 0) { c.meals += add; c.byChar[cid] = (c.byChar[cid] || 0) + add; S.last.meal = cid; changed = true; }
     });
     keys(m.sched).forEach(function (cid) {
       var s = m.sched[cid], ps = p.sched[cid];
-      if (!ps || ps.type !== s.type || ps.day !== s.day) { c.booked[s.type] = (c.booked[s.type] || 0) + 1; changed = true; }
+      if (!ps || ps.type !== s.type || ps.day !== s.day) { c.booked[s.type] = (c.booked[s.type] || 0) + 1; S.last.sched[s.type] = cid; S.last.schedAny = cid; changed = true; }
     });
     keys(p.sched).forEach(function (cid) {
       var ps = p.sched[cid], s = m.sched[cid];
@@ -1018,10 +1020,48 @@
     if (tag === 'p') return { who: 'player', text: nf(rest) };
     return { who: 'n', text: nf(rest) };
   }
+  // ───────── 장면 속 아이돌: 고정이 아니라 "실제로 그 행동을 한 아이돌"로 ─────────
+  function validId(c) { return c && NAMES[c] ? c : ''; }
+  function hiddenChar(id) { try { var h = HIDDEN_CARDS.filter(function (x) { return x.id === id; })[0]; return h ? h.charId : ''; } catch (e) { return ''; } }
+  function firstHiddenChar() { var a = J('ph_hiddenCards', []) || []; for (var i = 0; i < a.length; i++) { var c = validId(hiddenChar(a[i])); if (c) return c; } return ''; }
+  function topEnhChar() {
+    var l = (J('ph_enhance', {}) || {}).level || {}, best = '', m = -1;
+    keys(l).forEach(function (id) { var c = validId(hiddenChar(id)); if (c && l[id] > m) { m = l[id]; best = c; } });
+    return best;
+  }
+  function topKey(o) { var b = '', m = -1; keys(o).forEach(function (k) { if (validId(k) && o[k] > m) { m = o[k]; b = k; } }); return b; }
+  function firstKey(o) { var a = keys(o).filter(validId); return a[0] || ''; }
+  function pickWho(x) {
+    var d = x.who || '';
+    try {
+      if (!x || /^i_/.test(x.track || '')) return d;
+      var id = x.id, L = S.last || {}, w = '';
+      var fm = validId(localStorage.getItem('ph_firstmet'));
+      if (id === 's1_3') w = fm;
+      else if (id === 's1_5') w = validId(L.gift);
+      else if (id === 's1_10') { var r = J('ph_story', {}) || {}; var k = keys(r).filter(function (k) { return /_\d+$/.test(k) && r[k] === true && validId(k.replace(/_\d+$/, '')); })[0]; w = k ? k.replace(/_\d+$/, '') : ''; }
+      else if (id === 's2_7' || id === 's2_7b') w = firstHiddenChar();
+      else if (/^s5_/.test(id)) w = topEnhChar();
+      else if (id === 's4_2') w = validId(L.meal) || topKey(S.cnt.byChar);
+      else if (id === 's4_5' || id === 's4_6') w = validId(L.sched.drama) || validId(L.meal);
+      else if (id === 's4_9e' || id === 's4_9f' || id === 's4_9b') w = validId(L.schedAny) || validId(L.meal);
+      else if (id === 's3_9') w = topKey((J('ph_drama', {}) || {}).fame);
+      else if (id === 's3_1') w = firstKey((J('ph_agency', {}) || {}).done);
+      else if (id === 's3_3') w = firstKey((J('ph_fancafe', {}) || {}).idols);
+      return w || fm || d;
+    } catch (e) { return d; }
+  }
+  // 선물 받은 아이돌 기억
+  (function hookGift(tries) {
+    if (typeof window.giveGift !== 'function') { if (tries < 100) setTimeout(function () { hookGift(tries + 1); }, 150); return; }
+    var o = window.giveGift; if (o.__sqGift) return;
+    var w = function (cid) { try { if (validId(cid)) { S.last.gift = cid; save(); } } catch (e) {} return o.apply(this, arguments); };
+    w.__sqGift = true; window.giveGift = w;
+  })(0);
+
   function openStory(x, reward) {
     if (!x) return;
-    var who0 = x.who;
-    if (x.id === 's1_3') { try { var fm = localStorage.getItem('ph_firstmet'); if (fm && NAMES[fm]) who0 = fm; } catch (e) {} }   // 처음 만난 아이돌로 (고정 민준 X)
+    var who0 = pickWho(x);   // 그 행동을 실제로 한 아이돌 얼굴로
     var lines = x.lines.map(function (r) { return parseLine(r, who0); });
     var t = trackById(x.track);
     var idx = 0;
@@ -1276,6 +1316,6 @@
   })();
 
   // 테스트용
-  window.__storyTest = { TRACKS: TRACKS, BYID: BYID, S: function () { return S; }, sampleMeal: sampleMeal, trackUnlocked: trackUnlocked,
+  window.__storyTest = { pickWho: pickWho, TRACKS: TRACKS, BYID: BYID, S: function () { return S; }, sampleMeal: sampleMeal, trackUnlocked: trackUnlocked,
     activeOf: activeOf, tick: tick, sectionHtml: sectionHtml, parseLine: parseLine, counts: counts, openStory: openStory, reset: function () { S = load(); } };
 })();
