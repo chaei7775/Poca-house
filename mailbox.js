@@ -261,7 +261,8 @@
       '<div style="text-align:right;font-size:13px;font-weight:700;color:#7a5a4a;margin-top:4px;">' + esc(m.sign || '') + '</div></div>' +
       '<div style="display:flex;gap:8px;margin-top:12px;">' +
       '<button id="mail-reply" data-cid="' + m.cid + '" style="flex:2;padding:12px;border:none;border-radius:12px;color:#fff;font-size:13.5px;font-weight:900;cursor:pointer;background:linear-gradient(135deg,#ff6b9d,#c084fc);' + FONT + '">✍️ 답장 쓰기</button>' +
-      '<button id="mail-del" data-id="' + m.id + '" style="flex:1;padding:12px;border:none;border-radius:12px;color:#c9b8e8;font-size:12.5px;font-weight:900;cursor:pointer;background:rgba(255,255,255,0.08);' + FONT + '">지우기</button></div>';
+      '<button id="mail-del" data-id="' + m.id + '" style="flex:1;padding:12px;border:none;border-radius:12px;color:#c9b8e8;font-size:12.5px;font-weight:900;cursor:pointer;background:rgba(255,255,255,0.08);' + FONT + '">지우기</button></div>' +
+      '<button id="mail-back2" style="width:100%;margin-top:8px;padding:12px;border:1.5px solid rgba(255,255,255,0.25);border-radius:12px;color:#fff;font-size:13.5px;font-weight:900;cursor:pointer;background:rgba(255,255,255,0.1);' + FONT + '">📪 편지 덮고 목록으로</button>';
   }
 
   function writeHtml(s) {
@@ -304,6 +305,7 @@
       };
     });
     var back = ov.querySelector('#mail-back'); if (back) back.onclick = function () { ui.view = null; render(); };
+    var back2 = ov.querySelector('#mail-back2'); if (back2) back2.onclick = function () { ui.view = null; render(); };
     var rp = ov.querySelector('#mail-reply'); if (rp) rp.onclick = function () { ui.cid = rp.getAttribute('data-cid'); ui.tab = 'write'; ui.view = null; render(); };
     var del = ov.querySelector('#mail-del');
     if (del) del.onclick = function () { var s = load(), id = del.getAttribute('data-id'); s.inbox = s.inbox.filter(function (m) { return m.id !== id; }); save(s); ui.view = null; paintBadge(); render(); };
