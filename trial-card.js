@@ -150,8 +150,8 @@
     var old = $('trial-overlay'); if (old) old.remove();
     var ov = document.createElement('div');
     ov.id = 'trial-overlay';
-    ov.style.cssText = 'position:fixed;inset:0;z-index:960;background:rgba(10,5,20,.94);overflow-y:auto;display:flex;align-items:center;justify-content:center;padding:20px;' + FONT;
-    ov.innerHTML = '<div style="width:100%;max-width:320px;text-align:center;">' + inner + '</div>';
+    ov.style.cssText = 'position:fixed;inset:0;z-index:960;background:rgba(10,5,20,.94);overflow-y:auto;-webkit-overflow-scrolling:touch;display:flex;align-items:flex-start;justify-content:center;padding:calc(20px + env(safe-area-inset-top)) 20px calc(90px + env(safe-area-inset-bottom));' + FONT;
+    ov.innerHTML = '<div style="width:100%;max-width:320px;text-align:center;margin:auto 0;">' + inner + '</div>';
     document.body.appendChild(ov);
     return ov;
   }
@@ -188,7 +188,7 @@
     if (!isActive()) { checkExpire(); if (!$('trial-overlay')) toast('체험 기간이 끝났어요'); return; }
     var pct = Math.max(0, Math.min(100, Math.round(remainMs() / (TRIAL_DAYS * DAY) * 100)));
     var ov = overlay(
-      '<div style="display:flex;justify-content:flex-end;margin-bottom:8px;"><button id="trial-close" style="padding:7px 12px;border:none;border-radius:10px;background:rgba(255,255,255,.12);color:#fff;font-size:13px;font-weight:900;cursor:pointer;' + FONT + '">닫기</button></div>' +
+      '<div style="display:flex;justify-content:flex-end;margin-bottom:8px;position:sticky;top:0;z-index:5;"><button id="trial-close" style="padding:7px 12px;border:none;border-radius:10px;background:rgba(255,255,255,.12);color:#fff;font-size:13px;font-weight:900;cursor:pointer;' + FONT + '">닫기</button></div>' +
       cardHtml(230) +
       '<div style="margin-top:10px;">' + effectsHtml() + '</div>' +
       '<div style="margin:16px 0 4px;font-size:13px;font-weight:900;color:#fca5a5;">⏳ 남은 시간 ' + remainText() + ' (D-' + dday() + ')</div>' +
