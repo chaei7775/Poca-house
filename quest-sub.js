@@ -35,6 +35,13 @@
       detect: function () { return F.lesson || (sum((J('ph_training', {}) || {}).count) > 0 && flag('lesson')); } }
   };
 
+  // 메인 퀘스트에 있던 것 중 서브에 어울리는 것들 → 서브로 옮기고 경험치는 0 (코인 보상·완료 조건은 그대로, 이미 완료한 기록도 그대로)
+  var MOVE = ['main_mgr_actor', 'main_mgr_top', 'main_mgr_event', 'main_mgr_road', 'main_mgr_run', 'main_mgr_event10', 'main_mgr_run10',
+              'main_goods_equip', 'main_goods_full', 'main_goods_rare', 'main_drama_ok', 'main_drama_10', 'main_lv20', 'main_lv30', 'main_lv50'];
+  function moveToSub() {
+    if (typeof QUESTS === 'undefined') return;
+    MOVE.forEach(function (id) { var q = QUESTS[id]; if (q && (q.type !== 'sub' || q.rewardExp !== 0)) { q.type = 'sub'; q.rewardExp = 0; } });
+  }
   function register() {
     if (typeof QUESTS === 'undefined') return false;
     Object.keys(SUB).forEach(function (id) {
@@ -61,12 +68,13 @@
     var orig = window.renderQuestList;
     if (orig.__subHooked) return;
     var w = function () {
+      moveToSub();
       var r = orig.apply(this, arguments);
       try {
         var el = document.getElementById('quest-list');
         if (el && typeof QUESTS !== 'undefined' && typeof questProgress !== 'undefined') {
           var html = '<div style="font-size:13px;font-weight:700;color:#FFB3CC;margin:16px 0 10px;">🌿 서브 퀘스트 <span style="font-size:10px;color:#9aa0c8;font-weight:400;">경험치 없음</span></div>';
-          Object.keys(SUB).forEach(function (id) {
+          Object.keys(SUB).concat(MOVE).forEach(function (id) {
             var q = QUESTS[id]; if (!q) return;
             var done = questProgress[id] === 'done';
             html += '<div style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,' + (done ? '0.3' : '0.1') + ');border-radius:12px;padding:12px;margin-bottom:8px;opacity:' + (done ? '0.6' : '1') + ';">' +
@@ -84,7 +92,8 @@
   (function boot() {
     if (!register()) { setTimeout(boot, 200); return; }
     hookList();
-    setInterval(check, 1000);
+    moveToSub();
+    setInterval(function () { moveToSub(); check(); }, 1000);
   })();
   window.__questSubTest = { SUB: SUB, check: check, flag: flag };
 })();
