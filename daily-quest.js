@@ -13,7 +13,7 @@
   // exp: 하루 총 경험치 = 현재 레벨 필요경험치 × 배율 (최소 MIN_TOTAL_EXP)
   //   → 초반엔 하루에 여러 레벨, 레벨이 높아질수록 배율이 줄어듦
   var MIN_TOTAL_EXP = 30;      // 초반(Lv1~4)엔 하루에 많아야 한 레벨 정도만 오르게
-  function expMultiplier(lv) { return lv <= 4 ? 0.25 : (lv <= 10 ? 1.0 : (lv <= 20 ? 0.8 : 0.4)); }
+  function expMultiplier(lv) { return lv <= 4 ? 0.25 : (lv <= 10 ? 0.7 : (lv <= 20 ? 0.8 : 0.4)); }
 
   // 퀘스트 목록: need=목표 횟수, w=경험치 비중(합 1.0), coins=코인(고정, 약간)
   var ALLQ = [
