@@ -19,7 +19,9 @@
   var NAME_MAX = 10;
   var PAY_MULT = 20;                   // 💰 코인 배율 (기준: 드라마 혼자 촬영이 약 1500만. 인연 높은 2명이 '좋음' 등급이면 활동 한 번이 그 정도가 되도록 맞춤. 이 숫자만 바꾸면 전체 조절)
   var STA_FREE = 3;                    // 💪 그룹 체력: 하루 무료 활동 횟수 (모든 활동이 같이 씀. 드라마 촬영 체력과 같은 방식)
-  var POTION_SMALL = 10000000, POTION_BIG = 28000000;   // 체력 음료 (소: 1회 / 대: 3회) 가격 — 드라마와 같음
+  var POTION_MIN = 10000000;           // 체력 음료(소) 최소 가격 — 드라마와 같음
+  var POTION_RATE = 0.7;               // 음료(소) 가격 = 우리 그룹 활동 평균 보상 × 70% (후반에 보상이 커지면 음료도 비싸져서 남는 장사가 안 되게)
+  var POTION_BIG_RATE = 2.8;           // 대(3회) 가격 = 소 가격 × 2.8
   var MEMBER_BONUS = 0.25;             // 멤버 1명 늘 때마다 +25% (활동마다 따로 정한 게 있으면 그걸 씀)
   var BOND_BONUS = 0.5;                // 평균 인연(1~20) 만점이면 +50%
   var LEVEL_BONUS = 0.05;              // 그룹 레벨 1당 +5%
@@ -27,7 +29,7 @@
   var FAME_PER_MEMBER = 3;             // 활동 1번 인기도 = 활동 기본 + 멤버수×3 (대성공이면 ×1.5)
   var STAT_DEFAULT = 10;               // 레슨 데이터가 없을 때 능력치
   var TIERS = [                        // [필요 능력치(가중 평균), 등급 이름, 보상 배율]
-    [0, '아쉬움', 0.7], [20, '보통', 1], [40, '좋음', 1.4], [60, '훌륭', 1.9], [80, '최고', 2.5]
+    [0, '아쉬움', 0.7], [20, '보통', 1], [40, '좋음', 1.25], [60, '훌륭', 1.5], [80, '최고', 1.8]
   ];
   var STATS = [                        // lesson.js 와 같은 키
     { k: 'vocal', icon: '🎤', name: '보컬', color: '#ff7fa8' }, { k: 'dance', icon: '💃', name: '댄스', color: '#7fd1ff' },
@@ -109,6 +111,15 @@
       fame: Math.floor((act.fame + FAME_PER_MEMBER * n) * (big ? BIG_MULT : 1)),
       power: p, tier: ti, bigChance: Math.min(BIG_MAX, BIG_BASE + p * BIG_PER_POWER), wishChance: act.wish ? Math.min(0.9, 0.25 + p / 150) : 0
     };
+  }
+
+  function potionPrice(s, n) {
+    var live = s.group ? liveMembers(s) : [], small = POTION_MIN;
+    if (live.length >= MIN_MEMBERS) {
+      var avg = ACTS.reduce(function (a, act) { return a + reward(act, live, s.fame, false).coin; }, 0) / ACTS.length;
+      small = Math.max(POTION_MIN, Math.floor(avg * POTION_RATE / 100000) * 100000);
+    }
+    return n === 1 ? small : Math.floor(small * POTION_BIG_RATE / 100000) * 100000;
   }
 
   // ── 그룹 활동 ──
@@ -225,8 +236,8 @@
       (ok ? '' : '<div style="font-size:12px;color:#ffb0b0;text-align:center;margin-bottom:8px;">데뷔한 멤버가 ' + MIN_MEMBERS + '명 이상이어야 활동할 수 있어요. 멤버를 바꿔주세요.</div>') +
       '<div style="display:flex;align-items:center;gap:8px;padding:9px 11px;margin-bottom:8px;border-radius:12px;background:rgba(127,232,176,0.1);border:1px solid rgba(127,232,176,0.35);">' +
         '<div style="flex:1;"><div style="font-size:11px;color:#c9f0dc;font-weight:900;">💪 그룹 체력 (오늘 무료 ' + s.free + '/' + STA_FREE + (s.potion ? ' + 음료 ' + s.potion : '') + ')</div><div style="margin-top:4px;">' + pips + '</div></div>' +
-        '<button data-buy="1" style="padding:7px 9px;border:none;border-radius:10px;color:#fff;font-size:10.5px;font-weight:900;cursor:pointer;background:rgba(255,255,255,0.14);line-height:1.35;' + FONT + '">🥤 소 1회<br>' + fmt(POTION_SMALL / 10000) + '만</button>' +
-        '<button data-buy="3" style="padding:7px 9px;border:none;border-radius:10px;color:#fff;font-size:10.5px;font-weight:900;cursor:pointer;background:rgba(255,255,255,0.14);line-height:1.35;' + FONT + '">🥤 대 3회<br>' + fmt(POTION_BIG / 10000) + '만</button></div>' +
+        '<button data-buy="1" style="padding:7px 9px;border:none;border-radius:10px;color:#fff;font-size:10.5px;font-weight:900;cursor:pointer;background:rgba(255,255,255,0.14);line-height:1.35;' + FONT + '">🥤 소 1회<br>' + fmt(potionPrice(s, 1) / 10000) + '만</button>' +
+        '<button data-buy="3" style="padding:7px 9px;border:none;border-radius:10px;color:#fff;font-size:10.5px;font-weight:900;cursor:pointer;background:rgba(255,255,255,0.14);line-height:1.35;' + FONT + '">🥤 대 3회<br>' + fmt(potionPrice(s, 3) / 10000) + '만</button></div>' +
       '<div style="font-size:11.5px;color:#9fb0d0;font-weight:900;margin-bottom:6px;">그룹 활동 <span style="font-weight:500;">(하루마다 횟수가 새로 채워져요)</span></div>' + cards +
       '<div style="display:flex;gap:8px;margin-top:8px;"><button id="grp-edit" style="flex:1;padding:11px;border:none;border-radius:12px;color:#fff;font-size:12.5px;font-weight:900;cursor:pointer;background:rgba(255,255,255,0.1);' + FONT + '">✏️ 멤버·이름 바꾸기</button>' +
       '<button id="grp-del" style="flex:1;padding:11px;border:none;border-radius:12px;color:#ffb0b0;font-size:12.5px;font-weight:900;cursor:pointer;background:rgba(255,80,80,0.12);' + FONT + '">그룹 해체</button></div>' +
@@ -299,7 +310,7 @@
     };
     Array.prototype.forEach.call(ov.querySelectorAll('[data-buy]'), function (b) {
       b.onclick = function () {
-        var n = +b.getAttribute('data-buy'), price = n === 1 ? POTION_SMALL : POTION_BIG, have = 0;
+        var n = +b.getAttribute('data-buy'), price = potionPrice(load(), n), have = 0;
         try { have = coins; } catch (e) {}
         if (have < price) { toast('코인이 부족해요 (' + fmt(price) + ' 필요)'); return; }
         addCoins(-price); var st = load(); st.potion += n; save(st); toast('🥤 체력 음료로 활동 ' + n + '회를 더 할 수 있어요'); render();
@@ -330,5 +341,5 @@
   });
 
   window.openGroup = open;
-  window.__groupTest = { load: load, save: save, reward: reward, doActivity: doActivity, groupStats: groupStats, concept: concept, powerOf: powerOf, tierOf: tierOf, levelOf: levelOf, debutedIds: debutedIds, ACTS: ACTS, TIERS: TIERS };
+  window.__groupTest = { potionPrice: potionPrice, load: load, save: save, reward: reward, doActivity: doActivity, groupStats: groupStats, concept: concept, powerOf: powerOf, tierOf: tierOf, levelOf: levelOf, debutedIds: debutedIds, ACTS: ACTS, TIERS: TIERS };
 })();
