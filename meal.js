@@ -33,7 +33,7 @@
   var PREP_DAYS = 3;             // 촬영/컴백 며칠 전부터 준비 기간인지
   var BOOK_MIN = 3, BOOK_MAX = 7;// 촬영/컴백은 오늘로부터 며칠 뒤까지 잡을 수 있는지
   var REST_DAYS = 3;             // 휴식기 길이(일)
-  var PRICE_COIN = { '무료': 0, '하': 300, '중': 2000, '상': 6000 };   // 음식 가격(코인)
+  var PRICE_COIN = { '무료': 0, '하': 6000, '중': 40000, '상': 120000 };   // 음식 가격(코인)
   var SNEAK_CHANCE = 0.35;       // 촬영 앞에 몰래 먹는 음식을 먹었을 때 들킬 확률
   var SNEAK_V = 4, SNEAK_M = 3;  // 들켰을 때 추가로 깎이는 비주얼 / 기분
   var EVENT_PAY = { drama: 30000, comeback: 50000, music: 40000, rest: 0 };           // 일정 날 정산금(컨디션 '좋음' 기준)
