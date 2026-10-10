@@ -621,7 +621,7 @@
     if (fi && fi._ok) {
       var R = T.r * 1.3, glow = f.angry > 0 ? '#ff4d4d' : (T.boss ? '#ffd76a' : f.type === 'tank' ? '#c084fc' : 'rgba(255,255,255,.9)');
       // 투명 스티커라서 동그랗게 자르지 않고 그대로 그림 (머리카락이 안 잘리게)
-      c.shadowColor = glow; c.shadowBlur = (f.angry > 0 || T.boss) ? 14 : 6;
+      if (f.angry > 0 || T.boss) { c.shadowColor = glow; c.shadowBlur = 14; }   // 일반 팬은 글로우 없음 (팬이 많아지는 웨이브 후반 렉 방지: shadowBlur 는 폰에서 매우 무거움)
       c.drawImage(fi, f.x - R * 1.1, f.y + bob - R * 1.1, R * 2.2, R * 2.2);
       c.shadowBlur = 0;
       drawAcc(c, f, R * 2.2, bob);
