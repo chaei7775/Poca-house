@@ -164,7 +164,7 @@ setTimeout(__bootReveal, 6000);   // 안전장치: 아무리 늦어도 6초 뒤�
 // 📦 묶음 로딩: build-bundle.py 가 만든 bundle.json 에 파일 전체가 순서대로 들어 있다.
 //    한 번에 받아서 배열 순서 그대로 실행하므로, 파일 100여 개를 따로 받던 때보다 훨씬 빠르고 더보기 같은 메뉴 칸이 매번 똑같이 나온다.
 //    ⚠️ NEW_CONTENT_FILES 의 파일을 고치거나 추가했으면 `python3 build-bundle.py` 로 bundle.json 을 다시 만들어 같이 올릴 것.
-var BUNDLE_V = '7533b5e74c';
+var BUNDLE_V = 'b45777a960';
 function __loadOne(filename) {   // 묶음에 없는 파일이나 묶음을 못 받았을 때 예전 방식으로 하나씩
   const s = document.createElement('script');
   s.src = filename + '?v=' + Date.now(); // 같은 사이트(GitHub Pages) 경로에서 직접 로드 - raw.githubusercontent.com은 JS 실행이 막힐 수 있음

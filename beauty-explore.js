@@ -154,13 +154,13 @@
       W: 0, H: 0, dpr: 1, s: 1, ox: 0, oy: 0,
       stage: 0, introT: INTRO_SEC, perfect: true,
       sweep: { dir: 0, runStart: 0, ext: 0, counted: false, passes: 0 }, ptr: null, sway: 0,
-      hits: 0, targets: [], spawnT: 0.3, marks: [], lastSpot: -1,
+      hits: 0, targets: [], spawnT: 0.3, marks: [], lastPos: null, skin: null,
       gauge: 0, rounds: 0, holding: false, holdLock: false, sprayT: 0, mist: [], shine: 0,
       exitDown: false, bursts: [], pops: [], collected: [], timeLeft: SESSION_SEC,
       flash: 0, glow: 0, shakeT: 0, msg: '', msgT: 0, last: performance.now(), raf: 0, t: 0, ended: false, endDelay: -1
     };
     bg.onload = function () { if (S) S.bgOk = true; };
-    face.onload = function () { if (S) S.faceOk = true; };
+    face.onload = function () { if (S) { S.faceOk = true; buildSkin(); } };
     resize();
     say(STAGES[0].tip, 3);
     sfx('setGrab');
@@ -196,7 +196,53 @@
     var ax = tilt - Math.PI / 2;                                       // 통 위쪽 방향
     return { cx: cx, cy: cy, ang: aim, rot: tilt, tx: cx + Math.cos(ax) * 27, ty: cy + Math.sin(ax) * 27 };
   }
-  function spotXY(i) { var f = faceC(); return [f[0] + SPOTS[i].fx * f[2], f[1] + SPOTS[i].fy * f[2]]; }
+  function spotXY(t) { var f = faceC(); return [f[0] + t.fx * f[2], f[1] + t.fy * f[2]]; }
+  // 얼굴 그림에서 '살색 부분'만 찾아서 퍼프 자리 후보로 쓴다 (머리카락·장식 위에는 안 나오게)
+  function buildSkin() {
+    S.skin = null;
+    var me = S, im = new Image();   // 색을 읽으려면 따로 받아야 해서(보안 규칙) 분석용 사본을 한 번 더 받음. 실패하면 예전 자리(SPOTS)를 씀
+    im.crossOrigin = 'anonymous';
+    im.onload = function () { if (S === me) analyzeSkin(im); };
+    im.onerror = function () { window.__skinErr = 'load-fail'; };
+    im.src = S.face.src;
+  }
+  function analyzeSkin(img) {
+    S.skin = null;
+    try {
+      var N = 256, cv = document.createElement('canvas'); cv.width = N; cv.height = N;
+      var g = cv.getContext('2d');
+      var iw = img.naturalWidth || img.width || N, ih = img.naturalHeight || img.height || N, k = Math.min(N / iw, N / ih);
+      g.drawImage(img, (N - iw * k) / 2, (N - ih * k) / 2, iw * k, ih * k);
+      var d = g.getImageData(0, 0, N, N).data, sk = new Uint8Array(N * N), i;
+      for (i = 0; i < N * N; i++) {
+        var r = d[i * 4], gg = d[i * 4 + 1], b = d[i * 4 + 2], a = d[i * 4 + 3];
+        sk[i] = (a > 200 && r > 185 && gg > 150 && b > 130 && r >= gg && gg >= b - 10 && (r - b) < 80 && gg * 100 > r * 72) ? 1 : 0;
+      }
+      var RR = 9, dirs = [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [-1, -1], [1, -1], [-1, 1]];
+      function solid(x, y) {
+        if (x < RR || y < RR || x >= N - RR || y >= N - RR || !sk[y * N + x]) return false;
+        for (var q = 0; q < 8; q++) if (!sk[(y + dirs[q][1] * RR) * N + x + dirs[q][0] * RR]) return false;
+        return true;
+      }
+      var STEP = 4, G = Math.floor(N / STEP), grid = [], x, y;
+      for (y = 0; y < G; y++) { grid[y] = []; for (x = 0; x < G; x++) grid[y][x] = solid(x * STEP, y * STEP) ? 1 : 0; }
+      var seen = {}, best = [];                                   // 이어진 덩어리 중 제일 큰 것 = 얼굴 피부
+      for (y = 0; y < G; y++) for (x = 0; x < G; x++) {
+        if (!grid[y][x] || seen[y * G + x]) continue;
+        var comp = [], st = [[x, y]]; seen[y * G + x] = 1;
+        while (st.length) {
+          var c0 = st.pop(); comp.push(c0);
+          for (var q = 0; q < 8; q++) {
+            var nx = c0[0] + dirs[q][0], ny = c0[1] + dirs[q][1];
+            if (nx < 0 || ny < 0 || nx >= G || ny >= G || !grid[ny][nx] || seen[ny * G + nx]) continue;
+            seen[ny * G + nx] = 1; st.push([nx, ny]);
+          }
+        }
+        if (comp.length > best.length) best = comp;
+      }
+      if (best.length >= 12) S.skin = best.map(function (c0) { return { fx: (c0[0] * STEP) / N - 0.5, fy: (c0[1] * STEP) / N - 0.5 }; });
+    } catch (e) { S.skin = null; window.__skinErr = String(e); }
+  }
   function hitR() { return Math.max(30, 0.15 * faceC()[2]); }
 
   // ── 입력 ──
@@ -246,17 +292,20 @@
   }
 
   // ── 2단계: 퍼프 ──
+  var PUFF_RGB = ['255,120,170', '255,255,255', '190,130,255'];
   function spawnTarget() {
-    var used = {};
-    S.targets.forEach(function (t) { used[t.spot] = true; });
-    var cands = [];
-    for (var i = 0; i < SPOTS.length; i++) if (!used[i] && i !== S.lastSpot) cands.push(i);
-    if (!cands.length) return;
-    var spot = cands[Math.floor(Math.random() * cands.length)];
-    S.lastSpot = spot;
+    var pool = S.skin || SPOTS, tries = 30, c = null;
+    while (tries-- > 0) {
+      var cand = pool[Math.floor(Math.random() * pool.length)];
+      var far = S.targets.every(function (t) { return Math.hypot(t.fx - cand.fx, t.fy - cand.fy) > 0.2; }) &&
+        (!S.lastPos || Math.hypot(S.lastPos.fx - cand.fx, S.lastPos.fy - cand.fy) > 0.15);
+      if (far) { c = cand; break; }
+    }
+    if (!c) return;
+    S.lastPos = c;
     var hasNg = S.targets.some(function (t) { return t.type === 'ng'; });
     var ng = S.hits >= 1 && !hasNg && Math.random() < NG_CHANCE;
-    S.targets.push({ spot: spot, type: ng ? 'ng' : 'real', born: S.t });
+    S.targets.push({ fx: c.fx, fy: c.fy, rgb: c.rgb || PUFF_RGB[Math.floor(Math.random() * PUFF_RGB.length)], type: ng ? 'ng' : 'real', born: S.t });
   }
   function realCount() { return S.targets.filter(function (t) { return t.type === 'real'; }).length; }
 
@@ -264,12 +313,12 @@
     if (!playing()) return;
     var best = null, bd = 1e9, R = hitR() * 1.15;
     S.targets.forEach(function (t) {
-      var sp = spotXY(t.spot), d = Math.hypot(sp[0] - x, sp[1] - y);
+      var sp = spotXY(t), d = Math.hypot(sp[0] - x, sp[1] - y);
       if (d < R && d < bd) { bd = d; best = t; }
     });
     if (!best) return;
     S.targets = S.targets.filter(function (t) { return t !== best; });
-    var sp = spotXY(best.spot);
+    var sp = spotXY(best);
     if (best.type === 'ng') {
       S.timeLeft = Math.max(0, S.timeLeft - NG_PENALTY);
       S.flash = 0.35; S.perfect = false;
@@ -278,7 +327,7 @@
       return;
     }
     S.hits += 1;
-    S.marks.push({ fx: SPOTS[best.spot].fx, fy: SPOTS[best.spot].fy, rgb: SPOTS[best.spot].rgb, t: S.t });
+    S.marks.push({ fx: best.fx, fy: best.fy, rgb: best.rgb, t: S.t });
     sfx('beautyPuff'); vib(10);
     S.bursts.push({ x: sp[0], y: sp[1], text: '톡!', pic: 'puff', t: 0, dur: 0.45, golden: false, big: false, screen: true });
     if (S.hits % 2 === 0) { giveRoll(sp[0], sp[1] - 40); sfx('reward'); }
@@ -538,11 +587,11 @@
     if (S.stage === 1) {
       var R = hitR();
       S.targets.forEach(function (t) {
-        var sp = spotXY(t.spot), k = (S.t - t.born) / PUFF_LIFE, pulse = 0.5 + 0.5 * Math.sin(S.t * 9 + t.spot);
+        var sp = spotXY(t), k = (S.t - t.born) / PUFF_LIFE, pulse = 0.5 + 0.5 * Math.sin(S.t * 9 + t.fx * 20);
         var ng = t.type === 'ng';
         if (ng && k > 0.7 && Math.floor(S.t * 10) % 2 === 0) return;          // 사라지기 직전 깜빡
         var gr = c.createRadialGradient(sp[0], sp[1], 0, sp[0], sp[1], R);
-        var rgb = ng ? '255,60,70' : SPOTS[t.spot].rgb === '255,255,255' ? '255,235,150' : SPOTS[t.spot].rgb;
+        var rgb = ng ? '255,60,70' : t.rgb === '255,255,255' ? '255,235,150' : t.rgb;
         gr.addColorStop(0, 'rgba(' + rgb + ',' + (0.55 + 0.25 * pulse) + ')'); gr.addColorStop(1, 'rgba(' + rgb + ',0)');
         c.fillStyle = gr; c.beginPath(); c.arc(sp[0], sp[1], R, 0, 6.3); c.fill();
         c.lineWidth = 3; c.strokeStyle = ng ? 'rgba(255,90,100,0.95)' : 'rgba(255,255,255,0.95)';
