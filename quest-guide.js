@@ -181,7 +181,7 @@
       done: function () { var r = J('ph_roadmgr', {}) || {}; return (r.done || 0) >= 1 || !!r.job; }, reward: 500,
       go: function () { if (typeof window.openRoadManager === 'function') window.openRoadManager(); else goTo('home'); }, target: '#nav-shop' },
     { id: 'invest', icon: '💼', title: '포카 인베스트 첫 투자',
-      hint: '(Lv.20부터) 마을 지도 오른쪽 아래 <b>💼 포카 인베스트</b>! 굿즈 사업에 코인을 넣고, 스케줄에서 하루 보내기를 7번 하면 정산돼요. 사건 카드 선택으로 수익이 달라져요. (Lv.10부터)',
+      hint: '(Lv.20부터) 마을 지도 오른쪽 아래 <b>💼 포카 인베스트</b>! 굿즈 사업에 코인을 넣고, 스케줄에서 하루 보내기를 7번 하면 정산돼요. 사건 카드 선택으로 수익이 달라져요.',
       when: function () { try { return Number(playerLevel) >= 10; } catch (e) { return false; } },
       done: function () { try { var v = JSON.parse(localStorage.getItem('ph_invest') || 'null'); return !!(v && ((v.pos && v.pos.length) || (v.hist && v.hist.length))); } catch (e) { return false; } }, reward: 500,
       go: function () { goTo('map'); }, target: '#btn-invest-map' },

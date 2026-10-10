@@ -261,19 +261,19 @@ const STORY_QUESTS = [
   { id:'story_01', title:'추락', desc:'정신을 차려보니, 낯선 곳에 떨어져 있었다. 날개도 기억도 없이.', condition:'story_start', rewardCoins:100, rewardExp:0 },
   { id:'story_02', title:'목소리', desc:'"포카하우스를 되돌려놓으면, 너는 다시 하늘로 돌아갈 수 있어." 어디선가 그런 목소리가 들렸다.', condition:'story_start', rewardCoins:100, rewardExp:0 },
   { id:'story_03', title:'닫힌 문', desc:'포카하우스의 문은 굳게 잠겨 있었다. 무언가 채워야 할 것 같았다.', condition:'story_start', rewardCoins:100, rewardExp:0 },
-  { id:'story_05', title:'반짝이는 카드', desc:'마을 어딘가에서 반짝이는 가게를 발견했다. 카드를 모으면 뭔가 달라질까?', condition:'first_gacha', rewardCoins:300, rewardExp:8 },
-  { id:'story_06', title:'작은 인연', desc:'카드 속 아이돌들이 진짜 여기 살고 있었다. 직접 만나보자.', condition:'first_meet', rewardCoins:200, rewardExp:8 },
-  { id:'story_04', title:'첫걸음, 알바', desc:'아이돌에게 선물하려면 코인이 필요하다. 일을 해서 벌어보자.', condition:'first_alba', rewardCoins:200, rewardExp:8 },
+  { id:'story_05', title:'반짝이는 카드', desc:'마을 어딘가에서 반짝이는 가게를 발견했다. 카드를 모으면 뭔가 달라질까?', condition:'first_gacha', rewardCoins:0, rewardExp:0 },
+  { id:'story_06', title:'작은 인연', desc:'카드 속 아이돌들이 진짜 여기 살고 있었다. 직접 만나보자.', condition:'first_meet', rewardCoins:0, rewardExp:0 },
+  { id:'story_04', title:'첫걸음, 알바', desc:'아이돌에게 선물하려면 코인이 필요하다. 일을 해서 벌어보자.', condition:'first_alba', rewardCoins:0, rewardExp:0 },
   { id:'story_07', title:'등교시키기', desc:'포카들이 학교에 다닐 수 있다는 걸 알았다. 키우면 뭔가 달라질 것 같다.', condition:'first_school', rewardCoins:300, rewardExp:15 },
   { id:'story_08', title:'첫 변화', desc:'포카 하나가 레벨 5가 됐다. 포카하우스에서 빛이 새어나온다.', condition:'poca_level_5', rewardCoins:1000, rewardExp:40 },
-  { id:'story_09', title:'더 큰 꿈', desc:'한 명만으론 부족해. 더 많은 포카를 키워야겠다.', condition:'cards_10', rewardCoins:500, rewardExp:40 },
+  { id:'story_09', title:'더 큰 꿈', desc:'한 명만으론 부족해. 더 많은 포카를 키워야겠다.', condition:'cards_10', rewardCoins:0, rewardExp:0 },
   { id:'story_10', title:'탐험의 시작', desc:'포카들이 자꾸 뭔가를 찾아달라고 한다. 같이 나가보자.', condition:'first_explore', rewardCoins:300, rewardExp:15 },
   { id:'story_11', title:'두 번째 빛', desc:'포카가 레벨 10에 도달했다. 또 다른 문이 열렸다.', condition:'poca_level_10', rewardCoins:2000, rewardExp:400 },
   { id:'story_12', title:'쌓이는 재료', desc:'탐험에서 모은 재료가 제법 쌓였다. 뭔가 만들 수 있을 것 같다.', condition:'first_craft', rewardCoins:500, rewardExp:150 },
   { id:'story_13', title:'어울리는 옷', desc:'포카에게 옷을 입혀주면 더 빛난다는 걸 알게 됐다.', condition:'first_cloth_equip', rewardCoins:500, rewardExp:150 },
   { id:'story_14', title:'세 번째 빛', desc:'포카가 레벨 15에 도달했다. 포카하우스가 조금씩 또렷해진다.', condition:'poca_level_15', rewardCoins:3000, rewardExp:600 },
-  { id:'story_15', title:'거의 다 왔어', desc:'포카하우스가 거의 본래 모습을 찾아가고 있다.', condition:'mystery_island_unlock', rewardCoins:1000, rewardExp:300 },
-  { id:'story_16', title:'잊혀진 기억', desc:'신비의 섬에서 작은 기억의 조각을 발견했다.', condition:'first_wish_fragment', rewardCoins:1500, rewardExp:300 },
+  { id:'story_15', title:'거의 다 왔어', desc:'포카하우스가 거의 본래 모습을 찾아가고 있다.', condition:'mystery_island_unlock', rewardCoins:0, rewardExp:0 },
+  { id:'story_16', title:'잊혀진 기억', desc:'신비의 섬에서 작은 기억의 조각을 발견했다.', condition:'first_wish_fragment', rewardCoins:0, rewardExp:0 },
   { id:'story_17', title:'한 걸음 더', desc:'포카가 레벨 20에 도달했다! 포카하우스의 절반쯤... 아니, 아직 머나먼 여정이 남아있다는 걸 느꼈다. 하지만 분명히, 무언가 달라지고 있었다.', condition:'poca_level_20', rewardCoins:10000, rewardExp:1000 },
   { id:'story_18', title:'약속', desc:'모든 게 돌아왔다. 그런데... 정말 떠나야 할까?', condition:'story_ending_tease', rewardCoins:5000, rewardExp:500 },
 ];
@@ -324,7 +324,7 @@ function showStoryQuestToast(q) {
   const myIndex = window.activeQuestToastCount++;
   const popup = document.createElement('div');
   popup.style.cssText = 'position:fixed;top:' + (14 + myIndex * 42) + 'px;left:50%;transform:translateX(-50%);z-index:900;background:linear-gradient(135deg,#1a1a2e,#2d1b4e);border:1.5px solid #FFD700;border-radius:10px;padding:6px 12px;text-align:center;width:75%;max-width:240px;animation:fadeInUp 0.4s ease;transition:top 0.3s;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;';
-  popup.innerHTML = '<span style="font-size:10px;color:#FFD700;font-weight:900;">📖 ' + q.title + '</span> <span style="font-size:10px;color:#fff;">🍔+' + q.rewardCoins + ' ⭐+' + q.rewardExp + '</span>';
+  popup.innerHTML = '<span style="font-size:10px;color:#FFD700;font-weight:900;">📖 ' + q.title + '</span> <span style="font-size:10px;color:#fff;">' + ((q.rewardCoins || q.rewardExp) ? ((q.rewardCoins ? '🍔+' + q.rewardCoins : '') + (q.rewardExp ? ' ⭐+' + q.rewardExp : '')) : '이야기 기록') + '</span>';
   document.body.appendChild(popup);
   setTimeout(function() {
     popup.style.opacity = '0'; popup.style.transition = 'opacity 0.5s';
