@@ -652,7 +652,7 @@
   var COMBO_WINDOW = 5000;       // 이 시간(ms) 안에 다음 팬을 응대해야 콤보 유지
   var PERFECT_MS = 10000;        // 팬이 오고 이 시간(ms) 안에 응대하면 PERFECT
   var PERFECT_BONUS = 0.10;      // PERFECT 하나당 추가 보상
-  var COMBO_TIERS = [[10, 0.60], [8, 0.40], [5, 0.25], [3, 0.10]];   // [콤보 수, 보상 보너스]
+  var COMBO_TIERS = [[50, 1.30], [30, 1.00], [20, 0.80], [10, 0.60], [8, 0.40], [5, 0.25], [3, 0.10]];   // [콤보 수, 보상 보너스]
   function comboBonus(n) { for (var i = 0; i < COMBO_TIERS.length; i++) if (n >= COMBO_TIERS[i][0]) return COMBO_TIERS[i][1]; return 0; }
   function comboBreak() {
     if (F && (F.combo || F.perfect)) {
@@ -676,16 +676,17 @@
     var perfect = !!born && (now - born) <= PERFECT_MS;
     F.perfect = perfect ? (F.perfect || 0) + 1 : 0;
     var bonus = comboBonus(F.combo) + (perfect ? PERFECT_BONUS : 0);
-    var c = F.combo, col = c >= 8 ? '#ff4d6d' : c >= 5 ? '#ff9f1c' : c >= 3 ? '#ffd23f' : '#ffffff';
+    var c = F.combo, col = c >= 30 ? '#38bdf8' : c >= 20 ? '#e879f9' : c >= 8 ? '#ff4d6d' : c >= 5 ? '#ff9f1c' : c >= 3 ? '#ffd23f' : '#ffffff';
     var html = '';
     if (perfect) html += '<div style="font-size:' + (17 + Math.min(F.perfect, 5) * 1.5) + 'px;font-weight:900;font-style:italic;color:#7dd3fc;text-shadow:0 0 8px #38bdf8,0 2px 6px #000;letter-spacing:1px;">PERFECT' + (F.perfect > 1 ? ' x' + F.perfect : '') + '</div>';
     if (c >= 2) html += '<div style="font-size:' + (14 + Math.min(c, 10)) + 'px;font-weight:900;font-style:italic;color:' + col + ';text-shadow:0 0 8px ' + col + ',0 2px 6px #000;">' + c + ' COMBO' + (bonus > 0 ? ' · 보상 +' + Math.round(bonus * 100) + '%' : '') + '</div>';
     if (html) floatText(x, y - 0.16, '<div style="text-align:center;white-space:nowrap;">' + html + '</div>');
     // 손맛: 흔들림 + 진동 + 하트/코인 + 소리 (콤보가 높을수록 커짐)
-    var tier = c >= 8 ? 3 : c >= 5 ? 2 : c >= 3 ? 1 : 0;
-    shake(3 + tier * 2 + (perfect ? 2 : 0));
+    var tier = c >= 30 ? 5 : c >= 20 ? 4 : c >= 8 ? 3 : c >= 5 ? 2 : c >= 3 ? 1 : 0;
+    var t4 = Math.min(tier, 4);   // 20콤보 이상은 연출 크기를 더 키우지 않음 (화면 흔들림·입자 과다 방지)
+    shake(3 + t4 * 2 + (perfect ? 2 : 0));
     vib(tier >= 2 ? [30, 40, 60] : tier === 1 ? [25, 30, 25] : 25);
-    burst(x, y, ['💗', '🪙', '💖', '✨'], 6 + tier * 4 + (perfect ? 4 : 0), 70 + tier * 25);
+    burst(x, y, ['💗', '🪙', '💖', '✨'], 6 + t4 * 4 + (perfect ? 4 : 0), 70 + t4 * 25);
     if (tier >= 2) burst(x, y, ['🪙'], 6, 120);
     sfx(tier >= 3 ? 'fsCombo3' : tier === 2 ? 'fsCombo2' : tier === 1 ? 'fsCombo1' : 'fsHit');
     if (perfect) setTimeout(function () { sfx('fsPerfect'); }, 120);
@@ -709,7 +710,7 @@
         '<div style="margin-top:4px;width:96px;height:6px;border-radius:4px;background:rgba(0,0,0,.45);overflow:hidden;"><div id="fs-combo-t" style="height:100%;width:100%;border-radius:4px;"></div></div>';
       F.view.appendChild(b);
     }
-    var c = F.combo, col = c >= 8 ? '#ff4d6d' : c >= 5 ? '#ff9f1c' : c >= 3 ? '#ffd23f' : '#ffffff';
+    var c = F.combo, col = c >= 30 ? '#38bdf8' : c >= 20 ? '#e879f9' : c >= 8 ? '#ff4d6d' : c >= 5 ? '#ff9f1c' : c >= 3 ? '#ffd23f' : '#ffffff';
     var bonus = comboBonus(c), left = Math.max(0, 1 - (now - F.comboAt) / COMBO_WINDOW);
     b.style.display = 'block';
     var n = $('fs-combo-n'), bn = $('fs-combo-b'), tm = $('fs-combo-t');
@@ -797,7 +798,7 @@
       } else {
         var i1 = F.fans.indexOf(o); if (i1 !== -1) F.fans.splice(i1, 1);
         var r = grant(love, (1 + 0.04 * mlv) * cmul);
-        if (F.mapId === 'broadcast_front' && F.combo >= 5 && typeof window.__bcBoxLuck === 'function') window.__bcBoxLuck(F.combo >= 10 ? 3 : F.combo >= 8 ? 2 : 1);   // 콤보 5+ : 뽑기 상자 등급 행운 addServe(F.cid); maybeBook('fan', id);
+        if (F.mapId === 'broadcast_front' && F.combo >= 5 && typeof window.__bcBoxLuck === 'function') window.__bcBoxLuck(F.combo >= 30 ? 5 : F.combo >= 20 ? 4 : F.combo >= 10 ? 3 : F.combo >= 8 ? 2 : 1);   // 콤보 5+ : 뽑기 상자 등급 행운 addServe(F.cid); maybeBook('fan', id);
         var fc = o.el && o.el.querySelector('.fs-face'); if (fc) setMood(fc, love ? '😍' : '😊');
         floatText(o.x, o.y - 0.09, '<div style="text-align:center;">' + r.lines.join('') + '</div>');
         setTimeout(function () { removeFan(o, true); }, 900);
