@@ -664,12 +664,15 @@ function renderPrep(){
   const pips=[];for(let i=0;i<CFG.HEAL_FREE;i++)pips.push(`<span class="pip ${i<S.free?'':'off'}"></span>`);
   for(let i=0;i<S.potion;i++)pips.push('<span class="pip pot"></span>');
   const groups=CATS.map(cat=>{
-    const list=S.inv.filter(i=>SKILLS[i.s].cat===cat).sort((a,b)=>GR[SKILLS[b.s].gr]-GR[SKILLS[a.s].gr]);
+    const all=S.inv.filter(i=>SKILLS[i.s].cat===cat),cnt={},seen={};
+    all.forEach(i=>{if(!onCard(i.u))cnt[i.s]=(cnt[i.s]||0)+1});
+    /* 같은 스킬의 안 낀 복사본은 한 칸으로 합쳐서 ×개수로 보여줌 (장착 중인 건 따로) */
+    const list=all.filter(i=>{if(onCard(i.u))return true;if(seen[i.s])return false;seen[i.s]=1;return true}).sort((a,b)=>GR[SKILLS[b.s].gr]-GR[SKILLS[a.s].gr]);
     if(!list.length)return '';
-    return `<div class="grp"><h3>${cat}</h3><div class="chips">${list.map(i=>{
+    return `<div class="grp"><h3>${cat} <span style="font-size:12px;color:var(--muted);font-weight:400">${all.length}개</span></h3><div class="chips">${list.map(i=>{
       const k=SKILLS[i.s],oc=onCard(i.u),mineOn=oc===c_.id;
       const picked=pickU===i.u;
-      return `<button class="chip ${mineOn?'on':''} ${oc&&!mineOn?'other':''}" data-a="pick" data-u="${i.u}" style="${picked?'border-color:#FFD700;opacity:1;':''}"><span class="dot c-${k.cat} ic ic-${i.s}">${k.i}</span><div><b>${k.n} <span class="tag g-${k.gr}" style="display:inline">${k.gr}</span> <span class="tag" style="display:inline;color:#7ee8a5">Lv.${mastLv(i.s)}${mastLv(i.s)>=MAST_MAX?' MAX':''}</span></b><span>${dtext(i.s)}${k.cd?` · 쿨 ${fmt(k.cd*mastCd(i.s))}초`:''}${mastLv(i.s)<MAST_MAX?` · 숙련 ${mastXp(i.s)}/${MAST_XP[mastLv(i.s)]}`:''}${oc&&!mineOn?` · ${card(oc).name} ${card(oc).grade} 장착중`:''}</span></div></button>${picked?`<button class="btn" data-a="eq" data-u="${i.u}" ${locked?'disabled':''} style="width:100%;padding:11px 12px;font-size:14px;margin-bottom:4px;background:#FFD700;color:#1a1405;border-color:#FFD700">${mineOn?'해제하기':oc&&!mineOn?`${card(oc).name} 카드에서 가져와 장착하기`:'장착하기'}</button>`:''}`}).join('')}</div></div>`}).join('');
+      return `<button class="chip ${mineOn?'on':''} ${oc&&!mineOn?'other':''}" data-a="pick" data-u="${i.u}" style="${picked?'border-color:#FFD700;opacity:1;':''}"><span class="dot c-${k.cat} ic ic-${i.s}">${k.i}</span><div><b>${k.n} <span class="tag g-${k.gr}" style="display:inline">${k.gr}</span> <span class="tag" style="display:inline;color:#7ee8a5">Lv.${mastLv(i.s)}${mastLv(i.s)>=MAST_MAX?' MAX':''}</span>${!oc&&cnt[i.s]>1?` <span class="tag" style="display:inline;color:#FFD700">×${cnt[i.s]}</span>`:''}</b><span>${dtext(i.s)}${k.cd?` · 쿨 ${fmt(k.cd*mastCd(i.s))}초`:''}${mastLv(i.s)<MAST_MAX?` · 숙련 ${mastXp(i.s)}/${MAST_XP[mastLv(i.s)]}`:''}${oc&&!mineOn?` · ${card(oc).name} ${card(oc).grade} 장착중`:''}</span></div></button>${picked?`<button class="btn" data-a="eq" data-u="${i.u}" ${locked?'disabled':''} style="width:100%;padding:11px 12px;font-size:14px;margin-bottom:4px;background:#FFD700;color:#1a1405;border-color:#FFD700">${mineOn?'해제하기':oc&&!mineOn?`${card(oc).name} 카드에서 가져와 장착하기`:'장착하기'}</button>`:''}`}).join('')}</div></div>`}).join('');
   const _sc=$('#dr-prep .scroll'),_top=_sc?_sc.scrollTop:0;
   $('#dr-prep').innerHTML=`
   <div class="scroll">
