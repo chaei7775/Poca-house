@@ -15,6 +15,8 @@
   // ── [설정] ──
   var REVEAL_MS = 3400;        // 폭발·결과 공개 시점 (sfx.js 의 소리 타이밍과 맞춰져 있음)
   var BACK = (typeof B !== 'undefined' ? B : '') + 'gacha-back.webp';
+  var MC_OUT = (typeof B !== 'undefined' ? B : '') + 'rc-circle-outer.png';   // 마법진 바깥 고리 (그림 바꾸려면 같은 이름으로 덮어쓰기)
+  var MC_IN = (typeof B !== 'undefined' ? B : '') + 'rc-circle-inner.png';    // 마법진 안쪽 육망성
   var TEXTS = [[500, '재료를 흡수하는 중'], [2000, '두 카드가 하나로'], [2800, '운명이 결정되고 있어요']];
 
   function css() {
@@ -26,6 +28,7 @@
       '#rc-anim-overlay .cv{position:absolute;inset:0;width:100%;height:100%}' +
       '#rc-anim-overlay .rc{position:absolute;left:0;top:0;border-radius:14px;overflow:hidden;will-change:transform,opacity;box-shadow:0 0 28px rgba(190,150,255,.65);background:linear-gradient(150deg,#3a2480,#1b1046)}' +
       '#rc-anim-overlay .rc img{width:100%;height:100%;object-fit:cover;display:block}' +
+      '#rc-anim-overlay .mc{position:absolute;left:0;top:0;opacity:0;pointer-events:none;will-change:transform,opacity;mix-blend-mode:screen;filter:drop-shadow(0 0 6px rgba(200,160,255,.95)) drop-shadow(0 0 16px rgba(160,110,255,.7))}' +
       '#rc-anim-overlay .core{position:absolute;left:0;top:0;border-radius:50%;will-change:transform,opacity;mix-blend-mode:screen}' +
       '#rc-anim-overlay .txt{position:absolute;left:0;right:0;bottom:17%;text-align:center;font-size:13px;letter-spacing:4px;font-weight:300;color:rgba(255,255,255,.82);transition:opacity .35s}' +
       '#rc-anim-overlay .ttl{position:absolute;left:0;right:0;top:13%;text-align:center;font-family:"Nunito","Noto Sans KR",sans-serif;font-size:13px;font-weight:800;letter-spacing:8px;color:rgba(255,255,255,.55)}' +
@@ -39,7 +42,7 @@
     var ov = document.createElement('div'); ov.id = 'rc-anim-overlay';
     var hid = result && result.type === 'hidden', epic = hid && result.hidden && result.hidden.grade === '에픽히든';
     var hue = epic ? [255, 215, 90] : [190, 140, 255];            // 최종 빛 색 (에픽히든은 금빛)
-    ov.innerHTML = '<canvas class="cv"></canvas><div class="ttl">RECOMBINE</div><div class="txt"></div>' +
+    ov.innerHTML = '<canvas class="cv"></canvas><img class="mc mo" src="' + MC_OUT + '" alt="" decoding="async"><img class="mc mi" src="' + MC_IN + '" alt="" decoding="async"><div class="ttl">RECOMBINE</div><div class="txt"></div>' +
       '<div class="core"></div><div class="core c2"></div>' +
       '<div class="rc" data-s="-1"><img src="' + BACK + '" alt="" decoding="async" onerror="this.remove()" style="filter:hue-rotate(-35deg) saturate(1.15)"></div>' +
       '<div class="rc" data-s="1"><img src="' + BACK + '" alt="" decoding="async" onerror="this.remove()" style="filter:hue-rotate(35deg) saturate(1.15)"></div>' +
@@ -98,13 +101,15 @@
 
       // 캔버스: 입자 + 고리 + 십자 빛
       c.clearRect(0, 0, W, H); c.globalCompositeOperation = 'lighter';
-      // 고리 (0.7초부터 나타나 점점 수축)
-      var ringA = ease((ts - 0.7) / 0.6) * (1 - ease((ts - 3.2) / 0.2));
-      if (ringA > 0) {
-        var rr = (cw * 1.9) * (1 - pull * 0.35) * (1 - contract * 0.5);
-        c.save(); c.translate(cx, cy); c.rotate(ts * 0.6); c.lineWidth = 1.5; c.strokeStyle = rgba(0.55 * ringA); c.setLineDash([2, 7]); c.beginPath(); c.arc(0, 0, rr, 0, 6.283); c.stroke();
-        c.rotate(-ts * 1.4); c.setLineDash([]); c.lineWidth = 1; c.strokeStyle = 'rgba(255,255,255,' + (0.4 * ringA) + ')'; c.beginPath(); c.arc(0, 0, rr * 0.78, 0, 6.283); c.stroke(); c.restore();
-      }
+      // 마법진 (0.7초부터 나타나 카드가 가까워질수록 작아지며 빠르게 돎)
+      var ringA = ease((ts - 0.7) / 0.6) * (1 - ease((ts - 3.1) / 0.25));
+      var mo = ov.querySelector('.mo'), mi = ov.querySelector('.mi');
+      var msz = cw * 3.1 * (1 - pull * 0.28) * (1 - contract * 0.45), isz = msz * 0.74;
+      var spin = ts * (0.35 + pull * 0.5);
+      mo.style.width = mo.style.height = msz + 'px'; mi.style.width = mi.style.height = isz + 'px';
+      mo.style.opacity = ringA * 0.9; mi.style.opacity = ringA;
+      mo.style.transform = 'translate(' + (cx - msz / 2) + 'px,' + (cy - msz / 2) + 'px) rotate(' + (spin * 57.3) + 'deg)';
+      mi.style.transform = 'translate(' + (cx - isz / 2) + 'px,' + (cy - isz / 2) + 'px) rotate(' + (-spin * 1.6 * 57.3) + 'deg)';
       // 십자 빛줄기 (덩어리가 커질 때)
       if (grow > 0) {
         var L = (80 + grow * 260) * (1 - contract * 0.7), a = 0.55 * grow * (1 - ease((ts - 3.2) / 0.2));
