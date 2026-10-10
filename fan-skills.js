@@ -649,7 +649,7 @@
   function forgiveLeft() { return gs(F && F.cid, 'forgive') - ((F && F.forgiveUsed) || 0); }
 
   // ════════ 콤보 · 퍼펙트 · 손맛 ════════
-  var COMBO_WINDOW = 5000;       // 이 시간(ms) 안에 다음 팬을 응대해야 콤보 유지
+  var COMBO_WINDOW = 3000;       // 이 시간(ms) 안에 다음 팬을 응대해야 콤보 유지
   var PERFECT_MS = 10000;        // 팬이 오고 이 시간(ms) 안에 응대하면 PERFECT
   var PERFECT_BONUS = 0.10;      // PERFECT 하나당 추가 보상
   var COMBO_TIERS = [[50, 1.30], [30, 1.00], [20, 0.80], [10, 0.60], [8, 0.40], [5, 0.25], [3, 0.10]];   // [콤보 수, 보상 보너스]
