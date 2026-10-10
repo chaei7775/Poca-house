@@ -951,7 +951,11 @@
     return true;
   }
   // 🔒 맵 해금 레벨(unlock-gate.js)이 모자라 아직 못 하는 퀘스트는 '지금 할 일'에서 건너뛴다
-  var QUEST_LV = { s1_6: 4, s1_7: 4, s2_3: 6, s2_4: 6, s3_1: 5 };
+  var QUEST_LV = { s1_6: 4, s1_7: 4, s2_3: 6, s2_4: 6, s3_1: 5,
+    s3_5: 8, s3_9: 8, s4_5: 8, s6_6: 8, s3_2: 10, s5_1: 10, s3_3: 12, s3_4: 12, s6_2: 12, s2_6: 12, s5_2: 12, s5_5: 12, s5_7: 12, s6_4: 12,
+    s2_9: 15, s4_9b: 18, s4_9c: 18, s6_7b: 18, s4_1: 5,
+    i_minjun_2: 5, i_sion_2: 5, i_doyun_2: 5, i_harin_2: 5, i_yuna_2: 5, i_ara_2: 5,
+    i_minjun_3: 5, i_sion_3: 5, i_doyun_3: 5, i_harin_3: 5, i_yuna_3: 5, i_ara_3: 5 };
   function lvOk(q) { try { return Number(playerLevel) >= (QUEST_LV[q.id] || 0); } catch (e) { return true; } }
   function activeOf(t) {
     var first = null;
