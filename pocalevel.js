@@ -131,6 +131,8 @@ function updatePocaHouseLevelBar() {
 // 🔓 포카하우스 콘텐츠 해금 (방꾸미기 Lv3 / 창고 Lv5 / 가구상점 Lv8)
 // ════════════════════════════════
 const POCAHOUSE_UNLOCK = { roomDeco: 3, warehouse: 5, furnitureShop: 8, agency: 10, specialMoonlit: 20, specialWorkshop: 30 };
+// 숫자는 unlock-levels.js 의 pocahouse 에서 고친다 (위 값은 그 파일을 못 읽었을 때 쓰는 예비값)
+if (window.PH_LEVELS && window.PH_LEVELS.pocahouse) Object.assign(POCAHOUSE_UNLOCK, window.PH_LEVELS.pocahouse);
 
 function showPocaHouseLockedPopup(unlockLevel, featureName) {
   const old = document.getElementById('pocahouse-locked-overlay');

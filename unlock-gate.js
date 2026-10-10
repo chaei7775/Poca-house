@@ -3,50 +3,13 @@
 // 초반엔 [학교 · 데뷔 · 드라마 · 팬] 위주로만 보이게, 나머지 콘텐츠는 플레이어 레벨로 늦게 연다.
 //  · 메뉴 버튼/타일을 누르면 레벨이 모자랄 때 🔒 안내만 뜨고 안 열린다. 잠긴 버튼엔 🔒Lv.N 표시.
 //  · 기획사(데뷔)는 agency-unlock.js 가 Lv.5, 인베스트는 invest.js 가 Lv.20, 고급뽑기·팬 러시는 각자 파일에서 따로 관리.
-// 값을 바꾸고 싶으면 아래 RULES 의 lv 숫자만 고치면 됨 (re = 버튼 글자에서 찾을 말).
+// ✏️ 레벨 숫자는 unlock-levels.js 에서 고친다 (이 파일엔 잠그는 동작만 있음).
 // ════════════════════════════════
 (function () {
   'use strict';
-  var RULES = [
-    { lv: 8,  re: /드라마 촬영/,            name: '드라마 촬영' },
-    { lv: 10, re: /CF 촬영/,                name: 'CF 촬영' },
-    { lv: 12, re: /스케줄 · 식사|스케줄·식사|스케줄 관리/, name: '스케줄 · 식사' },
-    { lv: 12, re: /팬카페/,                  name: '팬카페' },
-    { lv: 15, re: /분양소/,                  name: '분양소' },
-    { lv: 15, re: /굿즈 공방/,               name: '굿즈 공방' },
-    { lv: 15, re: /의상실/,                  name: '의상실' },
-    { lv: 15, re: /거래소/,                  name: '거래소' },
-    { lv: 12, re: /^로드 매니저/,             name: '로드 매니저' },
-    { lv: 15, re: /작곡 테이블|작곡 스튜디오|작곡스튜디오/, name: '작곡 스튜디오' },
-    { lv: 15, re: /통발/,                    name: '통발' },
-    { lv: 18, re: /^[^가-힣A-Za-z0-9]*팬클럽( 의뢰소)?$/,                  name: '팬클럽 의뢰소' },
-    { lv: 18, re: /음원차트/,                name: '음원차트' },
-    { lv: 20, re: /인베스트/,                name: '포카 인베스트' },
-    { lv: 20, re: /^[^가-힣A-Za-z0-9]*그룹$/,               name: '그룹' },
-    // ── 초반 구간: 처음엔 [뽑기 · 인연 · 알바]만, 레벨이 오를수록 더보기 메뉴가 하나씩 열림 ──
-    { lv: 2,  re: /스케줄 가기/,            name: '스케줄 가기' },
-    { lv: 4,  re: /^히든카드 도감$/,        name: '히든카드 도감' },
-    { lv: 4,  re: /^친구$/,                 name: '친구' },
-    { lv: 4,  re: /^게시판$/,               name: '게시판' },
-    { lv: 8,  re: /^칭호$/,                 name: '칭호' },
-    { lv: 8,  re: /^내 컬렉션$/,            name: '내 컬렉션' },
-    { lv: 10, re: /^트레이닝룸$/,           name: '트레이닝룸' },
-    { lv: 10, re: /^팬 스킬 상점$/,         name: '팬 스킬 상점' },
-    { lv: 12, re: /^카드 재조합기$/,        name: '카드 재조합기' },
-    { lv: 12, re: /^프리미엄 카드$/,        name: '프리미엄 카드' },
-    { lv: 12, re: /^해프닝 카드/,           name: '해프닝 카드' },
-    { lv: 5,  re: /^우편함/,                name: '우편함' },
-    { lv: 10, re: /^히든 효과$/,            name: '히든 효과' }
-  ];
-  // 아래 탭 (id 로 찾음): 홈 · 뽑기 · 인연은 처음부터, 나머지는 Lv.2 (첫 만남 퀘스트를 깨면 바로 열려요)
-  var NAV_LV = { 'nav-quest': { lv: 2, name: '퀘스트' }, 'nav-bag': { lv: 2, name: '가방' }, 'nav-map': { lv: 2, name: '맵' }, 'nav-shop': { lv: 2, name: '더보기' } };
-  // 맵 장소 (맵 화면의 openPlace('...') 버튼): 포카버거·카페거리 Lv.2 / 학교·상점거리·내 집 Lv.3 / 세트장·뷰티·공원·캠프 Lv.4 / 광장 Lv.5 / 신비의 섬 Lv.6 / 숙소촌 Lv.8
-  var PLACE_LV = {
-    'cafe-street': { lv: 2, name: '카페거리' },
-    school: { lv: 3, name: '연성고등학교' }, shopping: { lv: 3, name: '상점거리' }, room: { lv: 3, name: '내 집' },
-    beach: { lv: 4, name: '뷰티 살롱' }, forest: { lv: 4, name: '촬영 세트장' }, park: { lv: 4, name: '꽃길공원' }, lake: { lv: 4, name: '워크숍 캠프' },
-    square: { lv: 5, name: '중앙광장' }, mystery: { lv: 6, name: '신비의 섬' }, housing: { lv: 8, name: '연습생 숙소촌' }
-  };
+  // 레벨 숫자는 전부 unlock-levels.js 에서 고친다 (menu = 더보기·버튼 글자 규칙, nav = 아래 탭, place = 맵 장소)
+  var LV_ = window.PH_LEVELS || {};
+  var RULES = LV_.menu || [], NAV_LV = LV_.nav || {}, PLACE_LV = LV_.place || {};
   function attrRule(e) {
     if (!e || e.nodeType !== 1) return null;
     if (e.id && NAV_LV[e.id]) return NAV_LV[e.id];

@@ -2,7 +2,7 @@
 // 등록: loader.js NEW_CONTENT_FILES 에 'agency-unlock.js' (pocalevel.js, agency.js 뒤)
 (function () {
   'use strict';
-  var NEED = 5;
+  var NEED = (window.PH_LEVELS && window.PH_LEVELS.agency) || 5;
   function install() {
     if (typeof window.isPocaHouseFeatureUnlocked !== 'function') return false;
     if (window.isPocaHouseFeatureUnlocked.__agencyLv) return true;
