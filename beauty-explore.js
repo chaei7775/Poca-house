@@ -191,8 +191,10 @@
   // 스프레이 통: 얼굴 쪽으로 기울이고, 안개는 분사구(통 윗부분)에서만 나감
   function sprayGeom(ptr) {
     var f = faceC(), cx = ptr.x, cy = ptr.y - 46;
-    var ang = Math.atan2(f[1] - cy, f[0] - cx);
-    return { cx: cx, cy: cy, ang: ang, tx: cx + Math.cos(ang) * 27, ty: cy + Math.sin(ang) * 27 };   // 분사구 위치
+    var aim = Math.atan2(f[1] - cy, f[0] - cx);                       // 안개가 날아갈 방향(얼굴 쪽)
+    var tilt = Math.max(-0.2, Math.min(0.2, (f[0] - cx) / 600));      // 통은 세로 상태에서 아주 약간만 기울임
+    var ax = tilt - Math.PI / 2;                                       // 통 위쪽 방향
+    return { cx: cx, cy: cy, ang: aim, rot: tilt, tx: cx + Math.cos(ax) * 27, ty: cy + Math.sin(ax) * 27 };
   }
   function spotXY(i) { var f = faceC(); return [f[0] + SPOTS[i].fx * f[2], f[1] + SPOTS[i].fy * f[2]]; }
   function hitR() { return Math.max(30, 0.15 * faceC()[2]); }
@@ -558,7 +560,7 @@
       });
       if (S.ptr) {   // 분사구가 얼굴을 향하도록 통을 기울여서 그림
         var sg2 = sprayGeom(S.ptr);
-        c.save(); c.translate(sg2.cx, sg2.cy); c.rotate(sg2.ang + Math.PI / 2);
+        c.save(); c.translate(sg2.cx, sg2.cy); c.rotate(sg2.rot);
         drawPic(c, 'spray', 0, 0, 62, false);
         c.restore();
       }
