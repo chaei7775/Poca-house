@@ -632,6 +632,27 @@
       c.globalAlpha = 1;
     }
   }
+  // 하트·반짝이 입자는 이모지 대신 직접 그린 모양으로 (이모지가 우르르 뜨는 게 어수선해서)
+  function glyph(c, ch, x, y, sz) {
+    if (ch === '😍' || ch === '💖') {
+      var r = sz * 0.5;
+      c.save(); c.translate(x, y - r * 0.1);
+      c.beginPath(); c.moveTo(0, r * 0.9);
+      c.bezierCurveTo(-r * 1.5, -r * 0.1, -r * 0.8, -r * 1.2, 0, -r * 0.45);
+      c.bezierCurveTo(r * 0.8, -r * 1.2, r * 1.5, -r * 0.1, 0, r * 0.9); c.closePath();
+      var g = c.createLinearGradient(0, -r, 0, r); g.addColorStop(0, ch === '😍' ? '#ff9ac4' : '#ffb3d6'); g.addColorStop(1, ch === '😍' ? '#ff3d8b' : '#ff5fa8');
+      c.fillStyle = g; c.fill(); c.lineWidth = 2; c.strokeStyle = 'rgba(255,255,255,0.9)'; c.stroke();
+      c.fillStyle = 'rgba(255,255,255,0.75)'; c.beginPath(); c.ellipse(-r * 0.45, -r * 0.35, r * 0.2, r * 0.12, -0.6, 0, 6.283); c.fill();
+      c.restore(); return;
+    }
+    if (ch === '✨') {
+      var h = sz * 0.5;
+      c.save(); c.translate(x, y); c.fillStyle = '#fff3b0'; c.strokeStyle = 'rgba(255,190,60,0.9)'; c.lineWidth = 1.5;
+      c.beginPath(); c.moveTo(0, -h); c.quadraticCurveTo(h * 0.15, -h * 0.15, h, 0); c.quadraticCurveTo(h * 0.15, h * 0.15, 0, h); c.quadraticCurveTo(-h * 0.15, h * 0.15, -h, 0); c.quadraticCurveTo(-h * 0.15, -h * 0.15, 0, -h); c.closePath(); c.fill(); c.stroke();
+      c.restore(); return;
+    }
+    c.fillText(ch, x, y);
+  }
   function drawToken(c, x, y, rec, emoji, color, label, opt) {
     opt = opt || {};
     var bob = opt.moving ? Math.abs(Math.sin(S.t * 14)) * 6 : Math.sin(S.t * 2.4 + (opt.ph || 0)) * 2;
@@ -708,11 +729,11 @@
     S.parts.forEach(function (q) {
       if (q.t < 0) return;
       var p = q.t / q.dur; c.globalAlpha = 1 - Math.pow(p, 3); c.font = q.sz + 'px sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle';
-      if (q.burst) { var sc = 0.6 + p * 1.2; c.save(); c.translate(q.x, q.y - p * 60); c.scale(sc, sc); c.fillText(q.ch, 0, 0); c.restore(); }
+      if (q.burst) { var sc = 0.6 + p * 1.2; c.save(); c.translate(q.x, q.y - p * 60); c.scale(sc, sc); glyph(c, q.ch, 0, 0, q.sz); c.restore(); }
       else {
         var e = 1 - Math.pow(1 - p, 2), px = q.x + (q.tx - q.x) * e, py = q.y + (q.ty - q.y) * e - Math.sin(p * 3.14) * 40;
         c.save(); c.globalCompositeOperation = 'lighter'; c.fillStyle = 'rgba(' + (q.rgb || '255,150,200') + ',0.35)'; c.beginPath(); c.arc(px, py, q.sz * 0.8, 0, 6.283); c.fill(); c.restore();
-        c.fillText(q.ch, px, py);
+        glyph(c, q.ch, px, py, q.sz);
       }
       c.globalAlpha = 1;
     });
