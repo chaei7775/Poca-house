@@ -20,7 +20,7 @@
   var HEART_CAP = 12;       // 두근 합계 상한(%) — 설렘 이벤트에서 '두근 × 5%' 확률로 쓰이므로 따로 낮게 둠
   var ACC = '#C084FC';
   // 종류 분류 (id 기준). 목록에 없는 새 옷은 이름으로 추측.
-  var DRESS_IDS = ['cloud-dress', 'star-dress', 'aurora-dress', 'champagne-dress', 'prince-coat'];
+  var DRESS_IDS = ['cloud-dress', 'star-dress', 'aurora-dress', 'champagne-dress', 'prince-coat', 'animal-bunny', 'animal-kitten', 'animal-bear', 'animal-puppy'];
   var BOTTOM_IDS = ['cherry-skirt', 'crystal-skirt', 'crystal-pants', 'cloud-skirt', 'cloud-shorts', 'moon-jeans', 'aurora-skirt', 'champagne-skirt', 'prince-pants'];
   var TOP_IDS = ['cherry-blouse', 'crystal-jacket', 'crystal-jumper', 'cloud-jacket', 'star-blazer', 'moon-hoodie', 'aurora-jacket', 'aurora-blouse', 'champagne-jacket', 'champagne-cardigan', 'prince-jacket', 'prince-shirt'];
   var STAT_LABEL = { coin: '알바 코인', luck: '행운·희귀재료', affection: '호감도', heart: '두근', study: '수업 점수', charm: '매력' };
