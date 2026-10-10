@@ -31,6 +31,25 @@
     return /🔒\s*Lv\./.test(btn.textContent || '');
   }
 
+  // 안 읽은 편지처럼 '지금 확인할 게 있는' 칸 (홈 더보기 빨간 점과 같은 기준)
+  function needsAttention(t) {
+    try {
+      if (/우편함/.test(label(t)) && window.__mailTest && typeof window.__mailTest.load === 'function') {
+        return window.__mailTest.load().inbox.some(function (m) { return !m.read; });
+      }
+    } catch (e) {}
+    return false;
+  }
+  function tileDot(t) {
+    var d = t.querySelector('.mm-tdot'), need = needsAttention(t);
+    if (need && !d) {
+      if (getComputedStyle(t).position === 'static') t.style.position = 'relative';
+      d = document.createElement('span'); d.className = 'mm-tdot';
+      d.style.cssText = 'position:absolute;top:6px;right:8px;width:11px;height:11px;border-radius:50%;background:#ff3b5c;border:2px solid #1a1a2e;pointer-events:none;';
+      t.appendChild(d);
+    } else if (!need && d) d.remove();
+  }
+
   var busy = false, obs = null, sel = null;
 
   function categorize(tiles) {
@@ -79,7 +98,7 @@
       bar.style.cssText = 'grid-column:1/-1;display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:6px;';
       cats.forEach(function (c) {
         var on = c.g[0] === sel;
-        var b = catBtn(c, on, !on && !firstTime && fresh(c));
+        var b = catBtn(c, on, !on && ((!firstTime && fresh(c)) || c.tiles.some(needsAttention)));
         b.onclick = function (ev) { ev.stopPropagation(); sel = (sel === c.g[0]) ? null : c.g[0]; regroup(grid); };
         bar.appendChild(b);
       });
@@ -94,6 +113,7 @@
         if (on) c.tiles.forEach(function (t) { if (!isLocked(t)) seen[label(t)] = 1; });
       });
       jset(K_SEEN, seen);
+      cats.forEach(function (c) { c.tiles.forEach(tileDot); });
       // 고른 카테고리 안내 줄
       var old = grid.querySelector('.mm-h'); if (old) old.remove();
       var cur = cats.filter(function (c) { return c.g[0] === sel; })[0];
