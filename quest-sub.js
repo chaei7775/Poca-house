@@ -33,6 +33,13 @@
     sub_lesson: { title: '아이돌 레슨 받기', desc: '📅 기획사 → 스케줄·식사에서 아이돌에게 레슨을 받게 해보자. 처음 5번은 신입 코치 할인 이벤트!',
       condition: 'q3_lesson', rewardCoins: 500,
       detect: function () { return F.lesson || (sum((J('ph_training', {}) || {}).count) > 0 && flag('lesson')); } },
+    // 🧵 재봉 (Lv.10 기술학원) — 경험치 없음, 코인만 (퀘스트 코인은 quest-boost 가 x5)
+    sub_sew_learn: { title: '재봉 배우기', desc: '(Lv.10~) 🎓 기술학원에서 재봉 기술을 배워봐. 배우면 옷을 직접 만들 수 있어!',
+      condition: 'q5_sew_learn', rewardCoins: 500,
+      detect: function () { return F.sewlearn || (typeof hasLearnedSkill === 'function' && hasLearnedSkill('sewing') && flag('sewlearn')); } },
+    sub_sew_make: { title: '첫 옷 만들기', desc: '(Lv.10~) 🧵 재봉 작업대에서 탐험 재료로 옷을 만들어봐. 성공하면 가방에 담겨서 아이돌에게 입힐 수 있어!',
+      condition: 'q5_sew_make', rewardCoins: 1000,
+      detect: function () { return F.sewmake || ((typeof storyProgress !== 'undefined' && storyProgress && storyProgress['story_12'] === 'done') && flag('sewmake')); } },
     // 📮 우편함 — 경험치 없음, 코인 + 소원의 조각 5개 (코인은 quest-boost 가 x5)
     sub_mail_read: { title: '첫 편지 읽기', desc: '📮 더보기 → 우편함에서 아이돌이 보낸 편지를 열어 읽어봐.',
       condition: 'q4_mail_read', rewardCoins: 500, wish: 5,
@@ -116,6 +123,16 @@
     };
     w.__subHooked = true; window.renderQuestList = w;
   }
+
+
+  // 옷을 처음 만들었을 때 바로 기록 (재봉 성공 시 game.js 가 checkQuestProgress('first_craft') 를 부름)
+  (function hookCraft() {
+    if (typeof window.checkQuestProgress !== 'function') { setTimeout(hookCraft, 200); return; }
+    var orig = window.checkQuestProgress;
+    if (orig.__sewHooked) return;
+    var w = function (c) { try { if (c === 'first_craft') flag('sewmake'); } catch (e) {} return orig.apply(this, arguments); };
+    w.__sewHooked = true; window.checkQuestProgress = w;
+  })();
 
   (function boot() {
     if (!register()) { setTimeout(boot, 200); return; }
