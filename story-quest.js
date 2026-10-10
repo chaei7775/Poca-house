@@ -1051,6 +1051,16 @@
       return w || fm || d;
     } catch (e) { return d; }
   }
+  // 인연 화면에서 아이돌 카드를 눌러 상세를 여는 것도 '처음 만남' → 그 아이돌을 기억 (이 경로가 실제 첫 만남)
+  (function hookFirstDetail(tries) {
+    if (typeof window.openBondDetail !== 'function') { if (tries < 100) setTimeout(function () { hookFirstDetail(tries + 1); }, 150); return; }
+    var o = window.openBondDetail; if (o.__firstDetail) return;
+    var w = function (cid) {
+      try { if (validId(cid) && !localStorage.getItem('ph_firstmet')) localStorage.setItem('ph_firstmet', cid); } catch (e) {}
+      return o.apply(this, arguments);
+    };
+    w.__firstDetail = true; window.openBondDetail = w;
+  })(0);
   // 선물 받은 아이돌 기억
   (function hookGift(tries) {
     if (typeof window.giveGift !== 'function') { if (tries < 100) setTimeout(function () { hookGift(tries + 1); }, 150); return; }
