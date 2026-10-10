@@ -16,12 +16,13 @@
   // ── 설정 ──
   var KEY = 'ph_clothesEquip';
   var DRESS_MULT = 2.5;     // 원피스 효과 배수 (상의+하의를 따로 입는 것보다 조금 더 크게)
-  var CAP = 12;             // 캐릭터 의상으로 얻는 스탯 합계 상한(%) — 너무 빨리 세지는 걸 막음
+  var CAP = 30;             // 캐릭터 의상으로 얻는 스탯 합계 상한(%) — 너무 빨리 세지는 걸 막음 (에픽/레전드 옷이 생겨서 12 → 30)
+  var HEART_CAP = 12;       // 두근 합계 상한(%) — 설렘 이벤트에서 '두근 × 5%' 확률로 쓰이므로 따로 낮게 둠
   var ACC = '#C084FC';
   // 종류 분류 (id 기준). 목록에 없는 새 옷은 이름으로 추측.
-  var DRESS_IDS = ['cloud-dress', 'star-dress'];
-  var BOTTOM_IDS = ['cherry-skirt', 'crystal-skirt', 'crystal-pants', 'cloud-skirt', 'cloud-shorts', 'moon-jeans'];
-  var TOP_IDS = ['cherry-blouse', 'crystal-jacket', 'crystal-jumper', 'cloud-jacket', 'star-blazer', 'moon-hoodie'];
+  var DRESS_IDS = ['cloud-dress', 'star-dress', 'aurora-dress', 'champagne-dress', 'prince-coat'];
+  var BOTTOM_IDS = ['cherry-skirt', 'crystal-skirt', 'crystal-pants', 'cloud-skirt', 'cloud-shorts', 'moon-jeans', 'aurora-skirt', 'champagne-skirt', 'prince-pants'];
+  var TOP_IDS = ['cherry-blouse', 'crystal-jacket', 'crystal-jumper', 'cloud-jacket', 'star-blazer', 'moon-hoodie', 'aurora-jacket', 'aurora-blouse', 'champagne-jacket', 'champagne-cardigan', 'prince-jacket', 'prince-shirt'];
   var STAT_LABEL = { coin: '알바 코인', luck: '행운·희귀재료', affection: '호감도', heart: '두근', study: '수업 점수', charm: '매력' };
 
   // ── 공통 ──
@@ -242,7 +243,7 @@
     var sum = '<div style="background:rgba(192,132,252,.12);border:1px solid ' + ACC + ';border-radius:12px;padding:10px;font-size:12px;margin-bottom:12px;line-height:1.75;">' +
       '<b style="color:#C084FC;">모든 캐릭터 의상 합산</b> <span style="color:#789;">(스탯마다 상한 ' + CAP + '%)</span><br>' +
       statKeys.map(function (k) { return (STAT_LABEL[k]) + ' +' + Math.min(CAP, all[k] || 0) + '%'; }).join(' · ') +
-      '<div style="margin-top:6px;"><b style="color:#FF6B9D;">' + (ch0.name || '') + ' 전용</b> <span style="color:#789;">(이 캐릭터에게 선물할 때만)</span><br>호감도 +' + Math.min(CAP, mine.affection || 0) + '% · 💓두근 +' + Math.min(CAP, mine.heart || 0) + '% <span style="color:#789;">(설렘 이벤트)</span></div></div>';
+      '<div style="margin-top:6px;"><b style="color:#FF6B9D;">' + (ch0.name || '') + ' 전용</b> <span style="color:#789;">(이 캐릭터에게 선물할 때만)</span><br>호감도 +' + Math.min(CAP, mine.affection || 0) + '% · 💓두근 +' + Math.min(HEART_CAP, mine.heart || 0) + '% <span style="color:#789;">(설렘 이벤트)</span></div></div>';
 
     // 아래 목록
     var list = '';
@@ -282,7 +283,7 @@
   }
 
   window.openClothesEquip = open;
-  window.__clothesEquip = { effText: effText, heart: function (cid) { return Math.min(CAP, charTotals(cid).heart || 0); }, equip: equip, unequip: unequip, bonus: bonus, allTotals: allTotals, charTotals: charTotals, kindOf: kindOf, load: load, CAP: CAP, DRESS_MULT: DRESS_MULT };
+  window.__clothesEquip = { effText: effText, heart: function (cid) { return Math.min(HEART_CAP, charTotals(cid).heart || 0); }, equip: equip, unequip: unequip, bonus: bonus, allTotals: allTotals, charTotals: charTotals, kindOf: kindOf, load: load, CAP: CAP, DRESS_MULT: DRESS_MULT };
 
   // ── 기존 능력치 계산에 끼워 넣기 ──
   function whenReady(test, fn) {

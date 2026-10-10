@@ -2235,7 +2235,7 @@ function openClothDetail(clothId, itemName) {
   const isEquipped = equippedName ? equippedName === itemName : equippedId === clothId;
   const displayName = item ? item.name : cloth.name;
   const displayDesc = getClothDisplayDesc(cloth, item);
-  const displayGrade = item?.isGreat ? '대성공 희귀' : cloth.grade;
+  const displayGrade = item?.isGreat ? '대성공 ' + cloth.grade : cloth.grade;
   const old = document.getElementById('cloth-detail-overlay');
   if (old) old.remove();
   const overlay = document.createElement('div');
