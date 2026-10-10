@@ -18,4 +18,22 @@
     window.openPlace = w;
   }
   hook();
+
+  // 보상 경험치는 완료하는 순간의 레벨에 맞춰 달라짐:
+  //  Lv3 이하 → 400 (다음 레벨업 + 다음 칸 절반쯤 이월) / Lv4 → 120 (5레벨까지 안 가게) / Lv5 이상 → 80
+  function tuneReward() {
+    if (typeof QUESTS === 'undefined' || !QUESTS.tut_room) { setTimeout(tuneReward, 300); return; }
+    var q = QUESTS.tut_room;
+    if (q.__tuned) return;
+    q.__tuned = true;
+    Object.defineProperty(q, 'rewardExp', {
+      configurable: true, enumerable: true,
+      get: function () {
+        var lv = (typeof playerLevel !== 'undefined') ? playerLevel : 1;
+        return lv <= 3 ? 400 : lv === 4 ? 120 : 80;
+      },
+      set: function () {}
+    });
+  }
+  tuneReward();
 })();
