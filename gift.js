@@ -124,7 +124,7 @@
       var S2 = loadState(); S2.pendingSend = null; saveState(S2); C.persist();
       throw e;
     }
-    var S3 = loadState(); S3.pendingSend = null; S3.daily.n += 1; if (key === 'coin') S3.daily.coin += qty;
+    var S3 = loadState(); S3.pendingSend = null; S3.sentEver = 1; S3.daily.n += 1; if (key === 'coin') S3.daily.coin += qty;
     addLog(S3, '🎁 ' + (toNick || '친구') + '에게 ' + nameOf(key) + ' x' + fmt(qty) + ' 선물');
     saveState(S3); C.persist();
     return ref.id;
