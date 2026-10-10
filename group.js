@@ -282,7 +282,8 @@
       '<div style="text-align:center;font-size:11.5px;color:#ffe08a;margin:3px 0 2px;">⭐ ' + esc(LEVELS[lv][1]) + ' (Lv.' + (lv + 1) + ')' + (gs ? ' · <span style="color:#9fd8ff;">' + esc(concept(gs)) + '</span>' : '') + '</div>' +
       '<div style="display:flex;gap:6px;margin:10px 0;">' + mem + '</div>' + bars +
       '<div style="height:8px;border-radius:6px;background:rgba(255,255,255,0.12);overflow:hidden;margin-top:12px;"><div style="width:' + pct + '%;height:100%;background:linear-gradient(90deg,#4aa8ff,#c084fc);"></div></div>' +
-      '<div style="font-size:10.5px;color:#9fb0d0;margin-top:4px;text-align:center;">인기도 ' + fmt(s.fame) + (nextAt ? ' / ' + fmt(nextAt) + ' (다음: ' + esc(LEVELS[lv + 1][1]) + ')' : ' (최고 레벨!)') + '</div></div>' +
+      '<div style="font-size:10.5px;color:#9fb0d0;margin-top:4px;text-align:center;">인기도 ' + fmt(s.fame) + (nextAt ? ' / ' + fmt(nextAt) + ' (다음: ' + esc(LEVELS[lv + 1][1]) + ')' : ' (최고 레벨!)') + '</div>' +
+      (window.__groupLinkTest && g.members.length ? (function () { var pc = window.__groupLinkTest.bonusPct(g.members[0]); return '<div style="font-size:10.5px;color:#9dffb0;margin-top:3px;text-align:center;">🚌 그룹 멤버가 팬덤 원정에 나가면 보상 ' + (pc > 0 ? '+' + pc + '%' : '보너스 (그룹 레벨이 오르면 생겨요)') + '</div>'; })() : '') + '</div>' +
       (ok ? '' : '<div style="font-size:12px;color:#ffb0b0;text-align:center;margin-bottom:8px;">데뷔한 멤버가 ' + MIN_MEMBERS + '명 이상이어야 활동할 수 있어요. 멤버를 바꿔주세요.</div>') +
       '<div style="display:flex;align-items:center;gap:8px;padding:9px 11px;margin-bottom:8px;border-radius:12px;background:rgba(127,232,176,0.1);border:1px solid rgba(127,232,176,0.35);">' +
         '<div style="flex:1;"><div style="font-size:11px;color:#c9f0dc;font-weight:900;">' + pimg('potion', 18) + ' 그룹 체력 (오늘 무료 ' + s.free + '/' + STA_FREE + (s.potion ? ' + 음료 ' + s.potion : '') + ')</div><div style="margin-top:4px;">' + pips + '</div></div>' +
