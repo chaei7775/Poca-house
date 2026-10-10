@@ -162,6 +162,7 @@
     };
     bg.onload = function () { if (S) S.bgOk = true; };
     face.onload = function () { if (S) { S.faceOk = true; buildSkin(); } };
+    face.onerror = function () { if (S && /-c\.png/.test(face.src)) face.src = face.src.replace('-c.png', '.png'); };   // 새 그림을 못 받으면 원래 그림으로 (둥근 빈 얼굴로 안 남게)
     resize();
     say(STAGES[0].tip, 3);
     sfx('setGrab');
