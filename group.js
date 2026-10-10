@@ -25,12 +25,12 @@
   var MEMBER_BONUS = 0.25;             // 멤버 1명 늘 때마다 +25% (활동마다 따로 정한 게 있으면 그걸 씀)
   var BOND_BONUS = 0.5;                // 평균 인연(1~20) 만점이면 +50%
   var LEVEL_BONUS = 0.05;              // 그룹 레벨 1당 +5%
-  var BIG_BASE = 0.08, BIG_PER_POWER = 0.003, BIG_MAX = 0.4, BIG_MULT = 1.5;   // 대성공 확률 = 8% + 능력치×0.3% (최대 40%)
+  var BIG_BASE = 0.08, BIG_PER_POWER = 0.003, BIG_MAX = 0.4, BIG_MULT = 1.8;   // 대성공 확률 = 8% + 능력치×0.3% (최대 40%)
   var FAME_PER_MEMBER = 3;             // 활동 1번 인기도 = 활동 기본 + 멤버수×3 (대성공이면 ×1.5)
   var EV_CHANCE = 0.15, EV_DAILY = 2;   // 🎲 돌발 이벤트: 활동 끝날 때 15% 확률, 하루 최대 2번 (코인 변동은 그 활동 보상의 약 -25%~+45% 안)
   var STAT_DEFAULT = 10;               // 레슨 데이터가 없을 때 능력치
   var TIERS = [                        // [필요 능력치(가중 평균), 등급 이름, 보상 배율]
-    [0, '아쉬움', 0.7], [20, '보통', 1], [40, '좋음', 1.25], [60, '훌륭', 1.5], [80, '최고', 1.8]
+    [0, '아쉬움', 0.5], [20, '보통', 1], [40, '좋음', 1.5], [60, '훌륭', 2.1], [80, '최고', 2.8]
   ];
   var STATS = [                        // lesson.js 와 같은 키
     { k: 'vocal', icon: '🎤', name: '보컬', color: '#ff7fa8' }, { k: 'dance', icon: '💃', name: '댄스', color: '#7fd1ff' },
@@ -113,7 +113,7 @@
     var mult = (1 + mb * (n - 1)) * (1 + BOND_BONUS * (avgBond / 20)) * (1 + LEVEL_BONUS * lv) * TIERS[ti][2];
     return {
       coin: Math.floor(act.coin * PAY_MULT * mult * (big ? BIG_MULT : 1)),
-      fame: Math.floor((act.fame + FAME_PER_MEMBER * n) * (big ? BIG_MULT : 1)),
+      fame: Math.floor((act.fame + FAME_PER_MEMBER * n) * (big ? 1.5 : 1)),
       power: p, tier: ti, bigChance: Math.min(BIG_MAX, BIG_BASE + p * BIG_PER_POWER), wishChance: act.wish ? Math.min(0.9, 0.25 + p / 150) : 0
     };
   }
