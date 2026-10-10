@@ -830,18 +830,29 @@
     { name: '에픽 상자',   w: 8,  min: 41,  max: 60,  color: '#fbbf24' },
     { name: '🌟 대박 상자', w: 2,  min: 100, max: 100, color: '#ff6b9d' }
   ];
-  function boxLoad() { try { var o = JSON.parse(localStorage.getItem(BOX_KEY) || 'null'); if (o && isFinite(o.n)) return { n: o.n | 0, bonus: o.bonus | 0 }; } catch (e) {} return { n: 0, bonus: 0 }; }
+  function boxLoad() { try { var o = JSON.parse(localStorage.getItem(BOX_KEY) || 'null'); if (o && isFinite(o.n)) return { n: o.n | 0, bonus: o.bonus | 0, luck: Math.max(0, Math.min(100, o.luck | 0)) }; } catch (e) {} return { n: 0, bonus: 0, luck: 0 }; }
   function boxSave(o) { try { localStorage.setItem(BOX_KEY, JSON.stringify(o)); } catch (e) {} }
   function boxAdd(bonus) { var o = boxLoad(); o.n += 1; o.bonus += (bonus | 0); boxSave(o); }
-  function boxRoll() {
+  // 콤보 행운(0~100): 높을수록 아쉬운·일반 확률을 덜어 레어·에픽·대박에 얹어줌 (최대 20%p 이동)
+  function boxWeights(luck) {
+    var w = BOX_TIERS.map(function (t) { return t.w; });
+    var sh = Math.min(20, (luck || 0) * 0.2);
+    var take0 = Math.min(w[0], sh); w[0] -= take0; var take1 = Math.min(w[1], sh - take0); w[1] -= take1;
+    var moved = take0 + take1;
+    w[2] += moved * 0.55; w[3] += moved * 0.35; w[4] += moved * 0.10;
+    return w;
+  }
+  function boxRoll(luck) {
+    var W = boxWeights(luck);
     var r = Math.random() * 100, acc = 0, t = BOX_TIERS[1];
-    for (var i = 0; i < BOX_TIERS.length; i++) { acc += BOX_TIERS[i].w; if (r < acc) { t = BOX_TIERS[i]; break; } }
+    for (var i = 0; i < BOX_TIERS.length; i++) { acc += W[i]; if (r < acc) { t = BOX_TIERS[i]; break; } }
     return { tier: t, n: t.min + Math.floor(Math.random() * (t.max - t.min + 1)) };
   }
   var boxSnooze = 0;
   function pieceIcon(sz) { try { if (typeof window.matIcon === 'function') return window.matIcon(PIECE_NAME, sz, PIECE_EMOJI); } catch (e) {} return PIECE_EMOJI; }
   window.__bcBoxOpen = function () { boxOpen(); };   // 테스트용
   window.__bcBoxCount = function (n) { var o = boxLoad(); o.n += (n | 0); boxSave(o); try { hud(); } catch (e) {} return true; };   // 팬 스킬로 응대해도 상자 진행 +1
+  window.__bcBoxLuck = function (n) { var o = boxLoad(); o.luck = Math.min(100, o.luck + (n | 0)); boxSave(o); return true; };   // 팬 응대 콤보: 상자 등급 행운 쌓기
   window.__bcBoxBonus = function (n) { var o = boxLoad(); o.bonus += (n | 0); boxSave(o); return true; };   // 팬 스킬 등: 조각을 바로 주지 않고 뽑기 상자에 덤으로 쌓기
   var RAW = 'https://raw.githubusercontent.com/chaei7775/Poca-house/main/';
   function boxOpen() {
@@ -949,7 +960,7 @@
         msg.textContent = '두근두근…';
         cb.style.transition = 'none'; cb.style.animation = 'cmShake .6s ease-in-out 2'; await wait(1250);
         // 결과 결정 + 가방에 넣기
-        var st = boxLoad(), rr = boxRoll(), total = rr.n + st.bonus, ok = false;
+        var st = boxLoad(), rr = boxRoll(st.luck), total = rr.n + st.bonus, ok = false;
         try { ok = !!addToBag(PIECE_EMOJI, PIECE_NAME, 'piece', total, '프리미엄 카드 조각 · ' + PIECE_GOAL + '개를 모으면 더보기 > 프리미엄 카드에서 교환'); } catch (e) {}
         var res = $('cm-res');
         if (!ok) {
@@ -959,7 +970,7 @@
           $('cm-close').onclick = function () { boxSnooze = Date.now() + 60000; ov.remove(); };
           return;
         }
-        boxSave({ n: Math.max(0, st.n - BOX_NEED), bonus: 0 });
+        boxSave({ n: Math.max(0, st.n - BOX_NEED), bonus: 0, luck: 0 });
         if (typeof saveAll === 'function') saveAll();
         try { if (window.pocaSfx && pocaSfx.play) pocaSfx.play('rarePick'); } catch (e) {}
         var cr = cb.getBoundingClientRect(), mr = cm.getBoundingClientRect();
@@ -972,7 +983,7 @@
           '<div style="font-size:16px;font-weight:900;color:' + rr.tier.color + ';">' + rr.tier.name + '!</div>' +
           '<div style="font-size:34px;font-weight:900;color:#7dd3fc;margin-top:8px;display:flex;align-items:center;justify-content:center;gap:8px;">' + pieceIcon(46) + '+' + total + '</div>' +
           '<div style="font-size:13px;margin-top:4px;color:#eee;">프리미엄 조각</div>' +
-          '<div style="font-size:12px;margin-top:6px;color:#ddd;">' + (st.bonus ? '(상자 ' + rr.n + ' + 카드 효과 ' + st.bonus + ') · ' : '') + '모은 조각 ' + have + '/' + PIECE_GOAL + '</div>' +
+          '<div style="font-size:12px;margin-top:6px;color:#ddd;">' + (st.bonus ? '(상자 ' + rr.n + ' + 카드 효과 ' + st.bonus + ') · ' : '') + (st.luck ? '콤보 행운 ' + st.luck + '% · ' : '') + '모은 조각 ' + have + '/' + PIECE_GOAL + '</div>' +
           '<button id="cm-ok" style="margin-top:16px;padding:12px 34px;border:none;border-radius:12px;background:linear-gradient(135deg,#FF6B9D,#C084FC);color:#fff;font-size:15px;font-weight:900;font-family:inherit;">확인</button></div>';
         $('cm-ok').onclick = function () { ov.remove(); hud(); };
       })();

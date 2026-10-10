@@ -795,7 +795,8 @@
         }, 900);
       } else {
         var i1 = F.fans.indexOf(o); if (i1 !== -1) F.fans.splice(i1, 1);
-        var r = grant(love, (1 + 0.04 * mlv) * cmul); addServe(F.cid); maybeBook('fan', id);
+        var r = grant(love, (1 + 0.04 * mlv) * cmul);
+        if (F.mapId === 'broadcast_front' && F.combo >= 5 && typeof window.__bcBoxLuck === 'function') window.__bcBoxLuck(F.combo >= 10 ? 3 : F.combo >= 8 ? 2 : 1);   // 콤보 5+ : 뽑기 상자 등급 행운 addServe(F.cid); maybeBook('fan', id);
         var fc = o.el && o.el.querySelector('.fs-face'); if (fc) setMood(fc, love ? '😍' : '😊');
         floatText(o.x, o.y - 0.09, '<div style="text-align:center;">' + r.lines.join('') + '</div>');
         setTimeout(function () { removeFan(o, true); }, 900);
