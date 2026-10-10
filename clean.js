@@ -111,7 +111,7 @@ function renderCleanGameScreen() {
     '</div>' +
     '<div id="clean-combo-display" style="text-align:center;padding:4px 0;font-size:13px;font-weight:900;color:#FFD700;flex-shrink:0;min-height:20px;"></div>' +
     '<div id="clean-timer-bar-wrap" style="height:6px;background:rgba(255,255,255,0.15);flex-shrink:0;"><div id="clean-timer-bar" style="height:100%;width:100%;background:linear-gradient(90deg,#FF6B9D,#C084FC);transition:width 0.2s linear;"></div></div>' +
-    '<div id="clean-play-area" style="flex:1;position:relative;background:url(\'https://raw.githubusercontent.com/chaei7775/Poca-house/main/clean-living-bg.png\') center/cover; overflow:hidden;"></div>' +
+    '<div id="clean-play-area" style="flex:1;position:relative;background:url(\'https://raw.githubusercontent.com/chaei7775/Poca-house/main/clean-living-bg.webp\') center/cover; overflow:hidden;"></div>' +
     '<div id="clean-tool-bar" style="display:flex;gap:8px;padding:12px 14px;background:rgba(0,0,0,0.55);flex-shrink:0;overflow-x:auto;"></div>';
 
   document.body.appendChild(overlay);

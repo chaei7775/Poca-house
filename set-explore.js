@@ -32,7 +32,7 @@
   var NG_PENALTY = 3;         // NG 소품을 칸에 놓으면 줄어드는 시간(초)
   var NG_LIFE = 6;            // NG 소품이 사라지기까지 (초)
   var GRAB_LIFT = 28;         // 소품을 끌 때 손가락에 가리지 않게 위로 띄우는 높이 (화면 px)
-  var BG_FILE = 'map-set.png';
+  var BG_FILE = 'map-set.webp';
 
   // 이미지 좌표(1024x1536) 기준. 그림에 그려진 점선 칸 6개의 중심 / 반폭 / 반높이 (대략값. 어긋나면 숫자만 조절)
   var IMG_W = 1024, IMG_H = 1536;

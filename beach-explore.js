@@ -24,7 +24,7 @@
   var WAVE_WARN = 1.2;        // 경고 시간(초)
   var WAVE_WASH = 1.8;        // 파도가 덮고 있는 시간(초)
   var WAVE_KEEP = 0.35;       // 파도가 지나가면 해안 쪽 자리의 진행도가 이 비율만 남음
-  var BG_FILE = 'map-beach.png';
+  var BG_FILE = 'map-beach.webp';
   var VIEW_CX = 995;          // 화면 가운데에 오는 이미지 x (모래사장이 가운데 오게)
   var VIEW_W = 700;           // 화면에 보이는 가로 폭(이미지 px, 모바일 세로 화면 기준)
 

@@ -3,9 +3,9 @@
 // ════════════════════════════════
 
 const SPECIAL_LOCATIONS = [
-  { id:'sky_ruins',         name:'천공성 유적',   emoji:'🏛️', color:'#60A5FA', bg:'https://raw.githubusercontent.com/chaei7775/Poca-house/main/special-sky_ruins.png' },
-  { id:'moonlit_corridor',  name:'달빛 회랑',     emoji:'🌙', color:'#A78BFA', bg:'https://raw.githubusercontent.com/chaei7775/Poca-house/main/special-moonlit_corridor.png' },
-  { id:'workshop_basement', name:'공방 지하',     emoji:'🔮', color:'#F472B6', bg:'https://raw.githubusercontent.com/chaei7775/Poca-house/main/special-workshop_basement.png' }
+  { id:'sky_ruins',         name:'천공성 유적',   emoji:'🏛️', color:'#60A5FA', bg:'https://raw.githubusercontent.com/chaei7775/Poca-house/main/special-sky_ruins.webp' },
+  { id:'moonlit_corridor',  name:'달빛 회랑',     emoji:'🌙', color:'#A78BFA', bg:'https://raw.githubusercontent.com/chaei7775/Poca-house/main/special-moonlit_corridor.webp' },
+  { id:'workshop_basement', name:'공방 지하',     emoji:'🔮', color:'#F472B6', bg:'https://raw.githubusercontent.com/chaei7775/Poca-house/main/special-workshop_basement.webp' }
 ];
 
 const SPECIAL_FOODS = ['반짝열매', '달빛열매', '오색열매'];

@@ -245,9 +245,9 @@
       var bg = new Image();
       bg.onload = function () {
         var el = $('pl-overlay');
-        if (el) { el.style.backgroundImage = 'linear-gradient(rgba(10,2,4,.55),rgba(10,2,4,.8)),url("' + IMG_BASE + 'photolab-bg.png' + BUST + '")'; el.style.backgroundSize = 'cover'; el.style.backgroundPosition = 'center'; }
+        if (el) { el.style.backgroundImage = 'linear-gradient(rgba(10,2,4,.55),rgba(10,2,4,.8)),url("' + IMG_BASE + 'photolab-bg.webp' + BUST + '")'; el.style.backgroundSize = 'cover'; el.style.backgroundPosition = 'center'; }
       };
-      bg.src = IMG_BASE + 'photolab-bg.png' + BUST;
+      bg.src = IMG_BASE + 'photolab-bg.webp' + BUST;
     }
     o.innerHTML = '<div style="position:relative;max-width:480px;margin:0 auto;min-height:100%;padding:16px 28px 28px;box-sizing:border-box;">' +
       '<div class="pl-strip" style="left:4px;"></div><div class="pl-strip" style="right:4px;"></div>' + inner + '</div>';

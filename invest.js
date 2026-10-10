@@ -14,7 +14,7 @@
 //
 // ✏️ 고치는 법: 아래 [설정]의 숫자 / SECTORS(투자처) / EVENTS(사건 카드)만 바꾸면 됨.
 // 저장: localStorage 'ph_invest' (ph_ 로 시작 → 클라우드 저장에 자동 포함)
-// 배경 그림: map-invest.png (없으면 어두운 사무실 색으로 대신 보임)
+// 배경 그림: map-invest.webp (없으면 어두운 사무실 색으로 대신 보임)
 // ════════════════════════════════════════════════════════════
 (function () {
   'use strict';
@@ -567,7 +567,7 @@
   // 🖥️ 화면
   // ════════════════════════════════════════════════════════════
   var C = { bg: '#17120d', card: '#251c14', line: '#4a3a28', gold: '#e8c27a', text: '#f3e9d8', mute: '#a89880', up: '#6ee7a0', down: '#ff8a8a' };
-  var IMG = 'map-invest.png';
+  var IMG = 'map-invest.webp';
   function pctText(x) { return (x >= 0 ? '+' : '') + (Math.round(x * 10) / 10) + '%'; }
   function colorOf(x) { return x > 0 ? C.up : (x < 0 ? C.down : C.mute); }
   function stars(n) { var s = ''; for (var i = 0; i < 5; i++) s += i < n ? '★' : '☆'; return s; }

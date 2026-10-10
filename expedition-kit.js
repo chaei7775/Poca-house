@@ -44,7 +44,7 @@
     ov.appendChild(root);
     var d = daily(cfg);
     var intro = document.createElement('div');
-    intro.style.cssText = 'position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:16px;overflow:auto;background:linear-gradient(rgba(8,4,18,.78),rgba(8,4,18,.9)),url(' + IMG_BASE + (cfg.bg || 'map-fanrush.png') + ') center/cover;';
+    intro.style.cssText = 'position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:16px;overflow:auto;background:linear-gradient(rgba(8,4,18,.78),rgba(8,4,18,.9)),url(' + IMG_BASE + (cfg.bg || 'map-fanrush.webp') + ') center/cover;';
     intro.innerHTML = '<div style="width:100%;max-width:340px;text-align:center;">' +
       '<div style="font-size:46px;">' + cfg.emoji + '</div>' +
       '<div style="font-size:20px;font-weight:900;margin:4px 0 2px;">' + cfg.name + '</div>' +
@@ -164,7 +164,7 @@
     if (typeof window.startSpecialExplore !== 'function' || typeof SPECIAL_LOCATIONS === 'undefined' || typeof window.openSpecialCardSelect !== 'function') { setTimeout(function () { install(cfg); }, 80); return; }
     if (window['__xkInst_' + cfg.id]) return;
     window['__xkInst_' + cfg.id] = true;
-    if (isOpen() && !SPECIAL_LOCATIONS.some(function (l) { return l.id === cfg.id; })) SPECIAL_LOCATIONS.push({ id: cfg.id, name: cfg.name, emoji: cfg.emoji, color: cfg.color, bg: IMG_BASE + (cfg.bg || 'map-fanrush.png') });
+    if (isOpen() && !SPECIAL_LOCATIONS.some(function (l) { return l.id === cfg.id; })) SPECIAL_LOCATIONS.push({ id: cfg.id, name: cfg.name, emoji: cfg.emoji, color: cfg.color, bg: IMG_BASE + (cfg.bg || 'map-fanrush.webp') });
     if (!window.__xkSelWrapped) {
       window.__xkSelWrapped = true;
       var origSel = window.openSpecialCardSelect;

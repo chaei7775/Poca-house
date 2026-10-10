@@ -26,7 +26,7 @@
   var SPOOK_SEC = 0.8;        // 놀란 상태 지속 시간
   var LIFE_MIN = 10, LIFE_MAX = 17;   // 나비가 머무는 시간(초). 지나면 하늘로 날아감
   var REST_MIN = 1.4, REST_MAX = 2.4; // 꽃에 앉아 쉬는 시간(초)
-  var BG_FILE = 'map-park.png';
+  var BG_FILE = 'map-park.webp';
 
   // 이미지 좌표(1672x941) 기준 나비가 앉는 꽃밭 (대략값)
   var IMG_W = 1672, IMG_H = 941;

@@ -218,9 +218,9 @@ function saveStamina() {
 const B = "https://raw.githubusercontent.com/chaei7775/Poca-house/main/";
 
 const ROOM_THEMES = {
-  pink:  { name: '💕 핑크덕질방',   price: CONFIG.roomPrice.pink,  img: B+'room_pink.png' },
-  plant: { name: '🌿 식물힐링방',   price: CONFIG.roomPrice.plant, img: B+'room_plant.png' },
-  doll:  { name: '🐻 인형컬렉터룸', price: CONFIG.roomPrice.doll,  img: B+'room_doll.png' },
+  pink:  { name: '💕 핑크덕질방',   price: CONFIG.roomPrice.pink,  img: B+'room_pink.webp' },
+  plant: { name: '🌿 식물힐링방',   price: CONFIG.roomPrice.plant, img: B+'room_plant.webp' },
+  doll:  { name: '🐻 인형컬렉터룸', price: CONFIG.roomPrice.doll,  img: B+'room_doll.webp' },
 };
 
 // ── 캐릭터 데이터 ──
@@ -259,78 +259,78 @@ const CARDS = [
   {id:'harin_ur',  name:'하린 UR', grade:'UR', gradeColor:'#7C3AED', img:B+'Harin UR.png',  autoCoins:20, charId:'harin'},
   {id:'yuna_ur',   name:'윤아 UR', grade:'UR', gradeColor:'#EC4899', img:B+'Yuna UR.png',   autoCoins:20, charId:'yuna'},
   {id:'ara_ur',    name:'아라 UR', grade:'UR', gradeColor:'#DC2626', img:B+'Ara UR.png',    autoCoins:20, charId:'ara'},
-  {id:'minjun_ssr1', name:'민준 SSR1', grade:'SSR', gradeColor:'#F59E0B', img:B+'jun-ssr1.png', autoCoins:10, charId:'minjun'},
-  {id:'minjun_ssr2', name:'민준 SSR2', grade:'SSR', gradeColor:'#F59E0B', img:B+'jun-ssr2.png', autoCoins:10, charId:'minjun'},
-  {id:'sion_ssr1',   name:'시온 SSR1', grade:'SSR', gradeColor:'#6366F1', img:B+'sion-ssr1.png', autoCoins:10, charId:'sion'},
-  {id:'sion_ssr2',   name:'시온 SSR2', grade:'SSR', gradeColor:'#6366F1', img:B+'sion-ssr2.png', autoCoins:10, charId:'sion'},
-  {id:'doyun_ssr1',  name:'도윤 SSR1', grade:'SSR', gradeColor:'#374151', img:B+'doyun-ssr1.png', autoCoins:10, charId:'doyun'},
-  {id:'doyun_ssr2',  name:'도윤 SSR2', grade:'SSR', gradeColor:'#374151', img:B+'doyun-ssr2.png', autoCoins:10, charId:'doyun'},
-  {id:'harin_ssr1',  name:'하린 SSR1', grade:'SSR', gradeColor:'#7C3AED', img:B+'harin-ssr1.png', autoCoins:10, charId:'harin'},
-  {id:'harin_ssr2',  name:'하린 SSR2', grade:'SSR', gradeColor:'#7C3AED', img:B+'harin-ssr2.png', autoCoins:10, charId:'harin'},
-  {id:'yuna_ssr1',   name:'윤아 SSR1', grade:'SSR', gradeColor:'#EC4899', img:B+'yuna-ssr1.png', autoCoins:10, charId:'yuna'},
-  {id:'yuna_ssr2',   name:'윤아 SSR2', grade:'SSR', gradeColor:'#EC4899', img:B+'yuna-ssr2.png', autoCoins:10, charId:'yuna'},
-  {id:'ara_ssr1',    name:'아라 SSR1', grade:'SSR', gradeColor:'#9D174D', img:B+'ara-ssr1.png', autoCoins:10, charId:'ara'},
-  {id:'ara_ssr2',    name:'아라 SSR2', grade:'SSR', gradeColor:'#9D174D', img:B+'ara-ssr2.png', autoCoins:10, charId:'ara'},
-  {id:'minjun_sr1', name:'민준 SR1', grade:'SR', gradeColor:'#F59E0B', img:B+'jun-sr1.png', autoCoins:5, charId:'minjun'},
-  {id:'minjun_sr2', name:'민준 SR2', grade:'SR', gradeColor:'#F59E0B', img:B+'jun-sr2.png', autoCoins:5, charId:'minjun'},
-  {id:'sion_sr1',   name:'시온 SR1', grade:'SR', gradeColor:'#6366F1', img:B+'sion-sr1.png', autoCoins:5, charId:'sion'},
-  {id:'sion_sr2',   name:'시온 SR2', grade:'SR', gradeColor:'#6366F1', img:B+'sion-sr2.png', autoCoins:5, charId:'sion'},
-  {id:'doyun_sr1',  name:'도윤 SR1', grade:'SR', gradeColor:'#374151', img:B+'doyun-sr1.png', autoCoins:5, charId:'doyun'},
-  {id:'doyun_sr2',  name:'도윤 SR2', grade:'SR', gradeColor:'#374151', img:B+'doyun-sr2.png', autoCoins:5, charId:'doyun'},
-  {id:'harin_sr1',  name:'하린 SR1', grade:'SR', gradeColor:'#7C3AED', img:B+'harin-sr1.png', autoCoins:5, charId:'harin'},
-  {id:'harin_sr2',  name:'하린 SR2', grade:'SR', gradeColor:'#7C3AED', img:B+'harin-sr2.png', autoCoins:5, charId:'harin'},
-  {id:'yuna_sr1',   name:'윤아 SR1', grade:'SR', gradeColor:'#EC4899', img:B+'yuna-sr1.png', autoCoins:5, charId:'yuna'},
-  {id:'yuna_sr2',   name:'윤아 SR2', grade:'SR', gradeColor:'#EC4899', img:B+'yuna-sr2.png', autoCoins:5, charId:'yuna'},
-  {id:'ara_sr1',    name:'아라 SR1', grade:'SR', gradeColor:'#9D174D', img:B+'ara-sr1.png', autoCoins:5, charId:'ara'},
-  {id:'ara_sr2',    name:'아라 SR2', grade:'SR', gradeColor:'#9D174D', img:B+'ara-sr2.png', autoCoins:5, charId:'ara'},
-  {id:'minjun_r1', name:'민준 R1', grade:'R', gradeColor:'#22c55e', img:B+'jun-r1.png', autoCoins:3, charId:'minjun'},
-  {id:'minjun_r2', name:'민준 R2', grade:'R', gradeColor:'#22c55e', img:B+'jun-r2.png', autoCoins:3, charId:'minjun'},
-  {id:'minjun_r3', name:'민준 R3', grade:'R', gradeColor:'#22c55e', img:B+'jun-r3.png', autoCoins:3, charId:'minjun'},
-  {id:'sion_r1',   name:'시온 R1', grade:'R', gradeColor:'#22c55e', img:B+'sion-r1.png', autoCoins:3, charId:'sion'},
-  {id:'sion_r2',   name:'시온 R2', grade:'R', gradeColor:'#22c55e', img:B+'sion-r2.png', autoCoins:3, charId:'sion'},
-  {id:'sion_r3',   name:'시온 R3', grade:'R', gradeColor:'#22c55e', img:B+'sion-r3.png', autoCoins:3, charId:'sion'},
-  {id:'doyun_r1',  name:'도윤 R1', grade:'R', gradeColor:'#22c55e', img:B+'doyun-r1.png', autoCoins:3, charId:'doyun'},
-  {id:'doyun_r2',  name:'도윤 R2', grade:'R', gradeColor:'#22c55e', img:B+'doyun-r2.png', autoCoins:3, charId:'doyun'},
-  {id:'doyun_r3',  name:'도윤 R3', grade:'R', gradeColor:'#22c55e', img:B+'doyun-r3.png', autoCoins:3, charId:'doyun'},
-  {id:'harin_r1',  name:'하린 R1', grade:'R', gradeColor:'#22c55e', img:B+'harin-r1.png', autoCoins:3, charId:'harin'},
-  {id:'harin_r2',  name:'하린 R2', grade:'R', gradeColor:'#22c55e', img:B+'harin-r2.png', autoCoins:3, charId:'harin'},
-  {id:'harin_r3',  name:'하린 R3', grade:'R', gradeColor:'#22c55e', img:B+'harin-r3.png', autoCoins:3, charId:'harin'},
-  {id:'yuna_r1',   name:'윤아 R1', grade:'R', gradeColor:'#22c55e', img:B+'yuna-r1.png', autoCoins:3, charId:'yuna'},
-  {id:'yuna_r2',   name:'윤아 R2', grade:'R', gradeColor:'#22c55e', img:B+'yuna-r2.png', autoCoins:3, charId:'yuna'},
-  {id:'yuna_r3',   name:'윤아 R3', grade:'R', gradeColor:'#22c55e', img:B+'yuna-r3.png', autoCoins:3, charId:'yuna'},
-  {id:'ara_r1',    name:'아라 R1', grade:'R', gradeColor:'#22c55e', img:B+'ara-r1.png', autoCoins:3, charId:'ara'},
-  {id:'ara_r2',    name:'아라 R2', grade:'R', gradeColor:'#22c55e', img:B+'ara-r2.png', autoCoins:3, charId:'ara'},
-  {id:'ara_r3',    name:'아라 R3', grade:'R', gradeColor:'#22c55e', img:B+'ara-r3.png', autoCoins:3, charId:'ara'},
-  {id:'minjun_n',  name:'민준 N',  grade:'N', gradeColor:'#9ca3af', img:B+'jun-n.png',  autoCoins:1, charId:'minjun'},
-  {id:'minjun_n1', name:'민준 N1', grade:'N', gradeColor:'#9ca3af', img:B+'jun-n1.png', autoCoins:1, charId:'minjun'},
-  {id:'minjun_n2', name:'민준 N2', grade:'N', gradeColor:'#9ca3af', img:B+'jun-n2.png', autoCoins:1, charId:'minjun'},
-  {id:'minjun_n3', name:'민준 N3', grade:'N', gradeColor:'#9ca3af', img:B+'jun-n3.png', autoCoins:1, charId:'minjun'},
-  {id:'minjun_n4', name:'민준 N4', grade:'N', gradeColor:'#9ca3af', img:B+'jun-n4.png', autoCoins:1, charId:'minjun'},
-  {id:'sion_n',    name:'시온 N',  grade:'N', gradeColor:'#9ca3af', img:B+'sion-n.png',  autoCoins:1, charId:'sion'},
-  {id:'sion_n1',   name:'시온 N1', grade:'N', gradeColor:'#9ca3af', img:B+'sion-n1.png', autoCoins:1, charId:'sion'},
-  {id:'sion_n2',   name:'시온 N2', grade:'N', gradeColor:'#9ca3af', img:B+'sion-n2.png', autoCoins:1, charId:'sion'},
-  {id:'sion_n3',   name:'시온 N3', grade:'N', gradeColor:'#9ca3af', img:B+'sion-n3.png', autoCoins:1, charId:'sion'},
-  {id:'sion_n4',   name:'시온 N4', grade:'N', gradeColor:'#9ca3af', img:B+'sion-n4.png', autoCoins:1, charId:'sion'},
-  {id:'doyun_n',   name:'도윤 N',  grade:'N', gradeColor:'#9ca3af', img:B+'doyun-n.png',  autoCoins:1, charId:'doyun'},
-  {id:'doyun_n1',  name:'도윤 N1', grade:'N', gradeColor:'#9ca3af', img:B+'doyun-n1.png', autoCoins:1, charId:'doyun'},
-  {id:'doyun_n2',  name:'도윤 N2', grade:'N', gradeColor:'#9ca3af', img:B+'doyun-n2.png', autoCoins:1, charId:'doyun'},
-  {id:'doyun_n3',  name:'도윤 N3', grade:'N', gradeColor:'#9ca3af', img:B+'doyun-n3.png', autoCoins:1, charId:'doyun'},
-  {id:'doyun_n4',  name:'도윤 N4', grade:'N', gradeColor:'#9ca3af', img:B+'doyun-n4.png', autoCoins:1, charId:'doyun'},
-  {id:'harin_n',   name:'하린 N',  grade:'N', gradeColor:'#9ca3af', img:B+'harin-n.png',  autoCoins:1, charId:'harin'},
-  {id:'harin_n1',  name:'하린 N1', grade:'N', gradeColor:'#9ca3af', img:B+'harin-n1.png', autoCoins:1, charId:'harin'},
-  {id:'harin_n2',  name:'하린 N2', grade:'N', gradeColor:'#9ca3af', img:B+'harin-n2.png', autoCoins:1, charId:'harin'},
-  {id:'harin_n3',  name:'하린 N3', grade:'N', gradeColor:'#9ca3af', img:B+'harin-n3.png', autoCoins:1, charId:'harin'},
-  {id:'harin_n4',  name:'하린 N4', grade:'N', gradeColor:'#9ca3af', img:B+'harin-n4.png', autoCoins:1, charId:'harin'},
-  {id:'yuna_n',    name:'윤아 N',  grade:'N', gradeColor:'#9ca3af', img:B+'yuna-n.png',  autoCoins:1, charId:'yuna'},
-  {id:'yuna_n1',   name:'윤아 N1', grade:'N', gradeColor:'#9ca3af', img:B+'yuna-n1.png', autoCoins:1, charId:'yuna'},
-  {id:'yuna_n2',   name:'윤아 N2', grade:'N', gradeColor:'#9ca3af', img:B+'yuna-n2.png', autoCoins:1, charId:'yuna'},
-  {id:'yuna_n3',   name:'윤아 N3', grade:'N', gradeColor:'#9ca3af', img:B+'yuna-n3.png', autoCoins:1, charId:'yuna'},
-  {id:'yuna_n4',   name:'윤아 N4', grade:'N', gradeColor:'#9ca3af', img:B+'yuna-n4.png', autoCoins:1, charId:'yuna'},
-  {id:'ara_n',     name:'아라 N',  grade:'N', gradeColor:'#9ca3af', img:B+'ara-n.png',  autoCoins:1, charId:'ara'},
-  {id:'ara_n1',    name:'아라 N1', grade:'N', gradeColor:'#9ca3af', img:B+'ara-n1.png', autoCoins:1, charId:'ara'},
-  {id:'ara_n2',    name:'아라 N2', grade:'N', gradeColor:'#9ca3af', img:B+'ara-n2.png', autoCoins:1, charId:'ara'},
-  {id:'ara_n3',    name:'아라 N3', grade:'N', gradeColor:'#9ca3af', img:B+'ara-n3.png', autoCoins:1, charId:'ara'},
-  {id:'ara_n4',    name:'아라 N4', grade:'N', gradeColor:'#9ca3af', img:B+'ara-n4.png', autoCoins:1, charId:'ara'},
+  {id:'minjun_ssr1', name:'민준 SSR1', grade:'SSR', gradeColor:'#F59E0B', img:B+'jun-ssr1.webp', autoCoins:10, charId:'minjun'},
+  {id:'minjun_ssr2', name:'민준 SSR2', grade:'SSR', gradeColor:'#F59E0B', img:B+'jun-ssr2.webp', autoCoins:10, charId:'minjun'},
+  {id:'sion_ssr1',   name:'시온 SSR1', grade:'SSR', gradeColor:'#6366F1', img:B+'sion-ssr1.webp', autoCoins:10, charId:'sion'},
+  {id:'sion_ssr2',   name:'시온 SSR2', grade:'SSR', gradeColor:'#6366F1', img:B+'sion-ssr2.webp', autoCoins:10, charId:'sion'},
+  {id:'doyun_ssr1',  name:'도윤 SSR1', grade:'SSR', gradeColor:'#374151', img:B+'doyun-ssr1.webp', autoCoins:10, charId:'doyun'},
+  {id:'doyun_ssr2',  name:'도윤 SSR2', grade:'SSR', gradeColor:'#374151', img:B+'doyun-ssr2.webp', autoCoins:10, charId:'doyun'},
+  {id:'harin_ssr1',  name:'하린 SSR1', grade:'SSR', gradeColor:'#7C3AED', img:B+'harin-ssr1.webp', autoCoins:10, charId:'harin'},
+  {id:'harin_ssr2',  name:'하린 SSR2', grade:'SSR', gradeColor:'#7C3AED', img:B+'harin-ssr2.webp', autoCoins:10, charId:'harin'},
+  {id:'yuna_ssr1',   name:'윤아 SSR1', grade:'SSR', gradeColor:'#EC4899', img:B+'yuna-ssr1.webp', autoCoins:10, charId:'yuna'},
+  {id:'yuna_ssr2',   name:'윤아 SSR2', grade:'SSR', gradeColor:'#EC4899', img:B+'yuna-ssr2.webp', autoCoins:10, charId:'yuna'},
+  {id:'ara_ssr1',    name:'아라 SSR1', grade:'SSR', gradeColor:'#9D174D', img:B+'ara-ssr1.webp', autoCoins:10, charId:'ara'},
+  {id:'ara_ssr2',    name:'아라 SSR2', grade:'SSR', gradeColor:'#9D174D', img:B+'ara-ssr2.webp', autoCoins:10, charId:'ara'},
+  {id:'minjun_sr1', name:'민준 SR1', grade:'SR', gradeColor:'#F59E0B', img:B+'jun-sr1.webp', autoCoins:5, charId:'minjun'},
+  {id:'minjun_sr2', name:'민준 SR2', grade:'SR', gradeColor:'#F59E0B', img:B+'jun-sr2.webp', autoCoins:5, charId:'minjun'},
+  {id:'sion_sr1',   name:'시온 SR1', grade:'SR', gradeColor:'#6366F1', img:B+'sion-sr1.webp', autoCoins:5, charId:'sion'},
+  {id:'sion_sr2',   name:'시온 SR2', grade:'SR', gradeColor:'#6366F1', img:B+'sion-sr2.webp', autoCoins:5, charId:'sion'},
+  {id:'doyun_sr1',  name:'도윤 SR1', grade:'SR', gradeColor:'#374151', img:B+'doyun-sr1.webp', autoCoins:5, charId:'doyun'},
+  {id:'doyun_sr2',  name:'도윤 SR2', grade:'SR', gradeColor:'#374151', img:B+'doyun-sr2.webp', autoCoins:5, charId:'doyun'},
+  {id:'harin_sr1',  name:'하린 SR1', grade:'SR', gradeColor:'#7C3AED', img:B+'harin-sr1.webp', autoCoins:5, charId:'harin'},
+  {id:'harin_sr2',  name:'하린 SR2', grade:'SR', gradeColor:'#7C3AED', img:B+'harin-sr2.webp', autoCoins:5, charId:'harin'},
+  {id:'yuna_sr1',   name:'윤아 SR1', grade:'SR', gradeColor:'#EC4899', img:B+'yuna-sr1.webp', autoCoins:5, charId:'yuna'},
+  {id:'yuna_sr2',   name:'윤아 SR2', grade:'SR', gradeColor:'#EC4899', img:B+'yuna-sr2.webp', autoCoins:5, charId:'yuna'},
+  {id:'ara_sr1',    name:'아라 SR1', grade:'SR', gradeColor:'#9D174D', img:B+'ara-sr1.webp', autoCoins:5, charId:'ara'},
+  {id:'ara_sr2',    name:'아라 SR2', grade:'SR', gradeColor:'#9D174D', img:B+'ara-sr2.webp', autoCoins:5, charId:'ara'},
+  {id:'minjun_r1', name:'민준 R1', grade:'R', gradeColor:'#22c55e', img:B+'jun-r1.webp', autoCoins:3, charId:'minjun'},
+  {id:'minjun_r2', name:'민준 R2', grade:'R', gradeColor:'#22c55e', img:B+'jun-r2.webp', autoCoins:3, charId:'minjun'},
+  {id:'minjun_r3', name:'민준 R3', grade:'R', gradeColor:'#22c55e', img:B+'jun-r3.webp', autoCoins:3, charId:'minjun'},
+  {id:'sion_r1',   name:'시온 R1', grade:'R', gradeColor:'#22c55e', img:B+'sion-r1.webp', autoCoins:3, charId:'sion'},
+  {id:'sion_r2',   name:'시온 R2', grade:'R', gradeColor:'#22c55e', img:B+'sion-r2.webp', autoCoins:3, charId:'sion'},
+  {id:'sion_r3',   name:'시온 R3', grade:'R', gradeColor:'#22c55e', img:B+'sion-r3.webp', autoCoins:3, charId:'sion'},
+  {id:'doyun_r1',  name:'도윤 R1', grade:'R', gradeColor:'#22c55e', img:B+'doyun-r1.webp', autoCoins:3, charId:'doyun'},
+  {id:'doyun_r2',  name:'도윤 R2', grade:'R', gradeColor:'#22c55e', img:B+'doyun-r2.webp', autoCoins:3, charId:'doyun'},
+  {id:'doyun_r3',  name:'도윤 R3', grade:'R', gradeColor:'#22c55e', img:B+'doyun-r3.webp', autoCoins:3, charId:'doyun'},
+  {id:'harin_r1',  name:'하린 R1', grade:'R', gradeColor:'#22c55e', img:B+'harin-r1.webp', autoCoins:3, charId:'harin'},
+  {id:'harin_r2',  name:'하린 R2', grade:'R', gradeColor:'#22c55e', img:B+'harin-r2.webp', autoCoins:3, charId:'harin'},
+  {id:'harin_r3',  name:'하린 R3', grade:'R', gradeColor:'#22c55e', img:B+'harin-r3.webp', autoCoins:3, charId:'harin'},
+  {id:'yuna_r1',   name:'윤아 R1', grade:'R', gradeColor:'#22c55e', img:B+'yuna-r1.webp', autoCoins:3, charId:'yuna'},
+  {id:'yuna_r2',   name:'윤아 R2', grade:'R', gradeColor:'#22c55e', img:B+'yuna-r2.webp', autoCoins:3, charId:'yuna'},
+  {id:'yuna_r3',   name:'윤아 R3', grade:'R', gradeColor:'#22c55e', img:B+'yuna-r3.webp', autoCoins:3, charId:'yuna'},
+  {id:'ara_r1',    name:'아라 R1', grade:'R', gradeColor:'#22c55e', img:B+'ara-r1.webp', autoCoins:3, charId:'ara'},
+  {id:'ara_r2',    name:'아라 R2', grade:'R', gradeColor:'#22c55e', img:B+'ara-r2.webp', autoCoins:3, charId:'ara'},
+  {id:'ara_r3',    name:'아라 R3', grade:'R', gradeColor:'#22c55e', img:B+'ara-r3.webp', autoCoins:3, charId:'ara'},
+  {id:'minjun_n',  name:'민준 N',  grade:'N', gradeColor:'#9ca3af', img:B+'jun-n.webp',  autoCoins:1, charId:'minjun'},
+  {id:'minjun_n1', name:'민준 N1', grade:'N', gradeColor:'#9ca3af', img:B+'jun-n1.webp', autoCoins:1, charId:'minjun'},
+  {id:'minjun_n2', name:'민준 N2', grade:'N', gradeColor:'#9ca3af', img:B+'jun-n2.webp', autoCoins:1, charId:'minjun'},
+  {id:'minjun_n3', name:'민준 N3', grade:'N', gradeColor:'#9ca3af', img:B+'jun-n3.webp', autoCoins:1, charId:'minjun'},
+  {id:'minjun_n4', name:'민준 N4', grade:'N', gradeColor:'#9ca3af', img:B+'jun-n4.webp', autoCoins:1, charId:'minjun'},
+  {id:'sion_n',    name:'시온 N',  grade:'N', gradeColor:'#9ca3af', img:B+'sion-n.webp',  autoCoins:1, charId:'sion'},
+  {id:'sion_n1',   name:'시온 N1', grade:'N', gradeColor:'#9ca3af', img:B+'sion-n1.webp', autoCoins:1, charId:'sion'},
+  {id:'sion_n2',   name:'시온 N2', grade:'N', gradeColor:'#9ca3af', img:B+'sion-n2.webp', autoCoins:1, charId:'sion'},
+  {id:'sion_n3',   name:'시온 N3', grade:'N', gradeColor:'#9ca3af', img:B+'sion-n3.webp', autoCoins:1, charId:'sion'},
+  {id:'sion_n4',   name:'시온 N4', grade:'N', gradeColor:'#9ca3af', img:B+'sion-n4.webp', autoCoins:1, charId:'sion'},
+  {id:'doyun_n',   name:'도윤 N',  grade:'N', gradeColor:'#9ca3af', img:B+'doyun-n.webp',  autoCoins:1, charId:'doyun'},
+  {id:'doyun_n1',  name:'도윤 N1', grade:'N', gradeColor:'#9ca3af', img:B+'doyun-n1.webp', autoCoins:1, charId:'doyun'},
+  {id:'doyun_n2',  name:'도윤 N2', grade:'N', gradeColor:'#9ca3af', img:B+'doyun-n2.webp', autoCoins:1, charId:'doyun'},
+  {id:'doyun_n3',  name:'도윤 N3', grade:'N', gradeColor:'#9ca3af', img:B+'doyun-n3.webp', autoCoins:1, charId:'doyun'},
+  {id:'doyun_n4',  name:'도윤 N4', grade:'N', gradeColor:'#9ca3af', img:B+'doyun-n4.webp', autoCoins:1, charId:'doyun'},
+  {id:'harin_n',   name:'하린 N',  grade:'N', gradeColor:'#9ca3af', img:B+'harin-n.webp',  autoCoins:1, charId:'harin'},
+  {id:'harin_n1',  name:'하린 N1', grade:'N', gradeColor:'#9ca3af', img:B+'harin-n1.webp', autoCoins:1, charId:'harin'},
+  {id:'harin_n2',  name:'하린 N2', grade:'N', gradeColor:'#9ca3af', img:B+'harin-n2.webp', autoCoins:1, charId:'harin'},
+  {id:'harin_n3',  name:'하린 N3', grade:'N', gradeColor:'#9ca3af', img:B+'harin-n3.webp', autoCoins:1, charId:'harin'},
+  {id:'harin_n4',  name:'하린 N4', grade:'N', gradeColor:'#9ca3af', img:B+'harin-n4.webp', autoCoins:1, charId:'harin'},
+  {id:'yuna_n',    name:'윤아 N',  grade:'N', gradeColor:'#9ca3af', img:B+'yuna-n.webp',  autoCoins:1, charId:'yuna'},
+  {id:'yuna_n1',   name:'윤아 N1', grade:'N', gradeColor:'#9ca3af', img:B+'yuna-n1.webp', autoCoins:1, charId:'yuna'},
+  {id:'yuna_n2',   name:'윤아 N2', grade:'N', gradeColor:'#9ca3af', img:B+'yuna-n2.webp', autoCoins:1, charId:'yuna'},
+  {id:'yuna_n3',   name:'윤아 N3', grade:'N', gradeColor:'#9ca3af', img:B+'yuna-n3.webp', autoCoins:1, charId:'yuna'},
+  {id:'yuna_n4',   name:'윤아 N4', grade:'N', gradeColor:'#9ca3af', img:B+'yuna-n4.webp', autoCoins:1, charId:'yuna'},
+  {id:'ara_n',     name:'아라 N',  grade:'N', gradeColor:'#9ca3af', img:B+'ara-n.webp',  autoCoins:1, charId:'ara'},
+  {id:'ara_n1',    name:'아라 N1', grade:'N', gradeColor:'#9ca3af', img:B+'ara-n1.webp', autoCoins:1, charId:'ara'},
+  {id:'ara_n2',    name:'아라 N2', grade:'N', gradeColor:'#9ca3af', img:B+'ara-n2.webp', autoCoins:1, charId:'ara'},
+  {id:'ara_n3',    name:'아라 N3', grade:'N', gradeColor:'#9ca3af', img:B+'ara-n3.webp', autoCoins:1, charId:'ara'},
+  {id:'ara_n4',    name:'아라 N4', grade:'N', gradeColor:'#9ca3af', img:B+'ara-n4.webp', autoCoins:1, charId:'ara'},
 ];
 
 // ── 가챠 확률 ──
@@ -561,7 +561,7 @@ function applyRoom(id) {
   showShopToast(`${theme.name} 적용됐어요! ✨`);
 }
 function getRoomImg() {
-  if (currentRoom === 'basic' || !ROOM_THEMES[currentRoom]) return B + 'map-room.png';
+  if (currentRoom === 'basic' || !ROOM_THEMES[currentRoom]) return B + 'map-room.webp';
   return B + ROOM_THEMES[currentRoom].img.split('/').pop();
 }
 function showShopToast(msg) {
@@ -1035,7 +1035,7 @@ const FLOWER_LEVELS = {
   normal: { label:'중급', count:6, rewards:{ FAIL:0, GOOD:500, GREAT:760, PERFECT:1000 }, color:'#F59E0B' },
   hard: { label:'고급', count:8, rewards:{ FAIL:0, GOOD:800, GREAT:1300, PERFECT:1800 }, color:'#FF6B9D' }
 };
-// flower-shop-bg.png 기준 좌표(%). 이미지 위 꽃 자체를 직접 터치하는 방식.
+// flower-shop-bg.webp 기준 좌표(%). 이미지 위 꽃 자체를 직접 터치하는 방식.
 const FLOWER_POS = {
   rose_red:{x:10.5,y:41.5}, camellia:{x:24.0,y:41.5}, tulip_red:{x:38.5,y:41.4}, carnation:{x:53.5,y:41.5}, rose_pink:{x:68.8,y:41.5}, gerbera:{x:85.0,y:41.7},
   sunflower:{x:10.4,y:52.5}, tulip_yellow:{x:24.1,y:52.2}, freesia:{x:39.1,y:52.2}, rose_yellow:{x:53.8,y:52.3}, daisy:{x:69.0,y:52.2}, marigold:{x:85.1,y:52.3},
@@ -1422,13 +1422,13 @@ const PLACE_BUTTONS = {
   park: ['btn-explore-park'],
 };
 const ALL_PLACE_BTNS = ['btn-burger-alba','btn-cafe-alba','btn-meet-yuna','btn-meet-minjun','btn-meet-sion','btn-meet-doyun','btn-meet-harin','btn-meet-ara','btn-sub-library','btn-sub-music','btn-sub-council','btn-sub-rooftop','btn-tech-academy','btn-explore-forest','btn-explore-lake','btn-room-deco','btn-shop-gift','btn-shop-room','btn-explore-beach','btn-explore-housing','btn-explore-mystery','btn-explore-square','btn-explore-park','btn-fanclub-square'];
-const PLACE_IMGS = { burger:'map-burger.png','cafe-street':'map-cafe.png',school:'map-school.png',library:'map-library.png',music:'map-music.png',council:'map-council.png',rooftop:'map-rooftop.png',forest:'map-set-main.png',lake:'map-camp.png',room:'map-room.png',shopping:'map-shop-street.jpg',beach:'map-beauty.png',housing:'map-housing.png',mystery:'map-mystery.png',square:'map-square.png',park:'map-park.png' };
+const PLACE_IMGS = { burger:'map-burger.webp','cafe-street':'map-cafe.webp',school:'map-school.webp',library:'map-library.webp',music:'map-music.webp',council:'map-council.webp',rooftop:'map-rooftop.webp',forest:'map-set-main.webp',lake:'map-camp.webp',room:'map-room.webp',shopping:'map-shop-street.jpg',beach:'map-beauty.webp',housing:'map-housing.webp',mystery:'map-mystery.webp',square:'map-square.webp',park:'map-park.webp' };
 const PLACE_TITLES = { burger:'🍔 포카버거','cafe-street':'☕ 카페거리',school:'🏫 연성고등학교',library:'📚 도서관',music:'🎵 음악실',council:'🏢 학생회실',rooftop:'⭐ 옥상',forest:'🎬 촬영 세트장',lake:'🏕️ 워크숍 캠프',room:'🏠 내 집',shopping:'🛍️ 상점거리',beach:'💄 뷰티 살롱',housing:'🏘️ 연습생 숙소촌',mystery:'✨ 신비의 섬',square:'🏛️ 중앙광장',park:'🌸 꽃길공원' };
 
 function openPlace(id) {
   ALL_PLACE_BTNS.forEach(b => { const el = document.getElementById(b); if (el) el.style.display = 'none'; });
   (PLACE_BUTTONS[id] || []).forEach(b => { const el = document.getElementById(b); if (el) el.style.display = 'block'; });
-  document.getElementById('place-bg-img').src = B + (PLACE_IMGS[id] || 'map-village.png');
+  document.getElementById('place-bg-img').src = B + (PLACE_IMGS[id] || 'map-village.webp');
   if (id === 'room' && currentRoom !== 'basic' && ROOM_THEMES[currentRoom]) {
     document.getElementById('place-bg-img').src = ROOM_THEMES[currentRoom].img;
   }

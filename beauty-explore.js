@@ -33,7 +33,7 @@
   var NG_PENALTY = 3;         //         NG를 누르면 줄어드는 시간 (초)
   var SPRAY_ROUNDS = 2;       // 3단계: 게이지를 채워야 하는 횟수
   var SPRAY_SEC = 1.8;        //         꾹 눌러서 가득 채우는 데 걸리는 시간 (초)
-  var BG_FILE = 'map-beauty.png';
+  var BG_FILE = 'map-beauty.webp';
   var FACE_IDS = ['ara', 'doyun', 'harin', 'minjun', 'sion', 'yuna'];   // 거울에 비치는 얼굴 (매번 랜덤)
 
   // 이미지 좌표(1619x972) 기준. 거울 안쪽 영역과 얼굴 위치 (대략값. 어긋나면 숫자만 조절)

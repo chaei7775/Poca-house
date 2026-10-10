@@ -52,7 +52,7 @@
   var PIECE_NAME = '프리미엄 조각', PIECE_EMOJI = '🖼️', PIECE_GOAL = 100;
   var PIECE_LOOT0 = '강화석', PIECE_LOOT1 = '방지권', PIECE_LOOT2 = '소원의 조각';   // 상자에서 터지는 아이템 중 그림이 있는 것들
   var IMG_BASE = 'https://raw.githubusercontent.com/chaei7775/Poca-house/main/';
-  var BG_FILE = 'map-vip.png';  // 있으면 배너·카드선택 배경으로 쓰임(없어도 됨)
+  var BG_FILE = 'map-vip.webp';  // 있으면 배너·카드선택 배경으로 쓰임(없어도 됨)
 
   // 스킬 (unlock = 플레이어 레벨 / dmg = 기본 위력 / cd = 쿨타임(초) / range = 사거리 or 반경)
   var SKILLS = [

@@ -24,7 +24,7 @@
 
   // ── 설정 ──
   var LOC_ID = 'broadcast_front';
-  var BG_URL = 'https://raw.githubusercontent.com/chaei7775/Poca-house/main/special-broadcast_front.png';
+  var BG_URL = 'https://raw.githubusercontent.com/chaei7775/Poca-house/main/special-broadcast_front.webp';
   var IMG_W = 941, IMG_H = 1672;      // 배경 이미지 크기 (불러오면 실제 크기로 갱신)
   var STAMINA_COST = 30;              // 이벤트 1번당 스태미나
   var ENCORE_N = 20;                  // 공연장: 이벤트 몇 번 하면 앵콜 스테이지(포토랩)가 열리는지
@@ -108,7 +108,7 @@
   var MAPS = {
     broadcast_front: {
       id: 'broadcast_front', name: '방송국 앞', emoji: '🎬', color: '#A78BFA',
-      bg: 'https://raw.githubusercontent.com/chaei7775/Poca-house/main/special-broadcast_front.png',
+      bg: 'https://raw.githubusercontent.com/chaei7775/Poca-house/main/special-broadcast_front.webp',
       desc: '이벤트 100번마다 프리미엄 조각 상자 뽑기', pieces: true, coinMult: 40,
       start: START, normal: NORMAL_SPOTS, rare: RARE_SPOTS, legend: LEGEND_SPOT, bounds: BOUNDS,
       enh: { normal: { stone: 0.005, protect: 0.003, trans: 0 }, variant: { stone: 0.03, protect: 0.015, trans: 0.005 }, npcStone: 1 },
@@ -116,7 +116,7 @@
     },
     fanmeeting: {
       id: 'fanmeeting', name: '팬미팅장', emoji: '💜', color: '#F472B6',
-      bg: 'https://raw.githubusercontent.com/chaei7775/Poca-house/main/special-fanmeeting.png',
+      bg: 'https://raw.githubusercontent.com/chaei7775/Poca-house/main/special-fanmeeting.webp',
       desc: '강화석·방지권·초월석 파밍', pieces: false, coinMult: 80,
       start: { x: 0.51, y: 0.82 },
       normal: [
@@ -143,7 +143,7 @@
     },
     concert: {
       id: 'concert', name: '공연장', emoji: '🎤', color: '#F43F5E',
-      bg: 'https://raw.githubusercontent.com/chaei7775/Poca-house/main/special-concert.png',
+      bg: 'https://raw.githubusercontent.com/chaei7775/Poca-house/main/special-concert.webp',
       desc: '🌟우등생별 1개 · 필름 파밍 · 시크릿 포토랩', pieces: false, coinMult: 100,
       starCost: 1, encore: true,
       start: { x: 0.50, y: 0.85 },

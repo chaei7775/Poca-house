@@ -231,8 +231,8 @@
     var img = document.createElement('img');
     img.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.8;';
     var tried = false;
-    img.onerror = function () { if (!tried) { tried = true; img.src = (typeof B !== 'undefined' ? B : '') + 'map-studio.png'; } };
-    img.src = (typeof B !== 'undefined' ? B : '') + 'map-compose.png';
+    img.onerror = function () { if (!tried) { tried = true; img.src = (typeof B !== 'undefined' ? B : '') + 'map-studio.webp'; } };
+    img.src = (typeof B !== 'undefined' ? B : '') + 'map-compose.webp';
     ov.appendChild(img);
     var shade = document.createElement('div'); shade.style.cssText = 'position:absolute;inset:0;background:linear-gradient(180deg,rgba(10,5,3,.6),rgba(10,5,3,.88));'; ov.appendChild(shade);
     var body = document.createElement('div'); body.id = 'compose-body'; body.style.cssText = 'position:relative;flex:1;display:flex;flex-direction:column;min-height:0;'; ov.appendChild(body);

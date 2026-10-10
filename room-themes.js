@@ -3,7 +3,7 @@
 // 잡화점 '방' 탭의 기존 테마 3종(핑크덕질방·식물힐링방·인형컬렉터룸)을 판매 목록에서 내리고,
 // 새 테마 3종으로 바꾼다. game.js / index.html은 건드리지 않는다.
 //  - 이미 기존 테마를 산 사람: 보유 중인 건 '이전 테마'로 목록 맨 아래에 남아서 계속 적용 가능 (코인 손실 없음)
-//  - 새 테마 이미지는 repo 맨 위 폴더에 room_stage.png / room_luxury.png / room_vintage.png 로 올리기
+//  - 새 테마 이미지는 repo 맨 위 폴더에 room_stage.webp / room_luxury.webp / room_vintage.webp 로 올리기
 //  - 가격은 아래 PRICE만 고치면 됨
 //  - 내 집의 '🛋️ 방 꾸미기' 버튼(원래 '준비 중이에요!')을 테마 사는 화면으로 연결 (포카 레벨 3부터)
 // ════════════════════════════════
@@ -14,9 +14,9 @@
   var BUST = '?v=' + Date.now();
   var PRICE = { stage: 30000, luxury: 80000, vintage: 150000 };   // 코인
   var NEW_THEMES = {
-    stage:   { name: '💜 마이스테이지룸',  img: IMG_BASE + 'room_stage.png',   emoji: '💜' },
-    luxury:  { name: '👑 럭셔리 스위트',   img: IMG_BASE + 'room_luxury.png',  emoji: '👑' },
-    vintage: { name: '📻 빈티지 덕질방',   img: IMG_BASE + 'room_vintage.png', emoji: '📻' }
+    stage:   { name: '💜 마이스테이지룸',  img: IMG_BASE + 'room_stage.webp',   emoji: '💜' },
+    luxury:  { name: '👑 럭셔리 스위트',   img: IMG_BASE + 'room_luxury.webp',  emoji: '👑' },
+    vintage: { name: '📻 빈티지 덕질방',   img: IMG_BASE + 'room_vintage.webp', emoji: '📻' }
   };
   var NEW_IDS = ['stage', 'luxury', 'vintage'];
   var OLD_IDS = ['pink', 'plant', 'doll'];

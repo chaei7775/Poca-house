@@ -4,7 +4,7 @@
 //  · 호출: window.showBigDrop('ticket') / window.showBigDrop('trans')  — 둘 다 한꺼번에 얻으면 차례로 하나씩 뜸
 //  · 연결된 곳: 🎬 팬덤 원정(broadcast-expedition.js), 특별탐험의 초월석(enhance.js).
 //    (특별탐험 등교권은 기존 ticket-popup.js 가 그대로 담당)
-//  · 이미지: 등교권 = ticket-school.png (이미 올려둔 것)  /  초월석 = transcend-stone.png (없으면 큰 💎 로 표시)
+//  · 이미지: 등교권 = ticket-school.png (이미 올려둔 것)  /  초월석 = transcend-stone.webp (없으면 큰 💎 로 표시)
 //  · 등록: loader.js NEW_CONTENT_FILES 맨 끝에 'big-drop-popup.js' 한 줄 추가
 // ════════════════════════════════
 (function () {
@@ -12,7 +12,7 @@
 
   var KINDS = {
     ticket: { title: '🎫 등교권 획득!', img: 'ticket-school.png', emoji: '🎫', sub: '등교권을 찾았어요! 등교할 때 쓸 수 있어요', glow: '#FFD700', glow2: '#FFF3A0', sfx: 'gachaHigh' },
-    trans:  { title: '💎 초월석 획득!', img: 'transcend-stone.png', emoji: '💎', sub: '+10강 히든카드를 초월시킬 때 쓰는 귀한 재료예요', glow: '#60A5FA', glow2: '#BFDBFE', sfx: 'gachaHigh' }
+    trans:  { title: '💎 초월석 획득!', img: 'transcend-stone.webp', emoji: '💎', sub: '+10강 히든카드를 초월시킬 때 쓰는 귀한 재료예요', glow: '#60A5FA', glow2: '#BFDBFE', sfx: 'gachaHigh' }
   };
   var queue = [], showing = false;
 

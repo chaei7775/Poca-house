@@ -124,7 +124,7 @@
 
     var overlay = document.createElement('div');
     overlay.id = 'mystery-overlay';
-    overlay.style.cssText = 'position:fixed;inset:0;z-index:600;background:linear-gradient(rgba(13,8,32,.45),rgba(13,8,32,.72)),url(map-mystery.png) center/cover no-repeat,radial-gradient(ellipse at 50% 30%,#2d1b4e 0%,#0d0820 80%);display:flex;flex-direction:column;align-items:center;justify-content:center;touch-action:manipulation;user-select:none;-webkit-user-select:none;';
+    overlay.style.cssText = 'position:fixed;inset:0;z-index:600;background:linear-gradient(rgba(13,8,32,.45),rgba(13,8,32,.72)),url(map-mystery.webp) center/cover no-repeat,radial-gradient(ellipse at 50% 30%,#2d1b4e 0%,#0d0820 80%);display:flex;flex-direction:column;align-items:center;justify-content:center;touch-action:manipulation;user-select:none;-webkit-user-select:none;';
 
     overlay.innerHTML = '<div style="width:100%;max-width:430px;height:100%;position:relative;">' +
       '<div style="position:absolute;top:10px;left:16px;right:16px;height:8px;background:rgba(255,255,255,0.2);border-radius:4px;overflow:hidden;">' +
@@ -269,7 +269,7 @@
     injectStyle();
     var ov = document.createElement('div');
     ov.id = 'mystery-spring-overlay';
-    ov.style.cssText = 'position:fixed;inset:0;z-index:720;background:linear-gradient(rgba(0,0,0,.3),rgba(0,0,0,.6)),url(map-mystery.png) 68% 50%/cover no-repeat,#000;display:flex;align-items:center;justify-content:center;';
+    ov.style.cssText = 'position:fixed;inset:0;z-index:720;background:linear-gradient(rgba(0,0,0,.3),rgba(0,0,0,.6)),url(map-mystery.webp) 68% 50%/cover no-repeat,#000;display:flex;align-items:center;justify-content:center;';
     document.body.appendChild(ov);
     if (!document.getElementById('spring-fx-css')) {
       var fx = document.createElement('style'); fx.id = 'spring-fx-css';

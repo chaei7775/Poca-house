@@ -20,7 +20,7 @@
   var ORB_LIFE = 1.8;          // 구슬이 켜져 있는 시간(초)
   var ORB_MAX = 3;             // 동시에 켜져 있는 최대 수
   var STONE_DROP = 0.25;       // 끝났을 때 재조합석 확률 (기존 탐험과 동일)
-  var BG_FILE = 'map-studio.png';
+  var BG_FILE = 'map-studio.webp';
   var IMG_W = 1536, IMG_H = 1024;
 
   // 재료 20종 (이름은 album-studio.js 와 같아야 함). weight = 구슬로 나올 비중, cat = 분류

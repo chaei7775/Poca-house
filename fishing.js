@@ -17,7 +17,7 @@
   var STAMINA_COST = 10;      // 기존 탐험과 동일
   var WEB_DROP = 0.15;        // 물고기를 잡을 때 은빛거미줄이 같이 올라올 확률 (의상 제작 재료, 호수에서만 나오던 것)
   var STONE_DROP = 0.25;      // 세션 종료 시 재조합석 확률 (기존 호수 탐험과 동일)
-  var BG_FILE = 'map-camp.png';
+  var BG_FILE = 'map-camp.webp';
 
   // 이미지 좌표(1536x1024) 기준 호수 물 영역 (대략값. 어색하면 숫자만 조절)
   var IMG_W = 1536, IMG_H = 1024;

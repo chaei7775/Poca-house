@@ -26,7 +26,7 @@
   var HINT_COST = 1000;       // 힌트 비용(코인)
   var HINT_REMOVE = 3;        // 힌트 한 번에 흐려지는 가짜 수
   var ZOOMS = [1, 1.6, 2.4];  // 확대 단계
-  var BG_FILE = 'map-square.png';
+  var BG_FILE = 'map-square.webp';
   var IMG_W = 1672, IMG_H = 941;
 
   // 팬이 설 수 있는 자리 [x, y, 근처 장소 이름]  (그림 좌표)

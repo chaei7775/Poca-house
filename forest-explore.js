@@ -24,7 +24,7 @@
   var BEE_CHANCE = 0.25;      // 나무 한 그루에서 🐝가 같이 떨어질 확률
   var BEE_PENALTY = 3;        // 🐝를 누르면 줄어드는 시간(초)
   var GROUND_LIFE = 3.0;      // 땅에 떨어진 재료가 사라지기까지 (초)
-  var BG_FILE = 'map-forest.png';
+  var BG_FILE = 'map-forest.webp';
   var FRAC = 0.62;            // 화면에 한 번에 보이는 숲 가로 비율 (작을수록 확대)
 
   // 이미지 좌표(1536x1024) 기준 나무 위치 (대략값. 어색하면 숫자만 조절)
