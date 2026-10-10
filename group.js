@@ -57,6 +57,7 @@
   function fmt(n) { return Number(n).toLocaleString(); }
   function today() { var d = new Date(); return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2); }
   function name(cid) { try { return CHARS[cid].name; } catch (e) { return cid; } }
+  function face(cid, px) { return '<img src="face-' + esc(cid) + '.png" alt="' + esc(name(cid)) + '" width="' + px + '" height="' + px + '" loading="lazy" decoding="async" style="width:' + px + 'px;height:' + px + 'px;border-radius:50%;object-fit:cover;vertical-align:middle;border:2px solid rgba(255,255,255,0.55);background:#243357;">'; }
   function emoji(cid) { try { return CHARS[cid].emoji; } catch (e) { return '⭐'; } }
   function pick(a) { return a[Math.floor(Math.random() * a.length)]; }
 
@@ -235,7 +236,7 @@
     }
     var chips = ids.map(function (cid) {
       var on = ui.sel.indexOf(cid) !== -1;
-      return '<button data-m="' + cid + '" style="padding:9px 12px;border-radius:12px;font-size:13px;font-weight:900;cursor:pointer;color:#fff;' + FONT + 'border:1.5px solid ' + (on ? ACC : 'rgba(255,255,255,0.2)') + ';background:' + (on ? 'rgba(124,196,255,0.22)' : 'rgba(255,255,255,0.06)') + ';">' + esc(emoji(cid)) + ' ' + esc(name(cid)) + (on ? ' ✓' : '') + '</button>';
+      return '<button data-m="' + cid + '" style="padding:9px 12px;border-radius:12px;font-size:13px;font-weight:900;cursor:pointer;color:#fff;' + FONT + 'border:1.5px solid ' + (on ? ACC : 'rgba(255,255,255,0.2)') + ';background:' + (on ? 'rgba(124,196,255,0.22)' : 'rgba(255,255,255,0.06)') + ';">' + face(cid, 24) + ' ' + esc(name(cid)) + (on ? ' ✓' : '') + '</button>';
     }).join('');
     var n = ui.sel.length, ok = n >= MIN_MEMBERS && n <= MAX_MEMBERS && String(ui.name).trim().length >= 1;
     return '<div style="font-size:12px;color:#9fb0d0;margin-bottom:6px;">그룹 이름 (최대 ' + NAME_MAX + '글자)</div>' +
@@ -252,7 +253,7 @@
     var pct = nextAt ? Math.min(100, Math.floor((s.fame - curAt) / (nextAt - curAt) * 100)) : 100;
     var live = liveMembers(s), ok = live.length >= MIN_MEMBERS, gs = ok ? groupStats(live) : null;
     var mem = g.members.map(function (cid) {
-      return '<div style="text-align:center;flex:1;min-width:0;"><div style="font-size:30px;">' + esc(emoji(cid)) + '</div><div style="font-size:11.5px;font-weight:900;margin-top:2px;">' + esc(name(cid)) + '</div><div style="font-size:10px;color:#9fb0d0;">인연 Lv.' + bond(cid) + '</div></div>';
+      return '<div style="text-align:center;flex:1;min-width:0;"><div>' + face(cid, 54) + '</div><div style="font-size:11.5px;font-weight:900;margin-top:2px;">' + esc(name(cid)) + '</div><div style="font-size:10px;color:#9fb0d0;">인연 Lv.' + bond(cid) + '</div></div>';
     }).join('');
     var bars = gs ? STATS.map(function (st) {
       var v = Math.round(gs[st.k]);
@@ -313,7 +314,7 @@
   }
   function popup(res) {
     var ov = document.getElementById('grp-ov'); if (!ov) return;
-    var m = res.members.map(function (c) { return esc(emoji(c)); }).join(' ');
+    var m = res.members.map(function (c) { return face(c, 50); }).join(' ');
     var p = document.createElement('div');
     p.style.cssText = 'position:absolute;inset:0;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;padding:18px;z-index:2;';
     p.innerHTML = '<div style="background:#1b2a52;border:2px solid ' + (res.big ? '#ffd76a' : ACC) + ';border-radius:18px;padding:20px 18px;max-width:320px;width:100%;text-align:center;color:#fff;' + FONT + '">' +
@@ -366,7 +367,7 @@
     p.innerHTML = '<div style="position:relative;text-align:center;color:#fff;width:100%;max-width:300px;padding:10px;">' + sp +
       '<div style="animation:grpBob 1s ease-in-out infinite;">' + aicon(res.act, 110) + '</div>' +
       '<div style="font-size:15px;font-weight:900;margin-top:6px;">' + esc(res.act.name) + '</div>' +
-      '<div style="font-size:26px;margin-top:6px;">' + res.members.map(function (c) { return esc(emoji(c)); }).join(' ') + '</div>' +
+      '<div style="margin-top:8px;">' + res.members.map(function (c) { return face(c, 52); }).join(' ') + '</div>' +
       '<div id="grp-scene-txt" style="font-size:12.5px;color:#bcd8ff;margin-top:10px;min-height:18px;">' + esc(lines[0]) + '</div>' +
       '<div style="height:8px;border-radius:6px;background:rgba(255,255,255,0.14);overflow:hidden;margin:12px 10px 0;"><div style="height:100%;border-radius:6px;background:linear-gradient(90deg,#4aa8ff,#c084fc);animation:grpFill ' + SCENE_MS + 'ms linear forwards;"></div></div></div>';
     ov.appendChild(p);
