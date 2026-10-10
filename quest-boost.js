@@ -8,7 +8,7 @@
 // ════════════════════════════════════════════════════════════
 (function () {
   'use strict';
-  var COIN_MULT = 5, EXP_MULT = 2;
+  var COIN_MULT = 5, EXP_MULT = 1;
   var SKIP = /^q3_/;
   var KEEP_COIN = { poca_level_5: 1 };   // 첫 뽑기만 해도 바로 깨지는 퀘스트(포카 Lv5)는 코인을 안 올림 (초반에 코인이 폭발하면 알바할 이유가 사라짐)
   function boost(q) {
