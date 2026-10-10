@@ -188,6 +188,12 @@
     S.oy = clamp(S.H * 0.40 - FACE_Y * S.s, S.H - IMG_H * S.s, 0);            // 얼굴이 화면 위쪽 40% 즈음에 오게
   }
   function faceC() { return [S.ox + FACE_X * S.s, S.oy + FACE_Y * S.s, FACE_SZ * S.s]; }   // 화면에서 얼굴 중심 x, y, 크기
+  // 스프레이 통: 얼굴 쪽으로 기울이고, 안개는 분사구(통 윗부분)에서만 나감
+  function sprayGeom(ptr) {
+    var f = faceC(), cx = ptr.x, cy = ptr.y - 46;
+    var ang = Math.atan2(f[1] - cy, f[0] - cx);
+    return { cx: cx, cy: cy, ang: ang, tx: cx + Math.cos(ang) * 27, ty: cy + Math.sin(ang) * 27 };   // 분사구 위치
+  }
   function spotXY(i) { var f = faceC(); return [f[0] + SPOTS[i].fx * f[2], f[1] + SPOTS[i].fy * f[2]]; }
   function hitR() { return Math.max(30, 0.15 * faceC()[2]); }
 
@@ -361,10 +367,10 @@
         S.gauge = Math.min(1, S.gauge + dt / SPRAY_SEC);
         S.sprayT -= dt;
         if (S.sprayT <= 0) { S.sprayT = 0.2; sfx('beautySpray'); vib(5); }
-        var f2 = faceC();
+        var sg = sprayGeom(S.ptr);
         for (var k = 0; k < 2; k++) {
-          var ang = Math.atan2(f2[1] - S.ptr.y, f2[0] - S.ptr.x) + (Math.random() - 0.5) * 0.7, sp = 260 + Math.random() * 200;
-          S.mist.push({ x: S.ptr.x, y: S.ptr.y - 30, vx: Math.cos(ang) * sp, vy: Math.sin(ang) * sp, life: 0, max: 0.35 + Math.random() * 0.25 });
+          var ang = sg.ang + (Math.random() - 0.5) * 0.5, sp = 260 + Math.random() * 200;
+          S.mist.push({ x: sg.tx, y: sg.ty, vx: Math.cos(ang) * sp, vy: Math.sin(ang) * sp, life: 0, max: 0.35 + Math.random() * 0.25 });
         }
         if (S.gauge >= 1) sprayRoundDone();
       } else {
@@ -550,7 +556,12 @@
         c.fillStyle = 'rgba(255,255,255,' + (0.7 * a) + ')';
         c.beginPath(); c.arc(m.x, m.y, 3 + 5 * (1 - a), 0, 6.3); c.fill();
       });
-      if (S.ptr) drawPic(c, 'spray', S.ptr.x, S.ptr.y - 46, 62, false);
+      if (S.ptr) {   // 분사구가 얼굴을 향하도록 통을 기울여서 그림
+        var sg2 = sprayGeom(S.ptr);
+        c.save(); c.translate(sg2.cx, sg2.cy); c.rotate(sg2.ang + Math.PI / 2);
+        drawPic(c, 'spray', 0, 0, 62, false);
+        c.restore();
+      }
     }
   }
 
