@@ -60,6 +60,15 @@ async function loadFriendData() {
       }
     }
 
+    try {   // 내가 보냈고 아직 수락 안 된 신청
+      const F = window.pocaFirebase;
+      const sq = await F.getDocs(F.query(F.collection(db, 'users'), F.where('incomingRequests', 'array-contains', window.pocaLoggedInUid)));
+      const sent = []; sq.forEach(function (d) { if (friends.indexOf(d.id) === -1) sent.push(d.data() || {}); });
+      if (sent.length) {
+        html += '<div style="font-size:12px;font-weight:900;color:#8d96c0;margin:10px 0 8px;">⏳ 보낸 친구신청 · 수락 대기 중 (' + sent.length + ')</div>';
+        sent.forEach(function (d) { html += friendRowHtml(d, '', 'search-pending'); });
+      }
+    } catch (e) {}
     html += '<div style="font-size:12px;font-weight:900;color:#FFB3CC;margin:14px 0 8px;">💖 내 친구 (' + friends.length + ')</div>';
     if (friends.length === 0) {
       html += '<div style="color:#888;text-align:center;padding:20px 0;font-size:13px;">아직 친구가 없어요. 닉네임으로 검색해서 추가해보세요!</div>';
@@ -88,6 +97,12 @@ function friendRowHtml(d, uid, mode) {
       '<button onclick="acceptFriendRequest(\'' + uid + '\')" style="background:#FF6B9D;border:none;border-radius:8px;color:#fff;padding:6px 10px;font-size:11px;font-weight:900;cursor:pointer;">수락</button>' +
       '<button onclick="rejectFriendRequest(\'' + uid + '\')" style="background:rgba(255,255,255,0.1);border:none;border-radius:8px;color:#aaa;padding:6px 10px;font-size:11px;cursor:pointer;">거절</button>' +
       '</div>';
+  } else if (mode === 'search-done') {
+    actionHtml = '<div style="color:#8d96c0;font-size:11px;font-weight:900;">✅ 이미 친구예요</div>';
+  } else if (mode === 'search-pending') {
+    actionHtml = '<div style="background:rgba(255,255,255,0.08);border-radius:8px;color:#FFD700;padding:6px 10px;font-size:11px;font-weight:900;">⏳ 수락 대기 중</div>';
+  } else if (mode === 'search-incoming') {
+    actionHtml = '<button onclick="acceptFriendRequest(\''+uid+'\')" style="background:#FF6B9D;border:none;border-radius:8px;color:#fff;padding:6px 10px;font-size:11px;font-weight:900;cursor:pointer;">📩 신청 받음 · 수락</button>';
   } else if (mode === 'search') {
     actionHtml = '<button onclick="sendFriendRequest(\'' + uid + '\',\'' + nick.replace(/'/g, "\\'") + '\')" style="background:linear-gradient(135deg,#FF6B9D,#C084FC);border:none;border-radius:8px;color:#fff;padding:6px 12px;font-size:11px;font-weight:900;cursor:pointer;">친구신청</button>';
   } else if (mode === 'friend') {
@@ -116,10 +131,20 @@ async function searchFriendByNickname() {
       resultEl.innerHTML = '<div style="color:#888;font-size:12px;padding:8px 0;">해당 닉네임을 찾을 수 없어요.</div>';
       return;
     }
+    let myData = {};
+    try { const ms = await window.pocaFirebase.getDoc(window.pocaFirebase.doc(db, 'users', window.pocaLoggedInUid)); if (ms.exists()) myData = ms.data() || {}; } catch (e) {}
+    const myFriends = Array.isArray(myData.friends) ? myData.friends : [];
+    const myIncoming = Array.isArray(myData.incomingRequests) ? myData.incomingRequests : [];
     let html = '';
     snap.forEach(function(docSnap) {
       if (docSnap.id === window.pocaLoggedInUid) return;
-      html += friendRowHtml(docSnap.data(), docSnap.id, 'search');
+      const td = docSnap.data() || {};
+      const tin = Array.isArray(td.incomingRequests) ? td.incomingRequests : [];
+      let mode = 'search';
+      if (myFriends.indexOf(docSnap.id) !== -1) mode = 'search-done';
+      else if (myIncoming.indexOf(docSnap.id) !== -1) mode = 'search-incoming';
+      else if (tin.indexOf(window.pocaLoggedInUid) !== -1) mode = 'search-pending';
+      html += friendRowHtml(td, docSnap.id, mode);
     });
     resultEl.innerHTML = html || '<div style="color:#888;font-size:12px;padding:8px 0;">본인은 검색되지 않아요.</div>';
   } catch (err) {
@@ -129,15 +154,22 @@ async function searchFriendByNickname() {
 
 async function sendFriendRequest(targetUid, nick) {
   if (!window.pocaFirebaseReady || !window.pocaFirebase) return;
-  const { db, doc, updateDoc, arrayUnion } = window.pocaFirebase;
+  const { db, doc, updateDoc, arrayUnion, getDoc } = window.pocaFirebase;
+  if (window.__frSending) return; window.__frSending = true;
   try {
+    // 이미 신청했거나 친구인지 서버에서 다시 확인 (같은 사람에게 중복 신청 방지)
+    try {
+      const ts = await getDoc(doc(db, 'users', targetUid));
+      const td = ts.exists() ? (ts.data() || {}) : {};
+      if ((td.friends || []).indexOf(window.pocaLoggedInUid) !== -1) { showBagToast(nick + '님과는 이미 친구예요!'); return; }
+      if ((td.incomingRequests || []).indexOf(window.pocaLoggedInUid) !== -1) { showBagToast('⏳ ' + nick + '님이 수락하길 기다리는 중이에요 (이미 신청했어요)'); searchFriendByNickname(); return; }
+    } catch (e) {}
     await updateDoc(doc(db, 'users', targetUid), { incomingRequests: arrayUnion(window.pocaLoggedInUid) });
-    showBagToast(nick + '에게 친구신청을 보냈어요!');
-    const resultEl = document.getElementById('friend-search-result');
-    if (resultEl) resultEl.innerHTML = '';
+    showBagToast(nick + '에게 친구신청을 보냈어요! ⏳ 수락을 기다려요');
+    searchFriendByNickname();
   } catch (err) {
     showBagToast('신청 실패: ' + (err.code || err.message));
-  }
+  } finally { window.__frSending = false; }
 }
 
 async function acceptFriendRequest(uid) {
