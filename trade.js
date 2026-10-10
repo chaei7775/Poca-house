@@ -346,6 +346,7 @@
   function iconHtml(it, px) {
     px = px || 20;
     try {
+      if (it.kind === 'dskill') return '<img src="drama/icons/' + it.sid + '.png" alt="" loading="lazy" decoding="async" style="width:' + px + 'px;height:' + px + 'px;object-fit:contain;vertical-align:middle;">';
       if (it.desc === '탐험 재료' && typeof window.matIcon === 'function') return window.matIcon(it.name, px, it.emoji) || it.emoji;
       var T = window.__sweetsTest, r = T && T.RECIPES && T.RECIPES.filter(function (x) { return x.name === it.name; })[0];
       if (r) return '<span style="position:relative;display:inline-block;width:' + px + 'px;height:' + px + 'px;font-size:' + Math.round(px * 0.8) + 'px;line-height:' + px + 'px;text-align:center;vertical-align:middle;">' + it.emoji +
