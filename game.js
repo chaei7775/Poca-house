@@ -846,7 +846,7 @@ function renderBurgerStep() {
       const rawEarn = burgerGaugeGrade === 'MISS' ? 0 : baseEarn + burgerGaugeBonus + cleanBonus + speedBonus;
       const earn = rawEarn > 0 ? applyClothCoinBonus(applyAlbaDifficultyReward(rawEarn, burgerDifficulty, burgerGaugeGrade)) : 0;
       burgerLastEarn = earn;
-      if (earn > 0) { coins += earn; albaDone++; saveAll(); addPlayerExp(15); checkWishFragment(0.005); checkQuestProgress('first_alba'); }
+      if (earn > 0) { coins += earn; albaDone++; saveAll(); addPlayerExp(albaExp(15)); checkWishFragment(0.005); checkQuestProgress('first_alba'); }
       recordAlbaAttempt(earn > 0, 'burger');
       if (document.getElementById('coin-alba-burger')) document.getElementById('coin-alba-burger').textContent = coins;
       spawnCoinFloat(earn);
@@ -960,7 +960,7 @@ function renderCafeStep() {
       cafeCompleted = true;
       const rawCafeReward = baseBonus > 0 ? baseBonus + cafeComboBonus : 0;
       cafeLastBonus = rawCafeReward > 0 ? applyClothCoinBonus(applyAlbaDifficultyReward(rawCafeReward, cafeDifficulty, 'COMPLETE')) : 0;
-      if (cafeLastBonus > 0) { coins += cafeLastBonus; albaDone++; saveAll(); addPlayerExp(15); checkWishFragment(0.005); checkQuestProgress('first_alba'); }
+      if (cafeLastBonus > 0) { coins += cafeLastBonus; albaDone++; saveAll(); addPlayerExp(albaExp(15)); checkWishFragment(0.005); checkQuestProgress('first_alba'); }
       recordAlbaAttempt(cafeLastBonus > 0, 'cafe');
       if (document.getElementById('coin-alba-cafe')) document.getElementById('coin-alba-cafe').textContent = coins;
       spawnCoinFloat(cafeLastBonus);
@@ -1198,7 +1198,7 @@ function finishFlowerJob() {
   const earn = rawEarn > 0 ? applyClothCoinBonus(rawEarn) : 0;
   if (earn > 0) {
     coins += earn; albaDone++; saveAll();
-    addPlayerExp(cfg.count >= 8 ? 25 : cfg.count >= 6 ? 20 : 15);
+    addPlayerExp(albaExp(cfg.count >= 8 ? 25 : cfg.count >= 6 ? 20 : 15));
     checkWishFragment(0.005);
     checkRainbowDewDrop(flowerState.levelKey);
     checkQuestProgress('first_alba');
@@ -1623,7 +1623,7 @@ let playerExp = parseInt(localStorage.getItem('ph_playerExp') || '0');
 let playerLevel = parseInt(localStorage.getItem('ph_playerLevel') || '1');
 
 // 초반(Lv1~4)은 천천히: 한 번에 여러 레벨이 오르지 않게 (해금 콘텐츠가 한꺼번에 열리는 것 방지)
-const EARLY_EXP_REQ = { 1: 20, 2: 200, 3: 350, 4: 430 };
+const EARLY_EXP_REQ = { 1: 20, 2: 200, 3: 250, 4: 300 };
 // 레벨업 필요 경험치 배율 (1 = 원래, 0.5 = 절반). 숫자만 바꾸면 전체 레벨업 속도가 바뀜
 const EXP_REQ_MULT = 1;
 // 초반 구간(Lv.2 → Lv.5 도달까지, 즉 Lv.2·3·4 의 필요량)만 따로 깎는 배율: 1 = 그대로, 0.5 = 절반
@@ -1631,6 +1631,9 @@ const EARLY_EXP_CUT_FROM = 2, EARLY_EXP_CUT_TO = 4, EARLY_EXP_CUT_MULT = 1;
 // 🐢 Lv.5 이상 구간만 필요 경험치를 더 늘리는 배율 (너무 빨리 오른다는 의견 반영). 1 = 그대로
 const EXP_SLOW_FROM = 5, EXP_SLOW_MULT = 1.5;
 // 늘리기 전 필요량: 일일퀘스트·매니저 이벤트 보상은 이 값을 기준으로 계산 (안 그러면 보상도 같이 커져서 속도가 안 늦춰짐)
+// 🍔 알바 경험치: 플레이어 Lv.5 전까지는 2배 (초반에 알바만 계속 하게 되는 것 방지)
+const ALBA_EXP_BOOST_UNTIL = 5, ALBA_EXP_BOOST = 2;
+function albaExp(n) { return (typeof playerLevel !== 'undefined' && playerLevel < ALBA_EXP_BOOST_UNTIL) ? Math.round(n * ALBA_EXP_BOOST) : n; }
 function getBaseExpRequired(level) {
   const cut = (level >= EARLY_EXP_CUT_FROM && level <= EARLY_EXP_CUT_TO) ? EARLY_EXP_CUT_MULT : 1;
   return Math.max(1, Math.round((EARLY_EXP_REQ[level] || 20 * level * level) * EXP_REQ_MULT * cut));

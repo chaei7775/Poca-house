@@ -280,7 +280,7 @@ function endRhythmGame() {
 
   coins += earnedCoins;
   if (typeof saveAll === 'function') saveAll();
-  if (typeof addPlayerExp === 'function') addPlayerExp(20);
+  if (typeof addPlayerExp === 'function') addPlayerExp(typeof albaExp === 'function' ? albaExp(20) : 20);
 
   renderRhythmResult(earnedCoins, ratio);
   goTo('rhythm-result');

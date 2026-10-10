@@ -228,7 +228,7 @@ function endCleanGame() {
   coins += earn;
   albaDone++;
   saveAll();
-  if (typeof addPlayerExp === 'function') addPlayerExp(15);
+  if (typeof addPlayerExp === 'function') addPlayerExp(typeof albaExp === 'function' ? albaExp(15) : 15);
   if (typeof checkWishFragment === 'function') checkWishFragment(0.005);
   if (typeof checkQuestProgress === 'function') checkQuestProgress('first_alba');
 
