@@ -40,12 +40,12 @@
   ];
   // 아래 탭 (id 로 찾음): 홈 · 뽑기 · 인연은 처음부터, 나머지는 Lv.2 (첫 만남 퀘스트를 깨면 바로 열려요)
   var NAV_LV = { 'nav-quest': { lv: 2, name: '퀘스트' }, 'nav-bag': { lv: 2, name: '가방' }, 'nav-map': { lv: 2, name: '맵' }, 'nav-shop': { lv: 2, name: '더보기' } };
-  // 맵 장소 (맵 화면의 openPlace('...') 버튼): 포카버거·카페거리는 Lv.2, 나머지는 Lv.3
+  // 맵 장소 (맵 화면의 openPlace('...') 버튼): 포카버거·카페거리 Lv.2 / 학교·상점거리·내 집 Lv.3 / 세트장·뷰티·공원·캠프 Lv.4 / 광장 Lv.5 / 신비의 섬 Lv.6 / 숙소촌 Lv.8
   var PLACE_LV = {
     'cafe-street': { lv: 2, name: '카페거리' },
-    school: { lv: 3, name: '연성고등학교' }, beach: { lv: 3, name: '뷰티 살롱' }, forest: { lv: 3, name: '촬영 세트장' }, shopping: { lv: 3, name: '상점거리' },
-    housing: { lv: 3, name: '연습생 숙소촌' }, mystery: { lv: 3, name: '신비의 섬' }, square: { lv: 3, name: '중앙광장' }, lake: { lv: 3, name: '워크숍 캠프' },
-    room: { lv: 3, name: '내 집' }, park: { lv: 3, name: '꽃길공원' }
+    school: { lv: 3, name: '연성고등학교' }, shopping: { lv: 3, name: '상점거리' }, room: { lv: 3, name: '내 집' },
+    beach: { lv: 4, name: '뷰티 살롱' }, forest: { lv: 4, name: '촬영 세트장' }, park: { lv: 4, name: '꽃길공원' }, lake: { lv: 4, name: '워크숍 캠프' },
+    square: { lv: 5, name: '중앙광장' }, mystery: { lv: 6, name: '신비의 섬' }, housing: { lv: 8, name: '연습생 숙소촌' }
   };
   function attrRule(e) {
     if (!e || e.nodeType !== 1) return null;

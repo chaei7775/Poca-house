@@ -1623,14 +1623,21 @@ let playerExp = parseInt(localStorage.getItem('ph_playerExp') || '0');
 let playerLevel = parseInt(localStorage.getItem('ph_playerLevel') || '1');
 
 // 초반(Lv1~4)은 천천히: 한 번에 여러 레벨이 오르지 않게 (해금 콘텐츠가 한꺼번에 열리는 것 방지)
-const EARLY_EXP_REQ = { 1: 20, 2: 200, 3: 350, 4: 500 };
+const EARLY_EXP_REQ = { 1: 20, 2: 200, 3: 350, 4: 430 };
 // 레벨업 필요 경험치 배율 (1 = 원래, 0.5 = 절반). 숫자만 바꾸면 전체 레벨업 속도가 바뀜
 const EXP_REQ_MULT = 1;
 // 초반 구간(Lv.2 → Lv.5 도달까지, 즉 Lv.2·3·4 의 필요량)만 따로 깎는 배율: 1 = 그대로, 0.5 = 절반
 const EARLY_EXP_CUT_FROM = 2, EARLY_EXP_CUT_TO = 4, EARLY_EXP_CUT_MULT = 1;
-function getExpRequired(level) {
+// 🐢 Lv.3 이상 구간만 필요 경험치를 더 늘리는 배율 (너무 빨리 오른다는 의견 반영). 1 = 그대로
+const EXP_SLOW_FROM = 3, EXP_SLOW_MULT = 1.5;
+// 늘리기 전 필요량: 일일퀘스트·매니저 이벤트 보상은 이 값을 기준으로 계산 (안 그러면 보상도 같이 커져서 속도가 안 늦춰짐)
+function getBaseExpRequired(level) {
   const cut = (level >= EARLY_EXP_CUT_FROM && level <= EARLY_EXP_CUT_TO) ? EARLY_EXP_CUT_MULT : 1;
   return Math.max(1, Math.round((EARLY_EXP_REQ[level] || 20 * level * level) * EXP_REQ_MULT * cut));
+}
+function getExpRequired(level) {
+  const slow = level >= EXP_SLOW_FROM ? EXP_SLOW_MULT : 1;
+  return Math.max(1, Math.round(getBaseExpRequired(level) * slow));
 }
 
 function addPlayerExp(amount) {

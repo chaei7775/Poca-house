@@ -119,7 +119,7 @@
     }
     if (fx.c) { try { coins = Math.max(0, coins + fx.c); if (typeof saveAll === 'function') saveAll(); if (typeof updateCoinsDisplay === 'function') updateCoinsDisplay(); } catch (e) {} }
   }
-  function xpAmount(tier) { var req = 20 * plv() * plv(); try { req = getExpRequired(plv()); } catch (e) {} return Math.max(20, Math.round(req * XP_RATE * tier)); }
+  function xpAmount(tier) { var req = 20 * plv() * plv(); try { req = (typeof getBaseExpRequired === 'function' ? getBaseExpRequired : getExpRequired)(plv()); } catch (e) {} return Math.max(20, Math.round(req * XP_RATE * tier)); }
   function giveXp(n) { try { if (typeof addPlayerExp === 'function') addPlayerExp(n); } catch (e) {} }
   function chips(fx, xp, tr, trNow) {
     var o = [];

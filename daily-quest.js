@@ -43,7 +43,7 @@
   }
   function getAlba() { try { return typeof albaDone !== 'undefined' ? albaDone : 0; } catch (e) { return 0; } }
   function plv() { try { return typeof playerLevel !== 'undefined' ? playerLevel : 1; } catch (e) { return 1; } }
-  function reqExp(lv) { try { return typeof getExpRequired === 'function' ? getExpRequired(lv) : 20 * lv * lv; } catch (e) { return 20 * lv * lv; } }
+  function reqExp(lv) { try { return typeof getBaseExpRequired === 'function' ? getBaseExpRequired(lv) : typeof getExpRequired === 'function' ? getExpRequired(lv) : 20 * lv * lv; } catch (e) { return 20 * lv * lv; } }
 
   var D = load();
   function freshDay() {

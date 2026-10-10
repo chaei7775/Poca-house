@@ -361,7 +361,7 @@
 
 
   // 🔒 unlock-gate.js 의 해금 레벨과 맞춤: 레벨이 모자란 단계는 길잡이가 건너뛴다 (잠긴 곳으로 보내지 않게)
-  var STEP_LV = { agency: 5, explore: 3, school: 3, lv3: 3, room: 3, fishing: 3, mystery: 3, recombine: 12, hidden: 12, premium: 12, prem_equip: 12, enhance: 10, transcend: 10, studio: 15, album: 15, royalty: 15, goods: 15, goods_equip: 15, drama: 8, star_fame: 8, star_top: 8, mgr_top: 8, cf: 10, fancafe: 12, invest: 20, invest_done: 20, invest_grade: 20, chart_in: 18, chart_stream: 18, chart_book: 18, chart_act: 18, chart_show: 18, chart_one: 20, group_make: 20, group_act: 20, group_10: 20 };
+  var STEP_LV = { agency: 5, explore: 4, school: 3, lv3: 3, room: 3, fishing: 4, mystery: 6, recombine: 12, hidden: 12, premium: 12, prem_equip: 12, enhance: 10, transcend: 10, studio: 15, album: 15, royalty: 15, goods: 15, goods_equip: 15, drama: 8, star_fame: 8, star_top: 8, mgr_top: 8, cf: 10, fancafe: 12, invest: 20, invest_done: 20, invest_grade: 20, chart_in: 18, chart_stream: 18, chart_book: 18, chart_act: 18, chart_show: 18, chart_one: 20, group_make: 20, group_act: 20, group_10: 20 };
   STEPS.forEach(function (st) {
     var need = STEP_LV[st.id]; if (!need) return;
     var prev = st.when;
