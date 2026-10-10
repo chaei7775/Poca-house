@@ -327,6 +327,7 @@
     st.id = 'fs-style';
     st.textContent =
       '@keyframes fsShakeV{0%{transform:translate(0,0)}20%{transform:translate(var(--sk),calc(var(--sk)*-.6))}40%{transform:translate(calc(var(--sk)*-1),calc(var(--sk)*.5))}60%{transform:translate(calc(var(--sk)*.6),calc(var(--sk)*.3))}80%{transform:translate(calc(var(--sk)*-.4),0)}100%{transform:translate(0,0)}}' +
+      '@keyframes fsComboPop{0%{transform:scale(1.6)}100%{transform:scale(1)}}' +
       '@keyframes fsBurst{0%{opacity:1;transform:translate(-50%,-50%) scale(.4)}100%{opacity:0;transform:translate(calc(-50% + var(--dx)),calc(-50% + var(--dy))) scale(1.25)}}' +
       '@keyframes fsPen{0%{opacity:0;transform:translate(-50%,-50%) rotate(-35deg) scale(.5)}30%{opacity:1;transform:translate(-50%,-50%) rotate(10deg) scale(1.4)}60%{opacity:1;transform:translate(-50%,-50%) rotate(-15deg) scale(1.3)}100%{opacity:0;transform:translate(-50%,-90%) rotate(0) scale(1.1)}}' +
       '@keyframes fsFlashC{0%{opacity:.95;transform:translate(-50%,-50%) scale(.4)}100%{opacity:0;transform:translate(-50%,-50%) scale(7)}}' +
@@ -657,6 +658,7 @@
     if (F && (F.combo || F.perfect)) {
       if (F.combo >= 3) { try { showNote('콤보 끊김! ' + F.combo + '연속 기록'); } catch (e) {} }
       F.combo = 0; F.perfect = 0; F.comboAt = 0;
+      var cb = $('fs-combo'); if (cb) cb.style.display = 'none';
     }
   }
   function vib(ms) { try { if (navigator.vibrate) navigator.vibrate(ms); } catch (e) {} }
@@ -687,7 +689,41 @@
     if (tier >= 2) burst(x, y, ['🪙'], 6, 120);
     sfx(tier >= 3 ? 'fsCombo3' : tier === 2 ? 'fsCombo2' : tier === 1 ? 'fsCombo1' : 'fsHit');
     if (perfect) setTimeout(function () { sfx('fsPerfect'); }, 120);
+    try { updateComboBadge(); } catch (e) {}
     return 1 + bonus;
+  }
+
+
+  // 콤보 표시판: 콤보가 이어지는 동안 화면에 계속 떠 있음 (남은 시간 바 포함)
+  function updateComboBadge() {
+    if (!F || !F.view) return;
+    var now = Date.now();
+    var alive = F.combo >= 2 && F.comboAt && (now - F.comboAt) <= COMBO_WINDOW && !$('bc-panel');
+    var b = $('fs-combo');
+    if (!alive) { if (b) b.style.display = 'none'; if (F.combo && F.comboAt && now - F.comboAt > COMBO_WINDOW) { F.combo = 0; F.perfect = 0; F.comboAt = 0; } return; }
+    if (!b) {
+      b = document.createElement('div');
+      b.id = 'fs-combo';
+      b.style.cssText = 'position:absolute;top:70px;right:10px;z-index:31;pointer-events:none;text-align:right;font-style:italic;font-weight:900;';
+      b.innerHTML = '<div id="fs-combo-n" style="font-size:30px;line-height:1;"></div><div id="fs-combo-b" style="font-size:12px;margin-top:2px;"></div>' +
+        '<div style="margin-top:4px;width:96px;height:6px;border-radius:4px;background:rgba(0,0,0,.45);overflow:hidden;margin-left:auto;"><div id="fs-combo-t" style="height:100%;width:100%;border-radius:4px;"></div></div>';
+      F.view.appendChild(b);
+    }
+    var c = F.combo, col = c >= 8 ? '#ff4d6d' : c >= 5 ? '#ff9f1c' : c >= 3 ? '#ffd23f' : '#ffffff';
+    var bonus = comboBonus(c), left = Math.max(0, 1 - (now - F.comboAt) / COMBO_WINDOW);
+    b.style.display = 'block';
+    var n = $('fs-combo-n'), bn = $('fs-combo-b'), tm = $('fs-combo-t');
+    if (b.getAttribute('data-c') !== String(c)) {
+      b.setAttribute('data-c', c);
+      n.textContent = c + ' COMBO';
+      n.style.color = col; n.style.textShadow = '0 0 10px ' + col + ',0 2px 6px #000';
+      n.style.animation = 'none'; void n.offsetWidth; n.style.animation = 'fsComboPop .3s ease-out';
+      bn.textContent = bonus > 0 ? '보상 +' + Math.round(bonus * 100) + '%' : '3콤보부터 보상 UP';
+      bn.style.color = bonus > 0 ? col : '#ddd'; bn.style.textShadow = '0 2px 6px #000';
+      tm.style.background = col;
+    }
+    tm.style.width = Math.round(left * 100) + '%';
+    if (left < 0.25) tm.style.opacity = Math.floor(now / 200) % 2 ? '.4' : '1'; else tm.style.opacity = '1';
   }
 
   // ════════ 스킬 사용 ════════
@@ -823,6 +859,7 @@
 
   function refreshBar() {
     if (!F || !F.bar) return;
+    try { updateComboBadge(); } catch (e) {}
     F.bar.style.display = $('bc-panel') ? 'none' : 'flex';
     var near = nearestTarget();
     var now = Date.now();
