@@ -27,6 +27,7 @@
   var LEVEL_BONUS = 0.05;              // 그룹 레벨 1당 +5%
   var BIG_BASE = 0.08, BIG_PER_POWER = 0.003, BIG_MAX = 0.4, BIG_MULT = 1.5;   // 대성공 확률 = 8% + 능력치×0.3% (최대 40%)
   var FAME_PER_MEMBER = 3;             // 활동 1번 인기도 = 활동 기본 + 멤버수×3 (대성공이면 ×1.5)
+  var EV_CHANCE = 0.15, EV_DAILY = 2;   // 🎲 돌발 이벤트: 활동 끝날 때 15% 확률, 하루 최대 2번 (코인 변동은 그 활동 보상의 약 -25%~+45% 안)
   var STAT_DEFAULT = 10;               // 레슨 데이터가 없을 때 능력치
   var TIERS = [                        // [필요 능력치(가중 평균), 등급 이름, 보상 배율]
     [0, '아쉬움', 0.7], [20, '보통', 1], [40, '좋음', 1.25], [60, '훌륭', 1.5], [80, '최고', 1.8]
@@ -66,7 +67,8 @@
     if (!s.fame || typeof s.fame !== 'number') s.fame = 0;
     if (!s.total) s.total = 0;
     if (!Array.isArray(s.log)) s.log = [];
-    if (s.day !== today()) { s.day = today(); s.used = {}; s.free = STA_FREE; }
+    if (s.day !== today()) { s.day = today(); s.used = {}; s.free = STA_FREE; s.ev = 0; }
+    if (typeof s.ev !== 'number') s.ev = 0;
     if (typeof s.free !== 'number') s.free = STA_FREE;
     if (typeof s.potion !== 'number') s.potion = 0;
     if (!s.used || typeof s.used !== 'object') s.used = (s.day === today() && s.today) ? { stage: s.today } : {};
@@ -134,6 +136,39 @@
   var BIG_LINE = ['대성공! 현장이 들썩였어요 🎉', '오늘은 레전드예요 ✨', '모두가 기립박수를 쳤어요!'];
   function names(list) { return list.map(name).join(', '); }
   function liveMembers(s) { return s.group.members.filter(function (c) { return debutedIds().indexOf(c) !== -1; }); }
+  // ── 🎲 돌발 이벤트 (호재 / 악재 / 선택) ──
+  var EVENTS = {
+    good: [
+      { id: 'viral',  t: '📱 영상이 갑자기 화제가 됐어요!', coinMul: 0.3 },
+      { id: 'fans',   t: '💖 팬들이 응원 트럭을 보냈어요!', famePlus: 15 },
+      { id: 'senior', t: '🎁 선배 그룹이 간식차를 보내줬어요!', coinMul: 0.15, wish: 1 },
+      { id: 'drink',  t: '☕ 스태프가 드링크를 챙겨줬어요! (체력 +1)', stamina: 1 }
+    ],
+    bad: [
+      { id: 'sick',   t: '🤒 멤버 한 명이 컨디션 난조… 무대가 아쉬웠어요.', coinMul: -0.25 },
+      { id: 'late',   t: '🚧 이동 중 차가 막혀 지각했어요.', coinMul: -0.15 },
+      { id: 'rumor',  t: '🗞️ 근거 없는 구설이 돌았어요. 이번엔 인기도가 안 올라요.', coinMul: -0.1, fameMul: 0 },
+      { id: 'tired',  t: '😮‍💨 스케줄이 길어져 다들 지쳤어요. (체력 -1)', stamina: -1 }
+    ],
+    choice: [
+      { id: 'impromptu', t: '🎙️ 즉흥 무대 제안이 들어왔어요!', safe: '정중히 거절하고 마무리', risk: '도전! 즉흥으로 올라간다' },
+      { id: 'sponsor',   t: '💼 갑작스런 협찬 계약 제안이 왔어요!', safe: '조건 낮은 계약으로 안전하게', risk: '큰 조건으로 협상해본다' }
+    ]
+  };
+  var CH_SAFE = 0.08, CH_WIN = 0.45, CH_LOSE = 0.2;   // 선택형: 안전 +8% / 도전 성공 +45% 실패 -20% (활동 기본 보상 기준)
+  function rollEvent(tier) {
+    var goodShare = 0.30 + 0.06 * tier, x = Math.random(), kind = x < goodShare ? 'good' : (x < goodShare + 0.2 ? 'choice' : 'bad');
+    var e = pick(EVENTS[kind]); return Object.assign({ kind: kind, tier: tier }, e);
+  }
+  function resolveChoice(res, risk) {
+    var s = load(), ev = res.ev, base = ev.base, delta, win = false;
+    if (!risk) delta = Math.floor(base * CH_SAFE);
+    else { win = Math.random() < Math.min(0.75, 0.5 + 0.05 * ev.tier); delta = win ? Math.floor(base * CH_WIN) : -Math.floor(base * CH_LOSE); }
+    addCoins(delta);
+    s.log.unshift({ t: Date.now(), m: '🎲 ' + (risk ? (win ? '도전 성공' : '도전 실패') : '안전한 선택') + ' ' + (delta >= 0 ? '+' : '-') + fmt(Math.abs(delta)) + ' 코인' });
+    save(s);
+    return { delta: delta, win: win };
+  }
   function doActivity(id) {
     var s = load(); if (!s.group) return null;
     var act = actById(id); if (!act) return null;
@@ -145,16 +180,26 @@
     var big = Math.random() < r0.bigChance;
     var r = big ? reward(act, live, s.fame, true) : r0;
     var wish = (act.wish && Math.random() < r.wishChance) ? (big ? 2 : 1) : 0;
+    var ev = null; if (s.ev < EV_DAILY && Math.random() < EV_CHANCE) { ev = rollEvent(r.tier); s.ev++; }
+    var coinGain = r.coin, fameGain = r.fame;
+    if (ev && ev.kind !== 'choice') {
+      if (ev.coinMul) coinGain = Math.max(0, Math.floor(r.coin * (1 + ev.coinMul)));
+      if (ev.fameMul === 0) fameGain = 0;
+      if (ev.famePlus) fameGain += ev.famePlus;
+      if (ev.wish) wish += ev.wish;
+    }
+    if (ev && ev.kind === 'choice') ev.base = r.coin;
     var lv0 = levelOf(s.fame);
-    addCoins(r.coin);
+    addCoins(coinGain);
     if (wish) { try { if (typeof wishFragments !== 'undefined') { wishFragments += wish; localStorage.setItem('ph_wish', wishFragments); } if (typeof addToBag === 'function') addToBag('🧩', '소원의 조각', 'wish', wish, '100개 모으면 소원의 결정! (현재: ' + (typeof wishFragments !== 'undefined' ? wishFragments : '?') + '개)'); } catch (e) {} }
     if (s.free > 0) s.free--; else s.potion--;
-    s.fame += r.fame; s.total += 1; s.used[id] = (s.used[id] || 0) + 1;
+    if (ev && ev.stamina) { if (ev.stamina > 0) s.free += ev.stamina; else if (s.free > 0) s.free--; else if (s.potion > 0) s.potion--; }
+    s.fame += fameGain; s.total += 1; s.used[id] = (s.used[id] || 0) + 1;
     var lv1 = levelOf(s.fame);
     var line = pick(LINES[id]).replace(/\{m\}/g, names(live)).replace(/\{g\}/g, s.group.name) + (big ? ' ' + pick(BIG_LINE) : '');
-    s.log.unshift({ t: Date.now(), m: act.icon + ' ' + act.name + ' (' + TIERS[r.tier][1] + (big ? '·대성공' : '') + ') +' + fmt(r.coin) + ' 코인' + (wish ? ' · 🧩' + wish : '') });
+    s.log.unshift({ t: Date.now(), m: act.icon + ' ' + act.name + ' (' + TIERS[r.tier][1] + (big ? '·대성공' : '') + ') +' + fmt(coinGain) + ' 코인' + (wish ? ' · 🧩' + wish : '') + (ev && ev.kind !== 'choice' ? ' · ' + ev.t.split(' ')[0] : '') });
     save(s);
-    return { act: act, big: big, coin: r.coin, fame: r.fame, wish: wish, tier: TIERS[r.tier][1], line: line, levelUp: lv1 > lv0 ? LEVELS[lv1][1] : '', members: live };
+    return { act: act, big: big, ev: ev, coin: coinGain, fame: fameGain, wish: wish, tier: TIERS[r.tier][1], line: line, levelUp: lv1 > lv0 ? LEVELS[lv1][1] : '', members: live };
   }
 
   // ── 화면 ──
@@ -252,6 +297,16 @@
     bind(ov, s);
   }
 
+  function evHtml(ev) {
+    var col = ev.kind === 'good' ? '#9dffb0' : (ev.kind === 'bad' ? '#ff9a9a' : '#ffe08a');
+    var h = '<div id="grp-evbox" style="margin-top:12px;padding:10px;border-radius:12px;background:rgba(255,255,255,0.07);border:1px solid ' + col + ';"><div style="font-size:12.5px;font-weight:800;color:' + col + ';line-height:1.6;">🎲 ' + esc(ev.t) + '</div>';
+    if (ev.kind === 'choice') {
+      var bs = 'width:100%;margin-top:6px;padding:9px;border:none;border-radius:10px;color:#fff;font-size:12.5px;font-weight:800;cursor:pointer;' + FONT;
+      h += '<button id="grp-ca" style="' + bs + 'background:#3a4a78;">🛡️ ' + esc(ev.safe) + ' (+' + Math.round(CH_SAFE * 100) + '%)</button>' +
+           '<button id="grp-cb" style="' + bs + 'background:linear-gradient(135deg,#ff7a59,#ff4f8b);">🔥 ' + esc(ev.risk) + ' (+' + Math.round(CH_WIN * 100) + '% / -' + Math.round(CH_LOSE * 100) + '%)</button>';
+    }
+    return h + '</div>';
+  }
   function popup(res) {
     var ov = document.getElementById('grp-ov'); if (!ov) return;
     var m = res.members.map(function (c) { return esc(emoji(c)); }).join(' ');
@@ -265,10 +320,21 @@
       '<div style="font-size:15px;font-weight:900;color:#ffe08a;">+' + fmt(res.coin) + ' 코인</div>' +
       (res.wish ? '<div style="font-size:13px;font-weight:900;color:#ffb0e0;margin-top:2px;">🧩 소원의 조각 +' + res.wish + '</div>' : '') +
       '<div style="font-size:12px;color:#9fd8ff;margin-top:2px;">그룹 인기도 +' + res.fame + '</div>' +
+      (res.ev ? evHtml(res.ev) : '') +
       (res.levelUp ? '<div style="margin-top:10px;font-size:13px;font-weight:900;color:#ff9ecb;">🎊 그룹 레벨 업! → ' + esc(res.levelUp) + '</div>' : '') +
-      '<button id="grp-pok" style="margin-top:14px;width:100%;padding:12px;border:none;border-radius:12px;color:#fff;font-size:14px;font-weight:900;cursor:pointer;background:linear-gradient(135deg,#4aa8ff,#7c5cff);' + FONT + '">확인</button></div>';
+      '<button id="grp-pok" style="' + (res.ev && res.ev.kind === 'choice' ? 'display:none;' : '') + 'margin-top:14px;width:100%;padding:12px;border:none;border-radius:12px;color:#fff;font-size:14px;font-weight:900;cursor:pointer;background:linear-gradient(135deg,#4aa8ff,#7c5cff);' + FONT + '">확인</button></div>';
     ov.appendChild(p);
     p.querySelector('#grp-pok').onclick = function () { p.remove(); render(); };
+    if (res.ev && res.ev.kind === 'choice') {
+      var box = p.querySelector('#grp-evbox');
+      var pickIt = function (risk) {
+        var o = resolveChoice(res, risk);
+        box.innerHTML = '<div style="font-size:13px;font-weight:900;color:' + (o.delta >= 0 ? '#9dffb0' : '#ff9a9a') + ';">' + (risk ? (o.win ? '🎉 도전 성공!' : '😢 아쉽게 실패…') : '👍 안전하게 마무리') + ' ' + (o.delta >= 0 ? '+' : '-') + fmt(Math.abs(o.delta)) + ' 코인</div>';
+        p.querySelector('#grp-pok').style.display = 'block';
+      };
+      p.querySelector('#grp-ca').onclick = function () { pickIt(false); };
+      p.querySelector('#grp-cb').onclick = function () { pickIt(true); };
+    }
   }
   function toast(m) {
     try {
