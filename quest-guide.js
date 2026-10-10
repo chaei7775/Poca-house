@@ -328,6 +328,18 @@
       when: function () { try { return Number(playerLevel) >= 20; } catch (e) { return false; } },
       done: function () { try { return localStorage.getItem('ph_fr_clear') === '1'; } catch (e) { return false; } }, reward: 5000,
       go: function () { goTo('map'); }, target: '#nav-map' },
+    { id: 'group_make', icon: '🧑‍🎤', title: '우리 그룹 결성하기',
+      hint: '플레이어 Lv.20부터! 더보기 → 🧑‍🎤 그룹에서 데뷔한 아이돌 2~4명을 골라 그룹을 만들어요. 이름도 지어줘요!',
+      done: function () { return !!(J('ph_group', {}) || {}).group; }, reward: 3000,
+      go: function () { if (typeof window.openGroup === 'function') window.openGroup(); else goTo('home'); }, target: '#nav-shop' },
+    { id: 'group_act', icon: '🎤', title: '첫 그룹 활동 하기',
+      hint: '더보기 → 🧑‍🎤 그룹에서 합동 무대·그룹 음원 같은 활동을 해봐요. 멤버 능력치가 높을수록 결과가 좋아져요. 하루 3번은 무료예요!',
+      done: function () { return ((J('ph_group', {}) || {}).total || 0) >= 1; }, reward: 3000,
+      go: function () { if (typeof window.openGroup === 'function') window.openGroup(); else goTo('home'); }, target: '#nav-shop' },
+    { id: 'group_10', icon: '🌟', title: '그룹 활동 10번 채우기',
+      hint: '그룹 활동을 모두 합쳐 10번! 체력 음료를 쓰면 하루에 더 할 수 있고, 활동할수록 인기도가 올라 그룹 레벨이 커져요.',
+      done: function () { return ((J('ph_group', {}) || {}).total || 0) >= 10; }, reward: 5000,
+      go: function () { if (typeof window.openGroup === 'function') window.openGroup(); else goTo('home'); }, target: '#nav-shop' },
     { id: 'invest_grade', icon: '🎖️', title: '투자 등급 올리기 (주요 투자자)',
       hint: '만기 정산을 3번 하면 🎖️ 주요 투자자가 돼요. 투자 한도·슬롯이 늘고 💿 앨범 제작 투자가 열려요. 등급이 높아지면 더 큰 기회도 찾아와요…',
       when: function () { try { return Number(playerLevel) >= 10; } catch (e) { return false; } },
@@ -349,7 +361,7 @@
 
 
   // 🔒 unlock-gate.js 의 해금 레벨과 맞춤: 레벨이 모자란 단계는 길잡이가 건너뛴다 (잠긴 곳으로 보내지 않게)
-  var STEP_LV = { agency: 5, explore: 3, school: 3, lv3: 3, room: 3, fishing: 3, mystery: 3, recombine: 12, hidden: 12, premium: 12, prem_equip: 12, enhance: 10, transcend: 10, studio: 15, album: 15, royalty: 15, goods: 15, goods_equip: 15, drama: 8, star_fame: 8, star_top: 8, mgr_top: 8, cf: 10, fancafe: 12, invest: 20, invest_done: 20, invest_grade: 20, chart_in: 18, chart_stream: 18, chart_book: 18, chart_act: 18, chart_show: 18, chart_one: 20 };
+  var STEP_LV = { agency: 5, explore: 3, school: 3, lv3: 3, room: 3, fishing: 3, mystery: 3, recombine: 12, hidden: 12, premium: 12, prem_equip: 12, enhance: 10, transcend: 10, studio: 15, album: 15, royalty: 15, goods: 15, goods_equip: 15, drama: 8, star_fame: 8, star_top: 8, mgr_top: 8, cf: 10, fancafe: 12, invest: 20, invest_done: 20, invest_grade: 20, chart_in: 18, chart_stream: 18, chart_book: 18, chart_act: 18, chart_show: 18, chart_one: 20, group_make: 20, group_act: 20, group_10: 20 };
   STEPS.forEach(function (st) {
     var need = STEP_LV[st.id]; if (!need) return;
     var prev = st.when;
