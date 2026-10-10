@@ -102,6 +102,8 @@
   }
   function powerOf(act, gs) { var p = 0; for (var k in act.w) p += act.w[k] * (gs[k] || 0); return p; }
   function tierOf(p) { var t = 0; for (var i = 0; i < TIERS.length; i++) if (p >= TIERS[i][0]) t = i; return t; }
+  function pimg(file, px) { return '<img src="grp-' + file + '.png" alt="" width="' + px + '" height="' + px + '" loading="lazy" decoding="async" style="width:' + px + 'px;height:' + px + 'px;object-fit:contain;vertical-align:middle;">'; }
+  function sicon(st, px) { return pimg('stat-' + st.k, px); }
   function aicon(a, px) { return '<img src="grp-' + a.id + '.png" alt="' + esc(a.name) + '" width="' + px + '" height="' + px + '" loading="lazy" decoding="async" style="width:' + px + 'px;height:' + px + 'px;object-fit:contain;vertical-align:middle;">'; }
   function actById(id) { return ACTS.filter(function (a) { return a.id === id; })[0]; }
   function reward(act, members, fame, big) {
@@ -254,7 +256,7 @@
     }).join('');
     var bars = gs ? STATS.map(function (st) {
       var v = Math.round(gs[st.k]);
-      return '<div style="display:flex;align-items:center;gap:6px;margin-top:4px;"><div style="width:44px;font-size:10.5px;color:#c9d6f0;">' + st.icon + ' ' + st.name + '</div><div style="flex:1;height:7px;border-radius:5px;background:rgba(255,255,255,0.1);overflow:hidden;"><div style="width:' + Math.min(100, v) + '%;height:100%;background:' + st.color + ';"></div></div><div style="width:24px;text-align:right;font-size:10.5px;font-weight:900;">' + v + '</div></div>';
+      return '<div style="display:flex;align-items:center;gap:6px;margin-top:4px;"><div style="width:56px;font-size:10.5px;color:#c9d6f0;white-space:nowrap;">' + sicon(st, 16) + ' ' + st.name + '</div><div style="flex:1;height:7px;border-radius:5px;background:rgba(255,255,255,0.1);overflow:hidden;"><div style="width:' + Math.min(100, v) + '%;height:100%;background:' + st.color + ';"></div></div><div style="width:24px;text-align:right;font-size:10.5px;font-weight:900;">' + v + '</div></div>';
     }).join('') : '';
     var sta = s.free + s.potion, pips = '';
     for (var i = 0; i < STA_FREE; i++) pips += '<span style="display:inline-block;width:14px;height:14px;border-radius:50%;margin-right:4px;background:' + (i < s.free ? '#7fe8b0' : 'rgba(255,255,255,0.15)') + ';"></span>';
@@ -263,7 +265,7 @@
     var cards = ACTS.map(function (a) {
       var used = s.used[a.id] || 0, left = a.per - used;
       var r = ok ? reward(a, live, s.fame, false) : null;
-      var need = Object.keys(a.w).map(function (k) { var st = STATS.filter(function (x) { return x.k === k; })[0]; return st.icon + st.name; }).join(' · ');
+      var need = Object.keys(a.w).map(function (k) { var st = STATS.filter(function (x) { return x.k === k; })[0]; return sicon(st, 13) + st.name; }).join(' · ');
       var can = ok && left > 0 && sta > 0;
       return '<div style="display:flex;align-items:center;gap:10px;padding:10px 11px;margin-bottom:7px;border-radius:13px;background:rgba(255,255,255,0.06);border:1.5px solid ' + (best && best.id === a.id ? '#ffd76a' : 'rgba(255,255,255,0.12)') + ';">' +
         '<div style="width:46px;height:46px;flex-shrink:0;display:flex;align-items:center;justify-content:center;">' + aicon(a, 46) + '</div><div style="flex:1;min-width:0;">' +
@@ -274,6 +276,7 @@
     }).join('');
     var logs = s.log.slice(0, 5).map(function (l) { return '<div style="padding:6px 0;border-top:1px solid rgba(255,255,255,0.08);font-size:11.5px;color:#dbe6ff;">' + esc(l.m) + '</div>'; }).join('');
     return '<div style="background:linear-gradient(135deg,rgba(74,168,255,0.18),rgba(124,92,255,0.18));border:1.5px solid rgba(124,196,255,0.5);border-radius:16px;padding:14px;margin-bottom:12px;">' +
+      '<div style="text-align:center;margin-bottom:2px;">' + pimg('lv' + lv, 72) + '</div>' +
       '<div style="text-align:center;font-size:19px;font-weight:900;">' + esc(g.name) + '</div>' +
       '<div style="text-align:center;font-size:11.5px;color:#ffe08a;margin:3px 0 2px;">⭐ ' + esc(LEVELS[lv][1]) + ' (Lv.' + (lv + 1) + ')' + (gs ? ' · <span style="color:#9fd8ff;">' + esc(concept(gs)) + '</span>' : '') + '</div>' +
       '<div style="display:flex;gap:6px;margin:10px 0;">' + mem + '</div>' + bars +
@@ -281,7 +284,7 @@
       '<div style="font-size:10.5px;color:#9fb0d0;margin-top:4px;text-align:center;">인기도 ' + fmt(s.fame) + (nextAt ? ' / ' + fmt(nextAt) + ' (다음: ' + esc(LEVELS[lv + 1][1]) + ')' : ' (최고 레벨!)') + '</div></div>' +
       (ok ? '' : '<div style="font-size:12px;color:#ffb0b0;text-align:center;margin-bottom:8px;">데뷔한 멤버가 ' + MIN_MEMBERS + '명 이상이어야 활동할 수 있어요. 멤버를 바꿔주세요.</div>') +
       '<div style="display:flex;align-items:center;gap:8px;padding:9px 11px;margin-bottom:8px;border-radius:12px;background:rgba(127,232,176,0.1);border:1px solid rgba(127,232,176,0.35);">' +
-        '<div style="flex:1;"><div style="font-size:11px;color:#c9f0dc;font-weight:900;">💪 그룹 체력 (오늘 무료 ' + s.free + '/' + STA_FREE + (s.potion ? ' + 음료 ' + s.potion : '') + ')</div><div style="margin-top:4px;">' + pips + '</div></div>' +
+        '<div style="flex:1;"><div style="font-size:11px;color:#c9f0dc;font-weight:900;">' + pimg('potion', 18) + ' 그룹 체력 (오늘 무료 ' + s.free + '/' + STA_FREE + (s.potion ? ' + 음료 ' + s.potion : '') + ')</div><div style="margin-top:4px;">' + pips + '</div></div>' +
         '<button data-buy="1" style="padding:7px 9px;border:none;border-radius:10px;color:#fff;font-size:10.5px;font-weight:900;cursor:pointer;background:rgba(255,255,255,0.14);line-height:1.35;' + FONT + '">🥤 소 1회<br>' + fmt(potionPrice(s, 1) / 10000) + '만</button>' +
         '<button data-buy="3" style="padding:7px 9px;border:none;border-radius:10px;color:#fff;font-size:10.5px;font-weight:900;cursor:pointer;background:rgba(255,255,255,0.14);line-height:1.35;' + FONT + '">🥤 대 3회<br>' + fmt(potionPrice(s, 3) / 10000) + '만</button></div>' +
       '<div style="font-size:11.5px;color:#9fb0d0;font-weight:900;margin-bottom:6px;">그룹 활동 <span style="font-weight:500;">(하루마다 횟수가 새로 채워져요)</span></div>' + cards +
@@ -300,7 +303,7 @@
 
   function evHtml(ev) {
     var col = ev.kind === 'good' ? '#9dffb0' : (ev.kind === 'bad' ? '#ff9a9a' : '#ffe08a');
-    var h = '<div id="grp-evbox" style="margin-top:12px;padding:10px;border-radius:12px;background:rgba(255,255,255,0.07);border:1px solid ' + col + ';"><div style="font-size:12.5px;font-weight:800;color:' + col + ';line-height:1.6;">🎲 ' + esc(ev.t) + '</div>';
+    var h = '<div id="grp-evbox" style="margin-top:12px;padding:10px;border-radius:12px;background:rgba(255,255,255,0.07);border:1px solid ' + col + ';"><div style="font-size:12.5px;font-weight:800;color:' + col + ';line-height:1.6;">' + pimg('ev-' + ev.kind, 22) + ' ' + esc(ev.t) + '</div>';
     if (ev.kind === 'choice') {
       var bs = 'width:100%;margin-top:6px;padding:9px;border:none;border-radius:10px;color:#fff;font-size:12.5px;font-weight:800;cursor:pointer;' + FONT;
       h += '<button id="grp-ca" style="' + bs + 'background:#3a4a78;">🛡️ ' + esc(ev.safe) + ' (+' + Math.round(CH_SAFE * 100) + '%)</button>' +
