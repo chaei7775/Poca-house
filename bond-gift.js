@@ -2,7 +2,7 @@
 // 💞 인연 상세 화면(호감도/스토리)에 '💝 선물하기' 버튼 추가
 // - 기존 선물 메뉴(showGiftMenu / giveGift)를 그대로 재사용
 // - 선물 후 호감도 표시 자동 갱신
-// - 호감도 조건이 안 되는 아이돌(예: 아라)은 잠금 표시
+// - 호감도가 낮아도 선물은 항상 가능 (대화만 호감도 조건이 있음)
 (function applyBondGift() {
   var need = ['openBondDetail', 'showGiftMenu', 'giveGift'];
   for (var i = 0; i < need.length; i++) {
@@ -39,15 +39,17 @@
     if (old) old.remove();
     var btn = document.createElement('button');
     btn.id = 'bond-gift-btn';
-    var locked = gateOf(charId) < reqAffOf(charId);
-    if (locked) {
-      btn.textContent = '🔒 호감도 ' + reqAffOf(charId) + ' 이상이면 선물할 수 있어요';
-      btn.disabled = true;
-      btn.style.cssText = 'width:100%;margin-top:14px;padding:13px;background:rgba(255,255,255,0.08);border:none;border-radius:12px;color:#888;font-size:13px;font-weight:700;font-family:"Noto Sans KR",sans-serif;';
-    } else {
-      btn.textContent = '💝 선물하기';
-      btn.style.cssText = 'width:100%;margin-top:14px;padding:13px;background:linear-gradient(135deg,#FF6B9D,#C084FC);border:none;border-radius:12px;color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:"Noto Sans KR",sans-serif;';
-      btn.onclick = function () { window.openBondGift(charId); };
+    // 선물은 호감도와 상관없이 항상 가능 (호감도를 올리는 방법이 선물이라서, 잠그면 영영 못 올림)
+    btn.textContent = '💝 선물하기';
+    btn.style.cssText = 'width:100%;margin-top:14px;padding:13px;background:linear-gradient(135deg,#FF6B9D,#C084FC);border:none;border-radius:12px;color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:"Noto Sans KR",sans-serif;';
+    btn.onclick = function () { window.openBondGift(charId); };
+    var oldHint = document.getElementById('bond-gift-hint'); if (oldHint) oldHint.remove();
+    var need = reqAffOf(charId);
+    if (gateOf(charId) < need) {
+      var hint = document.createElement('div'); hint.id = 'bond-gift-hint';
+      hint.textContent = '💬 호감도 ' + need + '부터 대화할 수 있어요. 선물로 호감도를 올려봐요!';
+      hint.style.cssText = 'margin-top:8px;font-size:11.5px;color:#c9b8e8;text-align:center;line-height:1.5;font-family:"Noto Sans KR",sans-serif;';
+      box.appendChild(btn); box.appendChild(hint); return;
     }
     box.appendChild(btn);
   }

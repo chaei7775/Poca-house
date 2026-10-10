@@ -17,7 +17,7 @@
     '🎭': 'mask', '🎙': 'standmic', '📣': 'mega', '📰': 'news', '🕶': 'sunglasses', '🚐': 'van', '📷': 'instant', '🏟': 'stadium',
     // 마음/감정
     '💖': 'heart', '💝': 'heart', '💗': 'heart', '💓': 'heart', '❤': 'heart', '💞': 'heart', '💕': 'heart',
-    '💜': 'heart', '🤍': 'heart', '💔': 'heartbroken', '♥': 'heart', '🩷': 'heart', '💌': 'letter', '😊': 'smile', '😢': 'cry', '😴': 'sleep',
+    '💜': 'heart', '🤍': 'heartwhite', '💔': 'heartbroken', '♥': 'heart', '🩷': 'heart', '💌': 'letter', '😊': 'smile', '😢': 'cry', '😴': 'sleep',
     '💪': 'muscle', '👑': 'crown', '🌹': 'rose', '🌸': 'blossom', '🌷': 'blossom', '🦋': 'butterfly',
     // 광역 스킬 아이콘 (전용 이모지 → em-sk-○○.png)
     '🪩': 'sk-highlight', '😘': 'sk-wink', '🧨': 'sk-encore', '🎠': 'sk-rose', '🎑': 'sk-finale',
