@@ -2,7 +2,7 @@
 // 🗂️ 더보기 메뉴 카테고리 정리 (more-menu-group.js)
 // 더보기에 칸이 20개 넘게 쌓여서 찾기 어려웠음 → 맨 위에 카테고리 아이콘만 두고, 누르면 그 묶음의 메뉴만 아래에 보여준다.
 //  · 칸은 여러 파일이 따로 붙이므로, 다 붙은 뒤(바뀔 때마다) 글자를 보고 카테고리를 정한다. 칸의 기능·잠금은 그대로.
-//  · 마지막에 연 카테고리를 기억한다. 새로 열린 메뉴가 있는 카테고리 아이콘엔 빨간 점이 뜬다.
+//  · 더보기를 열면 아이콘 6개만 보이고, 아이콘을 누르면 그 묶음의 작은 메뉴가 아래에 펼쳐진다 (다시 누르면 접힘). 새로 열린 메뉴가 있는 카테고리 아이콘엔 빨간 점이 뜬다.
 // ✏️ 고치는 법: GROUPS 의 [이름, 그림, 색, [칸 이름 정규식…]] 만 고치면 됨. 어디에도 안 맞는 칸은 '기타' 카테고리로 감.
 // ════════════════════════════════════════════════════════════
 (function () {
@@ -41,7 +41,7 @@
       });
     });
     tiles.forEach(function (t, i) { if (!used[i]) etc.push(t); });
-    if (etc.length) cats.push({ g: ETC.concat([[]]), tiles: etc });
+    if (etc.length) cats[1].tiles = cats[1].tiles.concat(etc);   // 어디에도 안 맞는 칸은 '육성 · 활동'에 합침 (아이콘은 6개만 유지)
     return cats.filter(function (c) { return c.tiles.length; });
   }
 
@@ -67,7 +67,7 @@
       var cats = categorize(tiles);
       var seenRec = jget(K_SEEN, null), firstTime = !seenRec, seen = seenRec || {};
       var names = cats.map(function (c) { return c.g[0]; });
-      if (!sel || names.indexOf(sel) < 0) { var last = null; try { last = localStorage.getItem(K_LAST); } catch (e) {} sel = names.indexOf(last) >= 0 ? last : names[0]; }
+      if (sel && names.indexOf(sel) < 0) sel = null;   // 처음 열면 아무것도 안 눌린 상태 (아이콘 6개만 보임)
       // 새로 열린 메뉴(잠금이 풀렸는데 아직 안 본 것) 표시
       function fresh(c) { return c.tiles.some(function (t) { return !isLocked(t) && !seen[label(t)]; }); }
       if (firstTime) { cats.forEach(function (c) { c.tiles.forEach(function (t) { if (!isLocked(t)) seen[label(t)] = 1; }); }); jset(K_SEEN, seen); }
@@ -80,7 +80,7 @@
       cats.forEach(function (c) {
         var on = c.g[0] === sel;
         var b = catBtn(c, on, !on && !firstTime && fresh(c));
-        b.onclick = function (ev) { ev.stopPropagation(); sel = c.g[0]; try { localStorage.setItem(K_LAST, sel); } catch (e) {} regroup(grid); };
+        b.onclick = function (ev) { ev.stopPropagation(); sel = (sel === c.g[0]) ? null : c.g[0]; regroup(grid); };
         bar.appendChild(b);
       });
       grid.insertBefore(bar, grid.firstChild);
@@ -120,6 +120,7 @@
       var r = orig.apply(this, arguments);
       try {
         if (obs) { obs.disconnect(); obs = null; }
+        sel = null;
         var grid = document.getElementById('more-menu-grid');
         if (grid) { regroup(grid); setTimeout(function () { regroup(grid); }, 400); setTimeout(function () { regroup(grid); }, 1500); }
       } catch (e) {}
