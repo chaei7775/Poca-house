@@ -20,6 +20,7 @@
     SSR: { c: '#cf9bff', c2: '#7c3aed', t: 'SPECIAL SUPER RARE', burst: 80,  rays: 0.62 },
     UR:  { c: '#ffe27a', c2: '#ff7ac8', t: 'CONGRATULATIONS!',   burst: 130, rays: 0.9 }
   };
+  var BACK = (typeof B !== 'undefined' ? B : '') + 'gacha-back.webp';   // 카드 뒷면 그림 (504x672, 약 70KB). 못 받으면 코드로 그린 보석 모양이 보임
   var RANK = ['N', 'R', 'SR', 'SSR', 'UR'];
   function rk(g) { var i = RANK.indexOf(g); return i < 0 ? 0 : i; }
   function gr(card) { return GR[card && card.grade] || GR.N; }
@@ -53,6 +54,7 @@
       '@keyframes gfx-shake{0%,100%{transform:translateX(0) rotate(0)}25%{transform:translateX(-3px) rotate(-1.2deg)}75%{transform:translateX(3px) rotate(1.2deg)}}' +
       '.gfx-f{position:absolute;inset:0;border-radius:16px;overflow:hidden;-webkit-backface-visibility:hidden;backface-visibility:hidden}' +
       '.gfx-back{background:linear-gradient(150deg,#3a2480 0%,#1b1046 55%,#2a1768 100%);border:3px solid rgba(255,255,255,.55);box-shadow:inset 0 0 26px rgba(160,120,255,.45)}' +
+      '.gfx-back.img{border:0;box-shadow:none;background:none}.gfx-back.img:before,.gfx-back.img .gem{display:none}.gfx-back .bk{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}' +
       '.gfx-back:before{content:"";position:absolute;inset:8px;border:1.5px solid rgba(255,255,255,.28);border-radius:11px}' +
       '.gfx-back .gem{position:absolute;left:50%;top:50%;width:46%;aspect-ratio:1;transform:translate(-50%,-50%);clip-path:polygon(50% 0,62% 38%,100% 50%,62% 62%,50% 100%,38% 62%,0 50%,38% 38%);background:linear-gradient(135deg,#fff,#ffd9f4 40%,#b9a2ff);filter:drop-shadow(0 0 10px rgba(255,255,255,.85));animation:gfx-gem 1.4s ease-in-out infinite}' +
       '@keyframes gfx-gem{50%{transform:translate(-50%,-50%) scale(1.14) rotate(8deg)}}' +
@@ -120,7 +122,7 @@
       var g = gr(cd);
       return '<div class="gfx-card" data-i="' + i + '" style="width:' + cw + ';aspect-ratio:3/4;--g1:' + g.c + ';--gl:' + g.c2 + 'aa;--au:rgba(255,255,255,.55);animation-delay:' + (i * 0.1) + 's">' +
         '<div class="gfx-aura"></div><div class="gfx-in2">' +
-        '<div class="gfx-f gfx-back"><div class="gem"></div></div>' +
+        '<div class="gfx-f gfx-back"><div class="gem"></div><img class="bk" src="' + BACK + '" alt="" decoding="async" onload="this.parentNode.classList.add(\'img\')" onerror="this.remove()"></div>' +
         '<div class="gfx-f gfx-front"><img src="' + esc(cd.img) + '" alt="" decoding="async" onerror="this.style.display=\'none\'"><span class="gfx-badge">' + esc(cd.grade) + '</span><div class="gfx-nm">' + esc(cd.name) + '</div></div>' +
         '</div></div>';
     }).join('');
@@ -177,6 +179,16 @@
     }
   }
 
+  // 뽑기 화면에 들어갈 때 뒷면 그림을 미리 받아 둠 (처음 뽑을 때 깜빡이지 않게, 시작할 때는 안 받음)
+  var pre = false;
+  function preload() { if (pre) return; pre = true; try { var im = new Image(); im.decoding = 'async'; im.src = BACK; } catch (e) {} }
+  function hookGo(tries) {
+    if (typeof window.goTo !== 'function') { if (tries < 100) setTimeout(function () { hookGo(tries + 1); }, 200); return; }
+    var o = window.goTo; if (o.__gfx) return;
+    var w = function (id) { try { if (id === 'gacha') preload(); } catch (e) {} return o.apply(this, arguments); };
+    w.__gfx = true; window.goTo = w;
+  }
+  hookGo(0);
   function install() {
     window.showGachaResult = function (card) { show([card], false); };
     window.showGachaResultMulti = function (cards) { show(cards, true); };
