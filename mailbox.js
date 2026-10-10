@@ -15,6 +15,7 @@
   var KEY = 'ph_mail';
   var IDS = ['minjun', 'sion', 'doyun', 'harin', 'yuna', 'ara'];
   var DAILY_WRITE = 3;               // 아이돌 1명당 하루에 보낼 수 있는 편지 수
+  var DAILY_MIN = 30 * 60000, DAILY_MAX = 120 * 60000;   // 하루 한 통 일상 편지: 그날 처음 확인한 때부터 30분~2시간 뒤에 도착 (바로 오지 않게)
   var REPLY_MIN = 30000, REPLY_MAX = 90000;   // 답장이 오기까지 (밀리초)
   var INBOX_MAX = 60, SENT_MAX = 40;
   var TEXT_MAX = 300;
@@ -46,7 +47,7 @@
     if (!s.fired || typeof s.fired !== 'object') s.fired = {};
     if (typeof s.seq !== 'number') s.seq = 0;
     if (!Array.isArray(s.got)) s.got = [];
-    if (s.day !== today()) { s.day = today(); s.wrote = {}; s.fwrote = 0; s.dailyDone = false; }
+    if (s.day !== today()) { s.day = today(); s.wrote = {}; s.fwrote = 0; s.dailyDone = false; s.dailyAt = 0; }
     if (typeof s.fwrote !== 'number') s.fwrote = 0;
     if (!s.wrote) s.wrote = {};
     return s;
@@ -182,7 +183,8 @@
     // 3) 하루 한 통 일상 편지
     if (!s.dailyDone) {
       var cands = IDS.filter(function (cid) { return L()[cid] && known(cid); });
-      if (cands.length) {
+      if (cands.length && !s.dailyAt) { s.dailyAt = now + DAILY_MIN + Math.random() * (DAILY_MAX - DAILY_MIN); changed = true; }
+      if (cands.length && s.dailyAt && now >= s.dailyAt) {
         s.dailyDone = true; changed = true;
         var cid = pick(cands), d2 = L()[cid], idx = [], k;
         for (k = 0; k < d2.daily.length; k++) if (!s.fired['dl_' + cid + '_' + k]) idx.push(k);
