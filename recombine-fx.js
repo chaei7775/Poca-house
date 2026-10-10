@@ -15,8 +15,8 @@
   // ── [설정] ──
   var REVEAL_MS = 3400;        // 폭발·결과 공개 시점 (sfx.js 의 소리 타이밍과 맞춰져 있음)
   var BACK = (typeof B !== 'undefined' ? B : '') + 'gacha-back.webp';
-  var MC_OUT = (typeof B !== 'undefined' ? B : '') + 'rc-circle-outer.png';   // 마법진 바깥 고리 (그림 바꾸려면 같은 이름으로 덮어쓰기)
-  var MC_IN = (typeof B !== 'undefined' ? B : '') + 'rc-circle-inner.png';    // 마법진 안쪽 육망성
+  var MC_OUT = (typeof B !== 'undefined' ? B : '') + 'rc-circle-outer.webp';   // 마법진 바깥 고리 (그림 바꾸려면 같은 이름으로 덮어쓰기)
+  var MC_IN = (typeof B !== 'undefined' ? B : '') + 'rc-circle-inner.webp';    // 마법진 안쪽 육망성
   var TEXTS = [[500, '재료를 흡수하는 중'], [2000, '두 카드가 하나로'], [2800, '운명이 결정되고 있어요']];
 
   function css() {
@@ -28,7 +28,7 @@
       '#rc-anim-overlay .cv{position:absolute;inset:0;width:100%;height:100%}' +
       '#rc-anim-overlay .rc{position:absolute;left:0;top:0;border-radius:14px;overflow:hidden;will-change:transform,opacity;box-shadow:0 0 28px rgba(190,150,255,.65);background:linear-gradient(150deg,#3a2480,#1b1046)}' +
       '#rc-anim-overlay .rc img{width:100%;height:100%;object-fit:cover;display:block}' +
-      '#rc-anim-overlay .mc{position:absolute;left:0;top:0;opacity:0;pointer-events:none;will-change:transform,opacity;mix-blend-mode:screen;filter:drop-shadow(0 0 6px rgba(200,160,255,.95)) drop-shadow(0 0 16px rgba(160,110,255,.7))}' +
+      '#rc-anim-overlay .mc{position:absolute;left:0;top:0;opacity:0;pointer-events:none;will-change:transform,opacity;mix-blend-mode:screen;filter:drop-shadow(0 0 10px rgba(170,120,255,.55))}' +
       '#rc-anim-overlay .core{position:absolute;left:0;top:0;border-radius:50%;will-change:transform,opacity;mix-blend-mode:screen}' +
       '#rc-anim-overlay .txt{position:absolute;left:0;right:0;bottom:17%;text-align:center;font-size:13px;letter-spacing:4px;font-weight:300;color:rgba(255,255,255,.82);transition:opacity .35s}' +
       '#rc-anim-overlay .ttl{position:absolute;left:0;right:0;top:13%;text-align:center;font-family:"Nunito","Noto Sans KR",sans-serif;font-size:13px;font-weight:800;letter-spacing:8px;color:rgba(255,255,255,.55)}' +
