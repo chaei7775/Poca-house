@@ -172,7 +172,7 @@
     if (S && !S.ended) S.raf = requestAnimationFrame(loop);
   }
   function update(dt) {
-    S.left -= dt;
+    S.left -= (window.__phHold && window.__phHold()) ? 0 : dt;
     S.spawnT -= dt;
     if (S.spawnT <= 0 && S.left > 0.6 && S.orbs.length < ORB_MAX) {
       var sp = pickSpot(S.orbs);

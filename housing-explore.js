@@ -267,7 +267,7 @@
   function loop(now) {
     if (!S || S.ended) return;
     var dt = Math.min(0.05, (now - S.last) / 1000); S.last = now; S.t += dt;
-    S.timeLeft -= dt;
+    S.timeLeft -= (window.__phHold && window.__phHold()) ? 0 : dt;
     if (S.msgT > 0) S.msgT -= dt;
     if (S.flash > 0) S.flash -= dt;
 

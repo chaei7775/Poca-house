@@ -405,7 +405,7 @@
   function loop(now) {
     if (!S || S.ended) return;
     var dt = Math.min(0.05, (now - S.last) / 1000); S.last = now; S.t += dt;
-    if (S.stage < 3) S.timeLeft -= dt;
+    if (S.stage < 3) S.timeLeft -= (window.__phHold && window.__phHold()) ? 0 : dt;
     if (S.msgT > 0) S.msgT -= dt;
     if (S.flash > 0) S.flash -= dt;
     if (S.glow > 0) S.glow -= dt;
