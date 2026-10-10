@@ -28,11 +28,19 @@
       }
     } catch (e) { serverOk = false; }
     try { if (window.pocaAuth && window.pocaLoggedInUid) await window.pocaAuth.signOut(window.pocaAuth.auth); } catch (e) {}
+    // 지운 뒤 새로고침 전까지 게임이 메모리의 옛 진행(카드·알바 등)을 다시 저장하지 못하게 막는다
+    try {
+      var _set = Storage.prototype.setItem;
+      Storage.prototype.setItem = function (k) {
+        if (this === window.localStorage && k && (String(k).indexOf('ph_') === 0 || String(k).indexOf('poca') === 0)) return;
+        return _set.apply(this, arguments);
+      };
+    } catch (e) {}
     wipeLocal();
     try { sessionStorage.setItem('tr_auto_guest', '1'); } catch (e) {}   // 새로고침 뒤 첫 화면을 건너뛰고 바로 게스트 시작
     try { if (window.indexedDB && indexedDB.databases) { var dbs = await indexedDB.databases(); dbs.forEach(function (d) { if (d.name && /poca|ph_/i.test(d.name)) indexedDB.deleteDatabase(d.name); }); } } catch (e) {}
     say(serverOk ? '완료! 새로 시작해요…' : '이 기기만 지웠어요 (서버 정보는 지우지 못했어요). 새로고침해요…', !serverOk);
-    setTimeout(function () { location.reload(); }, 900);
+    setTimeout(function () { wipeLocal(); location.reload(); }, 900);
   }
   window.pocaResetAll = resetAll;
 
