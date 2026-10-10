@@ -94,6 +94,7 @@
         '<div id="wt-say" style="text-align:center;font-size:12px;color:#ffd1da;margin-top:4px;min-height:16px;"></div></div>' +
       '<div id="wt-btns" style="position:absolute;left:0;right:0;bottom:0;display:flex;gap:6px;justify-content:center;flex-wrap:wrap;padding:0 8px 14px;"></div>';
     root.appendChild(wrap);
+    try { (window.__lvCanvasTargets = window.__lvCanvasTargets || []).push({ el: wrap, pos: function () { return { x: S.px, y: S.py, W: W, H: H }; } }); } catch (e) {}   // ✨ 레벨업 연출이 내 캐릭터 위치를 알 수 있게 (levelup-fx.js)
     var cv = wrap.querySelector('#wt-cv'), g = cv.getContext('2d');
     var q = function (id) { return wrap.querySelector('#' + id); };
     function loadImg(src) { var i = new Image(); i.src = src; return i; }

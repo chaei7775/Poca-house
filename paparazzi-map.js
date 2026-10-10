@@ -40,6 +40,7 @@
     var cv = document.createElement('canvas'); cv.width = W; cv.height = H;
     cv.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;touch-action:none;';
     root.appendChild(cv);
+    try { (window.__lvCanvasTargets = window.__lvCanvasTargets || []).push({ el: cv, pos: function () { return { x: P.x, y: P.y - camY(), W: W, H: H }; } }); } catch (e) {}   // ✨ 레벨업 연출이 내 캐릭터 위치를 알 수 있게 (levelup-fx.js)
     var c = cv.getContext('2d');
     var face = new Image(); face.crossOrigin = 'anonymous'; face.src = ctx.face;
     var PAP = [], PAPD = [];
