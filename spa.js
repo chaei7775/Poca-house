@@ -133,10 +133,11 @@
         return '<button data-cid="' + id + '" style="' + BTN + 'padding:7px 11px;font-size:12px;border:1.5px solid ' + (on ? '#ff9ecb' : 'rgba(255,255,255,0.18)') + ';background:' + (on ? 'rgba(255,158,203,0.2)' : 'rgba(255,255,255,0.06)') + ';color:#fff;">' + esc(m.CH[id].name) + '</button>';
       }).join('');
       var cards = FACILITIES.map(function (f) {
-        var d = deltaFor(cid, f), ok = canUse(s, cid, f, cash).ok;
+        var d = deltaFor(cid, f), cu = canUse(s, cid, f, cash), ok = cu.ok;
+        var why = ok ? '' : ' <span style="font-size:10.5px;color:#ff8a8a;font-weight:900;">' + (cu.why === 'full' ? '· 오늘은 다 받았어요' : '· 코인이 모자라요') + '</span>';
         return '<button data-f="' + f.id + '" style="' + BTN + 'text-align:left;display:flex;align-items:center;gap:10px;width:100%;padding:10px 12px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.14);color:#fff;opacity:' + (ok ? 1 : 0.55) + ';">' +
           '<div style="flex-shrink:0;">' + icon(f, 46) + '</div><div style="flex:1;min-width:0;">' +
-          '<div style="font-size:14px;">' + esc(f.name) + ' <span style="font-size:11px;color:#ffe08a;">🍔 ' + fmt(f.price) + '</span></div>' +
+          '<div style="font-size:14px;">' + esc(f.name) + ' <span style="font-size:11px;color:#ffe08a;">🍔 ' + fmt(f.price) + '</span>' + why + '</div>' +
           '<div style="font-size:10.5px;color:#aab4d6;font-weight:700;margin:1px 0 3px;">' + esc(f.desc) + '</div>' +
           '<div style="display:flex;gap:8px;">' + chip('✨', d.v) + chip('💪', d.s) + chip('😊', d.m) + '</div></div></button>';
       }).join('');
