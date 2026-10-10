@@ -147,7 +147,7 @@
     var bg = new Image(); bg.src = base + BG_FILE;
     var face = new Image();
     var fid0 = FACE_IDS[Math.floor(Math.random() * FACE_IDS.length)];
-    face.src = base + 'face-' + fid0 + (fid0 === 'minjun' ? '-b' : '') + '.png';   // 민준은 옆 장식(시계·모래시계)을 자연스럽게 지운 뷰티살롱 전용 그림
+    face.src = base + 'face-' + fid0 + (fid0 === 'minjun' ? '-c' : '') + '.png';   // 민준은 장식이 사방에 떠 있는 뷰티살롱 전용 그림(배경 투명)
     var fc = document.createElement('canvas'); fc.width = 256; fc.height = 256;
 
     S = {
@@ -202,11 +202,11 @@
   // 얼굴 그림을 256 칸에 그린다. 그림마다 살짝 손봐야 하는 애가 있어서(민준: 조금 줄임) 여기서만 처리
   function drawFaceImg(g, img, N, fid) {
     var iw = img.naturalWidth || img.width || N, ih = img.naturalHeight || img.height || N, k = Math.min(N / iw, N / ih);
-    var sc = fid === 'minjun' ? 0.93 : 1, w = iw * k * sc, h = ih * k * sc;
-    var ox = (N - w) / 2, oy = fid === 'minjun' ? N - h - N * 0.02 : (N - h) / 2;
+    var w = iw * k, h = ih * k;
+    var ox = (N - w) / 2, oy = (N - h) / 2;
     g.drawImage(img, ox, oy, w, h);
   }
-  function faceIdOf(img) { var m = /face-([a-z]+)(?:-b)?\.png/.exec(img.src || ''); return m ? m[1] : ''; }
+  function faceIdOf(img) { var m = /face-([a-z]+)(?:-c)?\.png/.exec(img.src || ''); return m ? m[1] : ''; }
   function buildSkin() {
     S.skin = null;
     var me = S, im = new Image();   // 색을 읽으려면 따로 받아야 해서(보안 규칙) 분석용 사본을 한 번 더 받음. 실패하면 예전 자리(SPOTS)를 씀
