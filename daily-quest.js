@@ -27,7 +27,8 @@
   // 데뷔한 아이돌이 있을 때만 드라마 퀘스트가 목록에 나옴 (없으면 올클리어가 막히니까)
   function debutN() { try { var d = (JSON.parse(localStorage.getItem('ph_agency') || '{}') || {}).done || {}; return Object.keys(d).filter(function (k) { return d[k]; }).length; } catch (e) { return 0; } }
   var QUESTS = ALLQ.slice();
-  function refreshQ() { var dn = debutN(); QUESTS = ALLQ.filter(function (q) { return !q.needDebut || dn >= 1 || (D && D.claimed && D.claimed[q.id]); }); }
+  // ⚠️ 하루 중간에 데뷔해도 목록은 그대로 (이미 올클리어 보너스를 받았는데 새 퀘스트가 끼어들면 어색함) → 내일부터 드라마 퀘스트가 나옴
+  function refreshQ() { var dn = (D && typeof D.debutDay === 'boolean') ? (D.debutDay ? 1 : 0) : debutN(); QUESTS = ALLQ.filter(function (q) { return !q.needDebut || dn >= 1 || (D && D.claimed && D.claimed[q.id]); }); }
   var BONUS = { id: 'bonus', icon: '🎁', title: '올클리어 보너스', desc: '위 퀘스트를 모두 받으면 추가 보상', w: 0.20, coins: 1500 };
 
   // ───────── 날짜 / 저장 ─────────
@@ -47,8 +48,8 @@
 
   var D = load();
   function freshDay() {
-    D = { date: todayKey(), albaBase: getAlba(), prog: { login: 1 }, claimed: {} };
-    save();
+    D = { date: todayKey(), albaBase: getAlba(), prog: { login: 1 }, claimed: {}, debutDay: debutN() >= 1 };
+    save(); refreshQ();
   }
   function ensureDay() {
     refreshQ();
@@ -56,6 +57,7 @@
     D.prog = D.prog || {}; D.claimed = D.claimed || {};
     if (typeof D.albaBase !== 'number') D.albaBase = getAlba();
     if (!D.prog.login) D.prog.login = 1;
+    if (typeof D.debutDay !== 'boolean') { D.debutDay = debutN() >= 1 && !D.claimed.bonus; save(); refreshQ(); }
     return false;
   }
 
