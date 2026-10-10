@@ -18,11 +18,13 @@
     R:   { c: '#6ee7a0', c2: '#16a34a', t: 'RARE',               burst: 28,  rays: 0.26 },
     SR:  { c: '#7cb8ff', c2: '#2563eb', t: 'SUPER RARE',         burst: 48,  rays: 0.42 },
     SSR: { c: '#cf9bff', c2: '#7c3aed', t: 'SPECIAL SUPER RARE', burst: 80,  rays: 0.62 },
-    UR:  { c: '#ffe27a', c2: '#ff7ac8', t: 'CONGRATULATIONS!',   burst: 130, rays: 0.9 }
+    UR:  { c: '#ffe27a', c2: '#ff7ac8', t: 'CONGRATULATIONS!',   burst: 130, rays: 0.9 },
+    '레어히든': { c: '#d7a8ff', c2: '#a855f7', t: 'RARE HIDDEN',   burst: 90,  rays: 0.65 },   // 재조합 결과(히든 카드)
+    '에픽히든': { c: '#ffe27a', c2: '#ff7ac8', t: 'EPIC HIDDEN!',  burst: 140, rays: 0.95 }
   };
   var BACK = (typeof B !== 'undefined' ? B : '') + 'gacha-back.webp';   // 카드 뒷면 그림 (504x672, 약 70KB). 못 받으면 코드로 그린 보석 모양이 보임
   var RANK = ['N', 'R', 'SR', 'SSR', 'UR'];
-  function rk(g) { var i = RANK.indexOf(g); return i < 0 ? 0 : i; }
+  function rk(g) { if (g === '레어히든') return 3; if (g === '에픽히든') return 4; var i = RANK.indexOf(g); return i < 0 ? 0 : i; }
   function gr(card) { return GR[card && card.grade] || GR.N; }
   function esc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
 
@@ -64,6 +66,7 @@
       '.gfx-front img{width:100%;height:100%;object-fit:cover;display:block}' +
       '.gfx-badge{position:absolute;top:7px;left:7px;padding:2px 9px;border-radius:999px;font-size:11px;font-weight:900;letter-spacing:.5px;color:#1a1030;background:linear-gradient(135deg,#fff,var(--g1));box-shadow:0 0 10px var(--gl)}' +
       '.gfx-nm{position:absolute;left:0;right:0;bottom:0;padding:16px 6px 7px;text-align:center;font-size:12px;font-weight:900;text-shadow:0 1px 4px #000;background:linear-gradient(0deg,rgba(0,0,0,.85),rgba(0,0,0,0))}' +
+      '.gfx-extra{text-align:center;font-size:13px;line-height:1.7;color:#fff;opacity:0;transform:translateY(6px);transition:opacity .5s,transform .5s;margin-top:-6px}.gfx-extra.on{opacity:1;transform:none}.gfx-extra b{color:var(--g1)}' +
       '.gfx-btn{margin-top:4px;padding:14px 56px;border:0;border-radius:16px;font-size:16px;font-weight:900;color:#fff;background:linear-gradient(135deg,#ff6b9d,#c084fc);box-shadow:0 6px 22px rgba(192,132,252,.5);opacity:0;transform:translateY(10px);pointer-events:none;transition:opacity .4s,transform .4s;font-family:inherit}' +
       '.gfx-btn.on{opacity:1;transform:none;pointer-events:auto}' +
       '.gfx-tap{position:absolute;left:0;right:0;bottom:14px;text-align:center;z-index:3;font-size:11px;letter-spacing:2px;color:rgba(255,255,255,.45);pointer-events:none}';
@@ -108,7 +111,8 @@
   }
 
   // ── 본체 ──
-  function show(cards, multi) {
+  function show(cards, multi, opts) {
+    opts = opts || {};
     if (!cards || !cards.length) return;
     css();
     ['gacha-multi-overlay', 'gacha-single-fx'].forEach(function (id) { var o = document.getElementById(id); if (o) o.remove(); });
@@ -127,8 +131,9 @@
         '</div></div>';
     }).join('');
     ov.innerHTML = '<div class="gfx-rays"></div><canvas class="gfx-cv"></canvas><div class="gfx-flash"></div>' +
-      '<div class="gfx-main"><div class="gfx-head"><div class="gfx-ttl">' + esc(B.t) + '</div><div class="gfx-sub">' + (multi ? n + ' DRAW' : esc(best.grade) + ' CARD GET') + '</div></div>' +
+      '<div class="gfx-main"><div class="gfx-head"><div class="gfx-ttl">' + esc(opts.title || B.t) + '</div><div class="gfx-sub">' + (opts.sub != null ? esc(opts.sub) : (multi ? n + ' DRAW' : esc(best.grade) + ' CARD GET')) + '</div></div>' +
       '<div class="gfx-row">' + cardsHtml + '</div>' +
+      (cards[0] && cards[0].lines && cards[0].lines.length ? '<div class="gfx-extra">' + cards[0].lines.map(function (l) { return '<div>' + esc(l[0]) + ' <b>' + esc(l[1]) + '</b></div>'; }).join('') + '</div>' : '') +
       '<button class="gfx-btn" type="button">확인</button></div><div class="gfx-tap">TAP TO SKIP</div>';
     document.body.appendChild(ov);
 
@@ -136,7 +141,7 @@
     var els = [].slice.call(ov.querySelectorAll('.gfx-card'));
     var fx = Fx(ov.querySelector('.gfx-cv')), timers = [], revealed = 0, finished = false;
     function later(fn, ms) { var t = setTimeout(fn, ms); timers.push(t); }
-    function close() { timers.forEach(clearTimeout); fx.stop(); ov.remove(); window.removeEventListener('resize', fx.resize); try { renderHomeIdols(); renderHomeSpeech(); } catch (e) {} }
+    function close() { timers.forEach(clearTimeout); fx.stop(); ov.remove(); window.removeEventListener('resize', fx.resize); if (typeof opts.onClose === 'function') { try { opts.onClose(); } catch (e) {} } else { try { renderHomeIdols(); renderHomeSpeech(); } catch (e) {} } }
     window.addEventListener('resize', fx.resize);
     btn.addEventListener('click', function (e) { e.stopPropagation(); close(); });
 
@@ -156,7 +161,7 @@
     function finish() {
       if (finished) return; finished = true; tap.style.display = 'none';
       rays.style.opacity = B.rays * 0.55;
-      later(function () { head.classList.add('on'); }, 250);
+      later(function () { head.classList.add('on'); var ex = ov.querySelector('.gfx-extra'); if (ex) ex.classList.add('on'); }, 250);
       later(function () { btn.classList.add('on'); }, 600);
       if (rk(best.grade) >= 3) { try { if (typeof playFanfare === 'function') playFanfare(); } catch (e) {} }
     }
@@ -169,7 +174,7 @@
 
     // 연출 타임라인: 빛 모으기 → 번쩍 → 공개
     rays.style.opacity = 0.12;
-    var charge = multi ? CHARGE_MS_MULTI : CHARGE_MS_ONE;
+    var charge = opts.charge || (multi ? CHARGE_MS_MULTI : CHARGE_MS_ONE);
     later(function () { rays.style.opacity = 0.3; if (rk(best.grade) >= 2) els.forEach(function (el) { el.classList.add('shake'); }); }, Math.round(charge * 0.45));
     later(function () { rays.style.filter = 'brightness(1.6)'; }, Math.round(charge * 0.75));
     if (multi) {
