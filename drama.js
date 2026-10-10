@@ -1094,6 +1094,25 @@ $('#dr-result').addEventListener('click',e=>{const b=e.target.closest('[data-r]'
 function openDrama(){load();renderPrep();{const s_=$('#dr-prep .scroll');if(s_)s_.scrollTop=0}R.hidden=false;$('#dr-prep').hidden=false;$('#dr-shoot').hidden=true;$('#dr-result').hidden=true}
 function closeDrama(){if(G)return;R.hidden=true}
 window.openDrama=openDrama;
+/* 🏪 거래소 연결: 촬영에서 드랍된 스킬(장착 안 한 것만)을 거래소에 올리고 살 수 있게 함. 키 'bk_sk_<스킬id>' → 거래소 규칙 'bk_.*' 에 포함 */
+const equippedSet=()=>{const st=new Set();Object.keys(S.equip||{}).forEach(c=>(S.equip[c]||[]).forEach(u=>st.add(u)));return st};
+window.__dramaSkillTrade={
+  have:id=>{const e=equippedSet();return S.inv.filter(i=>i.s===id&&!e.has(i.u)).length},
+  take:(id,n)=>{const e=equippedSet(),idx=[];S.inv.forEach((i,k)=>{if(i.s===id&&!e.has(i.u)&&idx.length<n)idx.push(k)});
+    if(idx.length<n)return false;for(let k=idx.length-1;k>=0;k--)S.inv.splice(idx[k],1);save();saveGame();return true},
+  give:(id,n)=>{if(!SKILLS[id])return false;for(let k=0;k<n;k++)giveSkill(id);save();saveGame();return true}
+};
+(function regTrade(tries){
+  const T=window.__tradeCore;
+  if(!T||!T.ITEMS||!T.SK_ORDER){if(tries<40)setTimeout(()=>regTrade(tries+1),500);return}
+  if(T.SK_ORDER.length)return;
+  const gOrd={'프리미엄':0,'히든':1,'레어':2,'일반':3};
+  Object.keys(SKILLS).filter(k=>!SKILLS[k].multi).sort((a,b)=>gOrd[SKILLS[a].gr]-gOrd[SKILLS[b].gr]).forEach(id=>{
+    const k='bk_sk_'+id;
+    T.ITEMS[k]={name:SKILLS[id].n+' ('+SKILLS[id].gr+')',emoji:'🎬',kind:'dskill',sid:id,desc:'드라마 촬영 '+SKILLS[id].cat+' 스킬 · 장착 안 한 것만 거래돼요',min:2000,max:5000000};
+    T.SK_ORDER.push(k);
+  });
+})(0);
 window.__dramaTest={rating,SKILLS,SCRIPTS,CFG,MAST:{BOOK_XP,BOOKS,XP:MAST_XP,MAX:MAST_MAX,lv:mastLv,mult:mastMult,cd:mastCd,add:addMast,xp:mastXp,dtext}};
 /* 광장 메뉴 버튼 (CF 촬영 버튼 아래) */
 let tries=0;

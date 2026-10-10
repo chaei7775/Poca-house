@@ -40,6 +40,7 @@
   // 🌿 탐험 재료도 거래 가능 (품목 키는 'mat_' + 재료이름 → Firebase 규칙에서 한 줄로 묶음)
   var MAT_MIN = 100, MAT_MAX = 50000;   // 재료 공통 가격 범위 (규칙 파일과 같아야 함)
   var MAT_ORDER = [];
+  var SK_ORDER = [];     // 🎬 드라마 스킬 (drama.js 가 불러와지면 채워 넣음)
   (function () {
     try {
       if (typeof MATERIAL_EMOJI_MAP === 'undefined') return;
@@ -114,6 +115,7 @@
   }
   function have(key) {
     var it = ITEMS[key];
+    if (it.kind === 'dskill') { try { return window.__dramaSkillTrade.have(it.sid); } catch (e) { return 0; } }
     if (it.kind === 'bag') {
       var b = null;
       try { b = bagItems.filter(function (i) { return i.name === it.name; })[0]; } catch (e) {}
@@ -124,6 +126,7 @@
   function take(key, qty) {                       // 보유량이 충분할 때만 차감 (true/false)
     var it = ITEMS[key];
     if (have(key) < qty) return false;
+    if (it.kind === 'dskill') { try { return !!window.__dramaSkillTrade.take(it.sid, qty); } catch (e) { return false; } }
     if (it.kind === 'bag') return !!useFromBag(it.name, qty);
     var s = loadEnh();
     s[it.field] = have(key) - qty;
@@ -132,11 +135,13 @@
   }
   function canReceive(key) {
     var it = ITEMS[key];
+    if (it.kind === 'dskill') return !!window.__dramaSkillTrade;
     if (it.kind !== 'bag') return true;
     try { return bagItems.some(function (i) { return i.name === it.name; }) || bagItems.length < bagSlots; } catch (e) { return false; }
   }
   function give(key, qty) {
     var it = ITEMS[key];
+    if (it.kind === 'dskill') { try { return !!window.__dramaSkillTrade.give(it.sid, qty); } catch (e) { return false; } }
     if (it.kind === 'bag') return !!addToBag(it.emoji, it.name, it.type || 'material', qty, it.desc);
     var s = loadEnh();
     s[it.field] = have(key) + qty;
@@ -348,14 +353,14 @@
     } catch (e) {}
     return it.emoji;
   }
-  function keysOf() { return cat === 'mat' && MAT_ORDER.length ? MAT_ORDER : ORDER; }
+  function keysOf() { return cat === 'mat' && MAT_ORDER.length ? MAT_ORDER : (cat === 'skill' && SK_ORDER.length ? SK_ORDER : ORDER); }
   function catBar(ov, redraw) {
     if (!MAT_ORDER.length) return '';
     function b(id, label) {
       var on = cat === id;
       return '<button data-cat="' + id + '" style="flex:1;' + BTN + 'padding:8px;font-size:13px;color:#fff;background:' + (on ? 'linear-gradient(135deg,#FFD700,#F59E0B)' : 'rgba(255,255,255,0.08)') + ';' + (on ? 'color:#1a1405;' : '') + '">' + label + '</button>';
     }
-    return '<div style="display:flex;gap:8px;margin-bottom:10px;">' + b('item', '🔹 재료·아이템') + b('mat', '🌿 탐험 재료') + '</div>';
+    return '<div style="display:flex;gap:8px;margin-bottom:10px;">' + b('item', '🔹 재료·아이템') + b('mat', '🌿 탐험 재료') + (SK_ORDER.length ? b('skill', '🎬 드라마 스킬') : '') + '</div>';
   }
   function bindCat(box, redraw) {
     box.querySelectorAll('[data-cat]').forEach(function (b) {
@@ -529,7 +534,7 @@
   window.openTrade = openTrade;
   window.__tradeTest = { listItem: listItem, listOpen: listOpen, myListings: myListings, buy: buy, cancel: cancel, settleAll: settleAll, settleMine: settleMine, settleBuys: settleBuys, loadState: loadState, have: have, ITEMS: ITEMS, FEE: FEE };
   // 🎁 선물하기(gift.js)가 같은 품목·가방 도우미를 쓰도록 내보냄
-  window.__tradeCore = { ITEMS: ITEMS, ORDER: ORDER, MAT_ORDER: MAT_ORDER, have: have, take: take, give: give, canReceive: canReceive, addCoins: addCoins, persist: persist, fmt: fmt, esc: esc, uid: uid, myNick: myNick, today: today, F: F };
+  window.__tradeCore = { ITEMS: ITEMS, ORDER: ORDER, MAT_ORDER: MAT_ORDER, SK_ORDER: SK_ORDER, have: have, take: take, give: give, canReceive: canReceive, addCoins: addCoins, persist: persist, fmt: fmt, esc: esc, uid: uid, myNick: myNick, today: today, F: F };
 
   // ───────── 기존 화면에 연결 ─────────
   function whenReady(test, fn) {
