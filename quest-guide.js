@@ -111,7 +111,7 @@
       done: function () { return hiLv() >= 3; },
       go: function () { goTo('map'); }, target: '#nav-map' },
     { id: 'room', icon: '🛋️', title: '내 방 꾸미기',
-      hint: '🛍️ 맵 → 상점거리 → 방 테마 구매 → 🏠 내 집에서 적용! 플레이어 레벨 3부터 열려요.',
+      hint: '🏠 맵 → 내 집 → 🛋️ 방 꾸미기에서 방 테마를 사서 적용해요! 플레이어 레벨 3부터 열려요.',
       done: function () { try { return typeof ownedRooms !== 'undefined' && ownedRooms.length > 0 || quest('tut_room'); } catch (e) { return false; } }, reward: 300,
       go: function () { goTo('map'); }, target: '#nav-map' },
     { id: 'agency', icon: '🎤', title: '기획사에서 데뷔 도전하기',

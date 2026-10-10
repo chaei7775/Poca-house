@@ -59,7 +59,7 @@
       condition:'q2_drink', rewardCoins:200, rewardExp:8, type:'tutorial', detect:function () { return !!F.drink; } },
     tut_bag: { title:'가방 넓히기', desc:'🎒 가방 → 슬롯 확장. 재료가 쌓이면 가방이 꽉 차니까 미리 넓혀두자.',
       condition:'q2_bag', rewardCoins:200, rewardExp:8, type:'tutorial', detect:function () { return !!F.bag; } },
-    tut_room: { title:'내 방 꾸미기', desc:'🛍️ 상점거리 → 방 테마 구매 → 🏠 내 집에서 적용. 방을 바꾸면 기분이 달라져.',
+    tut_room: { title:'내 방 꾸미기', desc:'🏠 내 집 → 🛋️ 방 꾸미기 → 방 테마를 사서 적용. 방을 바꾸면 기분이 달라져.',
       condition:'q2_room', rewardCoins:500, rewardExp:80, type:'tutorial',
       detect:function () { try { return typeof ownedRooms !== 'undefined' && ownedRooms.length > 0; } catch (e) { return false; } } },
     tut_goods: { title:'굿즈 만들기', desc:'(Lv.15~) 🛍️ 상점거리 → 🎁 굿즈 공방에서 굿즈를 만들어봐. 재료 + 코인으로 만들면 능력치가 랜덤으로 붙어. (실패할 수도 있어!)',
