@@ -511,16 +511,21 @@
   // 단계별 효과 (바람 / 퍼프 표시 / 스프레이 안개)
   function drawStageFx(c, f) {
     if (S.stage === 0 && S.ptr) {
-      // 드라이기: 손가락 위치에서 얼굴 쪽으로 부는 바람
-      var px = S.ptr.x, py = S.ptr.y;
+      // 드라이기: 손가락 위치에서 얼굴 쪽으로 부는 바람 — 바람은 드라이기 '송풍구'(둥근 앞부분)에서만 나오고, 드라이기는 얼굴 쪽을 향함
+      var px = S.ptr.x, py = S.ptr.y, fc = faceC(), dir = px < fc[0] ? 1 : -1;
+      var nx = px + dir * 24, ny = py - 58;            // 송풍구 위치 (그림 62px 기준)
       c.save(); c.lineCap = 'round';
       for (var i = 0; i < 5; i++) {
-        var ph = (S.t * 3 + i * 0.37) % 1, yy = py - 70 + i * 22, len = 40 + i % 2 * 24;
-        c.strokeStyle = 'rgba(255,255,255,' + (0.55 * (1 - ph)) + ')'; c.lineWidth = 3;
-        c.beginPath(); c.moveTo(px - 30 + ph * 80, yy); c.lineTo(px - 30 + ph * 80 + len, yy - 6 + Math.sin(S.t * 9 + i) * 6); c.stroke();
+        var ph = (S.t * 3 + i * 0.37) % 1, off = (i - 2) * 8, len = 22 + i % 2 * 14;
+        var x0 = nx + dir * (ph * 70), y0 = ny + off * (0.6 + ph * 0.8);
+        var x1 = x0 + dir * len, y1 = y0 + Math.sin(S.t * 9 + i) * 3 + off * 0.15, al = 1 - ph;
+        c.strokeStyle = 'rgba(70,170,190,' + (0.55 * al) + ')'; c.lineWidth = 6;     // 연한 청록 바탕선 (밝은 배경에서도 보이게)
+        c.beginPath(); c.moveTo(x0, y0); c.lineTo(x1, y1); c.stroke();
+        c.strokeStyle = 'rgba(255,255,255,' + (0.95 * al) + ')'; c.lineWidth = 3;
+        c.beginPath(); c.moveTo(x0, y0); c.lineTo(x1, y1); c.stroke();
       }
       c.restore();
-      drawPic(c, 'dryer', px, py - 46, 62, true);
+      drawPic(c, 'dryer', px, py - 46, 62, dir === 1);
     }
     if (S.stage === 1) {
       var R = hitR();
