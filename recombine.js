@@ -444,7 +444,7 @@ function openHiddenCardDex() {
     const isOwned = ownedHiddenCards.includes(h.id);
     const glowColor = h.grade === '에픽히든' ? '#FFD700' : '#C084FC';
     return '<div style="position:relative;border:2px solid ' + glowColor + ';border-radius:14px;overflow:hidden;background:#111;aspect-ratio:3/4;">' +
-      '<img src="' + h.img + '" style="width:100%;height:100%;object-fit:cover;opacity:' + (isOwned ? '1' : '0.78') + ';">' +
+      '<img src="' + (typeof cardThumbSrc === 'function' ? cardThumbSrc(h.img) : h.img) + '" loading="lazy" decoding="async" style="width:100%;height:100%;object-fit:cover;opacity:' + (isOwned ? '1' : '0.78') + ';">' +
       '<div style="position:absolute;top:6px;right:6px;background:' + glowColor + ';color:#1a1a2e;font-size:9px;font-weight:900;padding:2px 6px;border-radius:8px;">' + h.grade + '</div>' +
       '<div style="position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,0.75);padding:6px;text-align:center;">' +
       '<div style="font-size:11px;font-weight:900;color:#fff;">' + h.name + '</div>' +
