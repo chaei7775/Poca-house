@@ -785,6 +785,7 @@
       floatText(tg.x, tg.y - 0.03, '<div style="font-size:15px;font-weight:900;color:' + (love ? '#FFD700' : '#fff') + ';text-shadow:0 2px 6px #000;">' + (love ? '😍 대만족!' : '😊 만족') + '</div>');
       sfx(love ? 'rarePick' : 'pick');
       var cmul = comboHit(tg.x, tg.y, isEv ? 0 : (o.until - FAN_TTL * 1000));
+      F.okPanelUntil = Date.now() + 9000;   // 스킬로 이벤트를 끝낸 직후 뜨는 결과창은 콤보를 끊지 않음
       o.fsBusy = true;
       if (isEv) {
         var evRef = o, cidNow = F.cid;
@@ -931,6 +932,9 @@
       if (f.until <= now) { comboBreak(); removeFan(f, true); return; }
       if (f.el) f.el.style.opacity = (f.until - now < 8000) ? (Math.floor(now / 300) % 2 ? '.45' : '1') : '1';   // 곧 떠나면 깜빡
     });
+    if ($('bc-panel')) {                                    // 창이 처음 열린 순간에만 판단: 스킬 응대 직후 결과창이 아니면(=미니게임) 콤보 끊김
+      if (!F.panelSeen) { F.panelSeen = true; if (Date.now() > (F.okPanelUntil || 0)) comboBreak(); }
+    } else F.panelSeen = false;
     ensureEventBubbles();
     var near = nearestFan();
     F.fans.forEach(function (f) {
