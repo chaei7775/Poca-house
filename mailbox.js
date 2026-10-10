@@ -16,6 +16,7 @@
   var IDS = ['minjun', 'sion', 'doyun', 'harin', 'yuna', 'ara'];
   var DAILY_WRITE = 3;               // 아이돌 1명당 하루에 보낼 수 있는 편지 수
   var DAILY_MIN = 30 * 60000, DAILY_MAX = 120 * 60000;   // 하루 한 통 일상 편지: 그날 처음 확인한 때부터 30분~2시간 뒤에 도착 (바로 오지 않게)
+  var DAILY_NEED_GATE = 3;   // 일상 편지를 보내려면 필요한 호감도 단계 (처음 만난 직후엔 안 옴)
   var REPLY_MIN = 30000, REPLY_MAX = 90000;   // 답장이 오기까지 (밀리초)
   var INBOX_MAX = 60, SENT_MAX = 40;
   var TEXT_MAX = 300;
@@ -182,7 +183,7 @@
     });
     // 3) 하루 한 통 일상 편지
     if (!s.dailyDone) {
-      var cands = IDS.filter(function (cid) { return L()[cid] && known(cid); });
+      var cands = IDS.filter(function (cid) { return L()[cid] && known(cid) && gate(cid) >= DAILY_NEED_GATE; });   // 어느 정도 친해진 아이돌만 먼저 편지를 보냄
       if (cands.length && !s.dailyAt) { s.dailyAt = now + DAILY_MIN + Math.random() * (DAILY_MAX - DAILY_MIN); changed = true; }
       if (cands.length && s.dailyAt && now >= s.dailyAt) {
         s.dailyDone = true; changed = true;
