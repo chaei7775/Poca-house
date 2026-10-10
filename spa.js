@@ -56,7 +56,7 @@
 
   // ════════ 게임 연결 ════════
   function M() { return window.__mealTest || null; }
-  function toast(m) { if (typeof showBagToast === 'function') showBagToast(m); }
+  function toast(m) { if (typeof showBagToast === 'function') showBagToast(m); try { var t = document.getElementById('bag-toast'); if (t) t.style.zIndex = String(Z + 10); } catch (e) {} }   // 관리 화면(Z=990) 위에 보이게
   function snd(n) { try { if (window.pocaSfx) window.pocaSfx.play(n); } catch (e) {} }
   function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
   function fmt(n) { return Number(n).toLocaleString(); }
