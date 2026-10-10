@@ -1628,8 +1628,8 @@ const EARLY_EXP_REQ = { 1: 20, 2: 200, 3: 350, 4: 430 };
 const EXP_REQ_MULT = 1;
 // 초반 구간(Lv.2 → Lv.5 도달까지, 즉 Lv.2·3·4 의 필요량)만 따로 깎는 배율: 1 = 그대로, 0.5 = 절반
 const EARLY_EXP_CUT_FROM = 2, EARLY_EXP_CUT_TO = 4, EARLY_EXP_CUT_MULT = 1;
-// 🐢 Lv.3 이상 구간만 필요 경험치를 더 늘리는 배율 (너무 빨리 오른다는 의견 반영). 1 = 그대로
-const EXP_SLOW_FROM = 3, EXP_SLOW_MULT = 1.5;
+// 🐢 Lv.5 이상 구간만 필요 경험치를 더 늘리는 배율 (너무 빨리 오른다는 의견 반영). 1 = 그대로
+const EXP_SLOW_FROM = 5, EXP_SLOW_MULT = 1.5;
 // 늘리기 전 필요량: 일일퀘스트·매니저 이벤트 보상은 이 값을 기준으로 계산 (안 그러면 보상도 같이 커져서 속도가 안 늦춰짐)
 function getBaseExpRequired(level) {
   const cut = (level >= EARLY_EXP_CUT_FROM && level <= EARLY_EXP_CUT_TO) ? EARLY_EXP_CUT_MULT : 1;
