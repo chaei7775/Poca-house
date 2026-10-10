@@ -147,7 +147,7 @@
     var bg = new Image(); bg.src = base + BG_FILE;
     var face = new Image();
     var fid0 = FACE_IDS[Math.floor(Math.random() * FACE_IDS.length)];
-    face.src = base + 'face-' + fid0 + (fid0 === 'minjun' ? '-c' : '') + '.png';   // 민준은 장식이 사방에 떠 있는 뷰티살롱 전용 그림(배경 투명)
+    face.src = base + 'face-' + fid0 + (fid0 === 'minjun' ? '-d' : '') + '.png';   // 민준은 장식이 사방에 떠 있는 뷰티살롱 전용 그림(배경 투명)
     var fc = document.createElement('canvas'); fc.width = 256; fc.height = 256;
 
     S = {
@@ -162,7 +162,7 @@
     };
     bg.onload = function () { if (S) S.bgOk = true; };
     face.onload = function () { if (S) { S.faceOk = true; buildSkin(); } };
-    face.onerror = function () { if (S && /-c\.png/.test(face.src)) face.src = face.src.replace('-c.png', '.png'); };   // 새 그림을 못 받으면 원래 그림으로 (둥근 빈 얼굴로 안 남게)
+    face.onerror = function () { if (S && /-d\.png/.test(face.src)) face.src = face.src.replace('-d.png', '.png'); };   // 새 그림을 못 받으면 원래 그림으로 (둥근 빈 얼굴로 안 남게)
     resize();
     say(STAGES[0].tip, 3);
     sfx('setGrab');
@@ -207,7 +207,7 @@
     var ox = (N - w) / 2, oy = (N - h) / 2;
     g.drawImage(img, ox, oy, w, h);
   }
-  function faceIdOf(img) { var m = /face-([a-z]+)(?:-c)?\.png/.exec(img.src || ''); return m ? m[1] : ''; }
+  function faceIdOf(img) { var m = /face-([a-z]+)(?:-d)?\.png/.exec(img.src || ''); return m ? m[1] : ''; }
   function buildSkin() {
     S.skin = null;
     var me = S, im = new Image();   // 색을 읽으려면 따로 받아야 해서(보안 규칙) 분석용 사본을 한 번 더 받음. 실패하면 예전 자리(SPOTS)를 씀
