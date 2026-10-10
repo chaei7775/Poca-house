@@ -64,6 +64,9 @@
     try {
       if (typeof window.__fancafeHas === 'function' && window.__fancafeHas(cid) && typeof window.__fancafeViral === 'function') {
         var r = window.__fancafeViral(cid); if (r) { got.fans = r; got.cafe = true; }
+      } else {   // 아직 팬카페가 없으면 '대기 중인 바이럴'로 적어둠 → 나중에 그 아이돌 팬카페를 처음 열 때 팬이 한꺼번에 들어옴
+        var sp = load(); if (!sp.pend || typeof sp.pend !== 'object') sp.pend = {};
+        sp.pend[cid] = Math.min(3, (sp.pend[cid] || 0) + 1); save(sp);
       }
     } catch (e) {}
     try { if (typeof saveAll === 'function') saveAll(); } catch (e) {}
@@ -160,7 +163,7 @@
         '<div style="display:flex;justify-content:space-between;"><span>📈 기획사 정산금 ×' + BUFF_MULT + '</span><b style="color:#7CF3A8;">' + BUFF_HOURS + '시간</b></div>',
         got.cafe ? '<div style="display:flex;justify-content:space-between;"><span>🛡️ 팬 탈덕 고민 글</span><b style="color:#7CF3A8;">72시간 방지</b></div>' : ''
       ].join('');
-      var hint = got.cafe ? '' : '<div style="font-size:11px;color:#bbb;margin-top:10px;">☕ 팬카페를 열어두면 이럴 때 팬도 한꺼번에 들어와요</div>';
+      var hint = got.cafe ? '' : '<div style="font-size:11px;color:#bbb;margin-top:10px;">☕ 팬카페를 열면 이때 모인 팬이 한꺼번에 들어와요 (대기 중)</div>';
       ov.innerHTML =
         '<div style="width:86%;max-width:330px;background:linear-gradient(135deg,#1a1a2e,#2d1b4e);border:2px solid #FFD700;border-radius:20px;padding:22px 20px;text-align:center;color:#fff;animation:vhPop .35s ease both;">' +
           '<div style="font-size:40px;">🎉</div><div style="font-size:19px;font-weight:900;margin:4px 0 2px;">바이럴 보너스 획득!</div>' +
@@ -202,4 +205,24 @@
     var m = /[?&]viral=([a-z_]+)/.exec(location.search);
     if (m) setTimeout(function () { show(m[1], 'cf', 100000, true); }, 2000);
   } catch (e) {}
+
+  // ── 팬카페를 나중에 열었을 때: 대기 중이던 바이럴 팬을 넣어준다 ──
+  (function hookCafeOpen() {
+    if (typeof window.openFanCafe !== 'function' || typeof window.__fancafeViral !== 'function') { setTimeout(hookCafeOpen, 300); return; }
+    if (window.openFanCafe.__vhHooked) return;
+    var orig = window.openFanCafe;
+    var w = function (cid) {
+      var r = orig.apply(this, arguments);
+      try {
+        var sp = load(), n = sp.pend && sp.pend[cid];
+        if (n && typeof window.__fancafeHas === 'function' && window.__fancafeHas(cid)) {
+          delete sp.pend[cid]; save(sp);
+          var tot = 0; for (var i = 0; i < n; i++) { var res = window.__fancafeViral(cid); if (res) tot += res.gain + res.joined; }
+          if (tot && typeof showBagToast === 'function') showBagToast('🚀 바이럴 때 모인 팬 +' + won(tot) + '명이 팬카페에 들어왔어요!');
+        }
+      } catch (e) {}
+      return r;
+    };
+    w.__vhHooked = true; window.openFanCafe = w;
+  })();
 })();
