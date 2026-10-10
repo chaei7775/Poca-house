@@ -33,6 +33,16 @@
     sub_lesson: { title: '아이돌 레슨 받기', desc: '📅 기획사 → 스케줄·식사에서 아이돌에게 레슨을 받게 해보자. 처음 5번은 신입 코치 할인 이벤트!',
       condition: 'q3_lesson', rewardCoins: 500,
       detect: function () { return F.lesson || (sum((J('ph_training', {}) || {}).count) > 0 && flag('lesson')); } },
+    // 📮 우편함 — 경험치 없음, 코인 + 소원의 조각 5개 (코인은 quest-boost 가 x5)
+    sub_mail_read: { title: '첫 편지 읽기', desc: '📮 더보기 → 우편함에서 아이돌이 보낸 편지를 열어 읽어봐.',
+      condition: 'q4_mail_read', rewardCoins: 500, wish: 5,
+      detect: function () { return F.mread || (((J('ph_mail', {}) || {}).inbox || []).some(function (m) { return m && m.read; }) && flag('mread')); } },
+    sub_mail_idol: { title: '아이돌에게 편지 쓰기', desc: '📮 우편함 → 쓰기에서 아이돌에게 편지를 보내봐. 잠시 뒤 답장이 와!',
+      condition: 'q4_mail_idol', rewardCoins: 500, wish: 5,
+      detect: function () { return F.midol || (((J('ph_mail', {}) || {}).sent || []).some(function (m) { return m && m.cid; }) && flag('midol')); } },
+    sub_mail_friend: { title: '친구에게 편지 보내기', desc: '📮 우편함 쓰기(또는 친구 목록의 💌 편지)로 친구에게 편지를 보내봐.',
+      condition: 'q4_mail_friend', rewardCoins: 1000, wish: 5,
+      detect: function () { return F.mfriend || (((J('ph_mail', {}) || {}).sent || []).some(function (m) { return m && m.toUid; }) && flag('mfriend')); } },
     // 👥 그룹 (Lv.20 해금) — 메인 퀘스트. 경험치 없음(레벨 속도 영향 0), 코인만. 코인도 퀘스트 코인은 quest-boost.js 가 x5 해서 지급하므로 숫자는 실제의 1/5 (실제 500만/1000만/2000만/3000만)
     sub_group_make: { title: '우리 그룹 결성하기', desc: '(Lv.20~) 더보기 → 🧑‍🎤 그룹에서 데뷔한 아이돌 2~4명을 골라 그룹을 만들어봐. 이름도 지어줘!',
       condition: 'q4_group_make', type: 'main', rewardExp: 0, rewardCoins: 1000000,
@@ -70,7 +80,12 @@
       for (var i = 0; i < ids.length; i++) {
         if (questProgress[ids[i]] === 'done') continue;
         var ok = false; try { ok = !!SUB[ids[i]].detect(); } catch (e) {}
-        if (ok) { checkQuestProgress(SUB[ids[i]].condition); return; }
+        if (ok) {
+          checkQuestProgress(SUB[ids[i]].condition);
+          var w = SUB[ids[i]].wish;
+          if (w && questProgress[ids[i]] === 'done') { try { wishFragments += w; localStorage.setItem('ph_wish', wishFragments); addToBag('🧩', '소원의 조각', 'wish', w, '100개 모으면 소원의 결정! (현재: ' + (typeof wishFragments !== 'undefined' ? wishFragments : '?') + '개)'); if (typeof showBagToast === 'function') showBagToast('🧩 소원의 조각 +' + w); } catch (e) {} }
+          return;
+        }
       }
     } catch (e) {}
   }

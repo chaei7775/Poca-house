@@ -147,7 +147,7 @@
     var wish = (act.wish && Math.random() < r.wishChance) ? (big ? 2 : 1) : 0;
     var lv0 = levelOf(s.fame);
     addCoins(r.coin);
-    if (wish) { try { if (typeof addToBag === 'function') addToBag('🧩', '소원의 조각', 'wish', wish, '100개 모으면 소원의 결정! (현재: ' + (typeof wishFragments !== 'undefined' ? wishFragments : '?') + '개)'); } catch (e) {} }
+    if (wish) { try { if (typeof wishFragments !== 'undefined') { wishFragments += wish; localStorage.setItem('ph_wish', wishFragments); } if (typeof addToBag === 'function') addToBag('🧩', '소원의 조각', 'wish', wish, '100개 모으면 소원의 결정! (현재: ' + (typeof wishFragments !== 'undefined' ? wishFragments : '?') + '개)'); } catch (e) {} }
     if (s.free > 0) s.free--; else s.potion--;
     s.fame += r.fame; s.total += 1; s.used[id] = (s.used[id] || 0) + 1;
     var lv1 = levelOf(s.fame);
