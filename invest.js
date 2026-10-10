@@ -25,8 +25,8 @@
   var DAYS = 7;                        // 한 판의 길이 (게임 속 날짜)
   var SELL_PENALTY = 0.10;             // 만기 전에 팔면 가치에서 깎는 비율
   var MIN_PRINCIPAL = 10000;
-  var MAX_LIMIT = 100000000;           // 한 판 투자금 절대 최대 (1억)
-  var LIMITS = [[10, 100000], [15, 200000], [20, 400000], [25, 700000], [30, 1000000], [40, 2500000], [50, 100000000]];  // [플레이어 레벨, 한 판 최대 투자금] — 맨 끝(Lv.50)이 최대 1억
+  var MAX_LIMIT = 300000000;           // 한 판 투자금 절대 최대 (3억)
+  var LIMITS = [[10, 100000], [15, 200000], [20, 400000], [25, 700000], [30, 3000000], [40, 7500000], [50, 300000000]];  // [플레이어 레벨, 한 판 최대 투자금] — 맨 끝(Lv.50)이 최대 3억
   var GRADES = [                       // 끝낸 투자 횟수(done)로 등급 결정
     { id: 0, name: '소액주주',   need: 0,  limit: 1.0,  slots: 1, floorAdd: 0,    emoji: '🪙' },
     { id: 1, name: '주요 투자자', need: 3,  limit: 1.15, slots: 2, floorAdd: 0.02, emoji: '💼' },
@@ -266,7 +266,7 @@
   function limitNow() {
     var base = 0;
     LIMITS.forEach(function (r) { if (plv() >= r[0]) base = r[1]; });
-    return Math.min(MAX_LIMIT, Math.round(base * gradeOf().limit / 1000) * 1000);   // 등급 보너스가 붙어도 1억을 넘지 않음
+    return Math.min(MAX_LIMIT, Math.round(base * gradeOf().limit / 1000) * 1000);   // 등급 보너스가 붙어도 3억을 넘지 않음
   }
   function strengths(pos) {
     return { fans: fanN(), debut: debutN(), star: starN(), album: albN(), ev: evN(), fame: pos && pos.cast ? fameOf(pos.cast) : 0, dr: pos && pos.n ? (pos.n.dr || 0) : 0 };
