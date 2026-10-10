@@ -7,23 +7,30 @@
 (function () {
   'use strict';
   var GROUPS = [
-    ['카드 · 수집', [/내 컬렉션/, /히든카드 도감/, /^칭호/, /해프닝 카드/, /프리미엄 카드/, /히든 효과/]],
-    ['육성 · 활동', [/트레이닝룸/, /팬 스킬 상점/, /카드 재조합기/, /스케줄 (관리|·)/, /로드 매니저/, /의상실/, /^그룹/]],
-    ['음악', [/작곡/, /음원차트/]],
-    ['상점 · 거래', [/잡화점/, /거래소/]],
-    ['소통', [/^친구/, /게시판/, /팬클럽/, /우편함/]],
-    ['계정', [/^계정/]]
+    ['카드 · 수집', 'cards', [/내 컬렉션/, /히든카드 도감/, /^칭호/, /해프닝 카드/, /프리미엄 카드/, /히든 효과/]],
+    ['육성 · 활동', 'training', [/트레이닝룸/, /팬 스킬 상점/, /카드 재조합기/, /스케줄 (관리|·)/, /로드 매니저/, /의상실/, /^그룹/]],
+    ['음악', 'music', [/작곡/, /음원차트/]],
+    ['상점 · 거래', 'shop', [/잡화점/, /거래소/]],
+    ['소통', 'chat', [/^친구/, /게시판/, /팬클럽/, /우편함/]],
+    ['계정', 'account', [/^계정/]]
   ];
   var ETC = '기타';
+  var ICON = {};  // 제목 앞 그림 (mm-*.webp, 192px)
 
   function label(btn) {
     return String(btn.textContent || '').replace(/🔒\s*Lv\.\d+/g, '').replace(/[^\u0000-\u007F가-힣\s]/g, ' ').replace(/\s+/g, ' ').trim();
   }
-  function headerEl(text) {
+  function headerEl(text, icon) {
     var h = document.createElement('div');
     h.className = 'mm-h';
-    h.textContent = text;
-    h.style.cssText = 'grid-column:1/-1;color:#c9b8ff;font-size:12px;font-weight:900;margin:10px 2px 0;letter-spacing:.2px;';
+    h.style.cssText = 'grid-column:1/-1;display:flex;align-items:center;gap:8px;color:#e4d9ff;font-size:15px;font-weight:900;margin:14px 2px 0;';
+    if (icon) {
+      var im = document.createElement('img');
+      im.src = 'mm-' + icon + '.webp'; im.alt = ''; im.loading = 'lazy'; im.decoding = 'async';
+      im.style.cssText = 'width:44px;height:44px;object-fit:contain;display:block;flex-shrink:0;pointer-events:none;';
+      h.appendChild(im);
+    }
+    var t = document.createElement('span'); t.textContent = text; h.appendChild(t);
     return h;
   }
 
@@ -37,7 +44,7 @@
     try {
       var buckets = GROUPS.map(function () { return []; }), etc = [], used = new Array(tiles.length);
       GROUPS.forEach(function (g, gi) {
-        g[1].forEach(function (re) {
+        g[2].forEach(function (re) {
           tiles.forEach(function (t, i) { if (!used[i] && re.test(label(t))) { used[i] = true; buckets[gi].push(t); } });
         });
       });
@@ -46,7 +53,7 @@
       var frag = document.createDocumentFragment(), first = true;
       GROUPS.forEach(function (g, gi) {
         if (!buckets[gi].length) return;
-        var h = headerEl(g[0]); if (first) { h.style.marginTop = '0'; first = false; }
+        var h = headerEl(g[0], g[1]); if (first) { h.style.marginTop = '0'; first = false; }
         frag.appendChild(h); buckets[gi].forEach(function (t) { frag.appendChild(t); });
       });
       if (etc.length) { var he = headerEl(ETC); if (first) he.style.marginTop = '0'; frag.appendChild(he); etc.forEach(function (t) { frag.appendChild(t); }); }
