@@ -90,7 +90,7 @@
       // 고른 카테고리의 칸만 보이게 (칸은 그대로 두고 숨김만)
       cats.forEach(function (c) {
         var on = c.g[0] === sel;
-        c.tiles.forEach(function (t) { t.style.display = on ? '' : 'none'; });
+        c.tiles.forEach(function (t) { if (t.__d === undefined) t.__d = (t.style.display === 'none' ? '' : t.style.display); t.style.display = on ? t.__d : 'none'; });   // 원래 display(flex 등)를 기억했다가 되돌림
         if (on) c.tiles.forEach(function (t) { if (!isLocked(t)) seen[label(t)] = 1; });
       });
       jset(K_SEEN, seen);
