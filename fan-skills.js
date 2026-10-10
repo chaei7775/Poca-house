@@ -704,9 +704,9 @@
     if (!b) {
       b = document.createElement('div');
       b.id = 'fs-combo';
-      b.style.cssText = 'position:absolute;top:70px;right:10px;z-index:31;pointer-events:none;text-align:right;font-style:italic;font-weight:900;';
+      b.style.cssText = 'position:absolute;top:158px;left:12px;z-index:31;pointer-events:none;text-align:left;font-style:italic;font-weight:900;';   // 오른쪽 위는 물약·자동회복 버튼이 있어서 왼쪽(버프 칸 아래)에 둠
       b.innerHTML = '<div id="fs-combo-n" style="font-size:30px;line-height:1;"></div><div id="fs-combo-b" style="font-size:12px;margin-top:2px;"></div>' +
-        '<div style="margin-top:4px;width:96px;height:6px;border-radius:4px;background:rgba(0,0,0,.45);overflow:hidden;margin-left:auto;"><div id="fs-combo-t" style="height:100%;width:100%;border-radius:4px;"></div></div>';
+        '<div style="margin-top:4px;width:96px;height:6px;border-radius:4px;background:rgba(0,0,0,.45);overflow:hidden;"><div id="fs-combo-t" style="height:100%;width:100%;border-radius:4px;"></div></div>';
       F.view.appendChild(b);
     }
     var c = F.combo, col = c >= 8 ? '#ff4d6d' : c >= 5 ? '#ff9f1c' : c >= 3 ? '#ffd23f' : '#ffffff';
