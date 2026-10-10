@@ -1,6 +1,6 @@
 // ════════════════════════════════
 // 🌿 서브 퀘스트 (quest-sub.js) — 가이드(다음 할일)와 별개로, 퀘스트 탭 맨 아래 "서브 퀘스트" 칸에 나온다.
-// - 새로 만든 5개는 경험치 없음(코인만), 메인에서 옮겨온 것은 원래 경험치의 절반. 이미 해본 사람은 바로 완료로 뜨고, 보상은 한 번만 받는다 (game.js 의 questProgress 가 막아줌).
+// - 새로 만든 5개는 경험치 없음(코인만), 메인에서 옮겨온 것은 원래 경험치 그대로(렙업 속도 유지). 이미 해본 사람은 바로 완료로 뜨고, 보상은 한 번만 받는다 (game.js 의 questProgress 가 막아줌).
 // - 조건은 저장된 기록을 1초마다 읽어서 확인. 한 번 달성하면 'ph_questsub' 에 기록해 둠.
 // - 서브 퀘스트를 더 만들려면 아래 SUB 에 한 줄 추가 (detect 는 true/false 돌려주면 됨).
 // 등록: loader.js NEW_CONTENT_FILES 맨 끝에 'quest-sub.js'
@@ -35,12 +35,12 @@
       detect: function () { return F.lesson || (sum((J('ph_training', {}) || {}).count) > 0 && flag('lesson')); } }
   };
 
-  // 메인 퀘스트에 있던 것 중 서브에 어울리는 것들 → 서브로 옮기고 경험치는 원래의 절반 (코인 보상·완료 조건은 그대로, 이미 완료한 기록도 그대로)
+  // 메인 퀘스트에 있던 것 중 서브에 어울리는 것들 → 서브로 옮기되 경험치는 원래 그대로 (코인 보상·완료 조건은 그대로, 이미 완료한 기록도 그대로)
   var MOVE = ['main_mgr_actor', 'main_mgr_top', 'main_mgr_event', 'main_mgr_road', 'main_mgr_run', 'main_mgr_event10', 'main_mgr_run10',
               'main_goods_equip', 'main_goods_full', 'main_goods_rare', 'main_drama_ok', 'main_drama_10', 'main_lv20', 'main_lv30', 'main_lv50'];
   function moveToSub() {
     if (typeof QUESTS === 'undefined') return;
-    MOVE.forEach(function (id) { var q = QUESTS[id]; if (q && !q.__halfExp) { q.__halfExp = true; q.type = 'sub'; q.rewardExp = Math.floor((q.rewardExp || 0) / 2); } });   // 원래 경험치의 절반만
+    MOVE.forEach(function (id) { var q = QUESTS[id]; if (q && !q.__halfExp) { q.__halfExp = true; q.type = 'sub'; } });   // 위치만 서브로 옮김 — 경험치는 원래 그대로 (렙업 속도에 영향 없음)
   }
   function register() {
     if (typeof QUESTS === 'undefined') return false;
@@ -73,7 +73,7 @@
       try {
         var el = document.getElementById('quest-list');
         if (el && typeof QUESTS !== 'undefined' && typeof questProgress !== 'undefined') {
-          var html = '<div style="font-size:13px;font-weight:700;color:#FFB3CC;margin:16px 0 10px;">🌿 서브 퀘스트 <span style="font-size:10px;color:#9aa0c8;font-weight:400;">경험치는 적게</span></div>';
+          var html = '<div style="font-size:13px;font-weight:700;color:#FFB3CC;margin:16px 0 10px;">🌿 서브 퀘스트 <span style="font-size:10px;color:#9aa0c8;font-weight:400;">새 퀘스트는 경험치 없음</span></div>';
           Object.keys(SUB).concat(MOVE).forEach(function (id) {
             var q = QUESTS[id]; if (!q) return;
             var done = questProgress[id] === 'done';
