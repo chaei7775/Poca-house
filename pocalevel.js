@@ -346,7 +346,7 @@ function updateHomeBannerWithStory() {
     labelEl = document.createElement('div');
     labelEl.id = 'home-banner-quest-label';
     labelEl.style.cssText = 'font-size:10px;font-weight:700;color:#222;letter-spacing:1.5px;margin-bottom:2px;';
-    labelEl.textContent = 'QUEST';
+    labelEl.textContent = '📖 스토리';
     overlayEl.insertBefore(labelEl, titleEl);
   }
 
@@ -378,7 +378,7 @@ function renderStoryQuestSection() {
   STORY_QUESTS.forEach(function(q, idx) {
     const done = storyProgress[q.id] === 'done';
     html += '<div onclick="openStoryQuestDetail(' + idx + ')" style="cursor:pointer;background:#fff;border:1.5px solid #000;border-radius:12px;padding:10px 12px;margin-bottom:8px;opacity:' + (done ? '0.55' : '1') + ';">' +
-      '<div style="font-size:10px;font-weight:900;color:#9333ea;letter-spacing:1px;margin-bottom:2px;">QUEST</div>' +
+      '<div style="font-size:10px;font-weight:900;color:#9333ea;letter-spacing:0.5px;margin-bottom:2px;">📖 스토리</div>' +
       '<div style="display:flex;align-items:center;justify-content:space-between;">' +
       '<div class="poca-text-outline" style="font-size:9px;font-weight:900;">' + (done ? '✅ ' : '') + q.title + '</div>' +
       '<div style="font-size:10px;color:#F59E0B;font-weight:900;">🍔' + q.rewardCoins + '</div></div>' +
@@ -399,7 +399,7 @@ function openStoryQuestDetail(idx) {
   overlay.style.cssText = 'position:fixed;inset:0;z-index:960;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;padding:20px;';
   overlay.onclick = function(e) { if (e.target === overlay) overlay.remove(); };
   overlay.innerHTML = '<div style="background:#fff;border:2px solid #000;border-radius:18px;padding:22px;text-align:center;width:90%;max-width:320px;">' +
-    '<div style="font-size:9px;font-weight:900;color:#F97316;letter-spacing:1.5px;margin-bottom:6px;">QUEST</div>' +
+    '<div style="font-size:9px;font-weight:900;color:#F97316;letter-spacing:0.5px;margin-bottom:6px;">📖 스토리</div>' +
     '<div class="poca-text-outline" style="font-size:18px;font-weight:900;margin-bottom:12px;">' + q.title + '</div>' +
     '<div style="font-size:13px;color:#222;line-height:1.6;margin-bottom:16px;">' + q.desc + '</div>' +
     '<div style="font-size:13px;color:#F59E0B;font-weight:900;margin-bottom:16px;">🍔 ' + q.rewardCoins.toLocaleString() + ' · ⭐ ' + q.rewardExp + 'xp</div>' +
