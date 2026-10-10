@@ -85,7 +85,7 @@
       var old = document.getElementById('mail-toast'); if (old) old.remove();
       var el = document.createElement('div'); el.id = 'mail-toast';
       el.style.cssText = 'position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:rgba(26,26,46,0.97);border:1.5px solid ' + ACC + ';color:#fff;padding:11px 20px;border-radius:20px;font-size:13px;font-weight:700;z-index:2600;max-width:90vw;text-align:center;line-height:1.5;' + FONT;
-      el.textContent = m;
+      if (m.indexOf('📮 ') === 0) { var im = document.createElement('img'); im.src = 'more-mailbox.png'; im.alt = ''; im.style.cssText = 'width:20px;height:20px;object-fit:contain;vertical-align:middle;margin-right:6px;'; el.appendChild(im); el.appendChild(document.createTextNode(m.slice(2))); } else el.textContent = m;
       if (onTap) { el.style.cursor = 'pointer'; el.onclick = function () { el.remove(); onTap(); }; }
       document.body.appendChild(el);
       setTimeout(function () { if (el.parentNode) el.remove(); }, onTap ? 6500 : 3500);
@@ -234,7 +234,7 @@
     }).join('');
     var body = ui.view ? viewHtml(s) : ui.tab === 'write' ? writeHtml(s) : ui.tab === 'sent' ? sentHtml(s) : inboxHtml(s);
     ov.innerHTML = '<div style="background:#1a1233;border:1.5px solid ' + ACC + ';border-radius:18px;width:100%;max-width:380px;max-height:88vh;display:flex;flex-direction:column;color:#fff;">' +
-      '<div style="padding:14px 16px 8px;display:flex;align-items:center;"><div style="font-size:16px;font-weight:900;">📮 우편함</div>' +
+      '<div style="padding:14px 16px 8px;display:flex;align-items:center;"><div style="font-size:16px;font-weight:900;display:flex;align-items:center;gap:6px;"><img src="more-mailbox.png" alt="" style="width:26px;height:26px;object-fit:contain;">우편함</div>' +
       '<button id="mail-x" style="margin-left:auto;border:none;border-radius:10px;background:rgba(255,255,255,0.1);color:#fff;padding:6px 12px;font-size:12px;font-weight:900;cursor:pointer;' + FONT + '">닫기</button></div>' +
       '<div style="display:flex;gap:6px;padding:0 14px 10px;">' + tabs + '</div>' +
       '<div id="mail-body" style="padding:0 14px 16px;overflow-y:auto;-webkit-overflow-scrolling:touch;">' + body + '</div></div>';
