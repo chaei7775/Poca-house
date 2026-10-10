@@ -1319,7 +1319,7 @@
     if (!me || !$('bc-view')) return;
     var dt = me.last ? Math.min(0.05, (ts - me.last) / 1000) : 0;
     me.last = ts;
-    if (!me.paused) {
+    if (!me.paused && !$('bc-box-ov')) {   // 조각 상자 뽑는 동안은 시간·이동·이벤트 다 멈춤 (특별 이벤트 제한시간이 줄어들지 않게)
       // 걷기
       var ws = worldSize();
       var dx = (me.tx - me.px) * ws.w, dy = (me.ty - me.py) * ws.h;
