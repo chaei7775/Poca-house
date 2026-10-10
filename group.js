@@ -102,6 +102,7 @@
   }
   function powerOf(act, gs) { var p = 0; for (var k in act.w) p += act.w[k] * (gs[k] || 0); return p; }
   function tierOf(p) { var t = 0; for (var i = 0; i < TIERS.length; i++) if (p >= TIERS[i][0]) t = i; return t; }
+  function aicon(a, px) { return '<img src="grp-' + a.id + '.png" alt="' + esc(a.name) + '" width="' + px + '" height="' + px + '" loading="lazy" decoding="async" style="width:' + px + 'px;height:' + px + 'px;object-fit:contain;vertical-align:middle;">'; }
   function actById(id) { return ACTS.filter(function (a) { return a.id === id; })[0]; }
   function reward(act, members, fame, big) {
     var n = members.length, avgBond = members.reduce(function (a, c) { return a + bond(c); }, 0) / n;
@@ -265,7 +266,7 @@
       var need = Object.keys(a.w).map(function (k) { var st = STATS.filter(function (x) { return x.k === k; })[0]; return st.icon + st.name; }).join(' · ');
       var can = ok && left > 0 && sta > 0;
       return '<div style="display:flex;align-items:center;gap:10px;padding:10px 11px;margin-bottom:7px;border-radius:13px;background:rgba(255,255,255,0.06);border:1.5px solid ' + (best && best.id === a.id ? '#ffd76a' : 'rgba(255,255,255,0.12)') + ';">' +
-        '<div style="font-size:26px;flex-shrink:0;">' + a.icon + '</div><div style="flex:1;min-width:0;">' +
+        '<div style="width:46px;height:46px;flex-shrink:0;display:flex;align-items:center;justify-content:center;">' + aicon(a, 46) + '</div><div style="flex:1;min-width:0;">' +
         '<div style="font-size:13px;font-weight:900;">' + esc(a.name) + (best && best.id === a.id ? ' <span style="font-size:10px;color:#ffd76a;">⭐ 우리 그룹 강점</span>' : '') + '</div>' +
         '<div style="font-size:10.5px;color:#9fb0d0;margin-top:1px;">' + esc(a.desc) + '</div>' +
         '<div style="font-size:10.5px;color:#c9d6f0;margin-top:3px;">필요: ' + need + (r ? ' · 예상 <b style="color:#ffe08a;">' + TIERS[r.tier][1] + '</b> · 약 ' + fmt(r.coin) + ' 코인' + (a.wish ? ' · 🧩' : '') : '') + '</div></div>' +
@@ -314,7 +315,7 @@
     p.style.cssText = 'position:absolute;inset:0;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;padding:18px;z-index:2;';
     p.innerHTML = '<div style="background:#1b2a52;border:2px solid ' + (res.big ? '#ffd76a' : ACC) + ';border-radius:18px;padding:20px 18px;max-width:320px;width:100%;text-align:center;color:#fff;' + FONT + '">' +
       '<div style="font-size:34px;margin-bottom:4px;">' + m + '</div>' +
-      '<div style="font-size:16px;font-weight:900;color:' + (res.big ? '#ffd76a' : '#fff') + ';">' + res.act.icon + ' ' + esc(res.act.name) + ' — ' + (res.big ? '🌟 대성공!' : esc(res.tier)) + '</div>' +
+      '<div style="font-size:16px;font-weight:900;color:' + (res.big ? '#ffd76a' : '#fff') + ';">' + aicon(res.act, 26) + ' ' + esc(res.act.name) + ' — ' + (res.big ? '🌟 대성공!' : esc(res.tier)) + '</div>' +
       (res.big ? '<div style="font-size:11px;color:#ffe08a;margin-top:2px;">(기본 등급: ' + esc(res.tier) + ')</div>' : '') +
       '<div style="font-size:12.5px;color:#dbe6ff;line-height:1.7;margin:8px 0 10px;">' + esc(res.line) + '</div>' +
       '<div style="font-size:15px;font-weight:900;color:#ffe08a;">+' + fmt(res.coin) + ' 코인</div>' +
