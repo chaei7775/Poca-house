@@ -950,9 +950,18 @@
     if (t.lock.cond) { try { return !!t.lock.cond(); } catch (e) { return false; } }
     return true;
   }
+  // 🔒 맵 해금 레벨(unlock-gate.js)이 모자라 아직 못 하는 퀘스트는 '지금 할 일'에서 건너뛴다
+  var QUEST_LV = { s1_6: 4, s1_7: 4, s2_3: 6, s2_4: 6, s3_1: 5 };
+  function lvOk(q) { try { return Number(playerLevel) >= (QUEST_LV[q.id] || 0); } catch (e) { return true; } }
   function activeOf(t) {
-    for (var i = 0; i < t.quests.length; i++) if (!qdone(t.quests[i].id)) return t.quests[i];
-    return null;
+    var first = null;
+    for (var i = 0; i < t.quests.length; i++) {
+      var q = t.quests[i];
+      if (qdone(q.id)) continue;
+      if (!first) first = q;
+      if (lvOk(q)) return q;
+    }
+    return first;   // 남은 게 전부 레벨이 모자라면 맨 앞 것을 그대로 보여준다
   }
   function counts() {
     var d = 0, n = 0;
