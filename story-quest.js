@@ -100,6 +100,16 @@
     w3.__storyWatch = true;
     window.checkQuestProgress = w3;
   })(0);
+  // 처음 대화에 성공한(호감도 문이 열려 대사가 나온) 아이돌을 기억 → 1장 "카드가 말을 걸었어" 장면에 그 아이돌이 나옴
+  (function hookFirstMet(tries) {
+    if (typeof window.showMeetPopup !== 'function') { if (tries < 100) setTimeout(function () { hookFirstMet(tries + 1); }, 150); return; }
+    var o = window.showMeetPopup; if (o.__firstMet) return;
+    var w = function (ch, meet, dialog) {
+      try { if (dialog && ch && ch.id && !localStorage.getItem('ph_firstmet')) localStorage.setItem('ph_firstmet', ch.id); } catch (e) {}
+      return o.apply(this, arguments);
+    };
+    w.__firstMet = true; window.showMeetPopup = w;
+  })(0);
   // 드링크: 가방의 1개/5개/10개/가득 버튼(drink-bulk.js)은 기존 드링크 퀘스트 감지를 거치지 않아서,
   // "스태미나 +N" 알림이 뜨면 우리가 직접 알려줌
   try { window.addEventListener('ph-drink-tried', function () { flag('drank'); if (typeof checkQuestProgress === 'function') checkQuestProgress('q2_drink'); }); } catch (e) {}
@@ -1010,7 +1020,9 @@
   }
   function openStory(x, reward) {
     if (!x) return;
-    var lines = x.lines.map(function (r) { return parseLine(r, x.who); });
+    var who0 = x.who;
+    if (x.id === 's1_3') { try { var fm = localStorage.getItem('ph_firstmet'); if (fm && NAMES[fm]) who0 = fm; } catch (e) {} }   // 처음 만난 아이돌로 (고정 민준 X)
+    var lines = x.lines.map(function (r) { return parseLine(r, who0); });
     var t = trackById(x.track);
     var idx = 0;
     var ov = document.createElement('div');
