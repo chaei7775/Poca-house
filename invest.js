@@ -1000,7 +1000,7 @@
   })(0);
   // 컬렉션 화면에 한정판 도감 버튼
   (function addDexBtn(n) {
-    var h = document.querySelector('#screen-collection .collection-header');
+    var h = document.querySelector('#screen-collection .collection-header > div') || document.querySelector('#screen-collection .collection-header');
     if (!h) { if (n < 100) setTimeout(function () { addDexBtn(n + 1); }, 200); return; }
     if (document.getElementById('btn-lim-dex')) return;
     var b = document.createElement('button'); b.id = 'btn-lim-dex';

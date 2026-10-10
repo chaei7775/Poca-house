@@ -504,9 +504,12 @@ html{color-scheme:only light;}
 
 <!-- COLLECTION -->
 <div id="screen-collection" class="screen">
-  <div class="collection-header">
+  <div class="collection-header" style="position:sticky;top:0;z-index:5;display:flex;align-items:center;justify-content:space-between;gap:10px;">
+    <div>
     <div class="collection-title">내 컬렉션 📁</div>
     <div class="collection-sub" id="collection-count">0 / 0 보유</div>
+    </div>
+    <button onclick="goTo('home')" style="flex:none;padding:8px 14px;border-radius:12px;border:1.5px solid rgba(255,255,255,.8);background:rgba(255,255,255,.2);color:#fff;font-size:13px;font-weight:900;font-family:inherit;cursor:pointer;">닫기</button>
   </div>
   <div class="collection-grid" id="collection-grid"></div>
   <div style="padding:0 16px;">
