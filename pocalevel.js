@@ -129,9 +129,9 @@ function updatePocaHouseLevelBar() {
 }
 
 // ════════════════════════════════
-// 🔓 포카하우스 콘텐츠 해금 (방꾸미기 Lv3 / 창고 Lv5 / 가구상점 Lv10)
+// 🔓 포카하우스 콘텐츠 해금 (방꾸미기 Lv3 / 창고 Lv5 / 가구상점 Lv8)
 // ════════════════════════════════
-const POCAHOUSE_UNLOCK = { roomDeco: 3, warehouse: 5, furnitureShop: 10, agency: 10, specialMoonlit: 20, specialWorkshop: 30 };
+const POCAHOUSE_UNLOCK = { roomDeco: 3, warehouse: 5, furnitureShop: 8, agency: 10, specialMoonlit: 20, specialWorkshop: 30 };
 
 function showPocaHouseLockedPopup(unlockLevel, featureName) {
   const old = document.getElementById('pocahouse-locked-overlay');
@@ -143,7 +143,7 @@ function showPocaHouseLockedPopup(unlockLevel, featureName) {
   overlay.innerHTML = '<div style="background:#fff;border:2px solid #000;border-radius:18px;padding:24px;text-align:center;width:88%;max-width:300px;">' +
     '<div style="font-size:40px;margin-bottom:8px;">🔒</div>' +
     '<div class="poca-text-outline" style="font-size:16px;font-weight:900;margin-bottom:8px;">아직 잠겨있어요</div>' +
-    '<div style="font-size:13px;color:#222;line-height:1.6;margin-bottom:16px;">' + featureName + '은 포카하우스 레벨 ' + unlockLevel + '부터 이용할 수 있어요.<br>포카를 학교에 보내 레벨을 올려보세요!</div>' +
+    '<div style="font-size:13px;color:#222;line-height:1.6;margin-bottom:16px;">' + featureName + '은 포카하우스 레벨 ' + unlockLevel + '부터 이용할 수 있어요.<br>포카를 학교에 보내거나 알바를 해서 레벨을 올려보세요!</div>' +
     '<button onclick="document.getElementById(\'pocahouse-locked-overlay\').remove()" style="width:100%;padding:12px;background:linear-gradient(135deg,#FF6B9D,#C084FC);border:none;border-radius:12px;color:#fff;font-size:14px;font-weight:900;cursor:pointer;font-family:\'Noto Sans KR\',sans-serif;">확인</button></div>';
   document.body.appendChild(overlay);
 }
