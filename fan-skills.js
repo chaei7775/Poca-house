@@ -811,8 +811,9 @@
     var st = (typeof specialExploreState !== 'undefined') ? specialExploreState : null;
     var scid = (st && st.charId) || '';
     // 🎟️ 세연(체험용 히든카드)은 스킬·숙련도·경험치가 없으니, 내가 키우는 아이돌의 것을 빌려 쓴다
+    var wasTrial = scid === 'seyeon_trial';
     if (scid === 'seyeon_trial') { try { scid = (typeof window.pickGrowingIdol === 'function' && window.pickGrowingIdol()) || ''; } catch (e) { scid = ''; } }
-    F = { view: view, cid: scid, mapId: (st && st.locationId) || 'broadcast_front', fans: [], cd: {}, nid: 0, obs: null, bar: null, hint: null, btns: null };
+    F = { trial: wasTrial, view: view, cid: scid, mapId: (st && st.locationId) || 'broadcast_front', fans: [], cd: {}, nid: 0, obs: null, bar: null, hint: null, btns: null };
     injectStyle();
     buildBar(view);
     setTimeout(function () { if (F && F.view === view && F.mapId !== 'fan_rush') seqTutorial(); }, 700);
@@ -915,6 +916,7 @@
     }).join('');
     ov.innerHTML = '<div style="width:100%;max-width:380px;max-height:92vh;overflow-y:auto;background:linear-gradient(135deg,#1a1a2e,#2d1b4e);border:2px solid #C084FC;border-radius:20px;padding:18px 14px;color:#fff;">' +
       '<div style="font-size:17px;font-weight:900;text-align:center;">⚔️ ' + (charName(edChar) || '') + ' 스킬 장착</div>' +
+      ((F && F.trial && edChar === F.cid) ? '<div style="font-size:11px;color:#ffe08a;text-align:center;margin:6px 0 0;line-height:1.5;background:rgba(255,215,0,.12);border-radius:10px;padding:6px 8px;">🎟️ 세연 체험 카드는 스킬이 없어서, 지금은 키우는 ' + (charName(edChar) || '아이돌') + '의 스킬을 대신 써요</div>' : '') +
       '<div style="font-size:11px;color:#bbb;text-align:center;margin:4px 0 12px;line-height:1.5;">장착은 멤버마다 따로예요 · 그 멤버가 배운 스킬만 장착할 수 있어요 (모든 팬덤 원정 맵에서 적용)<br>칸을 누르고 → 아래 스킬을 눌러 장착 · 장착된 칸을 누르면 해제<br><span style="color:#ffd76a;">스킬은 멤버마다 배워야 하고, 쓰려면 플레이어 레벨이 필요해요 (지금 Lv.' + plv() + ')</span></div>' +
       '<div style="display:flex;justify-content:center;align-items:center;gap:6px;margin-bottom:10px;"><span style="font-size:11px;color:#bbb;margin-right:2px;">세트</span>' +
         [1, 2, 3].map(function (n) { var on = activeSet(edChar) === n; return '<button data-set="' + n + '" style="padding:8px 16px;border-radius:12px;border:2px solid ' + (on ? '#FFD700' : 'rgba(255,255,255,.25)') + ';background:' + (on ? 'rgba(255,215,0,.18)' : 'rgba(255,255,255,.06)') + ';color:#fff;font-size:13px;font-weight:900;cursor:pointer;font-family:inherit;">' + n + '번</button>'; }).join('') + '</div>' +
