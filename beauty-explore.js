@@ -161,8 +161,8 @@
       flash: 0, glow: 0, shakeT: 0, msg: '', msgT: 0, last: performance.now(), raf: 0, t: 0, ended: false, endDelay: -1
     };
     bg.onload = function () { if (S) S.bgOk = true; };
-    face.onload = function () { if (S) { S.faceOk = true; buildSkin(); } };
-    face.onerror = function () { if (S && /-d\.png/.test(face.src)) face.src = face.src.replace('-d.png', '.png'); };   // 새 그림을 못 받으면 원래 그림으로 (둥근 빈 얼굴로 안 남게)
+    face.onload = function () { if (S) { S.faceOk = true; S.faceAt = S.t; buildSkin(); } };
+    face.onerror = function () { if (!S) return; if (/-d\.png/.test(face.src)) face.src = face.src.replace('-d.png', '.png'); else S.faceFail = true; };   // 새 그림을 못 받으면 원래 그림으로 (둥근 빈 얼굴로 안 남게)
     resize();
     say(STAGES[0].tip, 3);
     sfx('setGrab');
@@ -464,7 +464,7 @@
     g.clearRect(0, 0, N, N);
     if (S.faceOk) {
       drawFaceImg(g, S.face, N, faceIdOf(S.face));
-    } else {
+    } else if (S.faceFail) {                               // 그림을 끝내 못 받았을 때만 임시 동그라미 (받는 중엔 아무것도 안 그려서 깜빡임 방지)
       g.fillStyle = '#ffd9c8'; g.beginPath(); g.arc(N / 2, N / 2, N * 0.38, 0, 6.3); g.fill();
     }
     g.globalCompositeOperation = 'source-atop';
@@ -512,7 +512,7 @@
     c.save();
     c.translate(f[0], f[1] + f[2] * 0.48);                              // 목 아래를 축으로 흔들어서 머리가 날리는 느낌
     c.rotate(Math.sin(S.t * 18) * S.sway * 0.06);
-    c.globalAlpha = 0.97;
+    c.globalAlpha = 0.97 * (S.faceOk ? Math.min(1, (S.t - (S.faceAt || 0)) / 0.3) : 1);   // 얼굴이 뿅 하고 바뀌지 않고 부드럽게 나타남
     c.drawImage(S.fc, -f[2] / 2, -f[2] * 0.98, f[2], f[2]);
     c.restore();
     c.globalAlpha = 1;
