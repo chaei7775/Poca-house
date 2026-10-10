@@ -1,0 +1,30 @@
+// ✉️ 친구 편지(우편함) Firestore 규칙 — Firebase 콘솔 → Firestore Database → 규칙(Rules) 에서
+// 기존 `match /databases/{database}/documents {` 안에 아래 블록을 추가하고 [게시] 하세요.
+// (gifts 블록 옆에 같이 두면 돼요. 글자 수 한도는 mailbox.js 의 TEXT_MAX(300) 와 같아야 해요)
+
+    match /letters/{letterId} {
+      // 보내기: 내 이름으로, 친구에게만, 300자 이하, 아직 안 읽음 상태로
+      allow create: if request.auth != null
+        && request.resource.data.fromUid == request.auth.uid
+        && request.resource.data.keys().hasOnly(['fromUid','fromNick','toUid','toNick','text','read','createdAt'])
+        && request.resource.data.toUid is string
+        && request.resource.data.toUid != request.auth.uid
+        && request.resource.data.text is string
+        && request.resource.data.text.size() >= 1
+        && request.resource.data.text.size() <= 300
+        && request.resource.data.read == false
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.friends.hasAny([request.resource.data.toUid]);
+
+      // 읽기: 보낸 사람과 받는 사람만
+      allow read: if request.auth != null
+        && (resource.data.fromUid == request.auth.uid || resource.data.toUid == request.auth.uid);
+
+      // 받은 사람이 '읽음' 표시만 할 수 있음 (false → true, 다른 값은 못 바꿈)
+      allow update: if request.auth != null
+        && resource.data.toUid == request.auth.uid
+        && resource.data.read == false
+        && request.resource.data.read == true
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['read']);
+
+      allow delete: if false;
+    }
