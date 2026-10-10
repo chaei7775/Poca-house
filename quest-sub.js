@@ -33,18 +33,18 @@
     sub_lesson: { title: '아이돌 레슨 받기', desc: '📅 기획사 → 스케줄·식사에서 아이돌에게 레슨을 받게 해보자. 처음 5번은 신입 코치 할인 이벤트!',
       condition: 'q3_lesson', rewardCoins: 500,
       detect: function () { return F.lesson || (sum((J('ph_training', {}) || {}).count) > 0 && flag('lesson')); } },
-    // 👥 그룹 (Lv.20 해금) — 메인 퀘스트. 경험치는 quest-boost 가 x2 (합계 약 1.8만, 하루~이틀치). 코인도 퀘스트 코인은 quest-boost.js 가 x5 해서 지급하므로 숫자는 실제의 1/5 (실제 500만/1000만/2000만/3000만)
+    // 👥 그룹 (Lv.20 해금) — 메인 퀘스트. 경험치 없음(레벨 속도 영향 0), 코인만. 코인도 퀘스트 코인은 quest-boost.js 가 x5 해서 지급하므로 숫자는 실제의 1/5 (실제 500만/1000만/2000만/3000만)
     sub_group_make: { title: '우리 그룹 결성하기', desc: '(Lv.20~) 더보기 → 🧑‍🎤 그룹에서 데뷔한 아이돌 2~4명을 골라 그룹을 만들어봐. 이름도 지어줘!',
-      condition: 'q4_group_make', type: 'main', rewardExp: 1000, rewardCoins: 1000000,
+      condition: 'q4_group_make', type: 'main', rewardExp: 0, rewardCoins: 1000000,
       detect: function () { return F.gmake || (!!(J('ph_group', {}) || {}).group && flag('gmake')); } },
     sub_group_act: { title: '첫 그룹 활동', desc: '(Lv.20~) 더보기 → 그룹에서 합동 무대·그룹 음원 같은 활동을 한 번 해봐. 멤버 능력치가 높을수록 결과가 좋아져.',
-      condition: 'q4_group_act', type: 'main', rewardExp: 1500, rewardCoins: 2000000,
+      condition: 'q4_group_act', type: 'main', rewardExp: 0, rewardCoins: 2000000,
       detect: function () { return F.gact || (((J('ph_group', {}) || {}).total || 0) >= 1 && flag('gact')); } },
     sub_group_10: { title: '그룹 활동 10번', desc: '(Lv.20~) 그룹 활동을 모두 합쳐 10번 해봐. 체력 음료를 쓰면 하루에 더 할 수 있어.',
-      condition: 'q4_group_10', type: 'main', rewardExp: 2500, rewardCoins: 4000000,
+      condition: 'q4_group_10', type: 'main', rewardExp: 0, rewardCoins: 4000000,
       detect: function () { return F.g10 || (((J('ph_group', {}) || {}).total || 0) >= 10 && flag('g10')); } },
     sub_group_pop: { title: '인기 그룹이 되자', desc: '(Lv.20~) 그룹 인기도를 쌓아서 그룹 레벨 3 "인기 그룹"까지 올려봐. 인기도는 활동할 때마다 올라가.',
-      condition: 'q4_group_pop', type: 'main', rewardExp: 4000, rewardCoins: 6000000,
+      condition: 'q4_group_pop', type: 'main', rewardExp: 0, rewardCoins: 6000000,
       detect: function () { return F.gpop || (((J('ph_group', {}) || {}).fame || 0) >= 240 && flag('gpop')); } }
   };
 
