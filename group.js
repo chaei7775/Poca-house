@@ -5,6 +5,7 @@
 //  · 그룹 능력치 = 멤버들의 능력치(보컬·댄스·연기·예능·매력, 레슨으로 키움) 평균. 어떤 멤버를 묶느냐에 따라 그룹 콘셉트와 잘하는 활동이 달라진다.
 //  · 그룹 활동 6가지(합동 무대 · 그룹 음원 · 댄스 챌린지 · 단체 예능 · 그룹 화보 · 단체 드라마): 활동마다 보는 능력치가 다르고,
 //    그 능력치가 높을수록 결과 등급(아쉬움 → 최고)과 대성공 확률이 오른다. 보상: 코인 · 그룹 인기도 · (일부) 소원의 조각
+//  · 💪 그룹 체력: 하루 무료 3회 + 체력 음료(코인으로 구매, 안 쓰면 남아요). 활동 1번에 체력 1. 활동마다 하루 횟수 제한도 따로 있음.
 //  · 인기도에 따라 그룹 레벨(신인 → 월드 스타)이 오른다.
 // 저장: localStorage 'ph_group' (ph_ 로 시작 → 클라우드 저장에 자동 포함)
 // 값을 바꾸고 싶으면 아래 [설정]만 고치면 됨.
@@ -17,6 +18,8 @@
   var MIN_MEMBERS = 2, MAX_MEMBERS = 4;
   var NAME_MAX = 10;
   var PAY_MULT = 20;                   // 💰 코인 배율 (기준: 드라마 혼자 촬영이 약 1500만. 인연 높은 2명이 '좋음' 등급이면 활동 한 번이 그 정도가 되도록 맞춤. 이 숫자만 바꾸면 전체 조절)
+  var STA_FREE = 3;                    // 💪 그룹 체력: 하루 무료 활동 횟수 (모든 활동이 같이 씀. 드라마 촬영 체력과 같은 방식)
+  var POTION_SMALL = 10000000, POTION_BIG = 28000000;   // 체력 음료 (소: 1회 / 대: 3회) 가격 — 드라마와 같음
   var MEMBER_BONUS = 0.25;             // 멤버 1명 늘 때마다 +25% (활동마다 따로 정한 게 있으면 그걸 씀)
   var BOND_BONUS = 0.5;                // 평균 인연(1~20) 만점이면 +50%
   var LEVEL_BONUS = 0.05;              // 그룹 레벨 1당 +5%
@@ -61,7 +64,9 @@
     if (!s.fame || typeof s.fame !== 'number') s.fame = 0;
     if (!s.total) s.total = 0;
     if (!Array.isArray(s.log)) s.log = [];
-    if (s.day !== today()) { s.day = today(); s.used = {}; }
+    if (s.day !== today()) { s.day = today(); s.used = {}; s.free = STA_FREE; }
+    if (typeof s.free !== 'number') s.free = STA_FREE;
+    if (typeof s.potion !== 'number') s.potion = 0;
     if (!s.used || typeof s.used !== 'object') s.used = (s.day === today() && s.today) ? { stage: s.today } : {};
     delete s.today;
     if (s.group && (!Array.isArray(s.group.members) || !s.group.name)) s.group = null;
@@ -122,6 +127,7 @@
     var s = load(); if (!s.group) return null;
     var act = actById(id); if (!act) return null;
     if ((s.used[id] || 0) >= act.per) return { err: '오늘 ' + act.name + '은(는) 다 했어요 (하루 ' + act.per + '번). 내일 또 해요!' };
+    if (s.free + s.potion < 1) return { err: '그룹 체력이 없어요. 체력 음료를 사거나 내일 다시 해요!' };
     var live = liveMembers(s);
     if (live.length < MIN_MEMBERS) return { err: '데뷔한 멤버가 ' + MIN_MEMBERS + '명 이상이어야 해요. 멤버를 바꿔주세요' };
     var r0 = reward(act, live, s.fame, false);
@@ -131,6 +137,7 @@
     var lv0 = levelOf(s.fame);
     addCoins(r.coin);
     if (wish) { try { if (typeof addToBag === 'function') addToBag('🧩', '소원의 조각', 'wish', wish, '100개 모으면 소원의 결정! (현재: ' + (typeof wishFragments !== 'undefined' ? wishFragments : '?') + '개)'); } catch (e) {} }
+    if (s.free > 0) s.free--; else s.potion--;
     s.fame += r.fame; s.total += 1; s.used[id] = (s.used[id] || 0) + 1;
     var lv1 = levelOf(s.fame);
     var line = pick(LINES[id]).replace(/\{m\}/g, names(live)).replace(/\{g\}/g, s.group.name) + (big ? ' ' + pick(BIG_LINE) : '');
@@ -192,19 +199,21 @@
       var v = Math.round(gs[st.k]);
       return '<div style="display:flex;align-items:center;gap:6px;margin-top:4px;"><div style="width:44px;font-size:10.5px;color:#c9d6f0;">' + st.icon + ' ' + st.name + '</div><div style="flex:1;height:7px;border-radius:5px;background:rgba(255,255,255,0.1);overflow:hidden;"><div style="width:' + Math.min(100, v) + '%;height:100%;background:' + st.color + ';"></div></div><div style="width:24px;text-align:right;font-size:10.5px;font-weight:900;">' + v + '</div></div>';
     }).join('') : '';
+    var sta = s.free + s.potion, pips = '';
+    for (var i = 0; i < STA_FREE; i++) pips += '<span style="display:inline-block;width:14px;height:14px;border-radius:50%;margin-right:4px;background:' + (i < s.free ? '#7fe8b0' : 'rgba(255,255,255,0.15)') + ';"></span>';
     var best = null;
     if (gs) ACTS.forEach(function (a) { var p = powerOf(a, gs); if (!best || p > best.p) best = { id: a.id, p: p }; });
     var cards = ACTS.map(function (a) {
       var used = s.used[a.id] || 0, left = a.per - used;
       var r = ok ? reward(a, live, s.fame, false) : null;
       var need = Object.keys(a.w).map(function (k) { var st = STATS.filter(function (x) { return x.k === k; })[0]; return st.icon + st.name; }).join(' · ');
-      var can = ok && left > 0;
+      var can = ok && left > 0 && sta > 0;
       return '<div style="display:flex;align-items:center;gap:10px;padding:10px 11px;margin-bottom:7px;border-radius:13px;background:rgba(255,255,255,0.06);border:1.5px solid ' + (best && best.id === a.id ? '#ffd76a' : 'rgba(255,255,255,0.12)') + ';">' +
         '<div style="font-size:26px;flex-shrink:0;">' + a.icon + '</div><div style="flex:1;min-width:0;">' +
         '<div style="font-size:13px;font-weight:900;">' + esc(a.name) + (best && best.id === a.id ? ' <span style="font-size:10px;color:#ffd76a;">⭐ 우리 그룹 강점</span>' : '') + '</div>' +
         '<div style="font-size:10.5px;color:#9fb0d0;margin-top:1px;">' + esc(a.desc) + '</div>' +
         '<div style="font-size:10.5px;color:#c9d6f0;margin-top:3px;">필요: ' + need + (r ? ' · 예상 <b style="color:#ffe08a;">' + TIERS[r.tier][1] + '</b> · 약 ' + fmt(r.coin) + ' 코인' + (a.wish ? ' · 🧩' : '') : '') + '</div></div>' +
-        '<button data-act="' + a.id + '" style="flex-shrink:0;padding:9px 11px;border:none;border-radius:11px;color:#fff;font-size:12px;font-weight:900;cursor:pointer;background:' + (can ? 'linear-gradient(135deg,#ff6b9d,#c084fc)' : 'rgba(255,255,255,0.12)') + ';' + (can ? '' : 'opacity:0.6;') + FONT + '">' + (left > 0 ? '하기 ' + used + '/' + a.per : '완료') + '</button></div>';
+        '<button data-act="' + a.id + '" style="flex-shrink:0;padding:9px 11px;border:none;border-radius:11px;color:#fff;font-size:12px;font-weight:900;cursor:pointer;background:' + (can ? 'linear-gradient(135deg,#ff6b9d,#c084fc)' : 'rgba(255,255,255,0.12)') + ';' + (can ? '' : 'opacity:0.6;') + FONT + '">' + (left <= 0 ? '완료' : sta < 1 ? '체력 없음' : '하기 ' + used + '/' + a.per) + '</button></div>';
     }).join('');
     var logs = s.log.slice(0, 5).map(function (l) { return '<div style="padding:6px 0;border-top:1px solid rgba(255,255,255,0.08);font-size:11.5px;color:#dbe6ff;">' + esc(l.m) + '</div>'; }).join('');
     return '<div style="background:linear-gradient(135deg,rgba(74,168,255,0.18),rgba(124,92,255,0.18));border:1.5px solid rgba(124,196,255,0.5);border-radius:16px;padding:14px;margin-bottom:12px;">' +
@@ -214,6 +223,10 @@
       '<div style="height:8px;border-radius:6px;background:rgba(255,255,255,0.12);overflow:hidden;margin-top:12px;"><div style="width:' + pct + '%;height:100%;background:linear-gradient(90deg,#4aa8ff,#c084fc);"></div></div>' +
       '<div style="font-size:10.5px;color:#9fb0d0;margin-top:4px;text-align:center;">인기도 ' + fmt(s.fame) + (nextAt ? ' / ' + fmt(nextAt) + ' (다음: ' + esc(LEVELS[lv + 1][1]) + ')' : ' (최고 레벨!)') + '</div></div>' +
       (ok ? '' : '<div style="font-size:12px;color:#ffb0b0;text-align:center;margin-bottom:8px;">데뷔한 멤버가 ' + MIN_MEMBERS + '명 이상이어야 활동할 수 있어요. 멤버를 바꿔주세요.</div>') +
+      '<div style="display:flex;align-items:center;gap:8px;padding:9px 11px;margin-bottom:8px;border-radius:12px;background:rgba(127,232,176,0.1);border:1px solid rgba(127,232,176,0.35);">' +
+        '<div style="flex:1;"><div style="font-size:11px;color:#c9f0dc;font-weight:900;">💪 그룹 체력 (오늘 무료 ' + s.free + '/' + STA_FREE + (s.potion ? ' + 음료 ' + s.potion : '') + ')</div><div style="margin-top:4px;">' + pips + '</div></div>' +
+        '<button data-buy="1" style="padding:7px 9px;border:none;border-radius:10px;color:#fff;font-size:10.5px;font-weight:900;cursor:pointer;background:rgba(255,255,255,0.14);line-height:1.35;' + FONT + '">🥤 소 1회<br>' + fmt(POTION_SMALL / 10000) + '만</button>' +
+        '<button data-buy="3" style="padding:7px 9px;border:none;border-radius:10px;color:#fff;font-size:10.5px;font-weight:900;cursor:pointer;background:rgba(255,255,255,0.14);line-height:1.35;' + FONT + '">🥤 대 3회<br>' + fmt(POTION_BIG / 10000) + '만</button></div>' +
       '<div style="font-size:11.5px;color:#9fb0d0;font-weight:900;margin-bottom:6px;">그룹 활동 <span style="font-weight:500;">(하루마다 횟수가 새로 채워져요)</span></div>' + cards +
       '<div style="display:flex;gap:8px;margin-top:8px;"><button id="grp-edit" style="flex:1;padding:11px;border:none;border-radius:12px;color:#fff;font-size:12.5px;font-weight:900;cursor:pointer;background:rgba(255,255,255,0.1);' + FONT + '">✏️ 멤버·이름 바꾸기</button>' +
       '<button id="grp-del" style="flex:1;padding:11px;border:none;border-radius:12px;color:#ffb0b0;font-size:12.5px;font-weight:900;cursor:pointer;background:rgba(255,80,80,0.12);' + FONT + '">그룹 해체</button></div>' +
@@ -284,6 +297,14 @@
       if (dl.getAttribute('data-sure') !== '1') { dl.setAttribute('data-sure', '1'); dl.textContent = '정말 해체? 한 번 더 누르기'; setTimeout(function () { if (dl.parentNode) { dl.setAttribute('data-sure', '0'); dl.textContent = '그룹 해체'; } }, 3500); return; }
       var st = load(); st.group = null; st.fame = 0; st.total = 0; st.log = []; save(st); ui.edit = true; ui.sel = []; ui.name = ''; toast('그룹을 해체했어요'); render();
     };
+    Array.prototype.forEach.call(ov.querySelectorAll('[data-buy]'), function (b) {
+      b.onclick = function () {
+        var n = +b.getAttribute('data-buy'), price = n === 1 ? POTION_SMALL : POTION_BIG, have = 0;
+        try { have = coins; } catch (e) {}
+        if (have < price) { toast('코인이 부족해요 (' + fmt(price) + ' 필요)'); return; }
+        addCoins(-price); var st = load(); st.potion += n; save(st); toast('🥤 체력 음료로 활동 ' + n + '회를 더 할 수 있어요'); render();
+      };
+    });
     Array.prototype.forEach.call(ov.querySelectorAll('[data-act]'), function (b) {
       b.onclick = function () { var res = doActivity(b.getAttribute('data-act')); if (!res) return; if (res.err) { toast(res.err); return; } popup(res); };
     });
