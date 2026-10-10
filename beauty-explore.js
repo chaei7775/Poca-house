@@ -198,6 +198,20 @@
   }
   function spotXY(t) { var f = faceC(); return [f[0] + t.fx * f[2], f[1] + t.fy * f[2]]; }
   // 얼굴 그림에서 '살색 부분'만 찾아서 퍼프 자리 후보로 쓴다 (머리카락·장식 위에는 안 나오게)
+  // 얼굴 그림을 256 칸에 그린다. 그림마다 살짝 손봐야 하는 애가 있어서(민준: 조금 줄이고, 네모로 남은 장식 가장자리는 둥글게 잘라냄) 여기서만 처리
+  function drawFaceImg(g, img, N, fid) {
+    var iw = img.naturalWidth || img.width || N, ih = img.naturalHeight || img.height || N, k = Math.min(N / iw, N / ih);
+    var sc = fid === 'minjun' ? 0.93 : 1, w = iw * k * sc, h = ih * k * sc;
+    var ox = (N - w) / 2, oy = fid === 'minjun' ? N - h - N * 0.02 : (N - h) / 2;
+    g.drawImage(img, ox, oy, w, h);
+    if (fid === 'minjun') {
+      g.save(); g.globalCompositeOperation = 'destination-in';
+      var cx = 128, cy = 108, R = 112, mg = g.createRadialGradient(cx, cy, R - 16, cx, cy, R);
+      mg.addColorStop(0, 'rgba(0,0,0,1)'); mg.addColorStop(1, 'rgba(0,0,0,0)');
+      g.fillStyle = mg; g.fillRect(0, 0, N, N); g.restore();
+    }
+  }
+  function faceIdOf(img) { var m = /face-(\w+)\.png/.exec(img.src || ''); return m ? m[1] : ''; }
   function buildSkin() {
     S.skin = null;
     var me = S, im = new Image();   // 색을 읽으려면 따로 받아야 해서(보안 규칙) 분석용 사본을 한 번 더 받음. 실패하면 예전 자리(SPOTS)를 씀
@@ -211,8 +225,7 @@
     try {
       var N = 256, cv = document.createElement('canvas'); cv.width = N; cv.height = N;
       var g = cv.getContext('2d');
-      var iw = img.naturalWidth || img.width || N, ih = img.naturalHeight || img.height || N, k = Math.min(N / iw, N / ih);
-      g.drawImage(img, (N - iw * k) / 2, (N - ih * k) / 2, iw * k, ih * k);
+      drawFaceImg(g, img, N, faceIdOf(img));
       var d = g.getImageData(0, 0, N, N).data, sk = new Uint8Array(N * N), i;
       for (i = 0; i < N * N; i++) {
         var r = d[i * 4], gg = d[i * 4 + 1], b = d[i * 4 + 2], a = d[i * 4 + 3];
@@ -454,9 +467,7 @@
     g.globalCompositeOperation = 'source-over';
     g.clearRect(0, 0, N, N);
     if (S.faceOk) {
-      var iw = S.face.naturalWidth || S.face.width || N, ih = S.face.naturalHeight || S.face.height || N;
-      var k = Math.min(N / iw, N / ih);
-      g.drawImage(S.face, (N - iw * k) / 2, (N - ih * k) / 2, iw * k, ih * k);
+      drawFaceImg(g, S.face, N, faceIdOf(S.face));
     } else {
       g.fillStyle = '#ffd9c8'; g.beginPath(); g.arc(N / 2, N / 2, N * 0.38, 0, 6.3); g.fill();
     }
