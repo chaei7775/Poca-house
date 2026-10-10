@@ -152,5 +152,33 @@ service cloud.firestore {
 
       allow delete: if false;
     }
+
+    // ✉️ 친구 편지 (mailbox.js) — 글자 수 한도(300)는 mailbox.js 의 TEXT_MAX 와 같아야 함
+    match /letters/{letterId} {
+      // 보내기: 내 이름으로, 내 친구에게만, 1~300자, 아직 안 읽음 상태로
+      allow create: if signedIn()
+        && request.resource.data.keys().hasOnly(['fromUid','fromNick','toUid','toNick','text','read','createdAt'])
+        && request.resource.data.fromUid == request.auth.uid
+        && request.resource.data.toUid is string
+        && request.resource.data.toUid != request.auth.uid
+        && request.resource.data.text is string
+        && request.resource.data.text.size() >= 1
+        && request.resource.data.text.size() <= 300
+        && request.resource.data.read == false
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('friends', []).hasAny([request.resource.data.toUid]);
+
+      // 읽기: 보낸 사람과 받는 사람만
+      allow read: if signedIn()
+        && (resource.data.fromUid == request.auth.uid || resource.data.toUid == request.auth.uid);
+
+      // 받은 사람이 '읽음' 표시만 (false → true)
+      allow update: if signedIn()
+        && resource.data.toUid == request.auth.uid
+        && resource.data.read == false
+        && request.resource.data.read == true
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['read']);
+
+      allow delete: if false;
+    }
   }
 }

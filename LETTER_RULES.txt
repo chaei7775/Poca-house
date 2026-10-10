@@ -13,7 +13,7 @@
         && request.resource.data.text.size() >= 1
         && request.resource.data.text.size() <= 300
         && request.resource.data.read == false
-        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.friends.hasAny([request.resource.data.toUid]);
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('friends', []).hasAny([request.resource.data.toUid]);
 
       // 읽기: 보낸 사람과 받는 사람만
       allow read: if request.auth != null
