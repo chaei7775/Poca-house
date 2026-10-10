@@ -345,7 +345,7 @@
       var res = orig.apply(this, arguments);
       var grid = $('more-menu-grid');
       if (grid && !$('more-chart-tile')) {
-        grid.insertAdjacentHTML('beforeend', window.moreMenuTileHtml('📈', lvNow() < CHART_LV ? '음원차트 🔒Lv.' + CHART_LV : '음원차트', ACC, 'openMusicChart()'));
+        grid.insertAdjacentHTML('beforeend', window.moreMenuTileHtml('📈', '음원차트', ACC, 'openMusicChart()'));
         if (grid.lastElementChild) grid.lastElementChild.id = 'more-chart-tile';
       }
       return res;
