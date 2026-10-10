@@ -48,9 +48,9 @@
   var ROW_Y = [535, 640, 830, 940, 1040];     // 위 블록 2줄 + 아래 블록 3줄 (map-concert.jpg 그림의 객석 위치에 맞춤)
   var FAN_R = 28;              // 팬 크기(반지름)
   var SKILLS = [
-    { id: 'highlight', name: '하이라이트 부르기', short: '하이라이트', desc: '주변 팬 하트 +50', icon: '🎤', radius: 250, gain: 50, fat: 30, cd: 3.5,  rgb: '255,120,170', sfx: 'concertHigh' },
-    { id: 'wink',      name: '윙크 샤워',         short: '윙크 샤워', desc: '넓은 범위 하트 +30', icon: '💖', radius: 430, gain: 30, fat: 40, cd: 5.5,  rgb: '255,205,90',  sfx: 'concertWink' },
-    { id: 'encore',    name: '앵콜 폭죽',         short: '앵콜 폭죽', desc: '하트 가득 찬 팬 전원 선물!', icon: '✨', radius: 0,   gain: 0,  cd: 10, rgb: '190,140,255', sfx: 'concertEncore', finale: true }
+    { id: 'highlight', name: '하이라이트 부르기', short: '하이라이트', desc: '주변 팬 하트 +50', icon: '🎤', ik: 'mic', radius: 250, gain: 50, fat: 30, cd: 3.5,  rgb: '255,120,170', sfx: 'concertHigh' },
+    { id: 'wink',      name: '윙크 샤워',         short: '윙크 샤워', desc: '넓은 범위 하트 +30', icon: '💖', ik: 'wink', radius: 430, gain: 30, fat: 40, cd: 5.5,  rgb: '255,205,90',  sfx: 'concertWink' },
+    { id: 'encore',    name: '앵콜 폭죽',         short: '앵콜 폭죽', desc: '하트 가득 찬 팬 전원 선물!', icon: '✨', ik: 'firework', radius: 0,   gain: 0,  cd: 10, rgb: '190,140,255', sfx: 'concertEncore', finale: true }
   ];
   var INTRO = [
     '어? 이제 막 데뷔한 신인이구나! 오늘 내 무대 같이 볼래? 따라와!',
@@ -128,6 +128,14 @@
     im.src = (typeof B !== 'undefined' ? B : '') + name;
     IMGS[name] = rec; return rec;
   }
+  // 아이콘 그림 (cf-ic-*.png, 128px). 아직 못 받았으면 이모지로 대신 그림
+  var ICON_KEYS = ['time', 'gift', 'heart', 'love', 'mic', 'wink', 'firework', 'drink', 'tired'];
+  var ICON_FALLBACK = { time: '⏱', gift: '🎁', heart: '💖', love: '😍', mic: '🎤', wink: '💖', firework: '✨', drink: '🥤', tired: '😮‍💨' };
+  function ico(c, key, x, y, sz) {
+    var rec = IMGS['cf-ic-' + key + '.png'];
+    if (rec && rec.ok) { c.drawImage(rec.im, x - sz / 2, y - sz / 2, sz, sz); return; }
+    c.save(); c.font = (sz * 0.85) + 'px sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(ICON_FALLBACK[key] || '', x, y); c.restore();
+  }
   function sfx(name) { try { if (window.pocaSfx) window.pocaSfx.play(name); } catch (e) {} }
   function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
   function rnd(a, b) { return a + Math.random() * (b - a); }
@@ -148,7 +156,7 @@
     overlay.appendChild(canvas);
     document.body.appendChild(overlay);
     exploreCollected = [];
-    FAN_FILES.forEach(loadImg); loadImg(BG_FILE); loadImg(SEYEON_FACE);
+    FAN_FILES.forEach(loadImg); loadImg(BG_FILE); loadImg(SEYEON_FACE); ICON_KEYS.forEach(function (k) { loadImg('cf-ic-' + k + '.png'); });
 
     S = {
       opts: opts, overlay: overlay, canvas: canvas, ctx: canvas.getContext('2d'),
@@ -378,7 +386,7 @@
     sfx(k.sfx);
     if (navigator.vibrate) { try { navigator.vibrate(18); } catch (e) {} }
     if (hit.length === 0) floatText(S.px, S.py - 60, '근처에 팬이 없어요 — 객석 쪽으로!', '#ffb4c8');
-    else floatText(S.px, S.py - 70, k.icon + ' ' + hit.length + '명 두근!', '#ffe3f0', 22);
+    else floatText(S.px, S.py - 70, hit.length + '명 두근!', '#ffe3f0', 22);
   }
   function doEncore(k) {
     var luck = typeof getEquippedStat === 'function' ? getEquippedStat('luck') : 0;
@@ -401,7 +409,7 @@
       var f = S.fans[dr.fan];
       setTimeout(function () { if (S && !S.ended) giveDrop(dr.d, f.x, f.y); }, 700 + idx * 130);
     });
-    if (res.fulls.length) floatText(S.px, S.py - 100, '💖 ' + res.fulls.length + '명 대만족!!', '#fff2c4', 26);
+    if (res.fulls.length) floatText(S.px, S.py - 100, res.fulls.length + '명 대만족!!', '#fff2c4', 26);
     if (navigator.vibrate) { try { navigator.vibrate([30, 40, 60]); } catch (e) {} }
   }
   function giveDrop(d, x, y) {
@@ -565,7 +573,7 @@
       var sg = c.createLinearGradient(0, STAGE.y0, 0, STAGE.y1);
       sg.addColorStop(0, '#5b2a9a'); sg.addColorStop(1, '#a04cd0');
       c.fillStyle = sg; roundRect(c, STAGE.x0, STAGE.y0, STAGE.x1 - STAGE.x0, STAGE.y1 - STAGE.y0, 30); c.fill();
-      c.font = '900 56px "Noto Sans KR",sans-serif'; c.textAlign = 'center'; c.fillStyle = 'rgba(255,255,255,0.75)'; c.fillText('🎪 STAGE', WORLD_W / 2, (STAGE.y0 + STAGE.y1) / 2 + 18);
+      c.font = '900 56px "Noto Sans KR",sans-serif'; c.textAlign = 'center'; c.fillStyle = 'rgba(255,255,255,0.75)'; c.fillText('STAGE', WORLD_W / 2, (STAGE.y0 + STAGE.y1) / 2 + 18);
     }
   }
   // 무대 조명 빔: 천천히 좌우로 쓸고 지나가는 색색의 빛줄기
@@ -624,7 +632,7 @@
     c.lineWidth = 1.5; c.strokeStyle = full ? 'rgba(255,230,140,0.95)' : 'rgba(255,255,255,0.55)'; roundRect(c, x - 2.5, y - 2.5, w + 5, h + 5, 7); c.stroke();
     c.font = '15px sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle';
     var hs = full ? 1 + Math.sin(S.t * 9 + f.pulse) * 0.18 : 1;
-    c.save(); c.translate(x - 9, y + 5); c.scale(hs, hs); c.fillText(full ? '💖' : '🤍', 0, 0); c.restore();
+    c.save(); c.translate(x - 9, y + 5); c.scale(hs, hs); glyph(c, full ? '💖' : '🤍', 0, 0, 17); c.restore();
     if (f.pop) {
       var pp = f.pop.t / 0.9;
       c.globalAlpha = 1 - Math.pow(pp, 2);
@@ -644,6 +652,22 @@
       c.fillStyle = g; c.fill(); c.lineWidth = 2; c.strokeStyle = 'rgba(255,255,255,0.9)'; c.stroke();
       c.fillStyle = 'rgba(255,255,255,0.75)'; c.beginPath(); c.ellipse(-r * 0.45, -r * 0.35, r * 0.2, r * 0.12, -0.6, 0, 6.283); c.fill();
       c.restore(); return;
+    }
+    if (ch === '🤍') {
+      var q = sz * 0.5;
+      c.save(); c.translate(x, y - q * 0.1); c.beginPath(); c.moveTo(0, q * 0.9);
+      c.bezierCurveTo(-q * 1.5, -q * 0.1, -q * 0.8, -q * 1.2, 0, -q * 0.45); c.bezierCurveTo(q * 0.8, -q * 1.2, q * 1.5, -q * 0.1, 0, q * 0.9); c.closePath();
+      c.fillStyle = 'rgba(255,255,255,0.92)'; c.fill(); c.lineWidth = 1.5; c.strokeStyle = 'rgba(200,170,230,0.9)'; c.stroke(); c.restore(); return;
+    }
+    if (ch === '⭐') {
+      var R = sz * 0.5; c.save(); c.translate(x, y); c.beginPath();
+      for (var i = 0; i < 10; i++) { var rr = i % 2 ? R * 0.45 : R, an = -1.5708 + i * 0.6283; c.lineTo(Math.cos(an) * rr, Math.sin(an) * rr); }
+      c.closePath(); c.fillStyle = '#ffe27a'; c.fill(); c.lineWidth = 1.5; c.strokeStyle = 'rgba(255,170,40,0.9)'; c.stroke(); c.restore(); return;
+    }
+    if (ch === '🌸') {
+      var P = sz * 0.28; c.save(); c.translate(x, y);
+      for (var j = 0; j < 5; j++) { c.save(); c.rotate(j * 1.2566); c.beginPath(); c.ellipse(0, -P * 1.05, P * 0.8, P * 1.05, 0, 0, 6.283); c.fillStyle = '#ffc2dc'; c.fill(); c.restore(); }
+      c.beginPath(); c.arc(0, 0, P * 0.55, 0, 6.283); c.fillStyle = '#ff8fbd'; c.fill(); c.restore(); return;
     }
     if (ch === '✨') {
       var h = sz * 0.5;
@@ -756,7 +780,7 @@
     var vg = c.createRadialGradient(W / 2, H / 2, Math.min(W, H) * 0.45, W / 2, H / 2, Math.max(W, H) * 0.78);
     vg.addColorStop(0, 'rgba(10,2,24,0)'); vg.addColorStop(1, 'rgba(10,2,24,0.55)'); c.fillStyle = vg; c.fillRect(0, 0, W, H);
     // 떠다니는 꽃잎·별
-    S.petals.forEach(function (p) { c.save(); c.globalAlpha = p.a * 0.8; c.translate(p.x, p.y); c.rotate(p.rot); c.font = p.sz + 'px sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(p.ch, 0, 0); c.restore(); });
+    S.petals.forEach(function (p) { c.save(); c.globalAlpha = p.a * 0.8; c.translate(p.x, p.y); c.rotate(p.rot); c.textAlign = 'center'; c.textBaseline = 'middle'; glyph(c, p.ch, 0, 0, p.sz * 1.1); c.restore(); });
     // 종이 꽃가루
     S.confetti.forEach(function (q) { c.save(); c.translate(q.x, q.y); c.rotate(q.rot); c.scale(1, Math.abs(Math.sin(q.rot * 1.3)) * 0.8 + 0.2); c.fillStyle = 'rgb(' + q.col + ')'; c.fillRect(-q.sz / 2, -q.sz / 4, q.sz, q.sz / 2); c.restore(); });
     if (S.flash > 0) { c.fillStyle = 'rgba(' + S.flashRgb + ',' + clamp(S.flash * 0.9, 0, 0.9).toFixed(2) + ')'; c.fillRect(0, 0, W, H); }
@@ -783,7 +807,7 @@
     if (S.phase === 'play' && S.hintT > 0 && !S.cut) {
       var ha = Math.min(1, S.hintT / 1.2);
       c.save(); c.globalAlpha = ha; var hy = H * 0.5 + Math.sin(S.t * 5) * 6;
-      outlined(c, '👆 눌러서 객석으로 이동!', W / 2, hy, 20, '#fff', 'rgba(120,20,100,0.95)');
+      outlined(c, '눌러서 객석으로 이동!', W / 2, hy, 20, '#fff', 'rgba(120,20,100,0.95)');
       outlined(c, '링이 딱 모일 때 누르면 PERFECT!', W / 2, hy + 30, 16, '#ffe3f0', 'rgba(120,20,100,0.95)'); c.restore();
     }
   }
@@ -824,7 +848,7 @@
     // 스킬 이름 (오른쪽에서 날아옴)
     var tx = W * (k.finale ? 0.5 : 0.6) + (1 - e) * W * 0.8 + outP * W * 0.5, size = Math.min(40, W / 9.5);
     c.save(); c.globalAlpha = a; c.translate(tx, cy - 10); c.transform(1, 0, -0.2, 1, 0, 0);
-    c.font = '900 ' + size + 'px "Noto Sans KR",sans-serif'; var label = k.icon + ' ' + k.name; var tw = c.measureText(label).width, maxW = W * (k.finale ? 0.52 : 0.62);
+    c.font = '900 ' + size + 'px "Noto Sans KR",sans-serif'; var label = k.name; var tw = c.measureText(label).width, maxW = W * (k.finale ? 0.52 : 0.62);
     if (tw > maxW) size = Math.floor(size * maxW / tw);
     c.shadowColor = 'rgb(' + k.rgb + ')'; c.shadowBlur = 24;
     outlined(c, label, 0, 0, size, '#fff', 'rgba(' + k.rgb + ',1)'); c.shadowBlur = 0;
@@ -845,10 +869,10 @@
     var full = S.fans.filter(function (f) { return !f.done && f.g >= 100; }).length, done = S.fans.filter(function (f) { return f.done; }).length;
     c.fillStyle = 'rgba(20,10,36,0.72)'; roundRect(c, W / 2 - 74, 10, 148, 36, 18); c.fill();
     c.fillStyle = S.timeLeft <= 10 ? '#ff7a7a' : '#fff'; c.font = '900 16px "Noto Sans KR",sans-serif';
-    c.fillText('⏱ ' + Math.ceil(S.timeLeft) + '초', W / 2 - 20, 29);
-    c.save(); c.translate(W / 2 + 46, 29); var gb = 1 + S.giftBump * 0.5; c.scale(gb, gb); c.fillStyle = S.giftBump > 0 ? '#fff6c0' : '#ffd700'; c.fillText('🎁 ' + S.drops, 0, 0); c.restore();
+    ico(c, 'time', W / 2 - 56, 28, 26); c.fillText(Math.ceil(S.timeLeft) + '초', W / 2 - 22, 29);
+    c.save(); c.translate(W / 2 + 46, 29); var gb = 1 + S.giftBump * 0.5; c.scale(gb, gb); c.fillStyle = S.giftBump > 0 ? '#fff6c0' : '#ffd700'; c.fillText(S.drops, 8, 0); ico(c, 'gift', -14, -1, 24); c.restore();
     c.fillStyle = 'rgba(20,10,36,0.72)'; roundRect(c, W - 126, 10, 116, 36, 18); c.fill();
-    c.fillStyle = '#ff9ccf'; c.font = '900 16px "Noto Sans KR",sans-serif'; c.fillText('💖 ' + full + ' · 😍 ' + done, W - 68, 29);
+    c.fillStyle = '#ff9ccf'; c.font = '900 16px "Noto Sans KR",sans-serif'; c.textAlign = 'left'; ico(c, 'heart', W - 110, 28, 24); c.fillText(full, W - 97, 29); ico(c, 'love', W - 62, 28, 24); c.fillText(done, W - 49, 29); c.textAlign = 'center';
     if (S.phase === 'play') {
       var b0 = btnRect(0), b2 = btnRect(2), fx = b0.x, fw = b2.x + b2.w - b0.x, fy = b0.y - 22, p = clamp(S.fat / 100, 0, 1), hot = p > 0.7;
       var sh = S.fatShake > 0 ? Math.sin(S.t * 90) * 4 : 0;
@@ -857,13 +881,13 @@
       var fg = c.createLinearGradient(fx, 0, fx + fw, 0); fg.addColorStop(0, '#6ee7b7'); fg.addColorStop(0.6, '#fcd34d'); fg.addColorStop(1, '#f87171');
       if (p > 0) { c.fillStyle = fg; c.save(); roundRect(c, fx, fy, fw, 12, 6); c.clip(); c.fillRect(fx, fy, fw * p, 12); c.restore(); }
       c.lineWidth = 1.5; c.strokeStyle = hot ? 'rgba(255,120,120,' + (0.6 + Math.sin(S.t * 10) * 0.4).toFixed(2) + ')' : 'rgba(255,255,255,0.4)'; roundRect(c, fx - 2, fy - 2, fw + 4, 16, 8); c.stroke();
-      c.font = '900 10px "Noto Sans KR",sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillStyle = '#fff'; c.fillText('😮‍💨 피로도 ' + Math.round(S.fat) + '%', fx + fw / 2, fy + 6.5);
+      c.font = '900 10px "Noto Sans KR",sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillStyle = '#fff'; var ft = '피로도 ' + Math.round(S.fat) + '%'; c.fillText(ft, fx + fw / 2 + 7, fy + 6.5); ico(c, 'tired', fx + fw / 2 - c.measureText(ft).width / 2 - 2, fy + 6.5, 15);
       c.restore();
       var d = drinkRect(), canDrink = S.drinks > 0 && S.fat > 0;
       c.save(); if (canDrink && hot) { var dp = 1 + Math.sin(S.t * 8) * 0.06; c.translate(d.x + d.w / 2, d.y + d.h / 2); c.scale(dp, dp); c.translate(-d.x - d.w / 2, -d.y - d.h / 2); c.shadowColor = '#6ee7b7'; c.shadowBlur = 16; }
       c.fillStyle = 'rgba(20,10,36,0.85)'; roundRect(c, d.x, d.y, d.w, d.h, 16); c.fill(); c.shadowBlur = 0;
       c.lineWidth = canDrink && hot ? 4 : 2; c.strokeStyle = canDrink ? '#6ee7b7' : 'rgba(255,255,255,0.25)'; c.stroke();
-      c.globalAlpha = canDrink ? 1 : 0.45; c.font = '26px sans-serif'; c.fillStyle = '#fff'; c.fillText(DRINK_EMOJI, d.x + d.w / 2, d.y + 22);
+      c.globalAlpha = canDrink ? 1 : 0.45; c.fillStyle = '#fff'; ico(c, 'drink', d.x + d.w / 2, d.y + 21, 32);
       c.font = '900 12px "Noto Sans KR",sans-serif'; c.fillText('×' + S.drinks, d.x + d.w / 2, d.y + 44); c.restore();
     }
     if (S.judge) { var jp = S.judge.t; c.save(); c.globalAlpha = 1 - jp * jp; var js = 1 + (1 - Math.min(1, jp * 6)) * 0.5; c.translate(W / 2, H * 0.55 - jp * 30); c.scale(js, js); outlined(c, S.judge.text, 0, 0, 34, '#ffe27a', 'rgba(120,50,0,0.95)'); c.restore(); }
@@ -881,7 +905,7 @@
         roundRect(c, b.x - grow, b.y - grow, b.w + grow * 2, b.h + grow * 2, 18 + grow); c.stroke(); c.restore();
       }
       c.lineWidth = lit ? 4 : 2; c.strokeStyle = lit ? 'rgb(' + k.rgb + ')' : 'rgba(255,255,255,0.25)'; c.stroke();
-      c.font = '30px sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.globalAlpha = ready ? 1 : 0.5; c.fillText(k.icon, b.x + b.w / 2, b.y + 28);
+      c.textAlign = 'center'; c.textBaseline = 'middle'; c.globalAlpha = ready ? 1 : 0.5; ico(c, k.ik, b.x + b.w / 2, b.y + 27, 38);
       c.globalAlpha = 1; c.fillStyle = '#fff'; c.font = '900 10.5px "Noto Sans KR",sans-serif';
       c.fillText(k.short, b.x + b.w / 2, b.y + 58);
       if (k.fat) { c.fillStyle = (S.fat + k.fat > 100) ? '#ff8a8a' : '#a7f3d0'; c.font = '900 9.5px "Noto Sans KR",sans-serif'; c.fillText('피로 +' + k.fat, b.x + b.w / 2, b.y + 70); }
