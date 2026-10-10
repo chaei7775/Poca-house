@@ -294,12 +294,14 @@
   // ── 2단계: 퍼프 ──
   var PUFF_RGB = ['255,120,170', '255,255,255', '190,130,255'];
   function spawnTarget() {
-    var pool = S.skin || SPOTS, tries = 30, c = null;
-    while (tries-- > 0) {
-      var cand = pool[Math.floor(Math.random() * pool.length)];
-      var far = S.targets.every(function (t) { return Math.hypot(t.fx - cand.fx, t.fy - cand.fy) > 0.2; }) &&
-        (!S.lastPos || Math.hypot(S.lastPos.fx - cand.fx, S.lastPos.fy - cand.fy) > 0.15);
-      if (far) { c = cand; break; }
+    var pool = S.skin || SPOTS, c = null, scales = [1, 0.5, 0.2, 0];   // 피부 자리가 좁은 얼굴도 있어서, 못 찾으면 간격 조건을 점점 풀어서라도 꼭 하나는 띄운다
+    for (var si = 0; si < scales.length && !c; si++) {
+      for (var tries = 0; tries < 30; tries++) {
+        var cand = pool[Math.floor(Math.random() * pool.length)], sc = scales[si];
+        var far = S.targets.every(function (t) { return Math.hypot(t.fx - cand.fx, t.fy - cand.fy) > 0.2 * sc; }) &&
+          (!S.lastPos || Math.hypot(S.lastPos.fx - cand.fx, S.lastPos.fy - cand.fy) > 0.15 * sc);
+        if (far) { c = cand; break; }
+      }
     }
     if (!c) return;
     S.lastPos = c;
