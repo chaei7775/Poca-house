@@ -16,6 +16,7 @@
   var KEY = 'ph_group';
   var MIN_MEMBERS = 2, MAX_MEMBERS = 4;
   var NAME_MAX = 10;
+  var PAY_MULT = 20;                   // 💰 코인 배율 (기준: 드라마 혼자 촬영이 약 1500만. 인연 높은 2명이 '좋음' 등급이면 활동 한 번이 그 정도가 되도록 맞춤. 이 숫자만 바꾸면 전체 조절)
   var MEMBER_BONUS = 0.25;             // 멤버 1명 늘 때마다 +25% (활동마다 따로 정한 게 있으면 그걸 씀)
   var BOND_BONUS = 0.5;                // 평균 인연(1~20) 만점이면 +50%
   var LEVEL_BONUS = 0.05;              // 그룹 레벨 1당 +5%
@@ -99,7 +100,7 @@
     var mb = (act.mb != null ? act.mb : MEMBER_BONUS);
     var mult = (1 + mb * (n - 1)) * (1 + BOND_BONUS * (avgBond / 20)) * (1 + LEVEL_BONUS * lv) * TIERS[ti][2];
     return {
-      coin: Math.floor(act.coin * mult * (big ? BIG_MULT : 1)),
+      coin: Math.floor(act.coin * PAY_MULT * mult * (big ? BIG_MULT : 1)),
       fame: Math.floor((act.fame + FAME_PER_MEMBER * n) * (big ? BIG_MULT : 1)),
       power: p, tier: ti, bigChance: Math.min(BIG_MAX, BIG_BASE + p * BIG_PER_POWER), wishChance: act.wish ? Math.min(0.9, 0.25 + p / 150) : 0
     };
