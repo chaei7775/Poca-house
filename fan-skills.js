@@ -326,6 +326,7 @@
     var st = document.createElement('style');
     st.id = 'fs-style';
     st.textContent =
+      '@keyframes fsShakeV{0%{transform:translate(0,0)}20%{transform:translate(var(--sk),calc(var(--sk)*-.6))}40%{transform:translate(calc(var(--sk)*-1),calc(var(--sk)*.5))}60%{transform:translate(calc(var(--sk)*.6),calc(var(--sk)*.3))}80%{transform:translate(calc(var(--sk)*-.4),0)}100%{transform:translate(0,0)}}' +
       '@keyframes fsBurst{0%{opacity:1;transform:translate(-50%,-50%) scale(.4)}100%{opacity:0;transform:translate(calc(-50% + var(--dx)),calc(-50% + var(--dy))) scale(1.25)}}' +
       '@keyframes fsPen{0%{opacity:0;transform:translate(-50%,-50%) rotate(-35deg) scale(.5)}30%{opacity:1;transform:translate(-50%,-50%) rotate(10deg) scale(1.4)}60%{opacity:1;transform:translate(-50%,-50%) rotate(-15deg) scale(1.3)}100%{opacity:0;transform:translate(-50%,-90%) rotate(0) scale(1.1)}}' +
       '@keyframes fsFlashC{0%{opacity:.95;transform:translate(-50%,-50%) scale(.4)}100%{opacity:0;transform:translate(-50%,-50%) scale(7)}}' +
@@ -645,6 +646,50 @@
   function gs(cid, k) { try { return window.FanGear ? window.FanGear.sum(cid, k) : 0; } catch (e) { return 0; } }
   function gm(cid, k) { return 1 + gs(cid, k) / 100; }
   function forgiveLeft() { return gs(F && F.cid, 'forgive') - ((F && F.forgiveUsed) || 0); }
+
+  // ════════ 콤보 · 퍼펙트 · 손맛 ════════
+  var COMBO_WINDOW = 20000;      // 이 시간(ms) 안에 다음 팬을 응대해야 콤보 유지
+  var PERFECT_MS = 10000;        // 팬이 오고 이 시간(ms) 안에 응대하면 PERFECT
+  var PERFECT_BONUS = 0.10;      // PERFECT 하나당 추가 보상
+  var COMBO_TIERS = [[10, 0.60], [8, 0.40], [5, 0.25], [3, 0.10]];   // [콤보 수, 보상 보너스]
+  function comboBonus(n) { for (var i = 0; i < COMBO_TIERS.length; i++) if (n >= COMBO_TIERS[i][0]) return COMBO_TIERS[i][1]; return 0; }
+  function comboBreak() {
+    if (F && (F.combo || F.perfect)) {
+      if (F.combo >= 3) { try { showNote('콤보 끊김! ' + F.combo + '연속 기록'); } catch (e) {} }
+      F.combo = 0; F.perfect = 0; F.comboAt = 0;
+    }
+  }
+  function vib(ms) { try { if (navigator.vibrate) navigator.vibrate(ms); } catch (e) {} }
+  function shake(power) {
+    var v = F && F.view; if (!v) return;
+    v.style.animation = 'none'; void v.offsetWidth;
+    v.style.setProperty('--sk', (power || 4) + 'px');
+    v.style.animation = 'fsShakeV .32s ease-out';
+  }
+  // 응대 성공 한 번: 콤보 올리고 보상 배율·연출 계산
+  function comboHit(x, y, born) {
+    var now = Date.now();
+    if (!F.comboAt || now - F.comboAt > COMBO_WINDOW) { F.combo = 0; F.perfect = 0; }
+    F.combo = (F.combo || 0) + 1; F.comboAt = now;
+    var perfect = !!born && (now - born) <= PERFECT_MS;
+    F.perfect = perfect ? (F.perfect || 0) + 1 : 0;
+    var bonus = comboBonus(F.combo) + (perfect ? PERFECT_BONUS : 0);
+    var c = F.combo, col = c >= 8 ? '#ff4d6d' : c >= 5 ? '#ff9f1c' : c >= 3 ? '#ffd23f' : '#ffffff';
+    var html = '';
+    if (perfect) html += '<div style="font-size:' + (17 + Math.min(F.perfect, 5) * 1.5) + 'px;font-weight:900;font-style:italic;color:#7dd3fc;text-shadow:0 0 8px #38bdf8,0 2px 6px #000;letter-spacing:1px;">PERFECT' + (F.perfect > 1 ? ' x' + F.perfect : '') + '</div>';
+    if (c >= 2) html += '<div style="font-size:' + (14 + Math.min(c, 10)) + 'px;font-weight:900;font-style:italic;color:' + col + ';text-shadow:0 0 8px ' + col + ',0 2px 6px #000;">' + c + ' COMBO' + (bonus > 0 ? ' · 보상 +' + Math.round(bonus * 100) + '%' : '') + '</div>';
+    if (html) floatText(x, y - 0.16, '<div style="text-align:center;white-space:nowrap;">' + html + '</div>');
+    // 손맛: 흔들림 + 진동 + 하트/코인 + 소리 (콤보가 높을수록 커짐)
+    var tier = c >= 8 ? 3 : c >= 5 ? 2 : c >= 3 ? 1 : 0;
+    shake(3 + tier * 2 + (perfect ? 2 : 0));
+    vib(tier >= 2 ? [30, 40, 60] : tier === 1 ? [25, 30, 25] : 25);
+    burst(x, y, ['💗', '🪙', '💖', '✨'], 6 + tier * 4 + (perfect ? 4 : 0), 70 + tier * 25);
+    if (tier >= 2) burst(x, y, ['🪙'], 6, 120);
+    sfx(tier >= 3 ? 'fsCombo3' : tier === 2 ? 'fsCombo2' : tier === 1 ? 'fsCombo1' : 'fsHit');
+    if (perfect) setTimeout(function () { sfx('fsPerfect'); }, 120);
+    return 1 + bonus;
+  }
+
   // ════════ 스킬 사용 ════════
   function useSkill(id) {
     if (!F) return null;
@@ -685,6 +730,7 @@
       effect(id, tg, me, st === 'done');
       if (st === 'fail') {
         res.fail++;
+        comboBreak();
         o.fsBusy = true;
         floatText(tg.x, tg.y - 0.03, '<div style="font-size:14px;font-weight:900;color:#ff6b6b;text-shadow:0 2px 6px #000;white-space:nowrap;">😤 순서가 틀렸어요! 실패</div>');
         sfx('fail');
@@ -702,17 +748,18 @@
       var love = o.fsAoe ? (Math.random() < AOE_LOVE) : (Math.random() < 0.5);
       floatText(tg.x, tg.y - 0.03, '<div style="font-size:15px;font-weight:900;color:' + (love ? '#FFD700' : '#fff') + ';text-shadow:0 2px 6px #000;">' + (love ? '😍 대만족!' : '😊 만족') + '</div>');
       sfx(love ? 'rarePick' : 'pick');
+      var cmul = comboHit(tg.x, tg.y, isEv ? 0 : (o.until - FAN_TTL * 1000));
       o.fsBusy = true;
       if (isEv) {
         var evRef = o, cidNow = F.cid;
         setTimeout(function () {
           var ok = false;
-          try { ok = hk.resolve(evRef, love, (1 + 0.04 * mlv) * gm(cidNow, 'reward')); } catch (e) {}
+          try { ok = hk.resolve(evRef, love, (1 + 0.04 * mlv) * cmul * gm(cidNow, 'reward')); } catch (e) {}
           if (ok) { addServe(cidNow); maybeBook(evRef.type, id); } else evRef.fsBusy = false;
         }, 900);
       } else {
         var i1 = F.fans.indexOf(o); if (i1 !== -1) F.fans.splice(i1, 1);
-        var r = grant(love, 1 + 0.04 * mlv); addServe(F.cid); maybeBook('fan', id);
+        var r = grant(love, (1 + 0.04 * mlv) * cmul); addServe(F.cid); maybeBook('fan', id);
         var fc = o.el && o.el.querySelector('.fs-face'); if (fc) setMood(fc, love ? '😍' : '😊');
         floatText(o.x, o.y - 0.09, '<div style="text-align:center;">' + r.lines.join('') + '</div>');
         setTimeout(function () { removeFan(o, true); }, 900);
@@ -817,7 +864,7 @@
     // 🎟️ 세연(체험용 히든카드)은 스킬·숙련도·경험치가 없으니, 내가 키우는 아이돌의 것을 빌려 쓴다
     var wasTrial = scid === 'seyeon_trial';
     if (scid === 'seyeon_trial') { try { scid = (typeof window.pickGrowingIdol === 'function' && window.pickGrowingIdol()) || ''; } catch (e) { scid = ''; } }
-    F = { trial: wasTrial, view: view, cid: scid, mapId: (st && st.locationId) || 'broadcast_front', fans: [], cd: {}, nid: 0, obs: null, bar: null, hint: null, btns: null };
+    F = { trial: wasTrial, view: view, cid: scid, mapId: (st && st.locationId) || 'broadcast_front', fans: [], cd: {}, combo: 0, perfect: 0, comboAt: 0, nid: 0, obs: null, bar: null, hint: null, btns: null };
     injectStyle();
     buildBar(view);
     setTimeout(function () { if (F && F.view === view && F.mapId !== 'fan_rush') seqTutorial(); }, 700);
@@ -843,7 +890,7 @@
     if (!F || F.view !== view || !$('fs-bar')) mount(view);
     var now = Date.now();
     F.fans.slice().forEach(function (f) {
-      if (f.until <= now) { removeFan(f, true); return; }
+      if (f.until <= now) { comboBreak(); removeFan(f, true); return; }
       if (f.el) f.el.style.opacity = (f.until - now < 8000) ? (Math.floor(now / 300) % 2 ? '.45' : '1') : '1';   // 곧 떠나면 깜빡
     });
     ensureEventBubbles();

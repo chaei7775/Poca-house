@@ -440,6 +440,12 @@
   // 숲·해변·공원·광장·신비의 섬·낚시 보물 전부 collectExploreItem 을 거치므로 여기 한 곳에서 소리를 냄
   SYNTH.pick = function () { tone(784, 0, 0.07, 'sine', 0.2, 1175); tone(1568, 0.06, 0.12, 'triangle', 0.18); };
   SYNTH.rarePick = function () { arp([988, 1319, 1760], 0.07, 0.15, 'triangle', 0.24); tone(2349, 0.22, 0.2, 'sine', 0.12); };
+  // 팬 응대 콤보: 단계가 오를수록 화려하고 크게
+  SYNTH.fsHit = function () { tone(660, 0, 0.06, 'square', 0.16, 990); tone(1320, 0.05, 0.12, 'triangle', 0.22); };
+  SYNTH.fsCombo1 = function () { arp([784, 988, 1319], 0.06, 0.12, 'triangle', 0.28); tone(1976, 0.2, 0.18, 'sine', 0.16); };
+  SYNTH.fsCombo2 = function () { arp([784, 988, 1319, 1568], 0.06, 0.14, 'triangle', 0.32); tone(2093, 0.25, 0.3, 'sine', 0.2); tone(523, 0, 0.3, 'square', 0.1); };
+  SYNTH.fsCombo3 = function () { arp([659, 784, 988, 1319, 1760, 2349], 0.055, 0.16, 'triangle', 0.36); tone(3136, 0.35, 0.5, 'sine', 0.22); tone(392, 0, 0.45, 'square', 0.12); };
+  SYNTH.fsPerfect = function () { tone(1760, 0, 0.08, 'sine', 0.26); tone(2637, 0.07, 0.25, 'sine', 0.26); };
   SYNTH.wishPick = function () { arp([1047, 1319, 1568, 2093, 2637], 0.07, 0.2, 'sine', 0.22); tone(3136, 0.4, 0.5, 'sine', 0.1); };
   wrap('collectExploreItem', function (idx, item) {
     if (item && item.isWish) play('wishPick');
