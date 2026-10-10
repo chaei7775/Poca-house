@@ -1,7 +1,7 @@
 // ════════════════════════════════
 // 🎁 친구에게 선물하기 (gift.js) — 카드는 못 보냄 (재료·강화 재료·스킬북·간식·코인만)
 // 친구 목록(더보기 → 친구)의 각 친구 옆 "🎁 선물" 버튼 → 보낼 물건·수량 고르기 → 내 가방에서 바로 빠짐
-// 받는 친구는 게임을 켜면(또는 5분마다) 자동으로 받음. 가방이 꽉 차 있으면 자리가 날 때까지 서버에서 기다림.
+// 선물이 오면 '선물함에 선물이 와 있어요' 알림이 뜨고(켤 때 · 2분마다), 선물함에서 [선물 받기]를 눌러야 받아짐. 가방이 꽉 차 있으면 자리가 날 때까지 서버에서 기다림.
 // 안전장치: 로그인 필수 · 친구끼리만 · 하루 보내기 횟수 · 코인 수수료 · 중복 지급 방지(서버에서 한 번만 받음)
 // 서버: Firestore 'gifts' 컬렉션 (규칙은 GIFT_RULES.txt 를 Firebase 콘솔 rules 에 추가해야 동작)
 // 저장: localStorage 'ph_gift' (ph_ 로 시작 → 클라우드 저장에 자동 포함)
@@ -26,15 +26,16 @@
   function fmt(n) { return Number(n).toLocaleString(); }
   function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
   function isInt(n) { return typeof n === 'number' && isFinite(n) && Math.floor(n) === n; }
-  function toast(m) {
+  function toast(m, onTap) {
     try {
       var old = document.getElementById('gift-toast'); if (old) old.remove();
       var el = document.createElement('div');
       el.id = 'gift-toast';
       el.style.cssText = 'position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:rgba(26,26,46,0.97);border:1.5px solid ' + ACC + ';color:#fff;padding:11px 20px;border-radius:20px;font-size:13px;font-weight:800;z-index:9990;max-width:88vw;text-align:center;' + FONT;
       el.textContent = m;
+      if (onTap) { el.style.cursor = 'pointer'; el.onclick = function () { el.remove(); onTap(); }; }
       document.body.appendChild(el);
-      setTimeout(function () { if (el.parentNode) el.remove(); }, 3800);
+      setTimeout(function () { if (el.parentNode) el.remove(); }, onTap ? 7000 : 3800);
     } catch (e) { try { if (typeof showBagToast === 'function') showBagToast(m); } catch (e2) {} }
   }
   function nameOf(key) { if (key === 'coin') return COIN.name; var C = core(); return C && C.ITEMS[key] ? C.ITEMS[key].name : key; }
@@ -189,8 +190,29 @@
       if (ok) { finishReceive(id, x); got++; }
       else { var S2 = loadState(); delete S2.pending[id]; saveState(S2); }
     }
-    if (full) toast('🎒 가방이 꽉 차서 못 받은 선물이 있어요. 자리를 만들면 자동으로 받아져요');
+    if (full) toast('🎒 가방이 꽉 차서 못 받은 선물이 있어요. 자리를 만들고 선물함에서 다시 눌러 받아요');
     return got;
+  }
+
+  // ───────── 선물함에 와 있는 선물 알림 (자동으로 받지 않고, 와 있다고 알려줌) ─────────
+  var waitN = 0, notifiedN = 0;
+  async function waiting() {
+    if (notReady()) return 0;
+    var C = core(), f = C.F();
+    var snap = await f.getDocs(f.query(f.collection(f.db, COL), f.where('toUid', '==', C.uid()), f.where('status', '==', 'sent')));
+    var rec = loadState().received, n = 0;
+    snap.forEach(function (d) { var x = d.data(); if (rec.indexOf(d.id) !== -1) return; if (x.item !== 'coin' && !C.ITEMS[x.item]) return; n++; });
+    return n;
+  }
+  function updateBadge() {
+    var b = document.getElementById('fr-giftbox'); if (b) b.textContent = waitN > 0 ? '🎁 선물함 (' + waitN + ')' : '🎁 선물함';
+  }
+  async function checkWaiting() {
+    var n = await waiting();
+    waitN = n; updateBadge();
+    if (n > notifiedN) toast('🎁 선물함에 선물이 ' + n + '개 와 있어요! (눌러서 받기)', openGiftBox);
+    notifiedN = n;
+    return n;
   }
 
   // ───────── 화면: 선물 보내기 ─────────
@@ -300,6 +322,7 @@
         var bad = notReady(); if (bad) { draw(bad); return; }
         this.disabled = true; this.textContent = '확인 중…';
         var n = 0; try { n = await receiveAll(); } catch (e) { draw('확인하지 못했어요. 잠시 뒤 다시 해봐요'); return; }
+        waitN = 0; notifiedN = 0; updateBadge();
         draw(n ? '🎉 ' + n + '개의 선물을 받았어요!' : '새로 온 선물이 없어요');
       };
     }
@@ -318,7 +341,7 @@
           var b = document.createElement('button'); b.id = 'fr-giftbox'; b.textContent = '🎁 선물함';
           b.style.cssText = 'background:linear-gradient(135deg,#FFD700,#ff9a3c);border:none;border-radius:10px;color:#2b1a00;padding:7px 12px;font-size:12px;font-weight:900;cursor:pointer;margin-left:auto;margin-right:8px;' + FONT;
           b.onclick = openGiftBox;
-          head.insertBefore(b, close);
+          head.insertBefore(b, close); updateBadge();
         }
       } catch (e) {}
       return r;
@@ -326,13 +349,13 @@
     w.__gift = true; window.openFriendOverlay = w;
   })();
 
-  window.__giftTest = { sendGift: sendGift, receiveAll: receiveAll, recoverPendingSend: recoverPendingSend, loadState: loadState, sendableKeys: sendableKeys, openGiftTo: openGiftTo, openQty: openQty, CFG: { DAILY_SEND: DAILY_SEND, MAX_QTY: MAX_QTY, COIN_MIN: COIN_MIN, COIN_MAX: COIN_MAX, COIN_DAILY: COIN_DAILY, COIN_FEE: COIN_FEE } };
+  window.__giftTest = { checkWaiting: checkWaiting, waiting: waiting, sendGift: sendGift, receiveAll: receiveAll, recoverPendingSend: recoverPendingSend, loadState: loadState, sendableKeys: sendableKeys, openGiftTo: openGiftTo, openQty: openQty, CFG: { DAILY_SEND: DAILY_SEND, MAX_QTY: MAX_QTY, COIN_MIN: COIN_MIN, COIN_MAX: COIN_MAX, COIN_DAILY: COIN_DAILY, COIN_FEE: COIN_FEE } };
 
-  // ───────── 켜면 받기 / 이후 5분마다 ─────────
+  // ───────── 켜면 확인 / 이후 2분마다 ─────────
   var tries = 0;
   (function boot() {
-    if (!notReady()) { recoverPendingSend().then(receiveAll).catch(function () {}); return; }
+    if (!notReady()) { recoverPendingSend().then(checkWaiting).catch(function () {}); return; }
     if (++tries < 120) setTimeout(boot, 1000);
   })();
-  setInterval(function () { if (document.hidden || notReady()) return; receiveAll().catch(function () {}); }, 5 * 60 * 1000);
+  setInterval(function () { if (document.hidden || notReady()) return; checkWaiting().catch(function () {}); }, 2 * 60 * 1000);
 })();
