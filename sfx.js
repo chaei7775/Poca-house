@@ -240,6 +240,17 @@
   // ════════ 추가 효과음 ════════
   SYNTH.tap = function () { tone(1568, 0, 0.035, 'sine', 0.09); };
   SYNTH.page = function () { tone(880, 0, 0.05, 'triangle', 0.12); tone(1175, 0.04, 0.06, 'triangle', 0.1); };
+  // 팬 응대 스킬 효과음 (fan-skills.js 에서 부름)
+  SYNTH.fsSign = function () {   // 사인: 스스슥 (펜으로 슥슥 긋는 소리 3번)
+    noise(0, 0.1, 0.22, 'bandpass', 4200); noise(0.11, 0.11, 0.22, 'bandpass', 5000); noise(0.24, 0.16, 0.2, 'bandpass', 3600);
+    tone(2400, 0.38, 0.12, 'sine', 0.06, 3200);
+  };
+  SYNTH.fsPhoto = function () {   // 사진: 찰칵 (셔터 두 번 + 딸깍)
+    noise(0, 0.035, 0.4, 'highpass', 2500); tone(1800, 0, 0.025, 'square', 0.1, 1200);
+    noise(0.07, 0.05, 0.35, 'bandpass', 1500); tone(900, 0.07, 0.04, 'square', 0.08, 600);
+  };
+  SYNTH.fsShake = function () { noise(0, 0.08, 0.2, 'lowpass', 900); tone(300, 0, 0.07, 'sine', 0.14, 220); noise(0.16, 0.08, 0.18, 'lowpass', 1000); tone(320, 0.16, 0.07, 'sine', 0.12, 230); };   // 악수: 톡톡
+  SYNTH.fsHeart = function () { tone(1047, 0, 0.1, 'sine', 0.16); tone(1319, 0.08, 0.1, 'sine', 0.16); tone(1568, 0.16, 0.2, 'triangle', 0.16); };   // 손하트: 뾰로롱
   SYNTH.open = function () { noise(0, 0.1, 0.12, 'bandpass', 1800); tone(660, 0, 0.1, 'sine', 0.12, 990); };
   SYNTH.close = function () { tone(880, 0, 0.1, 'sine', 0.1, 560); };
   SYNTH.perfect = function () { arp([1047, 1319, 1568, 2093], 0.045, 0.14, 'triangle', 0.22); };

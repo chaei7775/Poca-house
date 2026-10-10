@@ -366,15 +366,18 @@
   function effect(id, fan, me, love) {
     var fx = fan.x, fy = fan.y;
     if (id === 'sign') {
+      sfx('fsSign');
       addAt(fx, fy, '<div style="font-size:34px;">🖋</div>', 'animation:fsPen .95s ease-out forwards;', 1000);
       setTimeout(function () { burst(fx, fy, ['🔆', '🎗', '🏵'], love ? 12 : 7, 64); }, 380);
     } else if (id === 'photo') {
+      sfx('fsPhoto');
       addAt(fx, fy, '', 'width:20px;height:20px;border-radius:50%;background:#fff;animation:fsFlashC .5s ease-out forwards;', 600);
       addAt(fx, fy, '<div style="width:36px;height:44px;background:#fff;border-radius:3px;padding:3px 3px 10px;box-shadow:0 3px 10px rgba(0,0,0,.5);">' +
         '<div style="width:100%;height:100%;background:linear-gradient(135deg,#FF6B9D,#C084FC);display:flex;align-items:center;justify-content:center;font-size:18px;">' + fan.emoji + '</div></div>',
         'animation:fsPolaroid 1.2s ease-in forwards;', 1250);
       burst(fx, fy, ['🫱', '🔆'], love ? 9 : 5, 56);
     } else if (id === 'shake') {
+      sfx('fsShake');
       var mx = (fx + me.x) / 2, my = (fy + me.y) / 2;
       addAt(mx, my, '<div style="font-size:38px;">🫰</div>', 'animation:fsPulse .9s ease-out forwards;', 950);
       setTimeout(function () { burst(mx, my, ['🔆', '🏵', '🏵'], love ? 12 : 7, 60); }, 350);
@@ -384,6 +387,7 @@
       addAt(me.x, me.y, '<div style="font-size:34px;">' + skillById(id).icon + '</div>', 'animation:fsPulse .9s ease-out forwards;', 950);
       setTimeout(function () { burst(fx, fy, id === 'wink' ? ['😘', '🎗', '🔆'] : (id === 'encore' ? ['🧨', '🎍', '🏵'] : (id === 'rose' ? ['🎠', '🌹', '🪅'] : (id === 'finale' ? ['🎑', '🎍', '🧿', '🔆'] : ['🪩', '🎐', '🔆']))), love ? 14 : 9, (id === 'encore' || id === 'finale') ? 100 : 70); }, 420);
     } else if (id === 'heart') {
+      sfx('fsHeart');
       var h = addAt(me.x, me.y, '<div style="font-size:30px;">🫶</div>', 'transition:left .5s ease-in,top .5s ease-in;', 1300);
       if (h) setTimeout(function () { h.style.left = (fx * 100) + '%'; h.style.top = (fy * 100) + '%'; }, 30);
       setTimeout(function () { burst(fx, fy, ['🧧', '🎗', '🧧'], love ? 14 : 8, 70); }, 520);
