@@ -1,8 +1,8 @@
 // ════════════════════════════════
-// 💝 아이돌에게 선물 여러 개 한 번에 (gift-bulk.js)
-//  · 인연 → 아이돌 → 💝 선물하기 에서 선물을 누르면 "몇 개 줄까요?" 팝업 (슬라이더 / − / + / 최대)
-//  · 하루 한도: 아이돌 한 명당 DAILY_MAX 개 (선물 1개씩 줄 때도 똑같이 센다). 날짜가 바뀌면 0으로 돌아감
-//  · 실제 선물은 기존 giveGift 를 개수만큼 불러서 처리 → 호감도 보너스/퀘스트/의상 효과가 그대로 적용됨
+// 💝 아이돌 선물 하루 한도 (gift-bulk.js)
+//  · 아이돌 한 명당 하루에 DAILY_MAX 개까지만 선물할 수 있다 (날짜가 바뀌면 0으로 돌아감)
+//  · 선물 선택창 위에 "오늘 N/20개 줬어요" 표시
+//  · (한 번에 여러 개 주기는 일단 뺐음 — 선물은 1개씩. 필요하면 git 기록에서 되살릴 수 있음)
 // 저장: localStorage 'ph_giftDaily' ({d:'YYYY-MM-DD', n:{아이돌id:오늘 준 개수}}) — ph_ 로 시작해서 클라우드 저장에 포함
 // 한도를 바꾸고 싶으면 아래 DAILY_MAX 만 고치면 된다.
 // ════════════════════════════════
@@ -47,65 +47,7 @@
     window.giveGift = w;
   }
 
-  // ── 여러 개 주기 ──
-  function giveMany(charId, name, fromBag, n) {
-    var total = 0, given = 0;
-    var origFloat = window.showAffectionGainFloat;
-    window.showAffectionGainFloat = function (cn, gain) { total += Number(gain) || 0; };   // 개수만큼 뜨는 걸 모아서 한 번만
-    try {
-      for (var i = 0; i < n; i++) {
-        var b = haveOf(name, fromBag), u = used(charId);
-        window.giveGift(charId, name, fromBag);
-        if (haveOf(name, fromBag) < b) given++; else break;
-        if (used(charId) <= u) break;
-      }
-    } finally { window.showAffectionGainFloat = origFloat; }
-    try { if (typeof origFloat === 'function' && total > 0) origFloat(nameOf(charId), total); } catch (e) {}
-    try {   // 결과 화면 맨 위에 개수 표시
-      var ov = document.getElementById('meet-overlay'), p = ov && ov.querySelector('div');
-      if (p && given > 1) {
-        var d = document.createElement('div');
-        d.style.cssText = 'text-align:center;color:#FFE27A;font-size:13px;font-weight:900;margin-bottom:6px;' + FONT;
-        d.textContent = '💝 ' + given + '개를 한 번에 선물! (호감도 합계 +' + total + ' · 오늘 ' + used(charId) + '/' + DAILY_MAX + ')';
-        p.insertBefore(d, p.firstChild);
-      }
-    } catch (e) {}
-    return given;
-  }
-
-  function openQty(charId, name, fromBag, display) {
-    var old = document.getElementById('gb-qty'); if (old) old.remove();
-    var have = haveOf(name, fromBag), lim = left(charId), max = Math.min(have, lim);
-    if (lim <= 0) { toast('🎁 오늘은 ' + nameOf(charId) + '에게 다 줬어요 (하루 ' + DAILY_MAX + '개)'); return; }
-    if (max < 1) return;
-    var qty = Math.min(max, 1);
-    var ov = document.createElement('div'); ov.id = 'gb-qty';
-    ov.style.cssText = 'position:fixed;inset:0;z-index:620;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;padding:16px;' + FONT;
-    ov.onclick = function (e) { if (e.target === ov) ov.remove(); };
-    ov.innerHTML = '<div style="background:#1a1233;border:1.5px solid #FF6B9D;border-radius:18px;width:100%;max-width:320px;padding:18px 16px;color:#fff;">' +
-      '<div style="font-size:15px;font-weight:900;text-align:center;margin-bottom:4px;">' + display + '</div>' +
-      '<div style="font-size:11.5px;color:#c9b8e8;text-align:center;margin-bottom:12px;">보유 ' + have + '개 · 오늘 ' + nameOf(charId) + '에게 ' + used(charId) + '/' + DAILY_MAX + '개 줬어요</div>' +
-      '<div id="gbq-n" style="font-size:30px;font-weight:900;text-align:center;color:#FFE27A;">1</div>' +
-      '<input id="gbq-r" type="range" min="1" max="' + max + '" value="1" style="width:100%;margin:8px 0;accent-color:#FF6B9D;">' +
-      '<div style="display:flex;gap:8px;margin-bottom:12px;">' +
-      '<button id="gbq-m" style="flex:1;padding:9px;border:none;border-radius:10px;background:rgba(255,255,255,0.1);color:#fff;font-size:16px;font-weight:900;cursor:pointer;">−</button>' +
-      '<button id="gbq-p" style="flex:1;padding:9px;border:none;border-radius:10px;background:rgba(255,255,255,0.1);color:#fff;font-size:16px;font-weight:900;cursor:pointer;">+</button>' +
-      '<button id="gbq-x" style="flex:1.4;padding:9px;border:none;border-radius:10px;background:rgba(255,255,255,0.1);color:#FFE27A;font-size:12px;font-weight:900;cursor:pointer;">최대 ' + max + '</button></div>' +
-      '<div style="display:flex;gap:8px;"><button id="gbq-no" style="flex:1;padding:12px;border:none;border-radius:12px;background:rgba(255,255,255,0.08);color:#aaa;font-size:13px;cursor:pointer;">취소</button>' +
-      '<button id="gbq-ok" style="flex:2;padding:12px;border:none;border-radius:12px;background:linear-gradient(135deg,#FF6B9D,#C084FC);color:#fff;font-size:14px;font-weight:900;cursor:pointer;">💝 선물하기</button></div></div>';
-    document.body.appendChild(ov);
-    var r = ov.querySelector('#gbq-r'), nEl = ov.querySelector('#gbq-n'), ok = ov.querySelector('#gbq-ok');
-    function set(v) { v = Math.floor(Number(v) || 1); qty = Math.max(1, Math.min(max, v)); r.value = qty; nEl.textContent = qty; ok.textContent = '💝 ' + qty + '개 선물하기'; }
-    r.oninput = function () { set(r.value); };
-    ov.querySelector('#gbq-m').onclick = function () { set(qty - 1); };
-    ov.querySelector('#gbq-p').onclick = function () { set(qty + 1); };
-    ov.querySelector('#gbq-x').onclick = function () { set(max); };
-    ov.querySelector('#gbq-no').onclick = function () { ov.remove(); };
-    ok.onclick = function () { ov.remove(); giveMany(charId, name, fromBag, qty); };
-    set(1);
-  }
-
-  // ── 선물 선택창의 버튼을 '개수 정하기'로 바꾸기 ──
+  // ── 선물 선택창 위에 오늘 준 개수 표시 ──
   function hookMenu() {
     if (typeof window.showGiftMenu !== 'function') { setTimeout(hookMenu, 100); return; }
     if (window.showGiftMenu.__gbHooked) return;
@@ -114,23 +56,11 @@
       var r = orig.apply(this, arguments);
       try {
         var ov = document.getElementById('meet-overlay'); if (!ov) return r;
-        var btns = ov.querySelectorAll('button[onclick^="giveGift("]');
-        Array.prototype.forEach.call(btns, function (b) {
-          var m = /^giveGift\('([^']+)','(.*)',(true|false)\)$/.exec(b.getAttribute('onclick') || '');
-          if (!m) return;
-          var cid = m[1], name = m[2], fromBag = m[3] === 'true', disp = b.textContent.trim();
-          b.removeAttribute('onclick');
-          b.onclick = function () {
-            if (left(cid) <= 0) { toast('🎁 오늘은 ' + nameOf(cid) + '에게 다 줬어요 (하루 ' + DAILY_MAX + '개)'); return; }
-            if (haveOf(name, fromBag) <= 1) { window.giveGift(cid, name, fromBag); return; }
-            openQty(cid, name, fromBag, disp);
-          };
-        });
         var panel = ov.firstElementChild, head = panel && panel.firstElementChild;
         if (head && !ov.querySelector('#gb-left')) {
           var d = document.createElement('div'); d.id = 'gb-left';
           d.style.cssText = 'font-size:11px;color:#c9b8e8;margin:-4px 0 10px;' + FONT;
-          d.textContent = '오늘 ' + nameOf(charId) + '에게 ' + used(charId) + '/' + DAILY_MAX + '개 줬어요 · 선물을 누르면 개수를 정할 수 있어요';
+          d.textContent = '오늘 ' + nameOf(charId) + '에게 ' + used(charId) + '/' + DAILY_MAX + '개 줬어요 (하루 ' + DAILY_MAX + '개까지)';
           panel.insertBefore(d, head.nextSibling);
         }
       } catch (e) {}
@@ -141,5 +71,5 @@
   }
 
   hookGive(); hookMenu();
-  window.__giftBulkTest = { DAILY_MAX: DAILY_MAX, used: used, left: left, giveMany: giveMany, openQty: openQty, KEY: KEY };
+  window.__giftBulkTest = { DAILY_MAX: DAILY_MAX, used: used, left: left, KEY: KEY };
 })();
