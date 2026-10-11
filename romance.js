@@ -207,5 +207,6 @@
     try { addButton(cid); } catch (e) { console.error('[romance]', e); }
     return r;
   };
-  window.PhRomance = { EV: EV, status: status, play: play };
+  function readyAny() { try { return Object.keys(EV).some(function (c) { return prefAllows(c) && status(c).ready; }); } catch (e) { return false; } }   // 열 수 있는 설렘 이벤트가 있나 (더보기 빨간 점용)
+  window.PhRomance = { EV: EV, status: status, play: play, readyAny: readyAny };
 })();
