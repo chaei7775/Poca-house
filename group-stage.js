@@ -49,7 +49,7 @@
     ov.innerHTML = bgImg + beam(0, 0) + beam(0, -1.6) +
       (invChips ? '<div style="position:absolute;top:10px;left:10px;display:flex;flex-direction:column;gap:4px;align-items:flex-start;z-index:2;">' + invChips + '</div>' : '') +
       '<div style="position:absolute;top:7%;left:0;right:0;text-align:center;"><img src="grp-' + res.act.id + '.png" width="84" height="84" style="width:84px;height:84px;object-fit:contain;" onerror="this.remove()"><div style="font-size:16px;font-weight:900;margin-top:4px;text-shadow:0 2px 8px #000;">' + esc(res.act.name) + '</div></div>' +
-      (function () { try { return window.__groupMagic ? window.__groupMagic.html({ act: res.act.id, size: 320, fast: !!res.big, dim: bad, css: 'left:50%;top:calc(34% - 122px);margin-left:-160px;' }) : ''; } catch (e) { return ''; } })() +
+      (function () { try { return window.__groupMagic ? window.__groupMagic.html({ act: res.act.id, size: 320, fast: !!res.big, dim: bad, css: 'left:50%;top:calc(31% + ' + ((res.members.length > 3 ? 120 : 175) - 15 - 160) + 'px);margin-left:-160px;' }) : ''; } catch (e) { return ''; } })() +
       '<div id="gst-row" style="position:absolute;top:31%;left:0;right:0;display:flex;justify-content:center;align-items:flex-end;gap:4px;padding:0 10px;">' + mh + '</div>' +
       '<div id="gst-cap" style="position:absolute;top:56%;left:16px;right:16px;min-height:70px;text-align:center;font-size:14.5px;font-weight:700;line-height:1.6;text-shadow:0 2px 8px #000;"></div>' +
       '<div id="gst-stamp" style="position:absolute;left:0;right:0;bottom:12%;text-align:center;opacity:0;"></div>' +
