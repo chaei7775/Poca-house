@@ -44,12 +44,13 @@
     if (!imOk) return;
     var SC = [1, 0.72, 0.5], SP = [0.35, -0.55, 0.9];
     c.save();
-    c.translate(x, y + R * 0.9); c.scale(1, 0.5);
+    c.translate(x, y + R * 0.85); c.scale(1, 0.62);
     c.globalCompositeOperation = 'lighter';
     for (var i = 0; i < f.n; i++) {
-      var col = f.cols[i % f.cols.length], rr = R * 4.4 * SC[i];
+      var col = f.cols[i % f.cols.length], rr = R * 5.2 * SC[i];
       c.save(); c.rotate((t || 0) * SP[i]); c.globalAlpha = 1;
       c.drawImage(tinted(col), -rr, -rr, rr * 2, rr * 2);
+      c.drawImage(tinted(col), -rr, -rr, rr * 2, rr * 2);   // 두 번 겹쳐 그려서 더 진하고 또렷하게
       c.restore();
     }
     c.restore();
