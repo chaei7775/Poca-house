@@ -24,9 +24,9 @@
   var DMG_PER_LV = 0.035;          // 스킬 위력: 1 + (플레이어 레벨 - 10) × 이 값
   var HIT_COOLDOWN = 0.5;          // 한 번 맞고 나서 무적 시간(초)
   // 보상 (한 판 전부 성공했을 때 대략: 코인 약 10만, 경험치 약 2천, 조각 0~2개)
-  var COIN_PER_FAN = 700;          // 팬 1명 응대 코인 (웨이브가 높을수록 조금씩 늘어남)
+  var COIN_PER_FAN = 2100;          // 팬 1명 응대 코인 (웨이브가 높을수록 조금씩 늘어남)
   var EXP_PER_FAN = 20;             // 팬 1명 응대 카드 경험치
-  var BOSS_COIN = 40000, BOSS_EXP = 800;
+  var BOSS_COIN = 120000, BOSS_EXP = 800;
   var BOSS_PIECE_CHANCE = 0.7;     // 보스를 응대했을 때 🖼️ 프리미엄 조각 +1 확률
   var BOSS_PIECE_BONUS = 0.25;     // 거기에 한 번 더(+1) 줄 확률
   var BOSS_STONE_CHANCE = 0.15;    // 보스 응대 시 강화석 +1 확률
@@ -43,7 +43,7 @@
   var ENH_DMG_SHARE = 0.3;         // 히든카드 강화·초월로 오른 '수익 보너스'의 이만큼이 위력에 반영
   var AGGRO_R = 300;               // 이 거리 안에 들어가면 그 무리 전체가 어그로
   var FAN_DMG_MULT = 1.5;          // 팬이 닿을 때 피해 배율 (공항보다 아픔)
-  var BOX_COIN = 150000, BOX_EXP = 3000;     // 선물 상자 코인 / 카드 경험치
+  var BOX_COIN = 450000, BOX_EXP = 3000;     // 선물 상자 코인 / 카드 경험치
   var BOX_STONE_MIN = 3, BOX_STONE_MAX = 6;  // 🔨 강화석 (확정)
   var BOX_PROTECT_CHANCE = 0.75, BOX_PROTECT_MAX = 2;   // 🛡️ 방지권 확률 / 최대 개수
   var BOX_PIECE_CHANCE = 0.5;      // 🖼️ 프리미엄 조각 +1 확률
