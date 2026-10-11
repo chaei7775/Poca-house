@@ -7,7 +7,7 @@
 // - 레슨: 하루(게임 속 DAY)에 아이돌 1명당 1번. 코인이 들고, 체력/기분이 깎인다.
 //     기분이 좋으면 효과 UP, 체력이 모자라면 효과 DOWN / 너무 지치면 레슨 불가
 //     능력치가 높을수록 오르는 폭은 줄어든다 (천천히 키우는 맛)
-// - 1단계에서는 능력치가 아직 드라마/CF/기획사 보상에 연결되지 않는다. (2단계에서 연결)
+// - 2단계: 연기 능력치 → 드라마 직접 촬영(시청률 게이지 속도·출연료)에 연결됨 (drama.js). 일정 정산·기획사 수익은 meal.js 에서 연결.
 // - 지금은 시온만 열려 있다. 나머지 5명은 ENABLED 에 id 만 넣으면 열린다.
 //
 // 저장: localStorage 'ph_training' (ph_ 로 시작해서 cloud-extra.js 가 서버에 자동으로 올려줌)
@@ -231,6 +231,7 @@
   //  f(k) = ((능력치 − 10) / 90) ^ 0.6  → 처음 0, 100이면 1
   var FX = {
     actDrama: 1.00,     // 연기 100 → 드라마 촬영·일정 정산 +100% (대신 레슨비가 크게 듦)
+    actGauge: 0.30,     // 연기 100 → 드라마 촬영 중 시청률 게이지 오르는 속도 +30% (직접 촬영할 때)
     charmCf: 1.00,      // 매력 100 → CF 보상 +100%
     stageVD: 0.30,      // 보컬 100 → 음방·컴백 정산 +30%, 댄스 100 → 또 +30%
     incomeFun: 0.15,    // 예능 100 → 기획사 수익 +15%
@@ -250,11 +251,12 @@
   }
   function incomeMult(cid) { return 1 + FX.incomeFun * fOf(cid, 'fun') + FX.incomeCharm * fOf(cid, 'charm'); }
   window.__lessonPayMult = payMult;
+  window.__lessonDramaGauge = function (cid) { return 1 + FX.actGauge * fOf(cid, 'act'); };   // drama.js 가 촬영 중 게이지에 곱함
   window.__lessonIncomeMult = incomeMult;
   function pctTxt(x) { return '+' + Math.round(x * 100) + '%'; }
   function fxLine(cid) {
     var st = [
-      ['🎭 연기', pctTxt(FX.actDrama * fOf(cid, 'act')) + ' 드라마'],
+      ['🎭 연기', pctTxt(FX.actDrama * fOf(cid, 'act')) + ' 드라마 출연료 · ' + pctTxt(FX.actGauge * fOf(cid, 'act')) + ' 촬영 속도'],
       ['✨ 매력', pctTxt(FX.charmCf * fOf(cid, 'charm')) + ' CF'],
       ['🎤💃 보컬·댄스', pctTxt(FX.stageVD * (fOf(cid, 'vocal') + fOf(cid, 'dance'))) + ' 음방·컴백'],
       ['🎪 예능·매력', pctTxt(FX.incomeFun * fOf(cid, 'fun') + FX.incomeCharm * fOf(cid, 'charm')) + ' 기획사 수익']

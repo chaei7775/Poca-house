@@ -834,13 +834,15 @@ $('#dr-stageWrap').addEventListener('pointerdown',e=>{if(!G||G.frozen)return;doT
 
 /* --- gauge helpers --- */
 function boost(){return G.t<G.oneUntil?1.5:1}
+/* 🎓 연기 능력치(lesson.js) → 촬영 중 시청률 게이지 속도 배율 (출연료 보너스는 lesson.js 가 촬영 끝난 뒤 따로 지급) */
+function actM(){try{return(G&&G.card&&typeof window.__lessonDramaGauge==='function')?(Number(window.__lessonDramaGauge(G.card.char))||1):1}catch(e){return 1}}
 function popup(txt,cls,color){
   const e=document.createElement('div');e.className='pop '+(cls||'');e.textContent=txt;e.style.color=color||'var(--fg)';
   e.style.top=(H*0.28+Math.random()*H*0.12)+'px';e.style.marginLeft=(Math.random()*60-30)+'px';
   $('#dr-fx').appendChild(e);setTimeout(()=>e.remove(),1150);
 }
 function addGauge(v,label,color){
-  v*=boost();G.gauge=Math.min(100,G.gauge+v);
+  v*=boost()*actM();G.gauge=Math.min(100,G.gauge+v);
   popup(`${label} +${fmt(v)}%`,'',color);
   if(G.gauge>=100&&!G.frozen)triggerOK();
 }
@@ -941,7 +943,7 @@ function triggerOK(){
 
 function update(dt){
   G.t+=dt;
-  const rate=CFG.AUTO*(G.t<G.chaseUntil?2:1)*boost();
+  const rate=CFG.AUTO*(G.t<G.chaseUntil?2:1)*boost()*actM();
   G.gauge=Math.min(100,G.gauge+rate*dt);
   G.skills.forEach(k=>{if(k.cdl>0)k.cdl=Math.max(0,k.cdl-dt)});
   while(G.idx<G.ev.length&&G.ev[G.idx].t<=G.t){
@@ -1075,6 +1077,7 @@ function finish(ok){
      ${slotGot===1?`<div><span>🎟️ 슬롯 확장권</span><b>획득!</b></div>`:slotGot===-1?`<div><span>🎟️ 슬롯 확장권</span><b>가방이 꽉 차서 못 받았어요</b></div>`:''}
      <div><span>화제성</span><b>+${buzz}</b></div>
      ${mastRows}
+     ${actM()>1.005?`<div><span>🎓 연기 능력치</span><b>촬영 속도 +${Math.round((actM()-1)*100)}%</b></div>`:''}
      ${star?'<div><span>탑스타 보너스</span><b>출연료 ×1.5</b></div>':''}
      ${capped?`<div><span>시청률 상한</span><b>일반·레어 카드는 ${CAP}.0%까지</b></div>`:''}
      ${hid&&!star?`<div><span>${G.card.name} 인지도</span><b>${fameCapped?`오늘은 다 올랐어요 (${FAME_DAILY}/${FAME_DAILY})`:`+${fameGain} (${Math.floor(Math.min(100,S.fame[ch])*FAME_GOAL/100)}/${FAME_GOAL})`}</b></div>`:''}
