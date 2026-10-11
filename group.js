@@ -182,7 +182,7 @@
     save(s);
     return { delta: delta, win: win };
   }
-  function gameOf(id) { return id === 'variety' ? window.__groupVariety : id === 'stage' ? window.__groupJoint : null; }   // 직접 플레이 코너가 있는 활동 (group-variety.js · group-joint.js)
+  function gameOf(id) { return id === 'variety' ? window.__groupVariety : id === 'stage' ? window.__groupJoint : id === 'dance' ? window.__groupDance : null; }   // 직접 플레이 코너가 있는 활동 (group-variety.js · group-joint.js)
   function precheck(id) {              // 직접 플레이(예능 토크쇼)를 열기 전에 활동이 가능한지만 미리 본다 (체력은 안 깎음)
     var s = load(); if (!s.group) return '그룹이 없어요';
     var act = actById(id); if (!act) return '활동을 찾지 못했어요';
