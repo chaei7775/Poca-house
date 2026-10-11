@@ -13,6 +13,10 @@
   var MEAL = { cost: 8000000, add: 6 }, TALK = { cost: 5000000, add: 12, per: 2 }, MEDI = { cost: 20000000, add: 25, below: 40 };
   var FONT = "font-family:'Noto Sans KR',sans-serif;";
   var NAMES = { minjun: '민준', sion: '시온', doyun: '도윤', harin: '하린', yuna: '윤아', ara: '아라' };
+  // 매니저 스킬: 만난 전담 매니저가 많을수록 중재가 강하고 싸진다 (ph_manager: actMet 배우 / topMet 탑스타)
+  function mgrTier() { try { var m = JSON.parse(localStorage.getItem('ph_manager') || '{}') || {}; return (m.topMet ? 1 : 0) + (m.actMet ? 1 : 0); } catch (e) { return 0; } }
+  function mediCost() { return Math.floor(MEDI.cost * [1, 0.8, 0.6][mgrTier()] / 100000) * 100000; }
+  function mediAdd() { return MEDI.add + 5 * mgrTier(); }
   function nm(c) { try { return CHARS[c].name; } catch (e) { return NAMES[c] || c; } }
   function today() { var d = new Date(); return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate(); }
   function load() {
@@ -93,14 +97,14 @@
       '<div style="font-size:11px;color:#cfd8f0;line-height:1.6;margin-bottom:8px;">친밀도가 높으면 활동 보상이 오르고, 낮으면 NG가 늘어요. <b>안 챙기면 하루에 ' + DECAY_PER_DAY + '씩 떨어져요.</b> 활동 중 사고가 나도 떨어져요. 짝을 눌러 고른 뒤 아래에서 챙겨요.<br>내 코인: <b style="color:#ffe08a;">🍔 ' + fmt(money()) + '</b></div>' + rows +
       ab('gb-meal', '🍽️ 단체 식사 (🍔 ' + fmt(MEAL.cost) + ')', !s.meal, '모든 짝 +' + MEAL.add + ' · 하루 1번 ' + (s.meal ? '(완료)' : '')) +
       ab('gb-talk', '💬 둘이서 시간 (🍔 ' + fmt(TALK.cost) + ')', haveSel && s.talk < TALK.per, '고른 짝 +' + TALK.add + ' · 하루 ' + TALK.per + '번 (오늘 ' + s.talk + '/' + TALK.per + ')' + (haveSel ? '' : ' · 짝을 먼저 골라요')) +
-      ab('gb-medi', '🕊️ 매니저 중재 (🍔 ' + fmt(MEDI.cost) + ')', haveSel && v < MEDI.below && !s.medi, '친밀도 ' + MEDI.below + ' 미만 짝 +' + MEDI.add + ' · 하루 1번 ' + (s.medi ? '(완료)' : haveSel && v >= MEDI.below ? '· 이 짝은 아직 괜찮아요' : '')) +
+      ab('gb-medi', '🕊️ 매니저 중재 (🍔 ' + fmt(mediCost()) + ')', haveSel && v < MEDI.below && !s.medi, '친밀도 ' + MEDI.below + ' 미만 짝 +' + mediAdd() + ' · 하루 1번 (매니저를 더 만날수록 강해지고 싸져요) ' + (s.medi ? '(완료)' : haveSel && v >= MEDI.below ? '· 이 짝은 아직 괜찮아요' : '')) +
       '</div></div>';
     ov.querySelector('#gb-x').onclick = function () { ov.remove(); };
     Array.prototype.forEach.call(ov.querySelectorAll('[data-pair]'), function (el) { el.onclick = function () { sel = el.getAttribute('data-pair').split(','); render(); }; });
     function pay(cost, fn) { if (money() < cost) { toast('코인이 모자라요 (🍔 ' + fmt(cost) + ' 필요)'); return; } spend(cost); var st = load(); fn(st); save(st); render(); }
     ov.querySelector('#gb-meal').onclick = function () { if (s.meal) return; pay(MEAL.cost, function (st) { st.meal = 1; pairs(ms).forEach(function (p) { add(st, p[0], p[1], MEAL.add); }); toast('🍽️ 다 같이 밥 먹으니 분위기가 풀렸어요!'); }); };
     ov.querySelector('#gb-talk').onclick = function () { if (!haveSel || s.talk >= TALK.per) return; pay(TALK.cost, function (st) { st.talk++; add(st, sel[0], sel[1], TALK.add); toast('💬 ' + nm(sel[0]) + '와(과) ' + nm(sel[1]) + ' 사이가 가까워졌어요'); }); };
-    ov.querySelector('#gb-medi').onclick = function () { if (!haveSel || s.medi || v >= MEDI.below) return; pay(MEDI.cost, function (st) { st.medi = 1; add(st, sel[0], sel[1], MEDI.add); toast('🕊️ 매니저가 두 사람을 화해시켰어요'); }); };
+    ov.querySelector('#gb-medi').onclick = function () { if (!haveSel || s.medi || v >= MEDI.below) return; pay(mediCost(), function (st) { st.medi = 1; add(st, sel[0], sel[1], mediAdd()); toast('🕊️ 매니저가 두 사람을 화해시켰어요'); }); };
   }
   function open() {
     if (document.getElementById('gb-ov')) return;
