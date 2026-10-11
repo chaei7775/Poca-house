@@ -346,6 +346,12 @@
     var card = document.createElement('div');
     card.style.cssText = 'position:absolute;right:-22px;top:-32px;width:28px;height:40px;border-radius:5px;border:2px solid #fff;' +
       'background-image:' + url + ';background-size:cover;background-position:center;transform:rotate(12deg);box-shadow:0 2px 8px rgba(0,0,0,.6);';
+    // 🔮 그룹 투자 마법진: 걷는 캐릭터 발밑에 깔려서 돌아간다 (투자 0이면 안 그림 · group-magic.js)
+    try {
+      var gm = window.__groupMagic;
+      var mh = gm ? gm.html({ size: 150, css: 'left:50%;top:50%;margin-left:-75px;margin-top:-47px;z-index:-1;' }) : '';
+      if (mh) { var mg = document.createElement('div'); mg.innerHTML = mh; if (mg.firstChild) wrap.appendChild(mg.firstChild); }
+    } catch (e) {}
     wrap.appendChild(face);
     wrap.appendChild(card);
     return wrap;
