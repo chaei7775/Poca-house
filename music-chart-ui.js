@@ -280,7 +280,14 @@
   function bindShow(s) { var b = $('show-go'); if (b) b.onclick = startShow; document.querySelectorAll('[data-stage]').forEach(function (el) { el.onclick = function () { if (window.openMusicStage) window.openMusicStage(el.getAttribute('data-stage'), el.getAttribute('data-q')); else toast('무대를 불러오지 못했어요'); }; }); }
 
   function startShow() {
-    var res = C().runShow(); if (!res) { toast('지금은 출전할 수 없어요'); return; }
+    var s0 = C().load();
+    if (!s0.show || s0.show.done) { toast('지금은 출전할 수 없어요'); return; }
+    var sg0 = s0.songs.filter(function (x) { return x.id === s0.show.sid; })[0];
+    if (window.openAuditionShow && sg0) window.openAuditionShow({ cid: sg0.cid }, function (perf) { doShow(perf); });   // 🎤 오디션 무대를 먼저 직접 플레이
+    else doShow();
+  }
+  function doShow(perf) {
+    var res = C().runShow(perf); if (!res) { toast('지금은 출전할 수 없어요'); return; }
     var ov = layer('chart-show',
       '<div style="font-size:12px;color:#aab;margin-bottom:6px;">🎙️ 음악방송 순위 대결</div>' +
       '<div style="display:flex;gap:8px;margin-bottom:12px;">' +

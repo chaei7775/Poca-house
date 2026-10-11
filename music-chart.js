@@ -339,7 +339,8 @@
   // ════════ 음악방송 ════════
   // 결과를 정해서 돌려줌 (연출은 화면이)
   function showFactor(rank) { for (var i = 0; i < SHOW_PAY.length; i++) if (rank <= SHOW_PAY[i][0]) return SHOW_PAY[i][1]; return 0; }
-  function runShow() {
+  var AUD_SWING = 16, AUD_MID = 0.55;      // 🎤 오디션 무대 결과(perf 0~1)가 내 점수에 주는 영향: (perf-0.55)×16 → 최대 +7.2 / 최소 -8.8
+  function runShow(perf) {
     var s = load(); if (!s.show || s.show.done) return null;
     var sg = s.songs.filter(function (x) { return x.id === s.show.sid; })[0]; if (!sg) return null;
     var day = gameDay(), list = chartAt(21, day, s), idx = -1;
@@ -351,6 +352,7 @@
     var mineP = idx >= 0 ? list[idx].power : powerOf(sg, day);
     var mine = mineP + gauss() * 3, theirs = (rivalE ? rivalE.power : 90) + gauss() * 3;
     if (sg.rank === 1) mine += 4;
+    if (typeof perf === 'number') mine += (perf - AUD_MID) * AUD_SWING;
     var win = mine > theirs, big = Math.abs(mine - theirs) > 6;
     var before = sg.rank || (idx + 1) || 101;
     // 결과에 따라 점수가 오르내림 → 순위 바로 갱신
@@ -360,7 +362,7 @@
     sg.prev = before; sg.rank = after; sg.peak = Math.min(sg.peak || 101, after);
     var first = win && after === 1;
     var pay = win ? Math.round(WIN_PAY * showFactor(after)) : 0, wish = first ? SHOW_WISH : 0;
-    var res = { win: win, first: first, mine: Math.round(mine * 10), theirs: Math.round(theirs * 10), rival: rivalE ? rivalE.artist + ' - ' + rivalE.title : '', title: sg.title, cid: sg.cid, before: before, after: after, pay: pay, wish: wish };
+    var res = { perf: typeof perf === 'number' ? Math.round(perf * 100) : null, win: win, first: first, mine: Math.round(mine * 10), theirs: Math.round(theirs * 10), rival: rivalE ? rivalE.artist + ' - ' + rivalE.title : '', title: sg.title, cid: sg.cid, before: before, after: after, pay: pay, wish: wish };
     s.show.done = true; s.show.res = res; s.stats.shows++;
     if (win) s.stats.showWins = (s.stats.showWins || 0) + 1;
     if (first) s.stats.trophies++;
