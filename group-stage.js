@@ -42,7 +42,10 @@
     // 배경 일러스트: grp-bg-<활동id>.webp (없으면 그냥 색 배경). 위에 어두운 막을 씌워서 글씨가 읽히게
     var bgImg = '<img src="grp-bg-' + res.act.id + '.webp" decoding="async" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;" onerror="this.remove()">' +
       '<div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.25),rgba(0,0,0,.55));"></div>';
+    var invChips = '';   // 🏢 이 활동에 붙은 그룹 투자 시설 효과 (왼쪽 위 칩)
+    try { var gi = window.__groupInvest; if (gi && gi.badges) invChips = gi.badges(res.act.id).map(function (b, i) { return '<div style="opacity:0;animation:gstPop .5s ease-out forwards;animation-delay:' + (0.1 + i * 0.12) + 's;padding:3px 8px;border-radius:99px;background:rgba(0,0,0,.5);border:1px solid rgba(255,215,106,.6);font-size:10.5px;font-weight:900;color:#ffe08a;white-space:nowrap;">' + b.icon + ' Lv.' + b.lv + ' <span style="color:#9dffb0;">+' + b.pct + '%</span></div>'; }).join(''); } catch (e) {}
     ov.innerHTML = bgImg + beam(0, 0) + beam(0, -1.6) +
+      (invChips ? '<div style="position:absolute;top:10px;left:10px;display:flex;flex-direction:column;gap:4px;align-items:flex-start;z-index:2;">' + invChips + '</div>' : '') +
       '<div style="position:absolute;top:7%;left:0;right:0;text-align:center;"><img src="grp-' + res.act.id + '.png" width="84" height="84" style="width:84px;height:84px;object-fit:contain;" onerror="this.remove()"><div style="font-size:16px;font-weight:900;margin-top:4px;text-shadow:0 2px 8px #000;">' + esc(res.act.name) + '</div></div>' +
       '<div id="gst-row" style="position:absolute;top:34%;left:0;right:0;display:flex;justify-content:center;gap:10px;flex-wrap:wrap;padding:0 14px;">' + mh + '</div>' +
       '<div id="gst-cap" style="position:absolute;top:56%;left:16px;right:16px;min-height:70px;text-align:center;font-size:14.5px;font-weight:700;line-height:1.6;text-shadow:0 2px 8px #000;"></div>' +

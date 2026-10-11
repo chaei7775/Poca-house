@@ -61,6 +61,7 @@
         if (money() < p) { toast('코인이 모자라요 (🍔 ' + fmt(p) + ' 필요)'); return; }
         spend(p); var s = load(); s.lv[f.id] = lv + 1; save(s);
         toast(f.icon + ' ' + f.name + ' Lv.' + (lv + 1) + ' 투자 완료!');
+        try { if (typeof checkTitles === 'function') checkTitles(); } catch (e) {}
         render();
       };
     });
@@ -83,6 +84,56 @@
     b.onclick = open;
     row.parentNode.insertBefore(b, row);
   }
+
+  // ── 👀 눈에 보이는 효과 ──
+  // ① 소속사 등급 (투자 단계 합계 0~30): 그룹 화면 맨 위에 배지로 보임
+  var RANKS = [[0, '무소속', '#9fb0d0'], [1, '신생 기획사', '#8fd3ff'], [8, '중견 기획사', '#9dffb0'], [16, '대형 기획사', '#ffd76a'], [24, '엔터 거물', '#ff9ec4'], [30, '엔터 제국', '#ffe45c']];
+  function total() { var t = 0; FAC.forEach(function (f) { t += lvOf(f.id); }); return t; }
+  function rank() { var t = total(), r = RANKS[0]; RANKS.forEach(function (x) { if (t >= x[0]) r = x; }); return { name: r[1], color: r[2], total: t, max: FAC.length * MAXLV }; }
+  // ② 지금 활동에 붙는 시설 효과 (연출 화면에서 칩으로 보임)
+  function badges(actId) {
+    var out = [];
+    FAC.forEach(function (f) { var lv = lvOf(f.id); if (lv > 0 && (!f.acts || f.acts.indexOf(actId) !== -1)) out.push({ icon: f.icon, name: f.name, lv: lv, pct: lv * f.per }); });
+    return out;
+  }
+  // ③ 칭호: 소속사 등급별 + 시설 최대 단계별 (더보기 > 칭호에서 장착)
+  var FAC_TITLE = { studio: '레코딩의 제왕', practice: '무대의 지배자', shoot: '카메라의 연인', setpark: '예능 제작자', dorm: '멤버들의 집주인', tour: '월드투어 총괄' };
+  function addTitles(n) {
+    try {
+      if (typeof TITLES !== 'undefined' && Array.isArray(TITLES)) {
+        var have = function (id) { return TITLES.some(function (t) { return t.id === id; }); };
+        RANKS.forEach(function (r, i) {
+          if (!r[0]) return;
+          var id = 'gi_rank_' + r[0];
+          if (!have(id)) TITLES.push({ id: id, cat: '🏢 그룹', name: '그룹 투자 ' + r[0] + '단계 달성', title: r[1] + ' 대표', cond: function () { return total() >= r[0]; } });
+        });
+        FAC.forEach(function (f) {
+          var id = 'gi_max_' + f.id;
+          if (!have(id)) TITLES.push({ id: id, cat: '🏢 그룹', name: f.name + ' 최대 투자', title: FAC_TITLE[f.id] || f.name, cond: function () { return lvOf(f.id) >= MAXLV; } });
+        });
+        return;
+      }
+    } catch (e) {}
+    if (n < 100) setTimeout(function () { addTitles(n + 1); }, 200);
+  }
+  addTitles(0);
+  function attachBadge() {
+    var ov = document.getElementById('grp-ov'); if (!ov || !document.getElementById('grp-edit')) { var o = document.getElementById('gi-badge'); if (o && !document.getElementById('grp-edit')) o.remove(); return; }
+    if (document.getElementById('gi-badge')) return;
+    var body = ov.firstElementChild && ov.firstElementChild.children[1]; if (!body) return;
+    var r = rank(), chips = FAC.map(function (f) {
+      var lv = lvOf(f.id), on = lv > 0, mx = lv >= MAXLV;
+      return '<div style="display:flex;flex-direction:column;align-items:center;min-width:42px;padding:5px 4px;border-radius:10px;background:' + (on ? 'rgba(255,215,106,.12)' : 'rgba(255,255,255,.05)') + ';border:1.5px solid ' + (mx ? '#ffe45c' : on ? 'rgba(255,215,106,.45)' : 'rgba(255,255,255,.1)') + ';' + (mx ? 'box-shadow:0 0 10px #ffe45c88;' : '') + '">' +
+        '<div style="font-size:20px;line-height:1;' + (on ? '' : 'filter:grayscale(1);opacity:.4;') + '">' + f.icon + '</div>' +
+        '<div style="font-size:9.5px;font-weight:900;margin-top:2px;color:' + (mx ? '#ffe45c' : on ? '#ffe08a' : '#6f7f9f') + ';">' + (mx ? 'MAX' : 'Lv.' + lv) + '</div></div>';
+    }).join('');
+    var d = document.createElement('div'); d.id = 'gi-badge';
+    d.style.cssText = 'margin-bottom:10px;padding:9px 10px;border-radius:14px;background:linear-gradient(135deg,rgba(255,215,106,.10),rgba(255,122,89,.10));border:1.5px solid ' + r.color + '66;' + FONT;
+    d.innerHTML = '<div style="display:flex;align-items:center;gap:6px;margin-bottom:7px;"><div style="font-size:13px;font-weight:900;color:' + r.color + ';">🏢 ' + r.name + '</div><div style="font-size:10.5px;color:#9fb0d0;margin-left:auto;">투자 ' + r.total + '/' + r.max + '</div></div>' +
+      '<div style="display:flex;gap:5px;justify-content:space-between;">' + chips + '</div>';
+    body.insertBefore(d, body.firstChild);
+  }
+  setInterval(attachBadge, 500);
   setInterval(attach, 700);
-  window.__groupInvest = { mult: mult, FAC: FAC, lvOf: lvOf, open: open, price: price };
+  window.__groupInvest = { mult: mult, FAC: FAC, lvOf: lvOf, open: open, price: price, rank: rank, badges: badges, total: total };
 })();
