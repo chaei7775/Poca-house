@@ -210,9 +210,11 @@
     var line = pick(LINES[id]).replace(/\{m\}/g, names(live)).replace(/\{g\}/g, s.group.name) + (big ? ' ' + pick(BIG_LINE) : '');
     if (ngHit) { try { line = cEgg.ngLine(); } catch (e) {} }
     try { if (window.__comboEgg) { var ch = ngHit ? '' : window.__comboEgg.hint(live, id); if (ch) line += ' ' + ch; } } catch (e) {}
+    var report = null;
+    try { if (window.__groupReport) report = window.__groupReport.make(id, live, name, function (c) { return powerOf(act, { vocal: statOf(c, 'vocal'), dance: statOf(c, 'dance'), act: statOf(c, 'act'), fun: statOf(c, 'fun'), charm: statOf(c, 'charm') }); }, r.tier, big, ngHit); } catch (e) {}
     s.log.unshift({ t: Date.now(), m: act.icon + ' ' + act.name + ' (' + TIERS[r.tier][1] + (big ? '·대성공' : '') + (ngHit ? '·NG' : '') + ') +' + fmt(coinGain) + ' 코인' + (wish ? ' · 🧩' + wish : '') + (ev && ev.kind !== 'choice' ? ' · ' + ev.t.split(' ')[0] : '') });
     save(s);
-    return { act: act, big: big, ev: ev, coin: coinGain, fame: fameGain, wish: wish, tier: TIERS[r.tier][1], line: line, levelUp: lv1 > lv0 ? LEVELS[lv1][1] : '', members: live };
+    return { act: act, big: big, ev: ev, coin: coinGain, fame: fameGain, wish: wish, tier: TIERS[r.tier][1], line: line, levelUp: lv1 > lv0 ? LEVELS[lv1][1] : '', members: live, report: report, ng: ngHit };
   }
 
   // ── 화면 ──
@@ -331,6 +333,8 @@
       '<div style="font-size:34px;margin-bottom:4px;">' + m + '</div>' +
       '<div style="font-size:16px;font-weight:900;color:' + (res.big ? '#ffd76a' : '#fff') + ';">' + aicon(res.act, 26) + ' ' + esc(res.act.name) + ' — ' + (res.big ? '🌟 대성공!' : esc(res.tier)) + '</div>' +
       (res.big ? '<div style="font-size:11px;color:#ffe08a;margin-top:2px;">(기본 등급: ' + esc(res.tier) + ')</div>' : '') +
+      (res.report ? '<div style="display:inline-block;margin-top:6px;padding:4px 14px;border-radius:999px;border:1.5px solid ' + res.report.color + ';color:' + res.report.color + ';font-size:14px;font-weight:900;">' + esc(res.report.grade) + '</div>' +
+        '<div style="text-align:left;margin:10px 0 4px;">' + res.report.lines.map(function (l) { return '<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-top:1px solid rgba(255,255,255,0.08);">' + face(l.c, 30) + '<div style="flex:1;font-size:11.5px;line-height:1.5;color:' + (l.tone === 'top' ? '#ffe08a' : l.tone === 'bad' || l.tone === 'low' ? '#ffb0b0' : '#dbe6ff') + ';">' + esc(l.text) + '</div></div>'; }).join('') + '</div>' : '') +
       '<div style="font-size:12.5px;color:#dbe6ff;line-height:1.7;margin:8px 0 10px;">' + esc(res.line) + '</div>' +
       '<div style="font-size:15px;font-weight:900;color:#ffe08a;">+' + fmt(res.coin) + ' 코인</div>' +
       (res.wish ? '<div style="font-size:13px;font-weight:900;color:#ffb0e0;margin-top:2px;">🧩 소원의 조각 +' + res.wish + '</div>' : '') +
