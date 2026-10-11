@@ -181,7 +181,17 @@
     save(s);
     return { delta: delta, win: win };
   }
-  function doActivity(id) {
+  function precheck(id) {              // 직접 플레이(예능 토크쇼)를 열기 전에 활동이 가능한지만 미리 본다 (체력은 안 깎음)
+    var s = load(); if (!s.group) return '그룹이 없어요';
+    var act = actById(id); if (!act) return '활동을 찾지 못했어요';
+    var capped = (s.used[id] || 0) >= act.per;
+    if (capped && s.potion < 1) return '오늘 ' + act.name + '은(는) 다 했어요 (하루 ' + act.per + '번). 🥤 체력 음료가 있으면 더 할 수 있어요. 내일도 또 해요!';
+    if (s.free + s.potion < 1) return '그룹 체력이 없어요. 체력 음료를 사거나 내일 다시 해요!';
+    if (liveMembers(s).length < MIN_MEMBERS) return '데뷔한 멤버가 ' + MIN_MEMBERS + '명 이상이어야 해요. 멤버를 바꿔주세요';
+    return null;
+  }
+  function doActivity(id, perf) {      // perf: 직접 플레이(예능 토크쇼) 결과 0~1 (없으면 null)
+    var pf = (typeof perf === 'number') ? Math.max(0, Math.min(1, perf)) : null;
     var s = load(); if (!s.group) return null;
     var act = actById(id); if (!act) return null;
     var capped = (s.used[id] || 0) >= act.per;   // 하루 횟수를 다 채웠으면 🥤 체력 음료로 추가 활동 가능
@@ -193,7 +203,7 @@
     var cEgg = window.__comboEgg || null, cBig = 0, cNg = 0;
     try { if (cEgg) { cBig = cEgg.bigBonus(live, id); cNg = cEgg.ng(live, id); } } catch (e) {}
     var bd = null; try { if (window.__groupBond) { bd = window.__groupBond.effect(live); cNg = Math.min(0.5, cNg + bd.ng); } } catch (e) {}   // 멤버 친밀도 (group-bond.js)
-    var big = r0.tier >= MIN_BIG_TIER && Math.random() < r0.bigChance + cBig;
+    var big = r0.tier >= MIN_BIG_TIER && Math.random() < r0.bigChance + cBig + (pf != null ? (pf - 0.5) * 0.3 : 0);
     var ngHit = !big && cNg > 0 && Math.random() < cNg;   // 숨은 조합 NG (combo-egg.js)
     var r = big ? reward(act, live, s.fame, true) : r0;
     var wish = (act.wish && Math.random() < r.wishChance) ? (big ? 2 : 1) : 0;
@@ -201,6 +211,7 @@
     var coinGain = r.coin, fameGain = r.fame;
     var rl = null, effTier = r.tier;
     try { if (!ngHit && window.__groupReport) { rl = window.__groupReport.roll(id, live); coinGain = Math.floor(coinGain * rl.mul * (bd ? bd.mul : 1)); fameGain = Math.floor(fameGain * rl.mul * (bd ? bd.mul : 1)); effTier = Math.max(0, Math.min(TIERS.length - 1, r.tier + rl.shift)); } } catch (e) {}   // 멤버별 랜덤 변수 (컨디션/사고)
+    if (pf != null) { if (pf >= 0.85) effTier = Math.min(TIERS.length - 1, effTier + 1); else if (pf <= 0.12) effTier = Math.max(0, effTier - 1); }   // 🎪 직접 플레이 결과: 아주 잘하면 등급 +1 / 아주 못하면 -1
     if (big && effTier < MIN_BIG_TIER) effTier = MIN_BIG_TIER;   // 대성공이면 표시 등급이 아쉬움으로 떨어지지 않게
     if (ngHit) { coinGain = 0; fameGain = Math.floor(r.fame * 0.3); wish = 0; ev = null; }
     if (ev && ev.kind !== 'choice') {
@@ -210,6 +221,7 @@
       if (ev.wish) wish += ev.wish;
     }
     if (ev && ev.kind === 'choice') ev.base = r.coin;
+    if (pf != null) { var pm = 0.8 + 0.6 * pf; coinGain = Math.floor(coinGain * pm); fameGain = Math.floor(fameGain * pm); }   // 직접 플레이 결과 ×0.8~1.4
     var viral = null;   // 📱 바이럴 (group-viral.js): 터지면 코인·인기도 보너스
     try { if (window.__groupViral) { viral = window.__groupViral.roll(act, live, { big: big, ng: ngHit, tier: effTier, lv: levelOf(s.fame) }); if (viral) { coinGain = Math.floor(coinGain * viral.mul); viral.famePlus = Math.ceil(fameGain * viral.fameMul); fameGain += viral.famePlus; } } } catch (e) { viral = null; }
     var lv0 = levelOf(s.fame);
@@ -228,7 +240,7 @@
     try { if (report && bd && bd.line) report.lines.push(bd.line); if (window.__groupBond) window.__groupBond.after(live, rl, ngHit); } catch (e) {}
     s.log.unshift({ t: Date.now(), m: act.icon + ' ' + act.name + ' (' + TIERS[effTier][1] + (big ? '·대성공' : '') + (ngHit ? '·NG' : '') + ') +' + fmt(coinGain) + ' 코인' + (wish ? ' · 🧩' + wish : '') + (ev && ev.kind !== 'choice' ? ' · ' + ev.t.split(' ')[0] : '') });
     save(s);
-    return { viral: viral, act: act, big: big, ev: ev, coin: coinGain, fame: fameGain, wish: wish, tier: TIERS[effTier][1], line: line, levelUp: lv1 > lv0 ? LEVELS[lv1][1] : '', members: live, report: report, ng: ngHit };
+    return { perf: pf, viral: viral, act: act, big: big, ev: ev, coin: coinGain, fame: fameGain, wish: wish, tier: TIERS[effTier][1], line: line, levelUp: lv1 > lv0 ? LEVELS[lv1][1] : '', members: live, report: report, ng: ngHit };
   }
 
   // ── 화면 ──
@@ -451,7 +463,18 @@
       };
     });
     Array.prototype.forEach.call(ov.querySelectorAll('[data-act]'), function (b) {
-      b.onclick = function () { if (sceneBusy && Date.now() - sceneAt < 15000) return; var res = doActivity(b.getAttribute('data-act')); if (!res) return; if (res.err) { toast(res.err); return; } sfx('grpStart'); sceneBusy = true; sceneAt = Date.now(); scene(res, function () { var fin = function () { sceneBusy = false; var go = function () { popup(res); }; if (res.viral && window.__groupViral) { try { window.__groupViral.show(res, go); } catch (e) { go(); } } else go(); }; if (window.__groupStage) { try { window.__groupStage.play(res, fin); } catch (e) { fin(); } } else fin(); }); };
+      b.onclick = function () {
+        if (sceneBusy && Date.now() - sceneAt < 15000) return;
+        var id0 = b.getAttribute('data-act'), perf0;
+        if (id0 === 'variety' && window.__groupVariety && !b.__varDone) {   // 🎪 단체 예능은 토크쇼를 먼저 직접 플레이 (group-variety.js)
+          var er0 = precheck(id0); if (er0) { toast(er0); return; }
+          sceneBusy = true; sceneAt = Date.now();
+          try { window.__groupVariety.play(liveMembers(load()), function (p) { sceneBusy = false; if (typeof p !== 'number') return; b.__varDone = true; b.__perf = p; b.onclick(); }); }
+          catch (e) { sceneBusy = false; }
+          return;
+        }
+        if (b.__varDone) { perf0 = b.__perf; b.__varDone = false; }
+        var res = doActivity(id0, perf0); if (!res) return; if (res.err) { toast(res.err); return; } sfx('grpStart'); sceneBusy = true; sceneAt = Date.now(); scene(res, function () { var fin = function () { sceneBusy = false; var go = function () { popup(res); }; if (res.viral && window.__groupViral) { try { window.__groupViral.show(res, go); } catch (e) { go(); } } else go(); }; if (window.__groupStage) { try { window.__groupStage.play(res, fin); } catch (e) { fin(); } } else fin(); }); };
     });
   }
 
