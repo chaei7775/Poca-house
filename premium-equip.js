@@ -54,6 +54,16 @@
   };
   var ORDER = ['minjun', 'sion', 'doyun', 'harin', 'yuna', 'ara'];
 
+  // 🖼️ 효과 아이콘 그림 (그림이 없거나 안 불러와지면 이모지로 대신 나옴)
+  var ICON_IMG = { doyun: 'em-mic.png', harin: 'vip-bolt.png', yuna: 'mat-premiumpiece.png', ara: 'vip-coin.png' };
+  function icoHtml(file, emoji) {
+    if (!file) return emoji;
+    return '<img src="' + file + '" alt="" loading="lazy" decoding="async" style="width:1.3em;height:1.3em;object-fit:contain;vertical-align:-0.3em;pointer-events:none;" ' +
+      'onerror="this.replaceWith(document.createTextNode(\'' + emoji + '\'))">';
+  }
+  function pIcon(pid) { return icoHtml(ICON_IMG[pid], PREMIUMS[pid].icon); }
+  function coinIcon() { return icoHtml('vip-coin.png', '🍔'); }
+
   // ════════ 순수 로직 ════════
   function clamp(n, lo, hi) { return Math.max(lo, Math.min(hi, n)); }
   function valueAt(pid, lv) {
@@ -175,7 +185,7 @@
       return '<button data-pe-slot="' + h.id + '|' + i + '" style="' + base + 'background:rgba(255,255,255,.08);border:1.5px solid ' + p.color + ';">' +
         '<span style="position:relative;flex:none;width:34px;height:48px;border-radius:6px;background:#222 url(\'' + imgUrl(pid) + '\') center/cover;">' +
         '<span style="position:absolute;left:1px;top:1px;background:rgba(0,0,0,.75);color:#FFD700;font-size:9px;font-weight:900;border-radius:5px;padding:0 3px;">Lv.' + lv + '</span></span>' +
-        '<span style="font-size:10px;line-height:1.35;color:#ddd;">' + p.icon + ' ' + esc(p.text(valueAt(pid, lv))) + '</span></button>';
+        '<span style="font-size:10px;line-height:1.35;color:#ddd;">' + pIcon(pid) + ' ' + esc(p.text(valueAt(pid, lv))) + '</span></button>';
     }
     return '<button data-pe-slot="' + h.id + '|' + i + '" style="' + base + 'background:rgba(255,255,255,.03);border:1.5px dashed rgba(255,255,255,.25);justify-content:center;min-height:60px;color:#888;font-size:12px;">＋ 장착</button>';
   }
@@ -188,7 +198,7 @@
 
     var on = ORDER.filter(function (pid) { return act[pid]; }).map(function (pid) {
       var p = PREMIUMS[pid];
-      return '<div style="font-size:12px;color:#fff;padding:2px 0;">' + p.icon + ' ' + esc(p.text(valueAt(pid, premiumLv(pid)))) + '</div>';
+      return '<div style="font-size:12px;color:#fff;padding:2px 0;">' + pIcon(pid) + ' ' + esc(p.text(valueAt(pid, premiumLv(pid)))) + '</div>';
     }).join('');
     var summary = '<div style="background:rgba(255,215,0,.08);border:1.5px solid rgba(255,215,0,.35);border-radius:14px;padding:10px 12px;margin-bottom:10px;">' +
       '<div style="font-size:12px;font-weight:900;color:#FFD700;margin-bottom:5px;">지금 켜진 장착 효과</div>' +
@@ -209,7 +219,7 @@
     return '<div style="margin-top:18px;">' +
       '<div style="font-size:14px;font-weight:900;color:#fff;margin-bottom:6px;">🔧 히든카드에 장착</div>' +
       '<div style="font-size:11px;color:#aaa;line-height:1.6;margin-bottom:10px;">히든카드 1장에 프리미엄 카드 ' + SLOTS + '장까지! 프리미엄 카드는 한 장당 한 곳에만 끼울 수 있어요. ' +
-      '장착하거나 옮길 때마다 🍔 ' + fmt(EQUIP_COIN) + ' 코인이 들고, 빼는 건 공짜예요. 장착한 히든카드가 사라지면 장착이 풀려요.</div>' +
+      '장착하거나 옮길 때마다 ' + coinIcon() + ' ' + fmt(EQUIP_COIN) + ' 코인이 들고, 빼는 건 공짜예요. 장착한 히든카드가 사라지면 장착이 풀려요.</div>' +
       summary +
       (rows || '<div style="text-align:center;color:#888;font-size:12px;padding:16px 0;">장착할 히든카드가 아직 없어요</div>') + '</div>';
   }
@@ -233,12 +243,12 @@
         btn = '';
       } else {
         status = wh ? '<span style="color:#fbbf24;">📍 ' + esc(wh.name) + '에 장착 중 (옮기면 거기서 빠져요)</span>' : '<span style="color:#888;">미장착</span>';
-        btn = '<button data-pe-pick="' + pid + '" style="border:none;border-radius:10px;padding:9px 10px;font-size:12px;font-weight:900;cursor:pointer;' + FONT + 'color:#fff;background:linear-gradient(135deg,#FF6B9D,#C084FC);flex:none;">' + (wh ? '옮기기' : '장착') + '<br><span style="font-size:10px;font-weight:700;">🍔 ' + fmt(EQUIP_COIN) + '</span></button>';
+        btn = '<button data-pe-pick="' + pid + '" style="border:none;border-radius:10px;padding:9px 10px;font-size:12px;font-weight:900;cursor:pointer;' + FONT + 'color:#fff;background:linear-gradient(135deg,#FF6B9D,#C084FC);flex:none;">' + (wh ? '옮기기' : '장착') + '<br><span style="font-size:10px;font-weight:700;">' + coinIcon() + ' ' + fmt(EQUIP_COIN) + '</span></button>';
       }
       return '<div style="display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.06);border:1.5px solid ' + p.color + ';border-radius:12px;padding:8px;margin-bottom:8px;">' +
         '<span style="position:relative;flex:none;width:44px;height:62px;border-radius:7px;background:#222 url(\'' + imgUrl(pid) + '\') center/cover;"><span style="position:absolute;left:2px;top:2px;background:rgba(0,0,0,.75);color:#FFD700;font-size:10px;font-weight:900;border-radius:6px;padding:0 4px;">Lv.' + lv + '</span></span>' +
         '<div style="flex:1;min-width:0;"><div style="font-size:13px;font-weight:900;color:#fff;">' + esc(p.name) + '</div>' +
-        '<div style="font-size:11px;color:#ddd;margin:2px 0;">' + p.icon + ' ' + esc(p.text(valueAt(pid, lv))) + '</div>' +
+        '<div style="font-size:11px;color:#ddd;margin:2px 0;">' + pIcon(pid) + ' ' + esc(p.text(valueAt(pid, lv))) + '</div>' +
         '<div style="font-size:10px;">' + status + '</div></div>' + btn + '</div>';
     }).join('');
 
