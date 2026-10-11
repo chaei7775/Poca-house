@@ -148,6 +148,10 @@
   };
   var BIG_LINE = ['대성공! 현장이 들썩였어요 🎉', '오늘은 레전드예요 ✨', '모두가 기립박수를 쳤어요!'];
   function names(list) { return list.map(name).join(', '); }
+  function nameOfC(c) { try { return CHARS[c].name; } catch (e) { return c; } }
+  function costTxt(id) { try { var c = window.__groupCond && window.__groupCond.COST[id]; if (c) return ' · 😴 멤버 체력 -' + c[0] + (c[1] < 0 ? ' · 기분 ' + c[1] : ' · 기분 +' + c[1]); } catch (e) {} return ''; }
+  function fitMembers(s) { var l = liveMembers(s); try { if (window.__groupCond) return l.filter(window.__groupCond.ok); } catch (e) {} return l; }   // 😴 체력이 바닥난 멤버는 활동에 못 나옴 (group-cond.js)
+  function tiredMsg(s) { try { var t = window.__groupCond ? window.__groupCond.tired(liveMembers(s)) : []; if (t.length) return '😵 ' + t.map(nameOfC).join(', ') + ' 체력이 너무 낮아서 못 나와요. 관리탭에서 식사·휴식으로 채워주세요'; } catch (e) {} return '데뷔한 멤버가 ' + MIN_MEMBERS + '명 이상이어야 해요. 멤버를 바꿔주세요'; }
   function liveMembers(s) { return s.group.members.filter(function (c) { return debutedIds().indexOf(c) !== -1; }); }
   // ── 🎲 돌발 이벤트 (호재 / 악재 / 선택) ──
   var EVENTS = {
@@ -189,7 +193,7 @@
     var capped = (s.used[id] || 0) >= act.per;
     if (capped && s.potion < 1) return '오늘 ' + act.name + '은(는) 다 했어요 (하루 ' + act.per + '번). 🥤 체력 음료가 있으면 더 할 수 있어요. 내일도 또 해요!';
     if (s.free + s.potion < 1) return '그룹 체력이 없어요. 체력 음료를 사거나 내일 다시 해요!';
-    if (liveMembers(s).length < MIN_MEMBERS) return '데뷔한 멤버가 ' + MIN_MEMBERS + '명 이상이어야 해요. 멤버를 바꿔주세요';
+    if (fitMembers(s).length < MIN_MEMBERS) return tiredMsg(s);
     return null;
   }
   function doActivity(id, perf) {      // perf: 직접 플레이(예능 토크쇼) 결과 0~1 (없으면 null)
@@ -199,8 +203,8 @@
     var capped = (s.used[id] || 0) >= act.per;   // 하루 횟수를 다 채웠으면 🥤 체력 음료로 추가 활동 가능
     if (capped && s.potion < 1) return { err: '오늘 ' + act.name + '은(는) 다 했어요 (하루 ' + act.per + '번). 🥤 체력 음료가 있으면 더 할 수 있어요. 내일도 또 해요!' };
     if (s.free + s.potion < 1) return { err: '그룹 체력이 없어요. 체력 음료를 사거나 내일 다시 해요!' };
-    var live = liveMembers(s);
-    if (live.length < MIN_MEMBERS) return { err: '데뷔한 멤버가 ' + MIN_MEMBERS + '명 이상이어야 해요. 멤버를 바꿔주세요' };
+    var live = fitMembers(s);
+    if (live.length < MIN_MEMBERS) return { err: tiredMsg(s) };
     var r0 = reward(act, live, s.fame, false);
     var cEgg = window.__comboEgg || null, cBig = 0, cNg = 0;
     try { if (cEgg) { cBig = cEgg.bigBonus(live, id); cNg = cEgg.ng(live, id); } } catch (e) {}
@@ -225,6 +229,8 @@
       if (ev.wish) wish += ev.wish;
     }
     if (ev && ev.kind === 'choice') ev.base = r.coin;
+    var cm0 = 1; try { if (window.__groupCond) cm0 = window.__groupCond.mult(live); } catch (e) {}   // 😴 컨디션 불량 멤버가 있으면 보상 감소
+    if (cm0 < 1) { if (pf != null) pf = pf * cm0; else { coinGain = Math.floor(coinGain * cm0); fameGain = Math.floor(fameGain * cm0); } }
     if (pf != null) { var pm = 0.8 + 0.6 * pf; coinGain = Math.floor(coinGain * pm); fameGain = Math.floor(fameGain * pm); }   // 직접 플레이 결과 ×0.8~1.4
     var viral = null;   // 📱 바이럴 (group-viral.js): 터지면 코인·인기도 보너스
     try { if (window.__groupViral) { viral = window.__groupViral.roll(act, live, { big: big, ng: ngHit, tier: effTier, lv: levelOf(s.fame) }); if (viral) { coinGain = Math.floor(coinGain * viral.mul); viral.famePlus = Math.ceil(fameGain * viral.fameMul); fameGain += viral.famePlus; } } } catch (e) { viral = null; }
@@ -235,7 +241,8 @@
     if (ev && ev.stamina) { if (ev.stamina > 0) s.free += ev.stamina; else if (s.free > 0) s.free--; else if (s.potion > 0) s.potion--; }
     s.fame += fameGain; s.total += 1; s.used[id] = (s.used[id] || 0) + 1;
     var lv1 = levelOf(s.fame);
-    var line = pick(LINES[id]).replace(/\{m\}/g, names(live)).replace(/\{g\}/g, s.group.name) + (big ? ' ' + pick(BIG_LINE) : '');
+    var cs = null; try { if (window.__groupCond) cs = window.__groupCond.spend(live, id, pf); } catch (e) {}   // 😴 참여 멤버 체력·기분 소모
+    var line = pick(LINES[id]).replace(/\{m\}/g, names(live)).replace(/\{g\}/g, s.group.name) + (big ? ' ' + pick(BIG_LINE) : '') + (cs ? ' (멤버 체력 ' + cs.s + ' · 기분 ' + (cs.m > 0 ? '+' : '') + cs.m + ')' : '');
     if (ngHit) { try { line = cEgg.ngLine(); } catch (e) {} }
     try { if (window.__comboEgg) { var ch = ngHit ? '' : window.__comboEgg.hint(live, id); if (ch) line += ' ' + ch; } } catch (e) {}
     var report = null;
@@ -314,7 +321,7 @@
         '<div style="width:46px;height:46px;flex-shrink:0;display:flex;align-items:center;justify-content:center;">' + aicon(a, 46) + '</div><div style="flex:1;min-width:0;">' +
         '<div style="font-size:13px;font-weight:900;">' + esc(a.name) + (best && best.id === a.id ? ' <span style="font-size:10px;color:#ffd76a;">⭐ 우리 그룹 강점</span>' : '') + '</div>' +
         '<div style="font-size:10.5px;color:#9fb0d0;margin-top:1px;">' + esc(a.desc) + '</div>' +
-        '<div style="font-size:10.5px;color:#c9d6f0;margin-top:3px;">필요: ' + need + (r ? ' · 예상 <b style="color:#ffe08a;">' + TIERS[r.tier][1] + '</b> · 약 ' + fmt(r.coin) + ' 코인' + (a.wish ? ' · 🧩' : '') : '') + '</div></div>' +
+        '<div style="font-size:10.5px;color:#c9d6f0;margin-top:3px;">필요: ' + need + costTxt(a.id) + (r ? ' · 예상 <b style="color:#ffe08a;">' + TIERS[r.tier][1] + '</b> · 약 ' + fmt(r.coin) + ' 코인' + (a.wish ? ' · 🧩' : '') : '') + '</div></div>' +
         '<button data-act="' + a.id + '" style="flex-shrink:0;padding:9px 11px;border:none;border-radius:11px;color:#fff;font-size:12px;font-weight:900;cursor:pointer;background:' + (can ? 'linear-gradient(135deg,#ff6b9d,#c084fc)' : 'rgba(255,255,255,0.12)') + ';' + (can ? '' : 'opacity:0.6;') + FONT + '">' + (left <= 0 ? (extra ? '🥤 추가 하기' : '완료') : sta < 1 ? '체력 없음' : '하기 ' + used + '/' + a.per) + '</button></div>';
     }).join('');
     var logs = s.log.slice(0, 5).map(function (l) { return '<div style="padding:6px 0;border-top:1px solid rgba(255,255,255,0.08);font-size:11.5px;color:#dbe6ff;">' + esc(l.m) + '</div>'; }).join('');
@@ -473,7 +480,7 @@
         if (gameOf(id0) && !b.__varDone) {   // 🎪 단체 예능은 토크쇼를 먼저 직접 플레이 (group-variety.js)
           var er0 = precheck(id0); if (er0) { toast(er0); return; }
           sceneBusy = true; sceneAt = Date.now();
-          try { gameOf(id0).play(liveMembers(load()), function (p, lg) { sceneBusy = false; if (typeof p !== 'number') return; b.__varDone = true; b.__perf = p; b.__vlog = lg; b.onclick(); }); }
+          try { gameOf(id0).play(fitMembers(load()), function (p, lg) { sceneBusy = false; if (typeof p !== 'number') return; b.__varDone = true; b.__perf = p; b.__vlog = lg; b.onclick(); }); }
           catch (e) { sceneBusy = false; }
           return;
         }
