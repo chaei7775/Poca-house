@@ -21,12 +21,12 @@
   var RETAKE_MULT = 0.8;               // 재촬영 점수 배율
   var STAT = { vocal: [gi('grp-stat-vocal.png', 14), '보컬'], dance: [gi('grp-stat-dance.png', 14), '댄스'], act: [gi('grp-stat-act.png', 14), '연기'], fun: [gi('grp-stat-fun.png', 14), '예능'], charm: [gi('grp-stat-charm.png', 14), '매력'] };
   var SCENES = [                       // w: 장면에 필요한 능력치 비율
-    { t: '눈물의 이별 신', i: '😭', q: '떠나는 연인을 붙잡는 오열 연기', w: { act: 1 } },
-    { t: '설레는 첫 만남', i: '💘', q: '눈이 마주치는 순간 심장이 뛰는 장면', w: { charm: .6, act: .4 } },
-    { t: '코믹 감초 신', i: '🤣', q: '분위기를 뒤집는 코믹 애드리브', w: { fun: .8, act: .2 } },
-    { t: '숨 막히는 액션 신', i: '🥋', q: '직접 소화하는 추격·액션 장면', w: { dance: .7, act: .3 } },
+    { t: '눈물의 이별 신', i: gi('grp-sc-cry.png', 22), q: '떠나는 연인을 붙잡는 오열 연기', w: { act: 1 } },
+    { t: '설레는 첫 만남', i: gi('grp-sc-love.png', 22), q: '눈이 마주치는 순간 심장이 뛰는 장면', w: { charm: .6, act: .4 } },
+    { t: '코믹 감초 신', i: gi('grp-sc-comedy.png', 22), q: '분위기를 뒤집는 코믹 애드리브', w: { fun: .8, act: .2 } },
+    { t: '숨 막히는 액션 신', i: gi('grp-sc-action.png', 22), q: '직접 소화하는 추격·액션 장면', w: { dance: .7, act: .3 } },
     { t: '감동의 독백 신', i: '🎙️', q: '마지막 편지를 읽어 내려가는 내레이션', w: { vocal: .5, act: .5 } },
-    { t: '반전 악역 등장', i: '😈', q: '소름 돋는 눈빛의 반전 악역 연기', w: { act: .7, charm: .3 } }
+    { t: '반전 악역 등장', i: gi('grp-sc-villain.png', 22), q: '소름 돋는 눈빛의 반전 악역 연기', w: { act: .7, charm: .3 } }
   ];
   var ACC = '#ff5d8f', GOLD = '#ffd54a';
 

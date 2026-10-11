@@ -21,7 +21,7 @@
   var CONCEPTS = [
     { id: 'cute',  name: '큐트',  icon: '🎀', pose: '하트 만들기',   grad: '#ff8fb8' },
     { id: 'chic',  name: '시크',  icon: '🕶️', pose: '팔짱 끼고 정면', grad: '#8b93a8' },
-    { id: 'fresh', name: '청량',  icon: '🌊', pose: '점프 샷',        grad: '#5cc8ff' },
+    { id: 'fresh', name: '청량',  icon: gi('grp-sc-fresh.png', 18), pose: '점프 샷',        grad: '#5cc8ff' },
     { id: 'dream', name: '몽환',  icon: '🌙', pose: '눈 감고 미소',   grad: '#b79cff' }
   ];
 
