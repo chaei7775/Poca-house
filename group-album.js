@@ -10,6 +10,7 @@
 // ════════════════════════════════════════════════════════════
 (function () {
   'use strict';
+  function gi(f, px) { px = px || 16; return '<img src="' + f + '" alt="" width="' + px + '" height="' + px + '" loading="lazy" decoding="async" draggable="false" style="width:' + px + 'px;height:' + px + 'px;object-fit:contain;vertical-align:-3px;">'; }   // 🖼️ 작은 아이콘 그림 (이모지 대신)
 
   // ── 설정 ──
   var LV_MIN = 1, LV_MAX = 7;                 // 볼륨 단계
@@ -59,13 +60,13 @@
       var rows = members.map(function (c) {
         return '<div style="display:flex;align-items:center;gap:8px;padding:8px;border-radius:14px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);">' +
           '<img src="' + sdSrc(c) + '" alt="" height="62" style="height:62px;width:auto;" onerror="this.onerror=null;this.src=\'face-' + c + '.png\';this.style.cssText=\'height:48px;width:48px;border-radius:50%;object-fit:cover;\'">' +
-          '<div style="width:62px;"><div style="font-size:14px;font-weight:900;">' + nameOf(c) + '</div><div style="font-size:11px;color:' + GOLD + ';">🎤 보컬 ' + Math.round(statOf(c, 'vocal')) + '</div><div style="margin-top:3px;">' + fbHtml(c) + '</div></div>' +
+          '<div style="width:62px;"><div style="font-size:14px;font-weight:900;">' + nameOf(c) + '</div><div style="font-size:11px;color:' + GOLD + ';">'+gi('grp-stat-vocal.png', 13)+' 보컬 ' + Math.round(statOf(c, 'vocal')) + '</div><div style="margin-top:3px;">' + fbHtml(c) + '</div></div>' +
           '<button data-d="' + c + '" data-s="-1" style="width:38px;height:38px;border-radius:12px;border:0;background:rgba(255,255,255,.14);color:#fff;font-size:20px;touch-action:manipulation;">−</button>' +
           '<div style="flex:1;display:flex;align-items:flex-end;gap:3px;height:34px;">' + bars(c) + '</div>' +
           '<button data-d="' + c + '" data-s="1" style="width:38px;height:38px;border-radius:12px;border:0;background:rgba(255,255,255,.14);color:#fff;font-size:20px;touch-action:manipulation;">+</button></div>';
       }).join('');
       ov.innerHTML =
-        '<div style="width:100%;max-width:420px;display:flex;justify-content:space-between;align-items:center;"><div style="font-size:12px;color:#bfe4ff;">💿 그룹 음원 · 믹싱룸</div>' +
+        '<div style="width:100%;max-width:420px;display:flex;justify-content:space-between;align-items:center;"><div style="font-size:12px;color:#bfe4ff;">'+gi('grp-album.png')+' 그룹 음원 · 믹싱룸</div>' +
         '<button id="ga-x" style="background:rgba(255,255,255,.12);border:0;color:#fff;border-radius:10px;padding:6px 12px;font-size:12px;">그만두기</button></div>' +
         '<div style="width:100%;max-width:420px;margin:12px 0 8px;padding:12px;border-radius:14px;background:rgba(255,255,255,.08);font-size:13px;line-height:1.6;">🎧 프로듀서: "오늘 곡은 <b>한 명이 확실하게 끌고 가고</b>, 나머지는 <b>보컬 실력 순으로</b> 받쳐주는 곡이에요. 멤버별 목소리 크기를 맞춰보세요!"</div>' +
         '<div style="width:100%;max-width:420px;display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px;"><span>🎙️ 테이크 ' + take + ' / ' + takes + '</span><span style="color:' + GOLD + ';">' + (msg || '') + '</span></div>' +
@@ -105,7 +106,7 @@
       var note = perf >= 0.85 ? '코인·인기도 보너스 + 등급 상승!' : perf >= 0.5 ? '코인·인기도 보너스!' : perf > 0.12 ? '조금 아쉬운 녹음…' : '녹음이 엉망이 됐어요';
       var leadMsg = '오늘의 리드는 <b style="color:' + GOLD + ';">' + nameOf(lead) + '</b>였어요';
       ov.innerHTML = '<div style="flex:1;"></div><div style="text-align:center;">' +
-        '<div style="font-size:12px;color:#bfe4ff;">💿 녹음 종료</div>' +
+        '<div style="font-size:12px;color:#bfe4ff;">'+gi('grp-album.png')+' 녹음 종료</div>' +
         '<div style="font-size:66px;font-weight:900;line-height:1.1;background:linear-gradient(135deg,' + GOLD + ',' + ACC + ');-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin:8px 0;">' + pct + '%</div>' +
         '<div style="font-size:20px;font-weight:900;">' + g + '</div>' +
         '<div style="font-size:13px;color:#d6e8ff;margin-top:10px;">' + leadMsg + '</div>' +

@@ -10,13 +10,14 @@
 // ════════════════════════════════════════════════════════════
 (function () {
   'use strict';
+  function gi(f, px) { px = px || 16; return '<img src="' + f + '" alt="" width="' + px + '" height="' + px + '" loading="lazy" decoding="async" draggable="false" style="width:' + px + 'px;height:' + px + 'px;object-fit:contain;vertical-align:-3px;">'; }   // 🖼️ 작은 아이콘 그림 (이모지 대신)
 
   // ── 설정 ──
   var ROUNDS = 3;                              // 한 번에 하는 코너 수
   var CUT = [60, 40, 20];                      // 점수 ≥60 대폭소 / ≥40 웃음 / ≥20 그럭저럭 / 그 아래 썰렁 (group.js 등급 기준과 같은 눈금)
   var NOISE = 10;                              // 운 요소 (±)
   var ANIMAL_PLUS = 10;                        // 🐾 동물옷 보너스 (예능·매력 코너)
-  var STAT = { vocal: ['🎤', '보컬'], dance: ['💃', '댄스'], act: ['🎭', '연기'], fun: ['🎪', '예능'], charm: ['✨', '매력'] };
+  var STAT = { vocal: [gi('grp-stat-vocal.png', 14), '보컬'], dance: [gi('grp-stat-dance.png', 14), '댄스'], act: [gi('grp-stat-act.png', 14), '연기'], fun: [gi('grp-stat-fun.png', 14), '예능'], charm: [gi('grp-stat-charm.png', 14), '매력'] };
   var CORNERS = [                              // w: 코너에 필요한 능력치 비율 / animal: 동물옷 보너스가 붙는 코너
     { t: '노래 맞히기 코너', q: '전주만 듣고 제목을 맞혀라!', w: { vocal: 1 } },
     { t: '랜덤 댄스 타임', q: '처음 듣는 노래에 맞춰 즉석 댄스!', w: { dance: 1 } },
@@ -61,7 +62,7 @@
 
     function head(sub) {
       return '<div style="width:100%;max-width:420px;display:flex;justify-content:space-between;align-items:center;">' +
-        '<div style="font-size:12px;color:#ffd0e0;">🎪 단체 예능 · 토크쇼</div>' +
+        '<div style="font-size:12px;color:#ffd0e0;">'+gi('grp-variety.png')+' 단체 예능 · 토크쇼</div>' +
         '<button id="gv-x" style="background:rgba(255,255,255,.12);border:0;color:#fff;border-radius:10px;padding:6px 12px;font-size:12px;">그만두기</button></div>' +
         '<div style="width:100%;max-width:420px;display:flex;align-items:center;gap:6px;margin:8px 0 2px;font-size:12px;"><span>관객 만족도</span>' +
         '<div style="flex:1;height:10px;border-radius:5px;background:rgba(255,255,255,.14);overflow:hidden;"><div style="height:100%;width:' + Math.round(pts / (ROUNDS * 3) * 100) + '%;background:linear-gradient(90deg,#ff5d8f,#ffd54a);transition:width .4s;"></div></div></div>' + (sub || '');

@@ -11,6 +11,7 @@
 // ════════════════════════════════════════════════════════════
 (function () {
   'use strict';
+  function gi(f, px) { px = px || 16; return '<img src="' + f + '" alt="" width="' + px + '" height="' + px + '" loading="lazy" decoding="async" draggable="false" style="width:' + px + 'px;height:' + px + 'px;object-fit:contain;vertical-align:-3px;">'; }   // 🖼️ 작은 아이콘 그림 (이모지 대신)
 
   // ── 설정 ──
   var SCENES_N = 3;                    // 한 번에 찍는 장면 수
@@ -18,7 +19,7 @@
   var ZONE_BASE = 0.06, ZONE_FIT = 1 / 500, ZONE_MAX = 0.16;   // 초록 구간 절반 폭 = 기본 + 어울림 점수/500 (최대 0.16)
   var T_MIN = 0.5, T_MAX = 0.85;       // 초록 구간 중심이 놓이는 위치 범위
   var RETAKE_MULT = 0.8;               // 재촬영 점수 배율
-  var STAT = { vocal: ['🎤', '보컬'], dance: ['💃', '댄스'], act: ['🎭', '연기'], fun: ['🎪', '예능'], charm: ['✨', '매력'] };
+  var STAT = { vocal: [gi('grp-stat-vocal.png', 14), '보컬'], dance: [gi('grp-stat-dance.png', 14), '댄스'], act: [gi('grp-stat-act.png', 14), '연기'], fun: [gi('grp-stat-fun.png', 14), '예능'], charm: [gi('grp-stat-charm.png', 14), '매력'] };
   var SCENES = [                       // w: 장면에 필요한 능력치 비율
     { t: '눈물의 이별 신', i: '😭', q: '떠나는 연인을 붙잡는 오열 연기', w: { act: 1 } },
     { t: '설레는 첫 만남', i: '💘', q: '눈이 마주치는 순간 심장이 뛰는 장면', w: { charm: .6, act: .4 } },
@@ -55,7 +56,7 @@
 
     function head(msg) {
       var sc = scenes[idx];
-      return '<div style="width:100%;max-width:420px;display:flex;justify-content:space-between;align-items:center;"><div style="font-size:12px;color:#ffc4d6;">🎭 단체 드라마 · 촬영 현장</div>' +
+      return '<div style="width:100%;max-width:420px;display:flex;justify-content:space-between;align-items:center;"><div style="font-size:12px;color:#ffc4d6;">'+gi('grp-drama.png')+' 단체 드라마 · 촬영 현장</div>' +
         '<button id="gd-x" style="background:rgba(255,255,255,.12);border:0;color:#fff;border-radius:10px;padding:6px 12px;font-size:12px;">그만두기</button></div>' +
         '<div style="width:100%;max-width:420px;margin:10px 0 6px;padding:11px 12px;border-radius:14px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);">' +
         '<div style="font-size:12px;color:' + GOLD + ';">장면 ' + (idx + 1) + ' / ' + scenes.length + '</div>' +
@@ -143,7 +144,7 @@
       var g = pct >= 85 ? '레전드 드라마 탄생!' : pct >= 60 ? '몰입도 높은 촬영' : pct >= 35 ? '무난한 촬영' : '편집이 힘든 촬영';
       var note = perf >= 0.85 ? '코인·인기도 보너스 + 등급 상승!' : perf >= 0.5 ? '코인·인기도 보너스!' : perf > 0.12 ? '조금 아쉬운 촬영…' : '촬영이 엉망이 됐어요';
       ov.innerHTML = '<div style="flex:1;"></div><div style="text-align:center;">' +
-        '<div style="font-size:12px;color:#ffc4d6;">🎭 촬영 종료</div>' +
+        '<div style="font-size:12px;color:#ffc4d6;">'+gi('grp-drama.png')+' 촬영 종료</div>' +
         '<div style="font-size:66px;font-weight:900;line-height:1.1;background:linear-gradient(135deg,' + GOLD + ',' + ACC + ');-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin:8px 0;">' + pct + '%</div>' +
         '<div style="font-size:20px;font-weight:900;">' + g + '</div>' +
         '<div style="font-size:13px;color:#ffd0e0;margin-top:10px;">' + note + '</div></div><div style="flex:1;"></div>' +

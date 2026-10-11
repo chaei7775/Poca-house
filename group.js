@@ -149,7 +149,8 @@
   var BIG_LINE = ['대성공! 현장이 들썩였어요 🎉', '오늘은 레전드예요 ✨', '모두가 기립박수를 쳤어요!'];
   function names(list) { return list.map(name).join(', '); }
   function nameOfC(c) { try { return CHARS[c].name; } catch (e) { return c; } }
-  function costTxt(id) { try { var c = window.__groupCond && window.__groupCond.COST[id]; if (c) return ' · 😴 멤버 체력 -' + c[0] + (c[1] < 0 ? ' · 기분 ' + c[1] : ' · 기분 +' + c[1]); } catch (e) {} return ''; }
+  function costTxt(id) { try { var c = window.__groupCond && window.__groupCond.COST[id]; if (c) return ' · ' + pimgU('meal-assets/ui/stamina.png', 13) + ' -' + c[0] + ' ' + pimgU('meal-assets/ui/mood.png', 13) + (c[1] < 0 ? ' ' + c[1] : ' +' + c[1]); } catch (e) {} return ''; }   // 멤버 체력·기분 소모 표시 (그림)
+  function pimgU(src, px) { return '<img src="' + src + '" alt="" width="' + px + '" height="' + px + '" loading="lazy" decoding="async" style="width:' + px + 'px;height:' + px + 'px;object-fit:contain;vertical-align:-2px;">'; }
   function fitMembers(s) { var l = liveMembers(s); try { if (window.__groupCond) return l.filter(window.__groupCond.ok); } catch (e) {} return l; }   // 😴 체력이 바닥난 멤버는 활동에 못 나옴 (group-cond.js)
   function tiredMsg(s) { try { var t = window.__groupCond ? window.__groupCond.tired(liveMembers(s)) : []; if (t.length) return '😵 ' + t.map(nameOfC).join(', ') + ' 체력이 너무 낮아서 못 나와요. 관리탭에서 식사·휴식으로 채워주세요'; } catch (e) {} return '데뷔한 멤버가 ' + MIN_MEMBERS + '명 이상이어야 해요. 멤버를 바꿔주세요'; }
   function liveMembers(s) { return s.group.members.filter(function (c) { return debutedIds().indexOf(c) !== -1; }); }

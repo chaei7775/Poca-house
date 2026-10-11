@@ -10,6 +10,7 @@
 // ════════════════════════════════════════════════════════════
 (function () {
   'use strict';
+  function gi(f, px) { px = px || 16; return '<img src="' + f + '" alt="" width="' + px + '" height="' + px + '" loading="lazy" decoding="async" draggable="false" style="width:' + px + 'px;height:' + px + 'px;object-fit:contain;vertical-align:-3px;">'; }   // 🖼️ 작은 아이콘 그림 (이모지 대신)
 
   // ── 설정 ──
   var SHOTS_EACH = 2;                  // 멤버당 촬영 컷 수
@@ -48,7 +49,7 @@
     function close(perf, log) { if (finished) return; finished = true; cancelAnimationFrame(raf); timers.forEach(clearTimeout); ov.remove(); done(perf, perf == null ? null : log); }
 
     function head(msg) {
-      return '<div style="width:100%;max-width:420px;display:flex;justify-content:space-between;align-items:center;"><div style="font-size:12px;color:#ffc4e0;">📸 그룹 화보 · 촬영 스튜디오</div>' +
+      return '<div style="width:100%;max-width:420px;display:flex;justify-content:space-between;align-items:center;"><div style="font-size:12px;color:#ffc4e0;">'+gi('grp-photo.png')+' 그룹 화보 · 촬영 스튜디오</div>' +
         '<button id="gp-x" style="background:rgba(255,255,255,.12);border:0;color:#fff;border-radius:10px;padding:6px 12px;font-size:12px;">그만두기</button></div>' +
         '<div style="width:100%;max-width:420px;margin:10px 0 6px;padding:10px 12px;border-radius:14px;background:linear-gradient(135deg,' + concept.grad + '55,rgba(255,255,255,.06));border:1px solid ' + concept.grad + '88;font-size:13px;">' +
         '오늘의 컨셉 <b style="font-size:16px;">' + concept.icon + ' ' + concept.name + '</b><span style="float:right;color:' + GOLD + ';">' + Math.min(idx + 1, queue.length) + ' / ' + queue.length + '컷</span></div>' +
@@ -56,7 +57,7 @@
     }
     function who(c) {
       return '<div style="text-align:center;margin:4px 0;"><img src="' + sdSrc(c) + '" alt="" height="150" style="height:150px;width:auto;" onerror="this.onerror=null;this.src=\'face-' + c + '.png\';this.style.cssText=\'height:110px;width:110px;border-radius:50%;object-fit:cover;\'">' +
-        '<div style="font-size:15px;font-weight:900;">' + nameOf(c) + '</div><div style="font-size:11px;color:' + GOLD + ';">✨ 매력 ' + Math.round(statOf(c, 'charm')) + '</div></div>';
+        '<div style="font-size:15px;font-weight:900;">' + nameOf(c) + '</div><div style="font-size:11px;color:' + GOLD + ';">'+gi('grp-stat-charm.png', 13)+' 매력 ' + Math.round(statOf(c, 'charm')) + '</div></div>';
     }
     function bindX() { var x = ov.querySelector('#gp-x'); if (x) x.onclick = function () { close(null); }; }
 
@@ -125,7 +126,7 @@
       var g = pct >= 85 ? '표지 확정!' : pct >= 60 ? '화보 퀄리티 최고' : pct >= 35 ? '무난한 촬영' : '건질 컷이 적어요';
       var note = perf >= 0.85 ? '코인·인기도 보너스 + 등급 상승!' : perf >= 0.5 ? '코인·인기도 보너스!' : perf > 0.12 ? '조금 아쉬운 촬영…' : '촬영이 엉망이 됐어요';
       ov.innerHTML = '<div style="flex:1;"></div><div style="text-align:center;">' +
-        '<div style="font-size:12px;color:#ffc4e0;">📸 촬영 종료</div>' +
+        '<div style="font-size:12px;color:#ffc4e0;">'+gi('grp-photo.png')+' 촬영 종료</div>' +
         '<div style="font-size:66px;font-weight:900;line-height:1.1;background:linear-gradient(135deg,' + GOLD + ',' + ACC + ');-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin:8px 0;">' + pct + '%</div>' +
         '<div style="font-size:20px;font-weight:900;">' + g + '</div>' +
         '<div style="font-size:13px;color:#ffd0e0;margin-top:10px;">' + note + '</div></div><div style="flex:1;"></div>' +

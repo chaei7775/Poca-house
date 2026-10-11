@@ -10,6 +10,7 @@
 // ════════════════════════════════════════════════════════════
 (function () {
   'use strict';
+  function gi(f, px) { px = px || 16; return '<img src="' + f + '" alt="" width="' + px + '" height="' + px + '" loading="lazy" decoding="async" draggable="false" style="width:' + px + 'px;height:' + px + 'px;object-fit:contain;vertical-align:-3px;">'; }   // 🖼️ 작은 아이콘 그림 (이모지 대신)
 
   // ── 설정 ──
   var SLOTS = ['센터', '메인', '서브', '후열'];                 // 포지션 이름 (멤버 수만큼 앞에서부터 사용)
@@ -18,7 +19,7 @@
   var ABS_MAX = 70;                                            // 포지션 점수가 이만큼이면 실력 만점
   var NOISE = 0.06;                                            // 운 요소 (±)
   var CUT = [60, 40, 20];                                      // 포지션별 반응 기준 (≥60 최고 / ≥40 환호 / ≥20 무난)
-  var STAT = { vocal: ['🎤', '보컬'], dance: ['💃', '댄스'], act: ['🎭', '연기'], fun: ['🎪', '예능'], charm: ['✨', '매력'] };
+  var STAT = { vocal: [gi('grp-stat-vocal.png', 14), '보컬'], dance: [gi('grp-stat-dance.png', 14), '댄스'], act: [gi('grp-stat-act.png', 14), '연기'], fun: [gi('grp-stat-fun.png', 14), '예능'], charm: [gi('grp-stat-charm.png', 14), '매력'] };
   var SONGS = [                                                // 포지션 순서: 센터 · 메인 · 서브 · 후열 이 보는 능력치
     { t: '감성 발라드', d: '목소리로 객석을 울리는 곡', k: ['vocal', 'charm', 'vocal', 'act'] },
     { t: '파워 퍼포먼스', d: '칼군무로 압도하는 곡', k: ['dance', 'dance', 'vocal', 'charm'] },
@@ -54,7 +55,7 @@
     function close(perf, log) { if (finished) return; finished = true; timers.forEach(clearTimeout); ov.remove(); done(perf, perf == null ? null : log); }
     function head() {
       return '<div style="width:100%;max-width:420px;display:flex;justify-content:space-between;align-items:center;">' +
-        '<div style="font-size:12px;color:#bcd0ff;">🎤 합동 무대 · 포메이션</div>' +
+        '<div style="font-size:12px;color:#bcd0ff;">'+gi('grp-stage.png')+' 합동 무대 · 포메이션</div>' +
         '<button id="gj-x" style="background:rgba(255,255,255,.12);border:0;color:#fff;border-radius:10px;padding:6px 12px;font-size:12px;">그만두기</button></div>';
     }
     function bindX() { var x = ov.querySelector('#gj-x'); if (x) x.onclick = function () { close(null); }; }
@@ -99,7 +100,7 @@
         '<div style="font-size:12px;margin:12px 0 6px;color:#d6defa;">' + SLOTS[sel] + ' 자리에 맞는 능력치: <b style="color:' + GOLD + ';">' + STAT[key2][0] + STAT[key2][1] + '</b></div>' +
         '<div style="width:100%;max-width:420px;display:flex;flex-wrap:wrap;gap:8px;justify-content:center;">' + chips + '</div>' +
         '<div style="flex:1;min-height:12px;"></div>' +
-        '<button id="gj-go" ' + (full ? '' : 'disabled') + ' style="width:100%;max-width:420px;margin-top:12px;padding:15px;border:0;border-radius:16px;font-size:17px;font-weight:900;color:#fff;background:' + (full ? 'linear-gradient(135deg,' + ACC + ',#a855f7)' : 'rgba(255,255,255,.14)') + ';opacity:' + (full ? 1 : .6) + ';">' + (full ? '🎤 무대 시작!' : '모든 자리를 채워주세요') + '</button>';
+        '<button id="gj-go" ' + (full ? '' : 'disabled') + ' style="width:100%;max-width:420px;margin-top:12px;padding:15px;border:0;border-radius:16px;font-size:17px;font-weight:900;color:#fff;background:' + (full ? 'linear-gradient(135deg,' + ACC + ',#a855f7)' : 'rgba(255,255,255,.14)') + ';opacity:' + (full ? 1 : .6) + ';">' + (full ? gi('grp-stage.png', 18) + ' 무대 시작!' : '모든 자리를 채워주세요') + '</button>';
       bindX();
       Array.prototype.forEach.call(ov.querySelectorAll('[data-slot]'), function (b) { b.onclick = function () { sel = +b.getAttribute('data-slot'); sfx('pop'); formation(); }; });
       Array.prototype.forEach.call(ov.querySelectorAll('[data-m]'), function (b) {

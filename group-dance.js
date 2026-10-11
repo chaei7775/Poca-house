@@ -10,6 +10,7 @@
 // ════════════════════════════════════════════════════════════
 (function () {
   'use strict';
+  function gi(f, px) { px = px || 16; return '<img src="' + f + '" alt="" width="' + px + '" height="' + px + '" loading="lazy" decoding="async" draggable="false" style="width:' + px + 'px;height:' + px + 'px;object-fit:contain;vertical-align:-3px;">'; }   // 🖼️ 작은 아이콘 그림 (이모지 대신)
 
   // ── 설정 ──
   var LENS = [3, 4, 5];                        // 라운드별 안무 길이
@@ -47,7 +48,7 @@
     var $ = function (id) { return ov.querySelector('#' + id); };
 
     ov.innerHTML =
-      '<div style="width:100%;max-width:420px;display:flex;justify-content:space-between;align-items:center;"><div style="font-size:12px;color:#e0c8ff;">💃 댄스 챌린지 · 칼군무</div>' +
+      '<div style="width:100%;max-width:420px;display:flex;justify-content:space-between;align-items:center;"><div style="font-size:12px;color:#e0c8ff;">'+gi('grp-dance.png')+' 댄스 챌린지 · 칼군무</div>' +
       '<button id="gd-x" style="background:rgba(255,255,255,.12);border:0;color:#fff;border-radius:10px;padding:6px 12px;font-size:12px;">그만두기</button></div>' +
       '<div style="width:100%;max-width:420px;display:flex;justify-content:space-between;font-size:13px;margin:8px 0 2px;"><span id="gd-r">라운드 1/' + LENS.length + '</span><span id="gd-h"></span></div>' +
       '<div id="gd-msg" style="height:24px;font-size:15px;font-weight:900;color:' + GOLD + ';text-align:center;margin:4px 0;"></div>' +
@@ -119,7 +120,7 @@
       var note = perf >= 0.85 ? '코인·인기도 보너스 + 등급 상승!' : perf >= 0.5 ? '코인·인기도 보너스!' : perf > 0.12 ? '조금 아쉬운 군무…' : '군무가 무너졌어요';
       sfx(perf >= 0.6 ? 'reward' : 'coin');
       ov.innerHTML = '<div style="flex:1;"></div><div style="text-align:center;">' +
-        '<div style="font-size:12px;color:#e0c8ff;">💃 챌린지 종료</div>' +
+        '<div style="font-size:12px;color:#e0c8ff;">'+gi('grp-dance.png')+' 챌린지 종료</div>' +
         '<div style="font-size:12px;color:#bcb0d8;margin-top:6px;">싱크로율</div>' +
         '<div style="font-size:66px;font-weight:900;line-height:1.1;background:linear-gradient(135deg,' + GOLD + ',' + ACC + ');-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin:6px 0;">' + pct + '%</div>' +
         '<div style="font-size:20px;font-weight:900;">' + g + '</div>' +
