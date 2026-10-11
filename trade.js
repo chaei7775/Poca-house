@@ -25,6 +25,7 @@
     protect: { name: '방지권',        emoji: '🛡️', kind: 'enh', field: 'protect', min: 2000,  max: 3000000 },
     trans:   { name: '초월석',        emoji: '💎', kind: 'enh', field: 'trans',   min: 10000, max: 20000000 },
     slotx:   { name: '슬롯 확장권',  emoji: '🎟️', kind: 'bag', desc: '드라마 촬영 카드의 스킬 슬롯을 영구로 +1', min: 30000, max: 5000000 },
+    film:    { name: '필름',          emoji: '🎞️', kind: 'bag', type: 'film', desc: '시크릿 포토랩 현상 재료 · 공연장 앵콜 스테이지에서 사용', min: 500, max: 1000000 },
     dev:     { name: '현상액',        emoji: '🧪', kind: 'bag', type: 'film', desc: '포토랩 옵션 강화 재료 · 공연장에서 얻어요', min: 1000, max: 2000000 },
     // 📚 드라마 촬영 스킬북 (종류별) — 이름은 skillbook.js 와 같아야 함. 규칙(rules)은 'bk_.*' 한 줄로 묶음
     bk_emotion: { name: '감정 스킬북',     emoji: '📕', kind: 'bag', type: 'skillbook', desc: '드라마 촬영 감정 스킬 숙련도 +5',     min: 2000, max: 5000000 },
@@ -32,7 +33,7 @@
     bk_adlib:   { name: '애드리브 스킬북', emoji: '📗', kind: 'bag', type: 'skillbook', desc: '드라마 촬영 애드리브 스킬 숙련도 +5', min: 2000, max: 5000000 },
     bk_aux:     { name: '보조 스킬북',     emoji: '📘', kind: 'bag', type: 'skillbook', desc: '드라마 촬영 보조 스킬 숙련도 +5',     min: 2000, max: 5000000 }
   };
-  var ORDER = ['recomb', 'ws', 'epic', 'stone', 'protect', 'trans', 'slotx', 'dev', 'bk_emotion', 'bk_action', 'bk_adlib', 'bk_aux'];
+  var ORDER = ['recomb', 'ws', 'epic', 'stone', 'protect', 'trans', 'slotx', 'film', 'dev', 'bk_emotion', 'bk_action', 'bk_adlib', 'bk_aux'];
   // 📖 팬 광역 스킬 습득서 (skill-tome.js 가 먼저 불러와져 있어야 함). 키 'bk_tome_<스킬id>' → 기존 'bk_.*' 규칙에 포함
   // 🍬 디저트 공방 간식 (sweets.js 가 trade.js 보다 먼저 불러와져 있어야 함). 키 'bk_sweet_<id>' → 기존 'bk_.*' 규칙에 포함
   try { if (typeof window.__sweetsItems === 'function') { var SW = window.__sweetsItems(); Object.keys(SW).forEach(function (k) { ITEMS[k] = SW[k]; ORDER.push(k); }); } } catch (e) {}

@@ -68,6 +68,7 @@ service cloud.firestore {
       || (item == 'protect' && p >= 2000  && p <= 3000000)
       || (item == 'trans'   && p >= 10000 && p <= 20000000)
       || (item == 'slotx'   && p >= 30000 && p <= 5000000)
+      || (item == 'film'    && p >= 500   && p <= 1000000)
       || (item == 'dev'     && p >= 1000  && p <= 2000000)
       || (item == 'bk_tome_finale' && p >= 2000 && p <= 10000000)
       || (item.matches('bk_.*') && item != 'bk_tome_finale' && p >= 2000 && p <= 5000000)
