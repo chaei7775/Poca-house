@@ -29,7 +29,7 @@
   var BOSS_COIN = 120000, BOSS_EXP = 800;
   var BOSS_PIECE_CHANCE = 0.7;     // 보스를 응대했을 때 🖼️ 프리미엄 조각 +1 확률
   var BOSS_PIECE_BONUS = 0.25;     // 거기에 한 번 더(+1) 줄 확률
-  var BOSS_STONE_CHANCE = 0.15;    // 보스 응대 시 강화석 +1 확률
+  var BOSS_STONE_CHANCE = 0.45;    // 보스 응대 시 강화석 +1 확률
   var DEFEAT_RATE = 0.5;           // 쫓겨났을 때 코인·경험치를 받는 비율
   var BOOK_FAN = 0.0003;           // 팬 한 명당 스킬북 확률 (매우 낮음: 스킬북이 비싸서)
   var TOME_BOX = 0.02;             // 선물 상자에서 📖 광역 스킬 습득서 1장 나올 확률 (2%) — 멤버에게 가르치면 그 스킬을 배움, 거래소 거래 가능
@@ -44,8 +44,8 @@
   var AGGRO_R = 300;               // 이 거리 안에 들어가면 그 무리 전체가 어그로
   var FAN_DMG_MULT = 1.5;          // 팬이 닿을 때 피해 배율 (공항보다 아픔)
   var BOX_COIN = 450000, BOX_EXP = 3000;     // 선물 상자 코인 / 카드 경험치
-  var BOX_STONE_MIN = 3, BOX_STONE_MAX = 6;  // 🔨 강화석 (확정)
-  var BOX_PROTECT_CHANCE = 0.75, BOX_PROTECT_MAX = 2;   // 🛡️ 방지권 확률 / 최대 개수
+  var BOX_STONE_MIN = 9, BOX_STONE_MAX = 18;  // 🔨 강화석 (확정)
+  var BOX_PROTECT_CHANCE = 0.75, BOX_PROTECT_MAX = 6;   // 🛡️ 방지권 확률 / 최대 개수
   var BOX_PIECE_CHANCE = 0.5;      // 🖼️ 프리미엄 조각 +1 확률
   var PACKS = [[330,330],[750,250],[1170,330],[240,760],[1260,760],[750,640],[420,960],[1080,960]];   // 팬 무리 위치
   var PACK_TYPES = [['normal','normal','rusher'],['normal','thrower','normal'],['rusher','normal','tank'],['normal','normal','thrower','normal'],['tank','normal','rusher'],['thrower','normal','normal','rusher'],['normal','rusher','normal'],['tank','thrower','normal','normal']];
