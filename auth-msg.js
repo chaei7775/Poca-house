@@ -10,3 +10,17 @@
     return orig.apply(this, arguments);
   };
 })();
+
+// ⏱️ 닉네임 중복 확인이 서버 응답을 못 받고 '확인 중...' 에서 멈추는 문제: 6초 안에 답이 없으면 통과시킴 (기존에도 확인 실패 시엔 막지 않는 방식)
+(function () {
+  'use strict';
+  var orig = window.checkNicknameUnique;
+  if (typeof orig !== 'function' || orig.__timed) return;
+  var w = function () {
+    var p = orig.apply(this, arguments);
+    var t = new Promise(function (res) { setTimeout(function () { res(false); }, 6000); });
+    return Promise.race([p, t]);
+  };
+  w.__timed = true;
+  window.checkNicknameUnique = w;
+})();
