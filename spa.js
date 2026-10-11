@@ -1,7 +1,7 @@
 // ════════════════════════════════
 // 💆 뷰티·운동 관리 (spa.js)
 // 에스테틱 · 헬스장 · 요가 · 필라테스 — 코인을 내고 아이돌의 컨디션(비주얼·체력·기분)을 크게 올린다.
-// - 음식(싸고 자주, 효과 작음)과 달리 비싸고 한 번에 크게 오르는 관리. 아이돌 1명당 하루 DAILY_MAX 번.
+// - 음식(싸고 자주, 효과 작음)과 달리 비싸고 한 번에 크게 오르는 관리. 아이돌 1명당 한 번 받으면 COOLDOWN_H 시간(실제 시간) 쿨타임.
 // - 들어가는 곳: ① 🏖 뷰티 살롱 장소 화면의 "💆 컨디션 관리" 버튼  ② 📅 스케줄·식사 화면의 "💆 뷰티·운동 관리" 칸
 // - 컨디션은 meal.js 의 저장값을 window.__mealTest 로 읽고 쓴다. (촬영/컴백/음악방송 준비 기간·휴식기 보정도 음식과 똑같이 적용)
 // - 가격·효과를 바꾸고 싶으면 아래 FACILITIES 만 고치면 됨. 그림: meal-assets/spa/<id>.png (없으면 이모지로 보임)
@@ -12,7 +12,8 @@
 
   // ════════ ⚙️ 설정 ════════
   var STORAGE_KEY = 'ph_spa';
-  var DAILY_MAX = 2;                       // 아이돌 1명당 하루 관리 횟수 (시설 상관없이 합계)
+  var COOLDOWN_H = 5;                      // 아이돌 1명당 관리 쿨타임(시간, 실제 시간 기준, 시설 상관없이 합계)
+  var COOLDOWN_MS = COOLDOWN_H * 3600 * 1000;
   var ASSET = 'meal-assets/spa/';
   var Z = 990;
   var FACILITIES = [
@@ -40,15 +41,18 @@
     if (typeof s.day !== 'number') s.day = 0;
     if (!s.used || typeof s.used !== 'object') s.used = {};      // { cid: 오늘 받은 횟수 }
     if (!s.total || typeof s.total !== 'object') s.total = {};   // { cid: 누적 횟수 }
+    if (!s.next || typeof s.next !== 'object') s.next = {};      // { cid: 다음에 받을 수 있는 시각(ms) }
     return s;
   }
   function save(s) { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(s)); } catch (e) {} }
   function syncDay(s, day) { if (s.day !== day) { s.day = day; s.used = {}; } return s; }
   function usedToday(s, cid) { return s.used[cid] || 0; }
+  function remainMs(s, cid) { var r = (s.next[cid] || 0) - Date.now(); return r > 0 ? Math.min(r, COOLDOWN_MS) : 0; }   // 시계를 바꿔도 최대 쿨타임까지만
+  function fmtRemain(ms) { var m = Math.ceil(ms / 60000), h = Math.floor(m / 60); m = m % 60; return h > 0 ? h + '시간 ' + m + '분' : m + '분'; }
   function byId(id) { for (var i = 0; i < FACILITIES.length; i++) if (FACILITIES[i].id === id) return FACILITIES[i]; return null; }
   function canUse(s, cid, f, money) {
     if (!f) return { ok: false, why: 'invalid' };
-    if (usedToday(s, cid) >= DAILY_MAX) return { ok: false, why: 'full' };
+    if (remainMs(s, cid) > 0) return { ok: false, why: 'cool' };
     if (!(money >= f.price)) return { ok: false, why: 'coin' };
     return { ok: true };
   }
@@ -97,11 +101,11 @@
   function doUse(cid, fid) {
     var m = M(), f = byId(fid); if (!m || !f) return null;
     var ms = m.load(), s = syncDay(load(), ms.day), c = canUse(s, cid, f, money());
-    if (!c.ok) { toast(c.why === 'full' ? '오늘은 더 못 받아요 (하루 ' + DAILY_MAX + '번)' : '코인이 모자라요 (🍔 ' + fmt(f.price) + ' 필요)'); return null; }
+    if (!c.ok) { toast(c.why === 'cool' ? '관리 쿨타임이에요 (' + fmtRemain(remainMs(s, cid)) + ' 뒤)' : '코인이 모자라요 (🍔 ' + fmt(f.price) + ' 필요)'); return null; }
     var d = deltaFor(cid, f), st = m.statOf(ms, cid), before = { v: st.v, s: st.s, m: st.m };
     spend(f.price);
     st.v = clamp(st.v + d.v); st.s = clamp(st.s + d.s); st.m = clamp(st.m + d.m);
-    s.used[cid] = usedToday(s, cid) + 1; s.total[cid] = (s.total[cid] || 0) + 1;
+    s.used[cid] = usedToday(s, cid) + 1; s.next[cid] = Date.now() + COOLDOWN_MS; s.total[cid] = (s.total[cid] || 0) + 1;
     save(s); m.save(ms);
     try { if (window.__mealRefresh) window.__mealRefresh(before); } catch (e) {}
     return { d: d, before: before, after: { v: st.v, s: st.s, m: st.m } };
@@ -127,14 +131,14 @@
     ov.onclick = function (e) { if (e.target === ov) ov.remove(); };
     function draw() {
       lastCid = cid;
-      var ms = m.load(), s = syncDay(load(), ms.day), left = Math.max(0, DAILY_MAX - usedToday(s, cid)), c = m.CH[cid], cash = money();
+      var ms = m.load(), s = syncDay(load(), ms.day), left = remainMs(s, cid), c = m.CH[cid], cash = money();
       var chips = ids.map(function (id) {
         var on = id === cid;
         return '<button data-cid="' + id + '" style="' + BTN + 'padding:7px 11px;font-size:12px;border:1.5px solid ' + (on ? '#ff9ecb' : 'rgba(255,255,255,0.18)') + ';background:' + (on ? 'rgba(255,158,203,0.2)' : 'rgba(255,255,255,0.06)') + ';color:#fff;">' + esc(m.CH[id].name) + '</button>';
       }).join('');
       var cards = FACILITIES.map(function (f) {
         var d = deltaFor(cid, f), cu = canUse(s, cid, f, cash), ok = cu.ok;
-        var why = ok ? '' : ' <span style="font-size:10.5px;color:#ff8a8a;font-weight:900;">' + (cu.why === 'full' ? '· 오늘은 다 받았어요' : '· 코인이 모자라요') + '</span>';
+        var why = ok ? '' : ' <span style="font-size:10.5px;color:#ff8a8a;font-weight:900;">' + (cu.why === 'cool' ? '· 쿨타임 ' + fmtRemain(left) : '· 코인이 모자라요') + '</span>';
         return '<button data-f="' + f.id + '" style="' + BTN + 'text-align:left;display:flex;align-items:center;gap:10px;width:100%;padding:10px 12px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.14);color:#fff;opacity:' + (ok ? 1 : 0.55) + ';">' +
           '<div style="flex-shrink:0;">' + icon(f, 46) + '</div><div style="flex:1;min-width:0;">' +
           '<div style="font-size:14px;">' + esc(f.name) + ' <span style="font-size:11px;color:#ffe08a;">🍔 ' + fmt(f.price) + '</span>' + why + '</div>' +
@@ -145,10 +149,10 @@
         '<div style="padding:14px 16px 4px;display:flex;align-items:center;"><div style="font-size:16px;font-weight:900;color:#ffd2e6;">💆 컨디션 관리</div>' +
         '<button id="spa-x" style="' + BTN + 'margin-left:auto;background:rgba(255,255,255,0.1);color:#fff;padding:6px 12px;font-size:12px;">닫기</button></div>' +
         '<div style="padding:0 16px;overflow-y:auto;">' +
-        '<div style="font-size:11px;color:#cfd3ee;line-height:1.5;margin-bottom:8px;">음식보다 비싸지만 컨디션이 크게 올라요. 아이돌 1명당 하루 ' + DAILY_MAX + '번까지!</div>' +
+        '<div style="font-size:11px;color:#cfd3ee;line-height:1.5;margin-bottom:8px;">음식보다 비싸지만 컨디션이 크게 올라요. 아이돌 1명당 한 번 받으면 ' + COOLDOWN_H + '시간 쿨타임이 있어요!</div>' +
         '<div style="display:flex;flex-wrap:wrap;gap:6px;">' + chips + '</div>' +
         '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;font-size:12px;font-weight:900;color:#fff;"><span>' + esc(c.name) + '</span>' +
-        '<span style="color:' + (left > 0 ? '#ffe08a' : '#ff8a8a') + ';">오늘 ' + left + '/' + DAILY_MAX + '</span></div>' + condBars(cid) +
+        '<span style="color:' + (left > 0 ? '#ff8a8a' : '#7ee8a5') + ';">' + (left > 0 ? '⏳ ' + fmtRemain(left) + ' 뒤에 받을 수 있어요' : '지금 받을 수 있어요') + '</span></div>' + condBars(cid) +
         '<div style="display:flex;flex-direction:column;gap:8px;margin:10px 0 14px;">' + cards + '</div>' +
         '<div style="font-size:11px;color:#aab4d6;text-align:right;margin-bottom:14px;">내 코인 🍔 ' + fmt(cash) + '</div></div></div>';
       ov.querySelector('#spa-x').onclick = function () { ov.remove(); };
@@ -159,7 +163,7 @@
   }
   function confirmUse(cid, fid, after) {
     var m = M(), f = byId(fid), ms = m.load(), s = syncDay(load(), ms.day), c = canUse(s, cid, f, money());
-    if (!c.ok) { toast(c.why === 'full' ? '오늘은 더 못 받아요 (하루 ' + DAILY_MAX + '번)' : '코인이 모자라요 (🍔 ' + fmt(f.price) + ' 필요)'); return; }
+    if (!c.ok) { toast(c.why === 'cool' ? '관리 쿨타임이에요 (' + fmtRemain(remainMs(s, cid)) + ' 뒤)' : '코인이 모자라요 (🍔 ' + fmt(f.price) + ' 필요)'); return; }
     var d = deltaFor(cid, f), name = m.CH[cid].name;
     var ov = overlay('spa-confirm', Z + 2, 'rgba(0,0,0,0.6)');
     ov.innerHTML = '<div style="width:100%;max-width:320px;background:#241945;border:1.5px solid #ff9ecb;border-radius:18px;padding:18px;text-align:center;">' +
@@ -209,10 +213,10 @@
     }
     var cid = mealCid(ov);
     if (!cid || !M().CH[cid]) { if (box.innerHTML) { box.removeAttribute('data-h'); box.innerHTML = ''; } return; }
-    var ms = M().load(), s = syncDay(load(), ms.day), left = Math.max(0, DAILY_MAX - usedToday(s, cid));
+    var ms = M().load(), s = syncDay(load(), ms.day), left = remainMs(s, cid);
     var html = '<div style="margin:14px 0 8px;"><div style="font-size:13px;font-weight:900;color:#ddd;">💆 뷰티·운동 관리</div>' +
       '<div style="font-size:11px;color:#cfd3ee;margin-top:3px;line-height:1.5;">에스테틱 · 헬스장 · 요가 · 필라테스. 비싸지만 컨디션이 크게 올라요.</div></div>' +
-      '<button id="spa-go" style="' + BTN + 'width:100%;padding:12px;background:rgba(255,158,203,0.15);border:1px solid rgba(255,158,203,0.45);color:#fff;font-size:13px;">💆 ' + esc(M().CH[cid].name) + ' 관리 받으러 가기 <span style="color:' + (left > 0 ? '#ffe08a' : '#ff8a8a') + ';">(오늘 ' + left + '/' + DAILY_MAX + ')</span></button>';
+      '<button id="spa-go" style="' + BTN + 'width:100%;padding:12px;background:rgba(255,158,203,0.15);border:1px solid rgba(255,158,203,0.45);color:#fff;font-size:13px;">💆 ' + esc(M().CH[cid].name) + ' 관리 받으러 가기 <span style="color:' + (left > 0 ? '#ff8a8a' : '#7ee8a5') + ';">(' + (left > 0 ? '⏳ ' + fmtRemain(left) : '지금 가능') + ')</span></button>';
     if (box.getAttribute('data-h') !== html) { box.setAttribute('data-h', html); box.innerHTML = html; }   // 같으면 다시 안 그림 (무한 갱신 방지)
     box.querySelector('#spa-go').onclick = function () { openSpa(cid); };
   }
@@ -271,5 +275,5 @@
   })();
 
   window.openSpa = openSpa;
-  window.__spaTest = { FACILITIES: FACILITIES, CFG: { DAILY_MAX: DAILY_MAX }, load: load, save: save, syncDay: syncDay, canUse: canUse, doUse: doUse, deltaFor: deltaFor, openSpa: openSpa };
+  window.__spaTest = { FACILITIES: FACILITIES, CFG: { COOLDOWN_H: COOLDOWN_H }, load: load, save: save, syncDay: syncDay, canUse: canUse, doUse: doUse, deltaFor: deltaFor, openSpa: openSpa };
 })();
