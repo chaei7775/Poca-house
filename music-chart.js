@@ -19,12 +19,12 @@
   // ── 설정 ──
   var KEY = 'ph_chart';
   var SONG_LIFE = 30;                  // 곡이 차트에 머무는 게임 DAY 수
-  var BASE_FULL = 18;                  // 정규 앨범 기본 점수
+  var BASE_FULL = 24;                  // 정규 앨범 기본 점수 (18 → 24: 히든카드 없어도 점수가 나오게 올림)
   var NOTE_PER = 0.25, NOTE_MAX = 10;  // 작곡 도감 한 칸당 점수 / 최대
   var TREND_BONUS = 6;                 // 이번 주 트렌드 장르와 같으면
   var FAN_MAX = 28, FAN_LOG = 3.2;     // 팬 수 점수 (멤버 수 10^3.2 ≈ 1600명이면 만점)
   var FAME_MAX = 10;                   // 인지도 100 = 10점
-  var HID_EACH = 1.5, HID_ENH = 0.8, HID_MAX = 14;   // 히든카드 한 장당 / 강화 배율 가산 / 최대
+  var HID_EACH = 1.5, HID_ENH = 0.8, HID_MAX = 8;   // 히든카드 한 장당 / 강화 배율 가산 / 최대 (14 → 8로 낮춤)
   var BURST = 14, BURST_DECAY = 0.65;  // 신곡 버스트
   var AGE_DECAY = 0.45;                // 3일 뒤부터 하루마다 깎이는 점수
   var BOOST_DECAY = 0.55, BOOST_MAX = 30;
