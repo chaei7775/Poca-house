@@ -28,9 +28,9 @@
   ];
   var HINT_MIN_J = 0.3;                          // 비슷한 정도가 이 이상이면 실패할 때마다 재료 하나를 알려준다 (0이면 항상, 2면 끔)
   var SPARK_DIV = 3;                             // 💡 영감의불꽃은 다른 재료의 1/3개만 든다
-  // 📜 저작권(정규앨범): 계약금(직판가) + 30일 동안 매일 저작권료. 직판의 약 4배 (히트 포함)
+  // 📜 저작권(정규앨범): 계약금(직판가) + 30일 동안 매일 저작권료. 직판 대비 매우 크게 (그룹 활동 수익에 맞춰 올림, 히트 포함)
   var ROY_KEY = 'ph_royalty';
-  var ROY_DAYS = 30, ROY_DAILY = 0.08, ROY_CAP_DAYS = 3, ROY_HIT = 0.15, ROY_HIT_MULT = 3, DAY_MS = 86400000;
+  var ROY_DAYS = 30, ROY_DAILY = 0.8, ROY_CAP_DAYS = 3, ROY_HIT = 0.15, ROY_HIT_MULT = 3, DAY_MS = 86400000;
   var BONUS_PER_ENTRY = 0.01, BONUS_PER_GENRE = 0.02;
   // 장르: 필요한 악기 조합 (더 많이 맞는 장르가 우선). 퓨전 = 악기 4종 이상
   var GENRES = [

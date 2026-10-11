@@ -43,7 +43,7 @@
     { id: 'perfume',brand: '블룸앤문',     item: '향수',          emoji: '🌸', minGrade: 'UR',  base: 35, reward: 4000, copy: '기억에 남는 향기' }
   ];
 
-  var CF_PAY_MULT = 10;                  // CF 출연료 배율 (팬덤 원정 수입에 맞춰 올림)
+  var CF_PAY_MULT = 50;                  // CF 출연료 배율 (팬덤 원정 수입에 맞춰 올림)
   REQUEST_POOL.forEach(function (q) { q.reward = Math.round(q.reward * CF_PAY_MULT); });
 
   // ════════ 순수 로직 (화면 없이도 테스트 가능) ════════
