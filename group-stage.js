@@ -39,7 +39,10 @@
       return '<div data-c="' + c + '" style="opacity:0;animation:gstPop .5s ease-out forwards;animation-delay:' + (0.2 + i * 0.28) + 's;transition:transform .25s;">' + face(c, members.length > 4 ? 56 : 66) + '</div>';
     }).join('');
     var beam = function (rot, delay) { return '<div style="position:absolute;left:50%;top:-10%;width:90px;height:90%;margin-left:-45px;transform-origin:50% 0;background:linear-gradient(180deg,' + bg[2] + 'aa,transparent 85%);filter:blur(6px);opacity:.55;animation:gstSweep 3.2s ease-in-out infinite;animation-delay:' + delay + 's;"></div>'; };
-    ov.innerHTML = beam(0, 0) + beam(0, -1.6) +
+    // 배경 일러스트: grp-bg-<활동id>.webp (없으면 그냥 색 배경). 위에 어두운 막을 씌워서 글씨가 읽히게
+    var bgImg = '<img src="grp-bg-' + res.act.id + '.webp" decoding="async" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;" onerror="this.remove()">' +
+      '<div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.25),rgba(0,0,0,.55));"></div>';
+    ov.innerHTML = bgImg + beam(0, 0) + beam(0, -1.6) +
       '<div style="position:absolute;top:7%;left:0;right:0;text-align:center;"><img src="grp-' + res.act.id + '.png" width="84" height="84" style="width:84px;height:84px;object-fit:contain;" onerror="this.remove()"><div style="font-size:16px;font-weight:900;margin-top:4px;text-shadow:0 2px 8px #000;">' + esc(res.act.name) + '</div></div>' +
       '<div id="gst-row" style="position:absolute;top:34%;left:0;right:0;display:flex;justify-content:center;gap:10px;flex-wrap:wrap;padding:0 14px;">' + mh + '</div>' +
       '<div id="gst-cap" style="position:absolute;top:56%;left:16px;right:16px;min-height:70px;text-align:center;font-size:14.5px;font-weight:700;line-height:1.6;text-shadow:0 2px 8px #000;"></div>' +
