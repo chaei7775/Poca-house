@@ -10,14 +10,15 @@
   'use strict';
   var KEY = 'ph_ginvest', MAXLV = 5, RATE = 1.9, Z = 990;
   var FONT = "font-family:'Noto Sans KR',sans-serif;";
+  // 💰 가격은 하루 5천만 버는 기준으로 맞춤 (1단계 약 3일치 ~ 전부 최대 약 5달치)
   // acts: 효과가 붙는 활동(없으면 전체) / per: 단계당 +% / base: 1단계 가격
   var FAC = [
-    { id: 'studio',  icon: '🎙️', name: '전용 녹음실',   desc: '음원 녹음 보상',            acts: ['album'],                per: 12, base: 300000000 },
-    { id: 'practice',icon: '🪞', name: '단독 연습실',   desc: '합동 무대·댄스 챌린지 보상', acts: ['stage', 'dance'],       per: 10, base: 400000000 },
-    { id: 'shoot',   icon: '🎬', name: '자체 촬영 스튜디오', desc: '화보·광고, 단체 드라마 보상', acts: ['photo', 'drama'],     per: 10, base: 400000000 },
-    { id: 'setpark', icon: '📺', name: '예능 전용 세트장', desc: '단체 예능 보상',          acts: ['variety'],              per: 12, base: 300000000 },
-    { id: 'dorm',    icon: '🏠', name: '그룹 단독 숙소', desc: '모든 활동 보상',            acts: null,                     per: 4,  base: 600000000 },
-    { id: 'tour',    icon: '🌍', name: '월드투어 기획팀', desc: '모든 활동 보상 (엄청 비쌈)', acts: null,                     per: 6,  base: 1500000000 }
+    { id: 'studio',  icon: '🎙️', name: '전용 녹음실',   desc: '음원 녹음 보상',            acts: ['album'],                per: 12, base: 120000000 },
+    { id: 'practice',icon: '🪞', name: '단독 연습실',   desc: '합동 무대·댄스 챌린지 보상', acts: ['stage', 'dance'],       per: 10, base: 150000000 },
+    { id: 'shoot',   icon: '🎬', name: '자체 촬영 스튜디오', desc: '화보·광고, 단체 드라마 보상', acts: ['photo', 'drama'],     per: 10, base: 150000000 },
+    { id: 'setpark', icon: '📺', name: '예능 전용 세트장', desc: '단체 예능 보상',          acts: ['variety'],              per: 12, base: 120000000 },
+    { id: 'dorm',    icon: '🏠', name: '그룹 단독 숙소', desc: '모든 활동 보상',            acts: null,                     per: 4,  base: 250000000 },
+    { id: 'tour',    icon: '🌍', name: '월드투어 기획팀', desc: '모든 활동 보상 (엄청 비쌈)', acts: null,                     per: 6,  base: 400000000 }
   ];
   function load() { var s = null; try { s = JSON.parse(localStorage.getItem(KEY) || 'null'); } catch (e) {} if (!s || typeof s !== 'object') s = {}; if (!s.lv) s.lv = {}; return s; }
   function save(s) { try { localStorage.setItem(KEY, JSON.stringify(s)); } catch (e) {} }
