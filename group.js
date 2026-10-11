@@ -113,6 +113,7 @@
     var mb = (act.mb != null ? act.mb : MEMBER_BONUS);
     var mult = (1 + mb * (n - 1)) * (1 + BOND_BONUS * (avgBond / 20)) * (1 + LEVEL_BONUS * lv) * TIERS[ti][2];
     var cm = 1; try { if (window.__comboEgg) cm = window.__comboEgg.mult(members, act.id); } catch (e) {}   // 숨은 조합 효과 (combo-egg.js)
+    try { if (window.__groupInvest) cm *= window.__groupInvest.mult(act.id); } catch (e) {}   // 그룹 투자 (group-invest.js)
     mult *= cm;
     return {
       coin: Math.floor(act.coin * PAY_MULT * mult * (big ? BIG_MULT : 1)),
