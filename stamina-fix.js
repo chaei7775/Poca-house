@@ -40,7 +40,8 @@
   setInterval(function () {
     var el = document.getElementById('stamina-floating'); if (!el) return;
     var home = document.getElementById('screen-home'), onHome = !!(home && home.classList.contains('active'));   // 홈 화면은 아래 퀘스트 카드(모두 받기 등)를 가려서 숨김
-    el.classList.toggle('sf-hide', onHome || overlayOpen());
+    var col = document.getElementById('screen-collection'), onCol = !!(col && col.classList.contains('active'));   // 내 컬렉션에서도 오른쪽 아래를 가려서 숨김
+    el.classList.toggle('sf-hide', onHome || onCol || overlayOpen());
     if (onHome) homeChip();
   }, 400);
 })();
