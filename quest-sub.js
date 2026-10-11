@@ -39,7 +39,7 @@
       condition: 'q3_day', rewardCoins: 500,
       detect: function () { return F.day || ((Number((J('ph_meal', {}) || {}).day) || 1) > 1 && flag('day')); } },
     // 👀 둘러보기형 — 화면을 열어 확인만 해도 완료
-    sub_fanclub_view: { title: '팬클럽 의뢰소 둘러보기', desc: '🎨 중앙광장 → 팬클럽 의뢰소에 들어가 봐. 팬들이 맡긴 도안을 색칠하는 곳이야. 열어서 확인만 해도 완료! (보상: 코인 1,000만 + 등교권 2장)',
+    sub_fanclub_view: { title: '팬클럽 의뢰소 둘러보기', desc: '(Lv.18~) 🎨 중앙광장 → 팬클럽 의뢰소에 들어가 봐. 팬들이 맡긴 도안을 색칠하는 곳이야. 열어서 확인만 해도 완료! (보상: 코인 1,000만 + 등교권 2장)',
       condition: 'q3_fanclub_view', rewardCoins: 10000000, tickets: 2,
       detect: function () { return F.fcview || (!!document.getElementById('fanclub-overlay') && flag('fcview')); } },
     sub_sched_view: { title: '스케줄·식사 화면 둘러보기', desc: '📅 기획사 → 스케줄·식사 화면을 열어봐. 일정 잡기·식사·레슨·관리가 다 여기 있어. 열어서 확인만 해도 완료!',
