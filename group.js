@@ -441,7 +441,7 @@
       };
     });
     Array.prototype.forEach.call(ov.querySelectorAll('[data-act]'), function (b) {
-      b.onclick = function () { if (sceneBusy) return; var res = doActivity(b.getAttribute('data-act')); if (!res) return; if (res.err) { toast(res.err); return; } sceneBusy = true; scene(res, function () { sceneBusy = false; popup(res); }); };
+      b.onclick = function () { if (sceneBusy) return; var res = doActivity(b.getAttribute('data-act')); if (!res) return; if (res.err) { toast(res.err); return; } sceneBusy = true; scene(res, function () { var fin = function () { sceneBusy = false; popup(res); }; if (window.__groupStage) { try { window.__groupStage.play(res, fin); } catch (e) { fin(); } } else fin(); }); };
     });
   }
 
