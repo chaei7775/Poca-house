@@ -111,8 +111,8 @@
   var BIG_BASE = 0.10, BIG_MOOD = 0.08;     // 대성공(상승 ×2) 기본 확률 / 기분 좋을 때 추가
   var TIERS = [
     { name: '신입', icon: '🧑‍🏫', cost: 1, gain: 1.0, big: 0 },
-    { name: '베테랑', icon: '👩‍🏫', cost: 3, gain: 1.4, big: 0.10 },
-    { name: '전설의', icon: '🧙', cost: 8, gain: 2.0, big: 0.20 }
+    { name: '베테랑', icon: '👩‍🏫', cost: 1.8, gain: 1.4, big: 0.10 },
+    { name: '전설의', icon: '🧙', cost: 3, gain: 2.0, big: 0.20 }
   ];
   var COACH_SUBJ = { vocal: '보컬 코치', dance: '댄스 코치', act: '연기 코치', fun: '예능 코치', charm: '워킹 코치' };
   var COACH_LINES = [
