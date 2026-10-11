@@ -31,7 +31,7 @@
   var ALERTS = [
     { re: /로드 매니저/, fn: function () { try { return window.__roadMgrTest && window.__roadMgrTest.status() === 'ready'; } catch (e) { return false; } } },
     { re: /^그룹/, fn: function () { return groupFresh() || groupLowBond(); } },
-    { re: /스케줄 관리/, fn: spaReady },
+    { re: /스케줄 관리/, fn: function () { try { return window.__spaReady ? window.__spaReady() : spaReady(); } catch (e) { return false; } } },
     { re: /내 컬렉션/, fn: function () { try { return window.PhRomance && window.PhRomance.readyAny(); } catch (e) { return false; } } }
   ];
   window.__moreAlerts = (window.__moreAlerts || []).concat(ALERTS);

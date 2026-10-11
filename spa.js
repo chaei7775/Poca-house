@@ -124,8 +124,11 @@
   var DOT = '<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#ff3b5c;border:1.5px solid #fff;margin-left:5px;vertical-align:middle;"></span>';
   function readyFor(s, cid) {   // 전에 관리를 받았고 쿨타임이 끝났고 가장 싼 관리를 받을 코인도 있으면 (더보기 빨간 점과 같은 기준)
     var min = 1e12; FACILITIES.forEach(function (f) { if (f.price < min) min = f.price; });
-    return money() >= min && (s.total[cid] || 0) > 0 && s.next[cid] > 0 && s.next[cid] <= Date.now();
+    return money() >= min && (s.total[cid] || 0) > 0 && s.next[cid] > 0 && s.next[cid] <= Date.now() && seenOf(cid) !== s.next[cid];
   }
+  // 확인만 해도 빨간 점이 꺼지게: 관리 창에서 그 아이돌을 보면 '이번 쿨타임 끝' 을 본 걸로 기록 (다음에 또 관리를 받으면 새로 점이 뜸)
+  function seenOf(cid) { try { return (JSON.parse(localStorage.getItem('ph_spaSeen') || '{}'))[cid] || 0; } catch (e) { return 0; } }
+  function markSeen(cid, s) { try { var o = JSON.parse(localStorage.getItem('ph_spaSeen') || '{}'); o[cid] = s.next[cid] || 0; localStorage.setItem('ph_spaSeen', JSON.stringify(o)); } catch (e) {} }
   function anyReady(s) { return debutedIds().some(function (id) { return readyFor(s, id); }); }
   function openSpa(cid0) {
     var m = M();
@@ -138,6 +141,7 @@
     function draw() {
       lastCid = cid;
       var ms = m.load(), s = syncDay(load(), ms.day), left = remainMs(s, cid), c = m.CH[cid], cash = money();
+      markSeen(cid, s);   // 이 아이돌은 확인함 → 빨간 점 끔 (아래 칩에는 방금 본 아이돌 점이 안 뜸)
       var chips = ids.map(function (id) {
         var on = id === cid;
         return '<button data-cid="' + id + '" style="' + BTN + 'padding:7px 11px;font-size:12px;border:1.5px solid ' + (on ? '#ff9ecb' : 'rgba(255,255,255,0.18)') + ';background:' + (on ? 'rgba(255,158,203,0.2)' : 'rgba(255,255,255,0.06)') + ';color:#fff;">' + esc(m.CH[id].name) + (readyFor(s, id) ? DOT : '') + '</button>';
@@ -281,5 +285,6 @@
   })();
 
   window.openSpa = openSpa;
+  window.__spaReady = function () { try { return anyReady(syncDay(load(), M().load().day)); } catch (e) { return false; } };
   window.__spaTest = { FACILITIES: FACILITIES, CFG: { COOLDOWN_H: COOLDOWN_H }, load: load, save: save, syncDay: syncDay, canUse: canUse, doUse: doUse, deltaFor: deltaFor, openSpa: openSpa };
 })();
