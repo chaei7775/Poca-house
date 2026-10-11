@@ -1,19 +1,19 @@
 // ════════════════════════════════
 // 🎤 아이돌 전담 매니저 (idol-manager.js) — 그룹을 만들면 찾아오는 매니저 (기획사 화면의 매니저 카드에 나타남)
 //  · 조건: 그룹을 만들었을 때(ph_group.group 이 있을 때) 나타남 → 눌러서 만나면 계약
-//  · 계약 효과: ① 그룹 활동 보상 +10%  ② 멤버 친밀도가 떨어지는 속도 하루 3 → 2  ③ 멤버 중재 비용 추가 -20%
+//  · 계약 효과: ① 그룹 활동 보상 +10%  ② 멤버 친밀도가 떨어지는 속도 하루 4 → 3  ③ 멤버 중재 비용 추가 -20%
 //  · 이미지: manager-idol.png 를 올리면 얼굴이 나온다 (없으면 🎤 이모지)
 //  · 저장: 'ph_manager' 의 idolMet 칸 (다른 매니저 칸은 건드리지 않음)
 // ════════════════════════════════
 (function () {
   'use strict';
   var NAME = '오세라', TITLE = '아이돌 전담 매니저', IMG = 'manager-idol.png?v=1';
-  var PAY = 10, DECAY = 2;
+  var PAY = 10, DECAY = 3;
   var FONT = "font-family:'Noto Sans KR',sans-serif;";
   var STORY = [
     '그룹 결성 축하해! 나는 아이돌 전담 매니저 ' + NAME + '이야.',
     '솔로와 달리 그룹은 한 명만 잘해서는 안 돼. 멤버끼리 호흡이 맞아야 무대가 살아.',
-    '컨디션 나쁜 멤버 챙기고, 사이가 틀어지려는 낌새가 보이면 내가 먼저 눈치채고 풀어줄게. 친밀도가 떨어지는 속도가 하루 3에서 ' + DECAY + '로 느려질 거야.',
+    '컨디션 나쁜 멤버 챙기고, 사이가 틀어지려는 낌새가 보이면 내가 먼저 눈치채고 풀어줄게. 친밀도가 떨어지는 속도가 하루 4에서 ' + DECAY + '로 느려질 거야.',
     '그룹 활동 보상도 내가 협상해서 +' + PAY + '% 더 받아올게.',
     '자, 우리 그룹 제대로 키워보자!'
   ];
@@ -72,5 +72,5 @@
   var tm = null;
   new MutationObserver(function () { if (tm) return; tm = setTimeout(function () { tm = null; decorate(); }, 150); }).observe(document.body, { childList: true, subtree: true });
 
-  window.__idolMgr = { met: met, ready: ready, payMult: function () { return met() ? 1 + PAY / 100 : 1; }, decay: function () { return met() ? DECAY : 3; }, mediDiscount: function () { return met() ? 0.8 : 1; } };
+  window.__idolMgr = { met: met, ready: ready, payMult: function () { return met() ? 1 + PAY / 100 : 1; }, decay: function () { return met() ? DECAY : 4; }, mediDiscount: function () { return met() ? 0.8 : 1; } };
 })();
