@@ -58,7 +58,7 @@
   function today() { var d = new Date(); return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2); }
   function name(cid) { try { return CHARS[cid].name; } catch (e) { return cid; } }
   function face(cid, px) { return '<img src="face-' + esc(cid) + '.png" alt="' + esc(name(cid)) + '" width="' + px + '" height="' + px + '" loading="lazy" decoding="async" style="width:' + px + 'px;height:' + px + 'px;border-radius:50%;object-fit:cover;vertical-align:middle;border:2px solid rgba(255,255,255,0.55);background:#243357;">'; }
-  function sd(cid, h, delay) { return '<img src="group-assets/sd/' + esc(cid) + '.png" alt="' + esc(name(cid)) + '" height="' + h + '" decoding="async" style="height:' + h + 'px;width:auto;margin:0 -5px;filter:drop-shadow(0 3px 5px rgba(0,0,0,.5));' + (delay === null ? '' : 'animation:grpBob .9s ease-in-out infinite;animation-delay:' + (delay || 0) + 's;') + 'transform-origin:50% 100%;" onerror="this.onerror=null;this.src=\'face-' + esc(cid) + '.png\';this.style.cssText=\'height:52px;width:52px;border-radius:50%;object-fit:cover;\'">'; }   // 👗 단체복 SD 전신
+  function sd(cid, h, delay, actId) { var ga = window.__groupAnimal, animal = !!(ga && ga.sdSrc(cid, actId) !== 'group-assets/sd/' + cid + '.png'); return '<img src="' + (ga ? ga.sdSrc(cid, actId) : 'group-assets/sd/' + esc(cid) + '.png') + '" alt="' + esc(name(cid)) + '" height="' + h + '" decoding="async" style="height:' + h + 'px;width:auto;margin:0 -5px;filter:drop-shadow(0 3px 5px rgba(0,0,0,.5));' + (delay === null ? '' : 'animation:grpBob .9s ease-in-out infinite;animation-delay:' + (delay || 0) + 's;') + 'transform-origin:50% 100%;" onerror="this.onerror=null;' + (animal ? 'this.src=\'group-assets/sd/' + esc(cid) + '.png\';' : 'this.src=\'face-' + esc(cid) + '.png\';this.style.cssText=\'height:52px;width:52px;border-radius:50%;object-fit:cover;\';') + '">'; }   // 👗 단체복 SD 전신 (예능이면 동물옷 SD)
   function sfx(n) { try { if (window.pocaSfx && window.pocaSfx.play) window.pocaSfx.play(n); } catch (e) {} }
   function emoji(cid) { try { return CHARS[cid].emoji; } catch (e) { return '⭐'; } }
   function pick(a) { return a[Math.floor(Math.random() * a.length)]; }
@@ -117,6 +117,7 @@
     var cm = 1; try { if (window.__comboEgg) cm = window.__comboEgg.mult(members, act.id); } catch (e) {}   // 숨은 조합 효과 (combo-egg.js)
     try { if (window.__groupInvest) cm *= window.__groupInvest.mult(act.id); } catch (e) {}   // 그룹 투자 (group-invest.js)
     try { if (window.__idolMgr) cm *= window.__idolMgr.payMult(); } catch (e) {}   // 아이돌 전담 매니저 (idol-manager.js)
+    try { if (window.__groupAnimal) cm *= window.__groupAnimal.mult(members, act.id); } catch (e) {}   // 🐾 동물 콘셉트 (group-animal.js)
     mult *= cm;
     return {
       coin: Math.floor(act.coin * PAY_MULT * mult * (big ? BIG_MULT : 1)),
@@ -394,7 +395,7 @@
     p.innerHTML = '<div style="position:relative;text-align:center;color:#fff;width:100%;max-width:300px;padding:10px;">' + sp +
       '<div style="animation:grpBob 1s ease-in-out infinite;">' + aicon(res.act, 110) + '</div>' +
       '<div style="font-size:15px;font-weight:900;margin-top:6px;">' + esc(res.act.name) + '</div>' +
-      '<div style="margin-top:8px;display:flex;justify-content:center;align-items:flex-end;">' + res.members.map(function (c, i) { return sd(c, res.members.length > 3 ? 84 : 118, i * 0.15); }).join('') + '</div>' +
+      '<div style="margin-top:8px;display:flex;justify-content:center;align-items:flex-end;">' + res.members.map(function (c, i) { return sd(c, res.members.length > 3 ? 84 : 118, i * 0.15, res.act.id); }).join('') + '</div>' +
       '<div id="grp-scene-txt" style="font-size:12.5px;color:#bcd8ff;margin-top:10px;min-height:18px;">' + esc(lines[0]) + '</div>' +
       '<div style="height:8px;border-radius:6px;background:rgba(255,255,255,0.14);overflow:hidden;margin:12px 10px 0;"><div style="height:100%;border-radius:6px;background:linear-gradient(90deg,#4aa8ff,#c084fc);animation:grpFill ' + SCENE_MS + 'ms linear forwards;"></div></div></div>';
     ov.appendChild(p);
