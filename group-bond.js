@@ -10,7 +10,7 @@
 (function () {
   'use strict';
   var KEY = 'ph_gbond', START = 50, DECAY_PER_DAY = 4, GRACE_DAYS = 1, Z = 992;   // 챙긴 뒤 1일은 유지, 그다음부터 하루 DECAY 씩 하락
-  var MEAL = { cost: 8000000, add: 3 }, TALK = { cost: 5000000, add: 12, per: 3 }, MEDI = { cost: 20000000, add: 25, below: 40 };
+  var MEAL = { cost: 8000000, add: 3 }, TALK = { cost: 5000000, add: 12, per: 3 }, MEDI = { cost: 20000000, add: 25, below: 60 };
   var FONT = "font-family:'Noto Sans KR',sans-serif;";
   var NAMES = { minjun: '민준', sion: '시온', doyun: '도윤', harin: '하린', yuna: '윤아', ara: '아라' };
   // 매니저 스킬: 만난 전담 매니저가 많을수록 중재가 강하고 싸진다 (ph_manager: actMet 배우 / topMet 탑스타)
