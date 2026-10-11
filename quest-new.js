@@ -38,7 +38,7 @@
     n_rom1: { title: '💓 첫 설렘', desc: '💞 인연 → 멤버 선택 → 💓 설렘 이벤트. 호감도 30이면 첫 이벤트가 열려. 선택지에 따라 두근이 달라져!', condition: 'q3_rom1', rewardCoins: 0, rewardExp: 20, aff: 10, detect: function () { return romMax() >= 1; } },
     n_rom_heart: { title: '💗 두근 3/3', desc: '💓 설렘 이벤트에서 두근 💗💗💗 을 받아봐. 멤버 성격에 맞는 선택지를 골라야 해!', condition: 'q3_romheart', rewardCoins: 0, rewardExp: 30, aff: 15, detect: function () { return romFull() >= 1; } },
     n_rom3: { title: '💓 한 사람의 마음', desc: '한 멤버의 설렘 이벤트 3개를 전부 봐. 호감도 30 · 120 · 550 이 되면 차례로 열려.', condition: 'q3_rom3', rewardCoins: 0, rewardExp: 60, aff: 30, detect: function () { return romMax() >= 3; } },
-    n_rom6: { title: '💓 여섯 개의 두근', desc: '6명 모두의 첫 번째 설렘 이벤트를 봐. 멤버마다 대사도 선택지도 달라! (💞 인연 화면 맨 아래 "설렘 이벤트 표시" 설정이 "전체"일 때 깰 수 있어요)', condition: 'q3_rom6', rewardCoins: 0, rewardExp: 80, aff: 20, detect: function () { return romMembers() >= 6; } },
+    n_rom6: { title: '💓 여섯 개의 두근', desc: '6명 중 마음에 드는 멤버의 첫 번째 설렘 이벤트를 봐. 멤버마다 대사도 선택지도 달라! (한 명만 봐도 완료돼요)', condition: 'q3_rom6', rewardCoins: 0, rewardExp: 80, aff: 20, detect: function () { return romMembers() >= 1; } },
     n_wear: { title: '👗 옷장 열기', desc: '🏠 내 집 → 👗 옷장 (또는 ⋯ 더보기 → 의상실)에서 멤버에게 옷을 입혀봐. 옷은 여기서만 효과가 나!', condition: 'q3_wear', rewardCoins: 1000, rewardExp: 40, detect: function () { return worn().length >= 1; } },
     n_fav: { title: '👗 취향 저격', desc: '멤버가 좋아하는 옷을 입히고 💓 설렘 이벤트를 봐. 반응 대사가 나오고 두근이 +1 돼! (취향은 의상실에서 확인)', condition: 'q3_fav', rewardCoins: 1500, rewardExp: 60, detect: function () { return !!flags().fav; } },
     n_great: { title: '✨ 대성공 옷', desc: '🧵 재봉 작업대에서 옷을 만들어 대성공(3%)을 노려봐. 대성공 옷은 효과가 +1%p 더 커!', condition: 'q3_great', rewardCoins: 2000, rewardExp: 80, detect: function () { return greatCloth(); } },
