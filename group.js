@@ -362,7 +362,7 @@
     }
   }
   // ── 🎬 활동 로딩 장면 (결과 팝업 전에 잠깐 연출) ──
-  var SCENE_MS = 2000, sceneBusy = false;
+  var SCENE_MS = 2000, sceneBusy = false, sceneAt = 0;
   var SCENE_TXT = {
     stage:   ['무대 위로 올라가는 중…', '조명이 켜지고…', '마이크를 잡고…'],
     album:   ['녹음실에 들어가는 중…', '헤드폰을 쓰고…', '하모니를 맞추는 중…'],
@@ -441,7 +441,7 @@
       };
     });
     Array.prototype.forEach.call(ov.querySelectorAll('[data-act]'), function (b) {
-      b.onclick = function () { if (sceneBusy) return; var res = doActivity(b.getAttribute('data-act')); if (!res) return; if (res.err) { toast(res.err); return; } sceneBusy = true; scene(res, function () { var fin = function () { sceneBusy = false; popup(res); }; if (window.__groupStage) { try { window.__groupStage.play(res, fin); } catch (e) { fin(); } } else fin(); }); };
+      b.onclick = function () { if (sceneBusy && Date.now() - sceneAt < 15000) return; var res = doActivity(b.getAttribute('data-act')); if (!res) return; if (res.err) { toast(res.err); return; } sceneBusy = true; sceneAt = Date.now(); scene(res, function () { var fin = function () { sceneBusy = false; popup(res); }; if (window.__groupStage) { try { window.__groupStage.play(res, fin); } catch (e) { fin(); } } else fin(); }); };
     });
   }
 
