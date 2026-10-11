@@ -29,7 +29,7 @@
   var BOOST_DECAY = 0.55, BOOST_MAX = 30;
   var STREAM_STAMINA = 10;             // 총공 1번 스태미나
   var HOUR_FACTOR = [4, 5, 3, 0, -1, -1, -1, 0, 0, 0, 0, 0, -1, -3, -4, -4, -3, -1, 0, 1, 2, 3, 4, 5];   // 시간대별 내 곡 점수 가감(%)
-  var PAY_MULT = 30;                    // 💰 정산금 배율 (드라마·CF 수입에 맞춤: 1위 하루 900만 · 음방 1위 1500만)
+  var PAY_MULT = 150;                   // 💰 정산금 배율 (그룹 수입에 맞춤으로 5배 상향: 1위 하루 4,500만 · 음방 1위 7,500만)
   var RANK_PAY = [[1, 300000 * PAY_MULT], [3, 150000 * PAY_MULT], [10, 60000 * PAY_MULT], [30, 20000 * PAY_MULT], [100, 5000 * PAY_MULT]];   // 하루 정산 코인(순위 ≤ 앞 숫자)
   var FIRST_ONE_WISH = 5;              // 처음 1위 했을 때 소원의 조각
   var INVEST_BUMP = 1.3, INVEST_MAX_DAYS = 3;
