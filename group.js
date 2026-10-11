@@ -181,6 +181,7 @@
     save(s);
     return { delta: delta, win: win };
   }
+  function gameOf(id) { return id === 'variety' ? window.__groupVariety : id === 'stage' ? window.__groupJoint : null; }   // 직접 플레이 코너가 있는 활동 (group-variety.js · group-joint.js)
   function precheck(id) {              // 직접 플레이(예능 토크쇼)를 열기 전에 활동이 가능한지만 미리 본다 (체력은 안 깎음)
     var s = load(); if (!s.group) return '그룹이 없어요';
     var act = actById(id); if (!act) return '활동을 찾지 못했어요';
@@ -466,10 +467,10 @@
       b.onclick = function () {
         if (sceneBusy && Date.now() - sceneAt < 15000) return;
         var id0 = b.getAttribute('data-act'), perf0;
-        if (id0 === 'variety' && window.__groupVariety && !b.__varDone) {   // 🎪 단체 예능은 토크쇼를 먼저 직접 플레이 (group-variety.js)
+        if (gameOf(id0) && !b.__varDone) {   // 🎪 단체 예능은 토크쇼를 먼저 직접 플레이 (group-variety.js)
           var er0 = precheck(id0); if (er0) { toast(er0); return; }
           sceneBusy = true; sceneAt = Date.now();
-          try { window.__groupVariety.play(liveMembers(load()), function (p, lg) { sceneBusy = false; if (typeof p !== 'number') return; b.__varDone = true; b.__perf = p; b.__vlog = lg; b.onclick(); }); }
+          try { gameOf(id0).play(liveMembers(load()), function (p, lg) { sceneBusy = false; if (typeof p !== 'number') return; b.__varDone = true; b.__perf = p; b.__vlog = lg; b.onclick(); }); }
           catch (e) { sceneBusy = false; }
           return;
         }
