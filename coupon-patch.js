@@ -4,6 +4,7 @@
 // 새 쿠폰을 더 만들고 싶으면 아래 EXTRA_COUPONS에 한 덩어리만 추가하면 됨.
 //   gold    : 코인
 //   crystal : 소원의 결정 개수
+//   exp     : 플레이어 경험치 (레벨업 가능)
 //   items   : 가방에 넣을 아이템 목록 [{ emoji, name, type, qty, desc }]  (가방 자리가 부족하면 쿠폰이 소모되지 않음)
 // (game.js / index.html은 건드리지 않음)
 // ════════════════════════════════
@@ -35,6 +36,10 @@
       ],
       message: '🎁 프리미엄 조각 쿠폰!\n\n🖼️ 프리미엄 조각 70개'
     },
+    'EXP5000': {
+      exp: 5000,
+      message: '🎁 경험치 쿠폰!\n\n⭐ 플레이어 경험치 5,000'
+    },
     'WELCOME': {
       gold: 300000,
       items: [
@@ -58,6 +63,7 @@
 
   function giveReward(def) {
     if (def.gold) coins += def.gold;
+    if (def.exp && typeof addPlayerExp === 'function') addPlayerExp(def.exp);
     if (def.crystal) addToBag('💎', '소원의 결정', 'crystal', def.crystal, '소원의 결정 — 특별한 소원을 이룰 수 있어!');
     if (def.items) def.items.forEach(function (it) { addToBag(it.emoji, it.name, it.type, it.qty, it.desc); });
     if (typeof saveBag === 'function') saveBag();
