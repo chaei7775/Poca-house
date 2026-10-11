@@ -9,6 +9,10 @@
     '#stamina-floating{right:calc(' + O + ' + 10px) !important;}' +
     '#ph-help-btn{right:calc(' + O + ' + 10px) !important;}' +
     '#bgm-toggle-btn{left:' + O + ' !important;}' +
-    '#sfx-panel{left:calc(' + O + ' + 10px) !important;}';
+    '#sfx-panel{left:calc(' + O + ' + 10px) !important;}' +
+    '#mapbag-btn{right:calc(' + O + ' + 12px) !important;}' +
+    '#live-open-btn{right:calc(' + O + ' + 14px) !important;}' +
+    '#player-level-popup{right:calc(' + O + ' + 14px) !important;}' +
+    '#equip-tab{right:' + O + ' !important;}';
   document.head.appendChild(st);
 })();
