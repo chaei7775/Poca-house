@@ -186,6 +186,7 @@
     var r0 = reward(act, live, s.fame, false);
     var cEgg = window.__comboEgg || null, cBig = 0, cNg = 0;
     try { if (cEgg) { cBig = cEgg.bigBonus(live, id); cNg = cEgg.ng(live, id); } } catch (e) {}
+    var bd = null; try { if (window.__groupBond) { bd = window.__groupBond.effect(live); cNg = Math.min(0.5, cNg + bd.ng); } } catch (e) {}   // 멤버 친밀도 (group-bond.js)
     var big = Math.random() < r0.bigChance + cBig;
     var ngHit = !big && cNg > 0 && Math.random() < cNg;   // 숨은 조합 NG (combo-egg.js)
     var r = big ? reward(act, live, s.fame, true) : r0;
@@ -193,7 +194,7 @@
     var ev = null; if (s.ev < EV_DAILY && Math.random() < EV_CHANCE) { ev = rollEvent(r.tier); s.ev++; }
     var coinGain = r.coin, fameGain = r.fame;
     var rl = null, effTier = r.tier;
-    try { if (!ngHit && window.__groupReport) { rl = window.__groupReport.roll(id, live); coinGain = Math.floor(coinGain * rl.mul); fameGain = Math.floor(fameGain * rl.mul); effTier = Math.max(0, Math.min(TIERS.length - 1, r.tier + rl.shift)); } } catch (e) {}   // 멤버별 랜덤 변수 (컨디션/사고)
+    try { if (!ngHit && window.__groupReport) { rl = window.__groupReport.roll(id, live); coinGain = Math.floor(coinGain * rl.mul * (bd ? bd.mul : 1)); fameGain = Math.floor(fameGain * rl.mul * (bd ? bd.mul : 1)); effTier = Math.max(0, Math.min(TIERS.length - 1, r.tier + rl.shift)); } } catch (e) {}   // 멤버별 랜덤 변수 (컨디션/사고)
     if (ngHit) { coinGain = 0; fameGain = Math.floor(r.fame * 0.3); wish = 0; ev = null; }
     if (ev && ev.kind !== 'choice') {
       if (ev.coinMul) coinGain = Math.max(0, Math.floor(r.coin * (1 + ev.coinMul)));
@@ -215,6 +216,7 @@
     var report = null;
     try { if (window.__groupReport) report = window.__groupReport.make(id, live, name, function (c) { return powerOf(act, { vocal: statOf(c, 'vocal'), dance: statOf(c, 'dance'), act: statOf(c, 'act'), fun: statOf(c, 'fun'), charm: statOf(c, 'charm') }); }, effTier, big, ngHit); } catch (e) {}
     try { if (rl && report) window.__groupReport.overlay(report, rl, name); } catch (e) {}
+    try { if (report && bd && bd.line) report.lines.push(bd.line); if (window.__groupBond) window.__groupBond.after(live, rl, ngHit); } catch (e) {}
     s.log.unshift({ t: Date.now(), m: act.icon + ' ' + act.name + ' (' + TIERS[effTier][1] + (big ? '·대성공' : '') + (ngHit ? '·NG' : '') + ') +' + fmt(coinGain) + ' 코인' + (wish ? ' · 🧩' + wish : '') + (ev && ev.kind !== 'choice' ? ' · ' + ev.t.split(' ')[0] : '') });
     save(s);
     return { act: act, big: big, ev: ev, coin: coinGain, fame: fameGain, wish: wish, tier: TIERS[effTier][1], line: line, levelUp: lv1 > lv0 ? LEVELS[lv1][1] : '', members: live, report: report, ng: ngHit };
