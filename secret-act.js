@@ -9,7 +9,7 @@
 //  · 열애설 의혹(경고)을 방치하면 나중에 '열애설 기사'(위기)가 터진다. 그룹 멤버면 그룹 인기도도 흔들린다 (해체는 절대 안 됨, 인기도만 최대 15% 감소).
 //  · 능력치(레슨)와 카드·강화는 건드리지 않는다. 컨디션(비주얼·체력·기분)과 코인·인지도·팬카페만 움직인다.
 // 저장: localStorage 'ph_secret' (ph_ 로 시작 → 클라우드 저장에 자동 포함)
-// 테스트용 주소: ?secret=volunteer / gift / dating / club / snack / warning / crisis (데뷔한 아이돌 중 한 명에게 바로 시작)
+// 테스트용 주소: ?secret=volunteer / gift / dating / club / snack / stray / practice / fanmail / game / shop / live / warning / crisis (데뷔한 아이돌 중 한 명에게 바로 시작)
 // 값을 바꾸고 싶으면 아래 [설정]과 EV 만 고치면 됨.
 // ════════════════════════════════
 (function () {
@@ -64,7 +64,39 @@
       ok: { r: '새벽 라면은 정말 맛있었어요.\n다음 날 얼굴이 퉁퉁 붓긴 했지만요.', fx: { m: 8, v: -6 } },
       caught: { r: '폭풍 먹방 직찍이 퍼졌어요!\n"의외의 모습"이라며 오히려 귀엽다는 반응도 있어요.', fx: { m: -4, v: -6, f: 10 } } }
   };
-  var EV_ORDER = ['volunteer', 'gift', 'dating', 'club', 'snack'];
+
+  // ── 추가 사건 (아이돌 성격에 맞게 w 로 확률 조절) ──
+  EV.stray = { kind: 'good', icon: '🐱', head: '{n}이(가) 길고양이 밥을 챙기고 있어요',
+    sub: '매일 밤 몰래 골목에 나가 길고양이 밥을 주고 있었대요. 오늘따라 골목 끝에 카메라 불빛이 보여요…', base: 0.3,
+    w: { minjun: 1, sion: 2, doyun: 1, harin: 3, yuna: 3, ara: 1 },
+    ok: { r: '{n}은(는) 고양이 곁에 한참 앉아 있다 돌아왔어요.\n마음이 따뜻해졌어요.', fx: { m: 9 } },
+    caught: { r: '고양이를 안고 웃는 사진이 SNS에 퍼졌어요!\n"천사 아니냐"며 팬들이 난리예요.', fx: { m: 5, f: 35, fame: 6 } } };
+  EV.practice = { kind: 'good', icon: '🎤', head: '{n}이(가) 밤새 혼자 연습실에 남아 있어요',
+    sub: '아무도 모르게 새벽까지 연습 중이에요. 건물 앞에 기자 같은 사람이 서성이는데…', base: 0.35,
+    w: { minjun: 2, sion: 1, doyun: 3, harin: 2, yuna: 1, ara: 2 },
+    ok: { r: '{n}은(는) 새벽까지 땀을 흘리고 조용히 숙소로 돌아갔어요.\n뿌듯하지만 몸은 조금 무거워요.', fx: { m: 5, s: -8 } },
+    caught: { r: '연습 영상이 퍼졌어요!\n"노력하는 아이돌"이라며 인지도가 확 올랐어요.', fx: { m: 4, s: -8, f: 30, fame: 7 } } };
+  EV.fanmail = { kind: 'good', icon: '💌', head: '{n}이(가) 팬들에게 몰래 손편지를 쓰고 있어요',
+    sub: '밤새 팬 한 명 한 명에게 답장을 쓴다는 소문이에요. 우체국 앞에 카메라가 보이는 것 같은데…', base: 0.3,
+    w: { minjun: 1, sion: 3, doyun: 1, harin: 2, yuna: 3, ara: 2 },
+    ok: { r: '{n}의 편지는 팬들에게 조용히 도착했어요.\n감동한 팬들의 후기가 하나둘 올라와요.', fx: { m: 8, f: 15 } },
+    caught: { r: '손편지 인증 글이 화제가 됐어요!\n"이런 아이돌이 어딨냐"며 칭찬이 쏟아져요.', fx: { m: 5, f: 55, fame: 7 } } };
+  EV.game = { kind: 'light', icon: '🎮', head: '{n}이(가) 새벽에 밤새 게임을 하고 있어요',
+    sub: '내일 스케줄을 잊고 몰래 게임에 빠졌어요. 창밖에 누가 서 있는 것 같기도 한데…', base: 0.25,
+    w: { minjun: 2, sion: 1, doyun: 2, harin: 2, yuna: 1, ara: 1 },
+    ok: { r: '{n}은(는) 신나게 놀았지만 눈 밑이 어두워졌어요.', fx: { m: 10, s: -12, v: -4 } },
+    caught: { r: '게임하는 모습이 직캠으로 퍼졌어요!\n"의외로 귀엽다"는 반응이 많아요.', fx: { m: -2, s: -12, f: 15 } } };
+  EV.shop = { kind: 'bad', icon: '🛍️', head: '{n}이(가) 몰래 쇼핑몰에서 크게 질렀어요',
+    sub: '스트레스를 쇼핑으로 풀었대요. 결제 내역이 어디선가 새어나갈지도 몰라요…', base: 0.4,
+    w: { minjun: 2, sion: 1, doyun: 1, harin: 1, yuna: 2, ara: 3 },
+    ok: { r: '{n}은(는) 쇼핑백을 숙소에 몰래 숨겼어요.\n기분은 아주 좋아졌어요.', fx: { m: 10 } },
+    caught: { r: '명품 쇼핑백을 든 사진이 퍼졌어요!\n"돈 많이 번다더니"며 말이 많아요.', fx: { m: -8, f: -10, c: -5000000 } } };
+  EV.live = { kind: 'bad', icon: '📱', head: '{n}이(가) 새벽에 몰래 SNS 라이브를 켰어요',
+    sub: '혼자 심심해서 켠 라이브에서 말이 점점 길어지고 있어요. 접속자가 하나둘 늘고 있어요…', base: 0.45,
+    w: { minjun: 3, sion: 1, doyun: 2, harin: 1, yuna: 1, ara: 2 },
+    ok: { r: '다행히 접속자가 거의 없었어요.\n{n}은(는) 수다를 떨고 후련하게 잠들었어요.', fx: { m: 8 } },
+    caught: { r: '라이브 중 실언이 캡처돼 퍼졌어요!\n해명 요구가 쏟아지고 협찬사가 연락을 끊었어요.', fx: { m: -18, v: -8, f: -20 }, scandal: true } };
+  var EV_ORDER = ['volunteer', 'gift', 'dating', 'club', 'snack', 'stray', 'practice', 'fanmail', 'game', 'shop', 'live'];
 
   // ── 저장 ──
   function load() {
