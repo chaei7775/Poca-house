@@ -233,6 +233,7 @@
     actDrama: 1.00,     // 연기 100 → 드라마 촬영·일정 정산 +100% (대신 레슨비가 크게 듦)
     actGauge: 0.30,     // 연기 100 → 드라마 촬영 중 시청률 게이지 오르는 속도 +30% (직접 촬영할 때)
     charmCf: 1.00,      // 매력 100 → CF 보상 +100%
+    charmChance: 25,    // 매력 100 → CF 촬영 성공 확률 +25%p (cf-shoot.js 가 더함)
     stageVD: 0.30,      // 보컬 100 → 음방·컴백 정산 +30%, 댄스 100 → 또 +30%
     incomeFun: 0.15,    // 예능 100 → 기획사 수익 +15%
     incomeCharm: 0.15   // 매력 100 → 기획사 수익 +15%
@@ -251,13 +252,14 @@
   }
   function incomeMult(cid) { return 1 + FX.incomeFun * fOf(cid, 'fun') + FX.incomeCharm * fOf(cid, 'charm'); }
   window.__lessonPayMult = payMult;
+  window.__lessonCfChance = function (cid) { return Math.round(FX.charmChance * fOf(cid, 'charm') * 10) / 10; };   // cf-shoot.js 성공 확률에 더함(%p)
   window.__lessonDramaGauge = function (cid) { return 1 + FX.actGauge * fOf(cid, 'act'); };   // drama.js 가 촬영 중 게이지에 곱함
   window.__lessonIncomeMult = incomeMult;
   function pctTxt(x) { return '+' + Math.round(x * 100) + '%'; }
   function fxLine(cid) {
     var st = [
       ['🎭 연기', pctTxt(FX.actDrama * fOf(cid, 'act')) + ' 드라마 출연료 · ' + pctTxt(FX.actGauge * fOf(cid, 'act')) + ' 촬영 속도'],
-      ['✨ 매력', pctTxt(FX.charmCf * fOf(cid, 'charm')) + ' CF'],
+      ['✨ 매력', pctTxt(FX.charmCf * fOf(cid, 'charm')) + ' CF 보상 · +' + (Math.round(FX.charmChance * fOf(cid, 'charm') * 10) / 10) + '%p CF 성공률'],
       ['🎤💃 보컬·댄스', pctTxt(FX.stageVD * (fOf(cid, 'vocal') + fOf(cid, 'dance'))) + ' 음방·컴백'],
       ['🎪 예능·매력', pctTxt(FX.incomeFun * fOf(cid, 'fun') + FX.incomeCharm * fOf(cid, 'charm')) + ' 기획사 수익']
     ];

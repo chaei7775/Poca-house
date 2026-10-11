@@ -64,10 +64,12 @@
     out.sort(function (a, b) { return gradeIdx(a.minGrade) - gradeIdx(b.minGrade); });
     return out;
   }
-  function shootChance(req, bestGrade, propCount, guest) {
+  function charmBonus(cid) { try { return (cid && typeof window.__lessonCfChance === 'function') ? (Number(window.__lessonCfChance(cid)) || 0) : 0; } catch (e) { return 0; } }   // 🎓 매력 능력치 → 성공 확률(%p)
+  function shootChance(req, bestGrade, propCount, guest, cid) {
     var over = Math.max(0, gradeIdx(bestGrade) - gradeIdx(req.minGrade));
     var c = req.base + over * GRADE_BONUS + propCount * PROP_BONUS;
     if (guest) c += (typeof guest.bonus === 'number') ? guest.bonus : (guest.rare ? GUEST_BONUS.rare : GUEST_BONUS.normal);
+    c += charmBonus(cid);
     return Math.max(MIN_CHANCE, Math.min(MAX_CHANCE, c));
   }
   function rollStars(chance, rng) {      // 0 = NG, 1~3 = 별
@@ -273,7 +275,7 @@
       var guest = sel.guest ? creatureById(sel.guest) : null;
       var best = sel.cid ? bestCard(sel.cid) : null;
       var propCount = PROPS.filter(function (p) { return sel.props[p.name]; }).length;
-      var chance = best ? shootChance(req, best.grade, propCount, guest) : null;
+      var chance = best ? shootChance(req, best.grade, propCount, guest, sel.cid) : null;
       var ready = !!(sel.cid && best);
 
       var chars = debuted.map(function (cid) {
@@ -307,7 +309,7 @@
         '<div style="background:rgba(255,255,255,0.05);border-radius:12px;padding:10px 12px;margin-bottom:10px;"><div style="font-size:12px;font-weight:900;color:#C084FC;margin-bottom:6px;">① 출연자</div>' + chars + '</div>' +
         '<div style="background:rgba(255,255,255,0.05);border-radius:12px;padding:10px 12px;margin-bottom:10px;"><div style="font-size:12px;font-weight:900;color:#C084FC;margin-bottom:6px;">② 촬영 소품 <span style="color:#ffd86b;font-weight:900;">(보너스)</span> <span style="color:#888;font-weight:400;">(1종 +' + PROP_BONUS + '%p · 소모)</span></div><div style="font-size:10.5px;color:#9aa0c8;margin:-2px 0 7px;line-height:1.5;">없어도 촬영할 수 있어요. 걸면 성공률이 올라가요!</div>' + propsHtml + '</div>' +
         '<div style="background:rgba(255,255,255,0.05);border-radius:12px;padding:10px 12px;margin-bottom:12px;"><div style="font-size:12px;font-weight:900;color:#C084FC;margin-bottom:6px;">③ 생물 게스트 <span style="color:#888;font-weight:400;">(' + guestBonusText() + ' · 출연료 +' + Math.round(GUEST_REWARD_RATE * 100) + '% · 소모 없음)</span></div>' + guestHtml + '</div>' +
-        '<div style="text-align:center;margin-bottom:12px;"><div style="font-size:12px;color:#aaa;">성공 확률</div><div style="font-size:26px;font-weight:900;color:#FFD700;">' + (chance === null ? '–' : chance + '%') + '</div></div>' +
+        '<div style="text-align:center;margin-bottom:12px;"><div style="font-size:12px;color:#aaa;">성공 확률</div><div style="font-size:26px;font-weight:900;color:#FFD700;">' + (chance === null ? '–' : chance + '%') + '</div>' + (sel.cid && charmBonus(sel.cid) > 0 ? '<div style="font-size:11px;color:#b9c2ff;margin-top:2px;">🎓 매력 능력치 +' + charmBonus(sel.cid) + '%p 포함</div>' : '') + '</div>' +
         '<button id="cf-go" style="' + BTN + 'width:100%;padding:14px;margin-bottom:8px;background:' + (ready ? 'linear-gradient(135deg,#FF6B9D,#C084FC)' : 'rgba(255,255,255,0.1)') + ';color:' + (ready ? '#fff' : '#777') + ';font-size:15px;">' + (ready ? '🎬 촬영 시작!' : '출연자를 골라주세요') + '</button>' +
         '<button id="cf-cancel" style="' + BTN + 'width:100%;padding:11px;background:rgba(255,255,255,0.08);color:#aaa;font-size:13px;">닫기</button></div>';
 
@@ -336,7 +338,7 @@
     // 1) 소품은 먼저 쓴다 (닫아도 되돌릴 수 없게)
     usedProps.forEach(function (p) { useFromBag(p.name, 1); });
     // 2) 판정
-    var chance = shootChance(req, card.grade, usedProps.length, guest);
+    var chance = shootChance(req, card.grade, usedProps.length, guest, sel.cid);
     var stars = rollStars(chance);
     var coinsGot = rewardCoins(req, stars, guest);
     coins += coinsGot;
