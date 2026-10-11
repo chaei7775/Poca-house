@@ -55,7 +55,7 @@
   var ORDER = ['minjun', 'sion', 'doyun', 'harin', 'yuna', 'ara'];
 
   // 🖼️ 효과 아이콘 그림 (그림이 없거나 안 불러와지면 이모지로 대신 나옴)
-  var ICON_IMG = { doyun: 'em-mic.png', harin: 'vip-bolt.png', yuna: 'mat-premiumpiece.png', ara: 'vip-coin.png' };
+  var ICON_IMG = { minjun: 'pe-minjun.png', sion: 'pe-sion.png', doyun: 'em-mic.png', harin: 'vip-bolt.png', yuna: 'mat-premiumpiece.png', ara: 'vip-coin.png' };
   function icoHtml(file, emoji) {
     if (!file) return emoji;
     return '<img src="' + file + '" alt="" loading="lazy" decoding="async" style="width:1.3em;height:1.3em;object-fit:contain;vertical-align:-0.3em;pointer-events:none;" ' +
