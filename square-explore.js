@@ -197,7 +197,7 @@
 
     var ov = document.createElement('div');
     ov.id = 'square-overlay';
-    ov.style.cssText = 'position:fixed;inset:0;z-index:700;background:#2b1f3a;color:#fff;font-family:\'Noto Sans KR\',sans-serif;display:flex;flex-direction:column;user-select:none;-webkit-user-select:none;touch-action:none;overscroll-behavior:none;';
+    ov.style.cssText = 'position:fixed;inset:0;max-width:460px;margin:0 auto;box-shadow:0 0 0 100vmax #000;z-index:700;background:#2b1f3a;color:#fff;font-family:\'Noto Sans KR\',sans-serif;display:flex;flex-direction:column;user-select:none;-webkit-user-select:none;touch-action:none;overscroll-behavior:none;';
     ov.innerHTML =
       '<div style="display:flex;align-items:center;gap:8px;padding:10px 12px;background:rgba(0,0,0,.6);z-index:5;">' +
         '<button id="sq-exit" style="background:rgba(255,255,255,.15);border:none;border-radius:14px;color:#fff;padding:8px 12px;font-size:13px;font-weight:700;cursor:pointer;">← 나가기</button>' +
