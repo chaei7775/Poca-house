@@ -23,6 +23,9 @@
   var DRESS_IDS = ['cloud-dress', 'star-dress', 'aurora-dress', 'champagne-dress', 'prince-coat', 'animal-bunny', 'animal-kitten', 'animal-bear', 'animal-puppy', 'animal-panda', 'animal-penguin'];
   var BOTTOM_IDS = ['cherry-skirt', 'crystal-skirt', 'crystal-pants', 'cloud-skirt', 'cloud-shorts', 'moon-jeans', 'aurora-skirt', 'champagne-skirt', 'prince-pants'];
   var TOP_IDS = ['cherry-blouse', 'crystal-jacket', 'crystal-jumper', 'cloud-jacket', 'star-blazer', 'moon-hoodie', 'aurora-jacket', 'aurora-blouse', 'champagne-jacket', 'champagne-cardigan', 'prince-jacket', 'prince-shirt'];
+  // 🐾 마스코트 동물옷은 멤버마다 정해진 한 벌만 입을 수 있다 (group-animal.js 의 그룹 예능 동물 콘셉트와 같은 짝)
+  var ANIMAL_OWNER = { 'animal-bear': 'minjun', 'animal-kitten': 'sion', 'animal-puppy': 'doyun', 'animal-bunny': 'harin', 'animal-panda': 'yuna', 'animal-penguin': 'ara' };
+  function ownerName(cid) { try { return CHARS[cid].name; } catch (e) { return cid; } }
   var STAT_LABEL = { coin: '알바 코인', luck: '행운·희귀재료', affection: '호감도', heart: '두근', study: '수업 점수', charm: '매력' };
 
   // ── 공통 ──
@@ -145,6 +148,7 @@
     var c = clothDef(id); if (!c) return '의상 정보를 찾지 못했어요';
     if (availQty(bagItem) < 1) return '플레이어가 입고 있는 옷이에요. 먼저 벗어주세요';
     var kind = kindOf(id);
+    if (ANIMAL_OWNER[id] && ANIMAL_OWNER[id] !== cid) return c.name + '은(는) ' + ownerName(ANIMAL_OWNER[id]) + ' 전용 옷이에요';
     if (kind === 'top' && slotKey !== 'top') return '상의 칸에만 입을 수 있어요';
     if (kind === 'bottom' && slotKey !== 'bottom') return '하의 칸에만 입을 수 있어요';
     var d = load(); d[cid] = d[cid] || {};
@@ -250,9 +254,10 @@
     if (selSlot) {
       var label = selSlot === 'top' ? '상의' : '하의';
       var cur = dress ? { slot: 'dress', p: dress } : (e[selSlot] ? { slot: selSlot, p: e[selSlot] } : null);
-      var mineItems = clothBagItems().filter(function (i) { var k = kindOf(i.clothId || clothByName(i.name)); return k === 'dress' || k === selSlot; });
+      var mineItems = clothBagItems().filter(function (i) { var k = kindOf(i.clothId || clothByName(i.name)); var iid = i.clothId || clothByName(i.name); if (ANIMAL_OWNER[iid] && ANIMAL_OWNER[iid] !== selChar) return false; return k === 'dress' || k === selSlot; });
       list = '<div style="border-top:1px solid rgba(255,255,255,.15);padding-top:10px;">' +
         '<div style="font-size:12px;font-weight:900;margin-bottom:6px;">' + label + ' 칸 <span style="color:#9ab;font-weight:400;">· 원피스를 고르면 상의·하의 칸을 같이 써요</span></div>' +
+        '<div style="font-size:11px;color:#ffb3cb;margin-bottom:6px;">🐾 동물 마스코트 옷은 정해진 멤버만 입어요 (민준 곰 · 시온 고양이 · 도윤 강아지 · 하린 토끼 · 윤아 판다 · 아라 펭귄)</div>' +
         (cur ? '<div style="font-size:11px;color:#9ab;margin-bottom:3px;">입고 있는 옷</div>' + pieceRow(cur.p, '<button data-un="1" style="' + BTN + 'padding:7px 10px;font-size:11px;background:rgba(239,68,68,.2);color:#ff8a8a;">벗기기</button>') : '') +
         '<div style="font-size:11px;color:#9ab;margin:6px 0 3px;">가방 속 옷' + (cur ? ' (고르면 교체)' : '') + '</div>' +
         (mineItems.length ? mineItems.map(function (it, i) {
@@ -273,7 +278,7 @@
     ov.querySelectorAll('[data-un]').forEach(function (b) { b.onclick = function () { var er = unequip(selChar, selSlot); if (er) toast('❌ ' + er); else toast('옷을 벗겼어요'); draw(); }; });
     ov.querySelectorAll('[data-pick]').forEach(function (b) {
       b.onclick = function () {
-        var items = clothBagItems().filter(function (i) { var k = kindOf(i.clothId || clothByName(i.name)); return k === 'dress' || k === selSlot; });
+        var items = clothBagItems().filter(function (i) { var k = kindOf(i.clothId || clothByName(i.name)); var iid = i.clothId || clothByName(i.name); if (ANIMAL_OWNER[iid] && ANIMAL_OWNER[iid] !== selChar) return false; return k === 'dress' || k === selSlot; });
         var it = items[Number(b.getAttribute('data-pick'))]; if (!it) return;
         var er = equip(selChar, selSlot, it);
         if (er) { toast('❌ ' + er); return; }
