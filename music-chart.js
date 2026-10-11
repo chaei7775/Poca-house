@@ -23,7 +23,7 @@
   var NOTE_PER = 0.25, NOTE_MAX = 10;  // 작곡 도감 한 칸당 점수 / 최대
   var TREND_BONUS = 6;                 // 이번 주 트렌드 장르와 같으면
   var FAN_MAX = 28, FAN_LOG = 3.2;     // 팬 수 점수 (멤버 수 10^3.2 ≈ 1600명이면 만점)
-  var CAT_EACH = 0.8, CAT_MAX = 16;    // 📀 발매한 곡이 쌓일수록 올라가는 점수 (곡 하나당 / 최대)
+  var CAT_EACH = 0.5, CAT_MAX = 10;    // 📀 발매한 곡이 쌓일수록 올라가는 점수 (곡 하나당 / 최대)
   var FAME_MAX = 10;                   // 인지도 100 = 10점
   var HID_EACH = 1.5, HID_ENH = 0.8, HID_MAX = 8;   // 히든카드 한 장당 / 강화 배율 가산 / 최대 (14 → 8로 낮춤)
   var BURST = 14, BURST_DECAY = 0.65;  // 신곡 버스트
