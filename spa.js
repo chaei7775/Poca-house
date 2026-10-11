@@ -121,6 +121,12 @@
     }
     return '<div style="display:flex;gap:10px;margin:8px 0 2px;">' + bar('✨ 비주얼', 'v', '#ff9ecb') + bar('💪 체력', 's', '#7ee8a5') + bar('😊 기분', 'm', '#ffe08a') + '</div>';
   }
+  var DOT = '<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#ff3b5c;border:1.5px solid #fff;margin-left:5px;vertical-align:middle;"></span>';
+  function readyFor(s, cid) {   // 전에 관리를 받았고 쿨타임이 끝났고 가장 싼 관리를 받을 코인도 있으면 (더보기 빨간 점과 같은 기준)
+    var min = 1e12; FACILITIES.forEach(function (f) { if (f.price < min) min = f.price; });
+    return money() >= min && (s.total[cid] || 0) > 0 && s.next[cid] > 0 && s.next[cid] <= Date.now();
+  }
+  function anyReady(s) { return debutedIds().some(function (id) { return readyFor(s, id); }); }
   function openSpa(cid0) {
     var m = M();
     if (!m) { toast('아직 이용할 수 없어요'); return; }
@@ -134,7 +140,7 @@
       var ms = m.load(), s = syncDay(load(), ms.day), left = remainMs(s, cid), c = m.CH[cid], cash = money();
       var chips = ids.map(function (id) {
         var on = id === cid;
-        return '<button data-cid="' + id + '" style="' + BTN + 'padding:7px 11px;font-size:12px;border:1.5px solid ' + (on ? '#ff9ecb' : 'rgba(255,255,255,0.18)') + ';background:' + (on ? 'rgba(255,158,203,0.2)' : 'rgba(255,255,255,0.06)') + ';color:#fff;">' + esc(m.CH[id].name) + '</button>';
+        return '<button data-cid="' + id + '" style="' + BTN + 'padding:7px 11px;font-size:12px;border:1.5px solid ' + (on ? '#ff9ecb' : 'rgba(255,255,255,0.18)') + ';background:' + (on ? 'rgba(255,158,203,0.2)' : 'rgba(255,255,255,0.06)') + ';color:#fff;">' + esc(m.CH[id].name) + (readyFor(s, id) ? DOT : '') + '</button>';
       }).join('');
       var cards = FACILITIES.map(function (f) {
         var d = deltaFor(cid, f), cu = canUse(s, cid, f, cash), ok = cu.ok;
@@ -216,7 +222,7 @@
     var ms = M().load(), s = syncDay(load(), ms.day), left = remainMs(s, cid);
     var html = '<div style="margin:14px 0 8px;"><div style="font-size:13px;font-weight:900;color:#ddd;">💆 뷰티·운동 관리</div>' +
       '<div style="font-size:11px;color:#cfd3ee;margin-top:3px;line-height:1.5;">에스테틱 · 헬스장 · 요가 · 필라테스. 비싸지만 컨디션이 크게 올라요.</div></div>' +
-      '<button id="spa-go" style="' + BTN + 'width:100%;padding:12px;background:rgba(255,158,203,0.15);border:1px solid rgba(255,158,203,0.45);color:#fff;font-size:13px;">💆 ' + esc(M().CH[cid].name) + ' 관리 받으러 가기 <span style="color:' + (left > 0 ? '#ff8a8a' : '#7ee8a5') + ';">(' + (left > 0 ? '⏳ ' + fmtRemain(left) : '지금 가능') + ')</span></button>';
+      '<button id="spa-go" style="' + BTN + 'width:100%;padding:12px;background:rgba(255,158,203,0.15);border:1px solid rgba(255,158,203,0.45);color:#fff;font-size:13px;">💆 ' + esc(M().CH[cid].name) + ' 관리 받으러 가기 <span style="color:' + (left > 0 ? '#ff8a8a' : '#7ee8a5') + ';">(' + (left > 0 ? '⏳ ' + fmtRemain(left) : '지금 가능') + ')</span>' + (anyReady(s) ? DOT : '') + '</button>';
     if (box.getAttribute('data-h') !== html) { box.setAttribute('data-h', html); box.innerHTML = html; }   // 같으면 다시 안 그림 (무한 갱신 방지)
     box.querySelector('#spa-go').onclick = function () { openSpa(cid); };
   }
