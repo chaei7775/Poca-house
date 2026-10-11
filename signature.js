@@ -59,7 +59,7 @@
   // 음악방송 1위: 결과가 저장되면 한 번만 센다
   function pollShow() {
     try {
-      var c = J('ph_chart', null); if (!c || !c.show || !c.show.done || !c.show.res || !c.show.res.win) return;
+      var c = J('ph_chart', null); if (!c || !c.show || !c.show.done || !c.show.res || !(c.show.res.first === undefined ? c.show.res.win : c.show.res.first)) return;
       var id = String(c.show.sid) + '|' + String(c.show.day) + '|' + String(c.show.res.mine);
       var s = load(); if (s.lastShow === id) return;
       s.lastShow = id; save(s);

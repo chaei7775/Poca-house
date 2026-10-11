@@ -7,7 +7,8 @@
 //  · 내 곡 점수 = 앨범 기본 + 작곡 완성도(도감 칸 수) + 이번 주 트렌드 장르 + 팬 수 + 인지도 + 히든카드 + 신곡 버스트 + 총공 + 사건
 //  · 총공(스밍): 미니게임으로 점수를 올림 (하루 1번, 곡마다). 점수는 하루마다 절반으로 식음
 //  · 사건: 역주행 떡상 / 사재기 의혹(해명해야 함) / 국민가수 기습 컴백 / 팬덤 자발 총공
-//  · 음악방송: 금·토·일(게임 DAY%7 = 5,6,0)에 순위가 3위 안이면 출전 → 1위 발표 → 앵콜 미니게임
+//  · 음악방송: 금·토·일(게임 DAY%7 = 5,6,0)에 순위가 50위 안이면 출전 → 바로 위 순위 곡과 점수 대결 → 이기면 순위 상승·지면 하락
+//               (대결 결과 1위가 되면 트로피 + 앵콜 미니게임)
 //  · 연결: 1위 하는 날 투자 [앨범 제작]의 투자금 가치 +30% (곡당 최대 3일)
 // 저장: localStorage 'ph_chart' (ph_ 로 시작 → 클라우드 저장 자동)
 // 값을 바꾸고 싶으면 아래 [설정]만 고치면 됨.
@@ -35,6 +36,9 @@
   var INVEST_BUMP = 1.3, INVEST_MAX_DAYS = 3;
   var EVENT_CHANCE = 0.35, EVENT_GAP = 2;
   var SHOW_DAYS = [5, 6, 0];
+  var SHOW_RANK = 50;                  // 🎤 음악방송 출전 가능 순위 (이 순위 안이면 출전)
+  var SHOW_UP = [8, 13], SHOW_DOWN = [5, 9];   // 📈 대결 결과 점수 가감 [보통, 크게] — 이기면 올라가고 지면 내려감 (3일간)
+  var SHOW_PAY = [[1, 1], [3, 0.7], [10, 0.4], [30, 0.2], [50, 0.1]];   // 이긴 뒤 순위별 코인 비율 (WIN_PAY 기준)
   var WIN_PAY = 500000 * PAY_MULT, SHOW_WISH = 3;
 
   // ════════ 도우미 ════════
@@ -259,10 +263,10 @@
     s.last = ranks;
     s.pending += totalPay;
     if (first) { addWish(FIRST_ONE_WISH); }
-    // 음악방송: 금·토·일에 3위 안이면 출전
+    // 음악방송: 금·토·일에 50위 안이면 출전
     s.show = null;
     if (SHOW_DAYS.indexOf(day % 7) !== -1) {
-      var best = s.songs.filter(function (x) { return !x.over && x.rank && x.rank <= 3; }).sort(function (a, b) { return a.rank - b.rank; })[0];
+      var best = s.songs.filter(function (x) { return !x.over && x.rank && x.rank <= SHOW_RANK; }).sort(function (a, b) { return a.rank - b.rank; })[0];
       if (best) { s.show = { day: day, sid: best.id, done: false }; s.news.push({ type: 'show' }); }
     }
     rollEvent(s, day);
@@ -327,20 +331,40 @@
 
   // ════════ 음악방송 ════════
   // 결과를 정해서 돌려줌 (연출은 화면이)
+  function showFactor(rank) { for (var i = 0; i < SHOW_PAY.length; i++) if (rank <= SHOW_PAY[i][0]) return SHOW_PAY[i][1]; return 0; }
   function runShow() {
     var s = load(); if (!s.show || s.show.done) return null;
     var sg = s.songs.filter(function (x) { return x.id === s.show.sid; })[0]; if (!sg) return null;
-    var list = chartAt(21, gameDay(), s), rival = list.filter(function (e) { return e.id !== sg.id && e.kind !== 'mine'; })[0];
-    var mine = powerOf(sg, gameDay()) + gauss() * 3, theirs = (rival ? rival.power : 90) + gauss() * 3;
+    var day = gameDay(), list = chartAt(21, day, s), idx = -1;
+    list.forEach(function (e, i) { if (e.id === sg.id) idx = i; });
+    // 대결 상대: 바로 위 순위 곡 (1위면 바로 아래 곡). 내 다른 곡은 건너뜀
+    var rivalE = null, k;
+    if (idx > 0) { for (k = idx - 1; k >= 0; k--) if (list[k].kind !== 'mine') { rivalE = list[k]; break; } }
+    else { for (k = idx + 1; k < list.length; k++) if (list[k].kind !== 'mine') { rivalE = list[k]; break; } }
+    var mineP = idx >= 0 ? list[idx].power : powerOf(sg, day);
+    var mine = mineP + gauss() * 3, theirs = (rivalE ? rivalE.power : 90) + gauss() * 3;
     if (sg.rank === 1) mine += 4;
-    var res = { win: mine > theirs, mine: Math.round(mine * 10), theirs: Math.round(theirs * 10), rival: rival ? rival.artist + ' - ' + rival.title : '', title: sg.title, cid: sg.cid };
+    var win = mine > theirs, big = Math.abs(mine - theirs) > 6;
+    var before = sg.rank || (idx + 1) || 101;
+    // 결과에 따라 점수가 오르내림 → 순위 바로 갱신
+    sg.mods.push({ v: win ? SHOW_UP[big ? 1 : 0] : -SHOW_DOWN[big ? 1 : 0], d: 3, d0: 3, n: win ? '음악방송 호평' : '음악방송 아쉬움' });
+    var l2 = chartAt(12, day, s), me2 = l2.filter(function (e) { return e.id === sg.id; })[0];
+    var after = me2 ? me2.rank : 101;
+    sg.prev = before; sg.rank = after; sg.peak = Math.min(sg.peak || 101, after);
+    var first = win && after === 1;
+    var pay = win ? Math.round(WIN_PAY * showFactor(after)) : 0, wish = first ? SHOW_WISH : 0;
+    var res = { win: win, first: first, mine: Math.round(mine * 10), theirs: Math.round(theirs * 10), rival: rivalE ? rivalE.artist + ' - ' + rivalE.title : '', title: sg.title, cid: sg.cid, before: before, after: after, pay: pay, wish: wish };
     s.show.done = true; s.show.res = res; s.stats.shows++;
-    if (res.win) { s.stats.trophies++; addCoins(WIN_PAY); addWish(SHOW_WISH); }
-    save(s); return res;
+    if (win) s.stats.showWins = (s.stats.showWins || 0) + 1;
+    if (first) s.stats.trophies++;
+    save(s);
+    if (pay) addCoins(pay);
+    if (wish) addWish(wish);
+    return res;
   }
   function encoreReward(hits) {      // 앵콜 미니게임 0~3 성공
     var s = load();
-    if (!s.show || !s.show.res || !s.show.res.win || s.show.enc) return null;
+    if (!s.show || !s.show.res || !(s.show.res.first === undefined ? s.show.res.win : s.show.res.first) || s.show.enc) return null;
     s.show.enc = hits;
     var out = { hits: hits, coins: 0, card: false };
     if (hits >= 1) { out.coins = hits * 100000 * PAY_MULT; addCoins(out.coins); }
@@ -404,6 +428,6 @@
     canStream: canStream, applyStream: applyStream, spendStreamStamina: spendStreamStamina, STREAM_STAMINA: STREAM_STAMINA,
     resolveScandal: resolveScandal, runShow: runShow, encoreReward: encoreReward, claimPending: claimPending, payFor: payFor,
     trendGenre: trendGenre, genreName: genreName, members: members, gameDay: gameDay, processDay: processDay, syncSongs: syncSongs,
-    RIVALS: RIVALS, EVENTS: EVENTS, CFG: { SONG_LIFE: SONG_LIFE, HOUR_FACTOR: HOUR_FACTOR, WIN_PAY: WIN_PAY, SHOW_WISH: SHOW_WISH, SHOW_DAYS: SHOW_DAYS, INVEST_BUMP: INVEST_BUMP }
+    RIVALS: RIVALS, EVENTS: EVENTS, CFG: { SONG_LIFE: SONG_LIFE, HOUR_FACTOR: HOUR_FACTOR, WIN_PAY: WIN_PAY, SHOW_WISH: SHOW_WISH, SHOW_DAYS: SHOW_DAYS, SHOW_RANK: SHOW_RANK, SHOW_PAY: SHOW_PAY, INVEST_BUMP: INVEST_BUMP }
   };
 })();

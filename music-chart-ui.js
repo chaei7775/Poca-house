@@ -3,7 +3,7 @@
 // 더보기 > 📈 음원차트
 //   TOP100 탭 : 시간대별 실시간 차트 (▲▼ NEW, 콘크리트 1위 왕관)
 //   내 곡 탭  : 24시간 순위 그래프 · 점수 내역 · 📣 스밍 총공 · 정산 받기 · 사재기 해명
-//   음악방송 탭: 금·토·일 3위 안이면 출전 → 1위 발표 연출 → 앵콜 미니게임
+//   음악방송 탭: 금·토·일 50위 안이면 출전 → 바로 위 순위 곡과 대결(이기면 상승·지면 하락) → 1위가 되면 앵콜 미니게임
 //   올킬 / 사건 / 신곡 소식은 열 때 한 번씩 연출로 보여줌
 // ════════════════════════════════════════════════════════════
 (function () {
@@ -267,14 +267,14 @@
     }
     if (s.show && !s.show.done) {
       var sg = s.songs.filter(function (x) { return x.id === s.show.sid; })[0];
-      out += '<div style="background:linear-gradient(135deg,rgba(255,93,143,.22),rgba(168,85,247,.2));border:1px solid ' + ACC + ';border-radius:16px;padding:14px;margin:8px 0;"><div>' + ico('chart-show.png', '🎤', 64) + '</div><div style="font-size:16px;font-weight:900;color:#fff;margin:4px 0;">오늘 음악방송 1위 후보!</div><div style="font-size:12px;color:#ddd;margin-bottom:10px;">' + (sg ? esc(sg.title) + ' · ' + esc(nameOf(sg.cid)) + ' (차트 ' + sg.rank + '위)' : '') + '</div><button id="show-go" style="' + BTN + 'width:100%;padding:14px;background:linear-gradient(135deg,' + ACC + ',#a855f7);color:#fff;font-size:15px;">🎙️ 무대 올라가기</button></div>';
+      out += '<div style="background:linear-gradient(135deg,rgba(255,93,143,.22),rgba(168,85,247,.2));border:1px solid ' + ACC + ';border-radius:16px;padding:14px;margin:8px 0;"><div>' + ico('chart-show.png', '🎤', 64) + '</div><div style="font-size:16px;font-weight:900;color:#fff;margin:4px 0;">오늘 음악방송 출전!</div><div style="font-size:12px;color:#ddd;margin-bottom:10px;">' + (sg ? esc(sg.title) + ' · ' + esc(nameOf(sg.cid)) + ' (차트 ' + sg.rank + '위)' : '') + '</div><button id="show-go" style="' + BTN + 'width:100%;padding:14px;background:linear-gradient(135deg,' + ACC + ',#a855f7);color:#fff;font-size:15px;">🎙️ 무대 올라가기</button></div>';
     } else if (s.show && s.show.done) {
       var rs = s.show.res;
-      out += '<div style="background:rgba(255,255,255,.06);border-radius:14px;padding:12px;margin:8px 0;font-size:13px;color:#ddd;line-height:1.7;">오늘 음악방송은 끝났어요.<br>' + (rs ? (rs.win ? '<b style="color:' + GOLD + ';">🏆 1위!</b>' : '<b style="color:#aab;">아쉽게 2위</b>') : '') + '</div>';
+      out += '<div style="background:rgba(255,255,255,.06);border-radius:14px;padding:12px;margin:8px 0;font-size:13px;color:#ddd;line-height:1.7;">오늘 음악방송은 끝났어요.<br>' + (rs ? (rs.first ? '<b style="color:' + GOLD + ';">🏆 1위!</b>' : rs.before ? (rs.win ? '<b style="color:#6ee7a0;">📈 순위 상승 ' + rs.before + '위 → ' + rs.after + '위</b>' : '<b style="color:#fca5a5;">📉 순위 하락 ' + rs.before + '위 → ' + rs.after + '위</b>') : (rs.win ? '<b style="color:' + GOLD + ';">🏆 1위!</b>' : '<b style="color:#aab;">아쉽게 2위</b>')) : '') + '</div>';
     } else {
       out += '<div style="background:rgba(255,255,255,.06);border-radius:14px;padding:12px;margin:8px 0;font-size:13px;color:#ddd;line-height:1.7;">오늘은 음악방송이 없어요.<br>다음 음악방송: <b style="color:#fff;">DAY ' + nextShowDay(day + 1) + '</b></div>';
     }
-    out += '<div style="font-size:12px;color:#8b8fa8;line-height:1.7;background:rgba(255,255,255,.04);border-radius:12px;padding:10px 12px;text-align:left;">• 📺 <b>음악방송 활동</b>은 기획사 일정표(식사·일정)에서 드라마처럼 날짜를 잡아요. 활동 날 무대 미니게임을 하면 차트 점수가 올라가요<br>• 음악방송은 <b>금·토·일</b>(게임 DAY%7 = 5·6·0)에 열려요<br>• 차트 <b>3위 안</b>이어야 출전할 수 있어요<br>• 1위 후보 두 팀이 점수 대결! 이기면 <b>코인 ' + fmt(C().CFG.WIN_PAY) + ' + 소원의 조각 ' + C().CFG.SHOW_WISH + '</b><br>• 1위를 하면 <b>앵콜 무대</b> 미니게임! 3번 다 성공하면 <b>🏆 1위 기념 포토카드</b></div>';
+    out += '<div style="font-size:12px;color:#8b8fa8;line-height:1.7;background:rgba(255,255,255,.04);border-radius:12px;padding:10px 12px;text-align:left;">• 📺 <b>음악방송 활동</b>은 기획사 일정표(식사·일정)에서 드라마처럼 날짜를 잡아요. 활동 날 무대 미니게임을 하면 차트 점수가 올라가요<br>• 음악방송은 <b>금·토·일</b>(게임 DAY%7 = 5·6·0)에 열려요<br>• 차트 <b>' + C().CFG.SHOW_RANK + '위 안</b>이면 출전할 수 있어요<br>• 바로 위 순위 곡과 점수 대결! 이기면 <b>순위가 오르고 코인</b>, 지면 순위가 내려가요<br>• 대결에서 이겨 <b>1위</b>가 되면 <b>코인 ' + fmt(C().CFG.WIN_PAY) + ' + 소원의 조각 ' + C().CFG.SHOW_WISH + '</b><br>• 1위를 하면 <b>앵콜 무대</b> 미니게임! 3번 다 성공하면 <b>🏆 1위 기념 포토카드</b></div>';
     return out;
   }
   function bindShow(s) { var b = $('show-go'); if (b) b.onclick = startShow; document.querySelectorAll('[data-stage]').forEach(function (el) { el.onclick = function () { if (window.openMusicStage) window.openMusicStage(el.getAttribute('data-stage'), el.getAttribute('data-q')); else toast('무대를 불러오지 못했어요'); }; }); }
@@ -282,10 +282,10 @@
   function startShow() {
     var res = C().runShow(); if (!res) { toast('지금은 출전할 수 없어요'); return; }
     var ov = layer('chart-show',
-      '<div style="font-size:12px;color:#aab;margin-bottom:6px;">🎙️ 이번 주 1위 발표</div>' +
+      '<div style="font-size:12px;color:#aab;margin-bottom:6px;">🎙️ 음악방송 순위 대결</div>' +
       '<div style="display:flex;gap:8px;margin-bottom:12px;">' +
       '<div id="sh-a" style="flex:1;border-radius:14px;padding:12px 8px;background:rgba(255,93,143,.16);border:2px solid ' + ACC + ';"><div style="font-size:11px;color:#ffb3cb;">' + esc(nameOf(res.cid)) + '</div><div style="font-size:13px;font-weight:900;color:#fff;margin:4px 0;">' + esc(res.title) + '</div><div id="sh-sa" style="font-size:26px;font-weight:900;color:#fff;">0</div></div>' +
-      '<div id="sh-b" style="flex:1;border-radius:14px;padding:12px 8px;background:rgba(96,165,250,.12);border:2px solid #60a5fa66;"><div style="font-size:11px;color:#9ec5ff;">라이벌</div><div style="font-size:12px;font-weight:900;color:#fff;margin:4px 0;word-break:keep-all;">' + esc(res.rival) + '</div><div id="sh-sb" style="font-size:26px;font-weight:900;color:#fff;">0</div></div></div>' +
+      '<div id="sh-b" style="flex:1;border-radius:14px;padding:12px 8px;background:rgba(96,165,250,.12);border:2px solid #60a5fa66;"><div style="font-size:11px;color:#9ec5ff;">바로 위 순위</div><div style="font-size:12px;font-weight:900;color:#fff;margin:4px 0;word-break:keep-all;">' + esc(res.rival) + '</div><div id="sh-sb" style="font-size:26px;font-weight:900;color:#fff;">0</div></div></div>' +
       '<div id="sh-msg" style="font-size:13px;color:#c4b5fd;height:20px;">점수 집계 중…</div>', 972);
     var step = 0, N = 36;
     var iv = setInterval(function () {
@@ -295,12 +295,13 @@
         clearInterval(iv);
         var win = res.win, a = $('sh-a'), b = $('sh-b');
         (win ? a : b).style.boxShadow = '0 0 34px ' + (win ? GOLD : '#60a5fa'); (win ? a : b).style.borderColor = win ? GOLD : '#60a5fa';
-        $('sh-msg').innerHTML = win ? '<b style="color:' + GOLD + ';font-size:16px;">🏆 1위는… ' + esc(nameOf(res.cid)) + '!</b>' : '<b style="color:#9ec5ff;">아쉽게 2위예요</b>';
+        $('sh-msg').innerHTML = res.first ? '<b style="color:' + GOLD + ';font-size:16px;">🏆 1위는… ' + esc(nameOf(res.cid)) + '!</b>' : win ? '<b style="color:#6ee7a0;font-size:15px;">📈 이겼어요! ' + res.before + '위 → ' + res.after + '위</b>' : '<b style="color:#9ec5ff;">📉 아쉽게 졌어요 ' + res.before + '위 → ' + res.after + '위</b>';
         if (win) { sfx('reward'); confetti(ov); }
         setTimeout(function () {
           ov.remove();
-          if (win) bigPopup(ico('chart-trophy.png', '🏆', 96), '음악방송 1위!', '코인 <b style="color:' + GOLD + ';">+' + fmt(C().CFG.WIN_PAY) + '</b> · 소원의 조각 +' + C().CFG.SHOW_WISH + '<br>앵콜 무대가 열려요!', '앵콜 무대로!', encore);
-          else bigPopup('🎤', '다음엔 꼭!', '총공으로 점수를 올려서<br>다시 도전해요.', '확인', render, '#9ec5ff');
+          if (res.first) bigPopup(ico('chart-trophy.png', '🏆', 96), '음악방송 1위!', '코인 <b style="color:' + GOLD + ';">+' + fmt(res.pay) + '</b> · 소원의 조각 +' + res.wish + '<br>앵콜 무대가 열려요!', '앵콜 무대로!', encore);
+          else if (win) bigPopup('📈', '순위 상승!', '<b style="color:#6ee7a0;">' + res.before + '위 → ' + res.after + '위</b><br>코인 <b style="color:' + GOLD + ';">+' + fmt(res.pay) + '</b><br><span style="color:#aab;font-size:12px;">방송 호평으로 점수가 올랐어요 (3일)</span>', '확인', render, '#6ee7a0');
+          else bigPopup('📉', '순위가 내려갔어요', '<b style="color:#fca5a5;">' + res.before + '위 → ' + res.after + '위</b><br>총공으로 점수를 올려서<br>다시 도전해요.', '확인', render, '#9ec5ff');
         }, 2300);
       }
     }, 70);
