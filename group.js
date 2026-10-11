@@ -205,6 +205,8 @@
       if (ev.wish) wish += ev.wish;
     }
     if (ev && ev.kind === 'choice') ev.base = r.coin;
+    var viral = null;   // 📱 바이럴 (group-viral.js): 터지면 코인·인기도 보너스
+    try { if (window.__groupViral) { viral = window.__groupViral.roll(act, live, { big: big, ng: ngHit, tier: effTier, lv: levelOf(s.fame) }); if (viral) { coinGain = Math.floor(coinGain * viral.mul); viral.famePlus = Math.ceil(fameGain * viral.fameMul); fameGain += viral.famePlus; } } } catch (e) { viral = null; }
     var lv0 = levelOf(s.fame);
     addCoins(coinGain);
     if (wish) { try { if (typeof wishFragments !== 'undefined') { wishFragments += wish; localStorage.setItem('ph_wish', wishFragments); } if (typeof addToBag === 'function') addToBag('🧩', '소원의 조각', 'wish', wish, '100개 모으면 소원의 결정! (현재: ' + (typeof wishFragments !== 'undefined' ? wishFragments : '?') + '개)'); } catch (e) {} }
@@ -221,7 +223,7 @@
     try { if (report && bd && bd.line) report.lines.push(bd.line); if (window.__groupBond) window.__groupBond.after(live, rl, ngHit); } catch (e) {}
     s.log.unshift({ t: Date.now(), m: act.icon + ' ' + act.name + ' (' + TIERS[effTier][1] + (big ? '·대성공' : '') + (ngHit ? '·NG' : '') + ') +' + fmt(coinGain) + ' 코인' + (wish ? ' · 🧩' + wish : '') + (ev && ev.kind !== 'choice' ? ' · ' + ev.t.split(' ')[0] : '') });
     save(s);
-    return { act: act, big: big, ev: ev, coin: coinGain, fame: fameGain, wish: wish, tier: TIERS[effTier][1], line: line, levelUp: lv1 > lv0 ? LEVELS[lv1][1] : '', members: live, report: report, ng: ngHit };
+    return { viral: viral, act: act, big: big, ev: ev, coin: coinGain, fame: fameGain, wish: wish, tier: TIERS[effTier][1], line: line, levelUp: lv1 > lv0 ? LEVELS[lv1][1] : '', members: live, report: report, ng: ngHit };
   }
 
   // ── 화면 ──
@@ -442,7 +444,7 @@
       };
     });
     Array.prototype.forEach.call(ov.querySelectorAll('[data-act]'), function (b) {
-      b.onclick = function () { if (sceneBusy && Date.now() - sceneAt < 15000) return; var res = doActivity(b.getAttribute('data-act')); if (!res) return; if (res.err) { toast(res.err); return; } sceneBusy = true; sceneAt = Date.now(); scene(res, function () { var fin = function () { sceneBusy = false; popup(res); }; if (window.__groupStage) { try { window.__groupStage.play(res, fin); } catch (e) { fin(); } } else fin(); }); };
+      b.onclick = function () { if (sceneBusy && Date.now() - sceneAt < 15000) return; var res = doActivity(b.getAttribute('data-act')); if (!res) return; if (res.err) { toast(res.err); return; } sceneBusy = true; sceneAt = Date.now(); scene(res, function () { var fin = function () { sceneBusy = false; var go = function () { popup(res); }; if (res.viral && window.__groupViral) { try { window.__groupViral.show(res, go); } catch (e) { go(); } } else go(); }; if (window.__groupStage) { try { window.__groupStage.play(res, fin); } catch (e) { fin(); } } else fin(); }); };
     });
   }
 
