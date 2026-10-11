@@ -205,14 +205,16 @@
     var cEgg = window.__comboEgg || null, cBig = 0, cNg = 0;
     try { if (cEgg) { cBig = cEgg.bigBonus(live, id); cNg = cEgg.ng(live, id); } } catch (e) {}
     var bd = null; try { if (window.__groupBond) { bd = window.__groupBond.effect(live); cNg = Math.min(0.5, cNg + bd.ng); } } catch (e) {}   // 멤버 친밀도 (group-bond.js)
-    var big = r0.tier >= MIN_BIG_TIER && (pf == null || pf >= BIG_MIN_PERF) && Math.random() < r0.bigChance + cBig + (pf != null ? (pf - 0.5) * 0.3 : 0);
+    var rlPre = null; try { if (window.__groupReport) rlPre = window.__groupReport.roll(id, live); } catch (e) {}   // 멤버별 사고/컨디션을 먼저 굴림 (사고가 난 날엔 대성공이 안 뜨게)
+    var hurt = !!(rlPre && rlPre.items && rlPre.items.some(function (it) { return it.type === 'hurt'; }));
+    var big = !hurt && r0.tier >= MIN_BIG_TIER && (pf == null || pf >= BIG_MIN_PERF) && Math.random() < r0.bigChance + cBig + (pf != null ? (pf - 0.5) * 0.3 : 0);
     var ngHit = !big && cNg > 0 && Math.random() < cNg;   // 숨은 조합 NG (combo-egg.js)
     var r = big ? reward(act, live, s.fame, true) : r0;
     var wish = (act.wish && Math.random() < r.wishChance) ? (big ? 2 : 1) : 0;
     var ev = null; if (s.ev < EV_DAILY && Math.random() < EV_CHANCE) { ev = rollEvent(r.tier); s.ev++; }
     var coinGain = r.coin, fameGain = r.fame;
     var rl = null, effTier = r.tier;
-    try { if (!ngHit && window.__groupReport) { rl = window.__groupReport.roll(id, live); coinGain = Math.floor(coinGain * rl.mul * (bd ? bd.mul : 1)); fameGain = Math.floor(fameGain * rl.mul * (bd ? bd.mul : 1)); effTier = Math.max(0, Math.min(TIERS.length - 1, r.tier + rl.shift)); } } catch (e) {}   // 멤버별 랜덤 변수 (컨디션/사고)
+    try { if (!ngHit && window.__groupReport && rlPre) { rl = rlPre; coinGain = Math.floor(coinGain * rl.mul * (bd ? bd.mul : 1)); fameGain = Math.floor(fameGain * rl.mul * (bd ? bd.mul : 1)); effTier = Math.max(0, Math.min(TIERS.length - 1, r.tier + rl.shift)); } } catch (e) {}   // 멤버별 랜덤 변수 (컨디션/사고)
     if (pf != null) { if (pf >= 0.85) effTier = Math.min(TIERS.length - 1, effTier + 1); else if (pf <= 0.12) effTier = Math.max(0, effTier - 1); }   // 🎪 직접 플레이 결과: 아주 잘하면 등급 +1 / 아주 못하면 -1
     if (big && effTier < MIN_BIG_TIER) effTier = MIN_BIG_TIER;   // 대성공이면 표시 등급이 아쉬움으로 떨어지지 않게
     if (ngHit) { coinGain = 0; fameGain = Math.floor(r.fame * 0.3); wish = 0; ev = null; }
