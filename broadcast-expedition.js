@@ -564,7 +564,7 @@
     if (!p) {
       p = document.createElement('div');
       p.id = 'bc-panel';
-      p.style.cssText = 'position:absolute;left:10px;right:10px;bottom:14px;z-index:40;background:linear-gradient(135deg,rgba(26,26,46,.97),rgba(45,27,78,.97));' +
+      p.style.cssText = 'position:absolute;left:10px;right:10px;max-width:440px;margin:0 auto;bottom:14px;z-index:40;background:linear-gradient(135deg,rgba(26,26,46,.97),rgba(45,27,78,.97));' +
         'border:2px solid #C084FC;border-radius:20px;padding:16px 14px;text-align:center;color:#fff;box-shadow:0 8px 30px rgba(0,0,0,.65);font-family:\'Noto Sans KR\',sans-serif;max-height:62%;overflow-y:auto;-webkit-overflow-scrolling:touch;';
       $('bc-view').appendChild(p);
     }
