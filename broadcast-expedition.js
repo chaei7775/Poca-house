@@ -138,7 +138,7 @@
       ],
       legend: { x: 0.51, y: 0.29, label: '무대 계단 앞' },
       bounds: { x0: 0.06, x1: 0.94, y0: 0.19, y1: 0.86 },
-      enh: { normal: { stone: 0.12, protect: 0.022, trans: 0.003 }, variant: { stone: 0.20, protect: 0.08, trans: 0.03 }, npcStone: 2 },
+      enh: { normal: { stone: 0.10, protect: 0.022, trans: 0.003 }, variant: { stone: 0.20, protect: 0.08, trans: 0.03 }, npcStone: 2 },
       film: { normal: 0.015, golden: 0.10, npc: 1 }       // 임시 낮은 확률 (공연장 열리면 지워도 됨)
     },
     concert: {
