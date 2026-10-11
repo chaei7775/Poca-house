@@ -17,10 +17,10 @@
   var ASSET = 'meal-assets/spa/';
   var Z = 990;
   var FACILITIES = [
-    { id: 'aesthetic', name: '에스테틱',  emoji: '💆', price: 6000000, d: { v: 22, s: 0,  m: 4  }, desc: '피부·얼굴 집중 케어. 촬영 전날에 딱!' },
-    { id: 'gym',       name: '헬스장',    emoji: '🏋️', price: 3000000,  d: { v: 3,  s: 22, m: -5 }, desc: '체력은 확 오르지만 조금 힘들어해요.' },
-    { id: 'yoga',      name: '요가',      emoji: '🧘', price: 2500000,  d: { v: 2,  s: 10, m: 12 }, desc: '몸도 마음도 편안하게. 기분 회복용!' },
-    { id: 'pilates',   name: '필라테스',  emoji: '🤸', price: 4500000,  d: { v: 12, s: 12, m: 0  }, desc: '라인 정리 + 체력. 균형형 관리.' }
+    { id: 'aesthetic', name: '에스테틱',  emoji: '💆', price: 1200000, d: { v: 22, s: 0,  m: 4  }, desc: '피부·얼굴 집중 케어. 촬영 전날에 딱!' },
+    { id: 'gym',       name: '헬스장',    emoji: '🏋️', price: 600000,  d: { v: 3,  s: 22, m: -5 }, desc: '체력은 확 오르지만 조금 힘들어해요.' },
+    { id: 'yoga',      name: '요가',      emoji: '🧘', price: 500000,  d: { v: 2,  s: 10, m: 12 }, desc: '몸도 마음도 편안하게. 기분 회복용!' },
+    { id: 'pilates',   name: '필라테스',  emoji: '🤸', price: 900000,  d: { v: 12, s: 12, m: 0  }, desc: '라인 정리 + 체력. 균형형 관리.' }
   ];
   var LINES = {
     aesthetic: ['피부가 반짝반짝해졌어요!', '얼굴이 한결 맑아졌네요.'],
