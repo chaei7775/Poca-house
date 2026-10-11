@@ -54,7 +54,7 @@
     }
     function fbHtml(c) {
       var f = fb[c]; if (!f) return '<span style="color:#8fa4c4;font-size:12px;">?</span>';
-      return f === 0 ? '<span style="color:#6ee7a0;font-weight:900;font-size:13px;">✔ 딱 좋아요</span>' : f > 0 ? '<span style="color:#fcd34d;font-weight:900;font-size:13px;">⬆ 더 키워요</span>' : '<span style="color:#fca5a5;font-weight:900;font-size:13px;">⬇ 줄여요</span>';
+      return f === 0 ? '<span style="color:#6ee7a0;font-weight:900;font-size:13px;">' + gi('grp-hint-ok.png', 17) + ' 딱 좋아요</span>' : f > 0 ? '<span style="color:#fcd34d;font-weight:900;font-size:13px;">' + gi('grp-hint-up.png', 17) + ' 더 키워요</span>' : '<span style="color:#fca5a5;font-weight:900;font-size:13px;">' + gi('grp-hint-down.png', 17) + ' 줄여요</span>';
     }
     function draw(msg) {
       var rows = members.map(function (c) {
