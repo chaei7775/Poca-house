@@ -184,11 +184,15 @@
     var live = liveMembers(s);
     if (live.length < MIN_MEMBERS) return { err: '데뷔한 멤버가 ' + MIN_MEMBERS + '명 이상이어야 해요. 멤버를 바꿔주세요' };
     var r0 = reward(act, live, s.fame, false);
-    var big = Math.random() < r0.bigChance;
+    var cEgg = window.__comboEgg || null, cBig = 0, cNg = 0;
+    try { if (cEgg) { cBig = cEgg.bigBonus(live, id); cNg = cEgg.ng(live, id); } } catch (e) {}
+    var big = Math.random() < r0.bigChance + cBig;
+    var ngHit = !big && cNg > 0 && Math.random() < cNg;   // 숨은 조합 NG (combo-egg.js)
     var r = big ? reward(act, live, s.fame, true) : r0;
     var wish = (act.wish && Math.random() < r.wishChance) ? (big ? 2 : 1) : 0;
     var ev = null; if (s.ev < EV_DAILY && Math.random() < EV_CHANCE) { ev = rollEvent(r.tier); s.ev++; }
     var coinGain = r.coin, fameGain = r.fame;
+    if (ngHit) { coinGain = 0; fameGain = Math.floor(r.fame * 0.3); wish = 0; ev = null; }
     if (ev && ev.kind !== 'choice') {
       if (ev.coinMul) coinGain = Math.max(0, Math.floor(r.coin * (1 + ev.coinMul)));
       if (ev.fameMul === 0) fameGain = 0;
@@ -204,8 +208,9 @@
     s.fame += fameGain; s.total += 1; s.used[id] = (s.used[id] || 0) + 1;
     var lv1 = levelOf(s.fame);
     var line = pick(LINES[id]).replace(/\{m\}/g, names(live)).replace(/\{g\}/g, s.group.name) + (big ? ' ' + pick(BIG_LINE) : '');
-    try { if (window.__comboEgg) { var ch = window.__comboEgg.hint(live, id); if (ch) line += ' ' + ch; } } catch (e) {}
-    s.log.unshift({ t: Date.now(), m: act.icon + ' ' + act.name + ' (' + TIERS[r.tier][1] + (big ? '·대성공' : '') + ') +' + fmt(coinGain) + ' 코인' + (wish ? ' · 🧩' + wish : '') + (ev && ev.kind !== 'choice' ? ' · ' + ev.t.split(' ')[0] : '') });
+    if (ngHit) { try { line = cEgg.ngLine(); } catch (e) {} }
+    try { if (window.__comboEgg) { var ch = ngHit ? '' : window.__comboEgg.hint(live, id); if (ch) line += ' ' + ch; } } catch (e) {}
+    s.log.unshift({ t: Date.now(), m: act.icon + ' ' + act.name + ' (' + TIERS[r.tier][1] + (big ? '·대성공' : '') + (ngHit ? '·NG' : '') + ') +' + fmt(coinGain) + ' 코인' + (wish ? ' · 🧩' + wish : '') + (ev && ev.kind !== 'choice' ? ' · ' + ev.t.split(' ')[0] : '') });
     save(s);
     return { act: act, big: big, ev: ev, coin: coinGain, fame: fameGain, wish: wish, tier: TIERS[r.tier][1], line: line, levelUp: lv1 > lv0 ? LEVELS[lv1][1] : '', members: live };
   }

@@ -49,5 +49,11 @@
     var A = NAMES[h.e.p[0]], B = NAMES[h.e.p[1]], last = A.charCodeAt(A.length - 1) - 0xAC00, wa = (last >= 0 && last % 28 !== 0) ? '과' : '와';
     return '💫 ' + t.replace(/\{a\}\{wa\}/g, A + wa).replace(/\{a\}/g, A).replace(/\{b\}/g, B);
   }
-  window.__comboEgg = { mult: mult, hint: hint, PAIRS: PAIRS };
+  // 나쁜 쌍(그 활동에서 배율<1)이 있으면 NG 확률, 좋은 쌍이면 대성공 확률 보너스
+  var NG_PER = 0.15, NG_MAX = 0.3, BIG_PER = 0.05, BIG_MAX = 0.2;
+  function ng(members, actId) { var p = 0; hits(members || [], actId).forEach(function (h) { if (h.m < 1) p += NG_PER; }); return Math.min(NG_MAX, p); }
+  function bigBonus(members, actId) { var p = 0; hits(members || [], actId).forEach(function (h) { if (h.m > 1) p += BIG_PER; }); return Math.min(BIG_MAX, p); }
+  var NG_LINES = ['이유는 모르겠지만 촬영이 계속 NG가 났어요… 오늘은 건진 게 없어요.', '분위기가 묘하게 어긋나서 결국 처음부터 다시 찍어야 했어요.', '누구 탓도 아닌데 자꾸 호흡이 안 맞았어요. 감독님이 한숨을 쉬었어요.'];
+  function ngLine() { return NG_LINES[Math.floor(Math.random() * NG_LINES.length)]; }
+  window.__comboEgg = { mult: mult, hint: hint, ng: ng, bigBonus: bigBonus, ngLine: ngLine, PAIRS: PAIRS };
 })();
