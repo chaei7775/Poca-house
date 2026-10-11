@@ -13,39 +13,9 @@
 
   var EXTRA_COUPONS = {
     // 쿠폰코드는 대문자로 적기
-    'SORRY1003': {
-      gold: 5000000,
-      crystal: 2,
-      message: '🎁 데이터 소실 보상 쿠폰!\n\n💰 코인 5,000,000\n💎 소원의 결정 2개\n\n불편을 드려 죄송해요 🙏'
-    },
-    'RECOMBO100': {
-      items: [
-        { emoji: '🔹', name: '재조합석', type: 'material', qty: 100, desc: '카드 재조합에 필요한 재료' }
-      ],
-      message: '🎁 재조합석 쿠폰!\n\n🔹 재조합석 100개'
-    },
-    'EPIC100': {
-      items: [
-        { emoji: '💠', name: '에픽 재조합석', type: 'material', qty: 100, desc: 'SSR/UR 카드 재조합에 필요한 재료' }
-      ],
-      message: '🎁 에픽 재조합석 쿠폰!\n\n💠 에픽 재조합석 100개'
-    },
-    'PIECE70': {
-      items: [
-        { emoji: '🖼️', name: '프리미엄 조각', type: 'piece', qty: 70, desc: '프리미엄 카드 조각 · 100개를 모으면 더보기 > 프리미엄 카드에서 교환' }
-      ],
-      message: '🎁 프리미엄 조각 쿠폰!\n\n🖼️ 프리미엄 조각 70개'
-    },
     'EXP5000': {
       exp: 5000,
       message: '🎁 경험치 쿠폰!\n\n⭐ 플레이어 경험치 5,000'
-    },
-    'WELCOME': {
-      gold: 300000,
-      items: [
-        { emoji: '🔹', name: '재조합석', type: 'material', qty: 100, desc: '카드 재조합에 필요한 재료' }
-      ],
-      message: '🎁 신규 유저 환영 쿠폰!\n\n🔹 재조합석 100개\n💰 코인 300,000\n\n포카하우스에 온 걸 환영해요 💖'
     }
   };
 
