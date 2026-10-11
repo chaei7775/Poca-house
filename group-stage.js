@@ -15,6 +15,7 @@
   };
   function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
   function face(c, px, extra) { return '<img src="face-' + c + '.png" width="' + px + '" height="' + px + '" decoding="async" style="width:' + px + 'px;height:' + px + 'px;border-radius:50%;object-fit:cover;border:3px solid rgba(255,255,255,.7);background:#243357;' + (extra || '') + '">'; }
+  function sd(c, h) { return '<img src="group-assets/sd/' + c + '.png" height="' + h + '" decoding="async" style="height:' + h + 'px;width:auto;display:block;margin:0 -6px;transform-origin:50% 100%;filter:drop-shadow(0 4px 6px rgba(0,0,0,.55));" onerror="this.onerror=null;this.src=\'face-' + c + '.png\';this.style.cssText=\'width:60px;height:60px;border-radius:50%;object-fit:cover;border:3px solid rgba(255,255,255,.7);\'">'; }   // 👗 단체복 SD 전신 (group-assets/sd)
   function sfx(n) { try { if (window.pocaSfx && pocaSfx.play) pocaSfx.play(n); } catch (e) {} }
   function css() {
     if (document.getElementById('gst-css')) return;
@@ -25,7 +26,8 @@
       '@keyframes gstShake{0%,100%{transform:translateX(0)}20%{transform:translateX(-10px)}40%{transform:translateX(9px)}60%{transform:translateX(-7px)}80%{transform:translateX(6px)}}' +
       '@keyframes gstFall{0%{transform:translateY(-30px) rotate(0);opacity:0}15%{opacity:1}100%{transform:translateY(105vh) rotate(360deg);opacity:.9}}' +
       '@keyframes gstCap{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}' +
-      '@keyframes gstGlow{0%,100%{box-shadow:0 0 0 rgba(255,215,106,0)}50%{box-shadow:0 0 22px 6px rgba(255,215,106,.9)}}';
+      '@keyframes gstGlow{0%,100%{box-shadow:0 0 0 rgba(255,215,106,0)}50%{box-shadow:0 0 22px 6px rgba(255,215,106,.9)}}' +
+      '@keyframes gstGlowSd{0%,100%{filter:drop-shadow(0 4px 6px rgba(0,0,0,.55))}50%{filter:drop-shadow(0 0 14px rgba(255,215,106,.95))}}';
     document.head.appendChild(st);
   }
   function play(res, done) {
@@ -36,7 +38,7 @@
     var bg = BG[res.act.id] || BG.stage, bad = !!res.ng;
     ov.style.cssText = 'position:fixed;inset:0;max-width:460px;margin:0 auto;box-shadow:0 0 0 100vmax #000;z-index:985;overflow:hidden;color:#fff;cursor:pointer;background:linear-gradient(180deg,' + bg[0] + ',' + bg[1] + ');' + FONT;
     var members = res.members, mh = members.map(function (c, i) {
-      return '<div data-c="' + c + '" style="opacity:0;animation:gstPop .5s ease-out forwards;animation-delay:' + (0.2 + i * 0.28) + 's;transition:transform .25s;">' + face(c, members.length > 4 ? 56 : 66) + '</div>';
+      return '<div data-c="' + c + '" style="opacity:0;animation:gstPop .5s ease-out forwards;animation-delay:' + (0.2 + i * 0.28) + 's;transition:transform .25s;">' + sd(c, members.length > 3 ? 150 : 175) + '</div>';
     }).join('');
     var beam = function (rot, delay) { return '<div style="position:absolute;left:50%;top:-10%;width:90px;height:90%;margin-left:-45px;transform-origin:50% 0;background:linear-gradient(180deg,' + bg[2] + 'aa,transparent 85%);filter:blur(6px);opacity:.55;animation:gstSweep 3.2s ease-in-out infinite;animation-delay:' + delay + 's;"></div>'; };
     // 배경 일러스트: grp-bg-<활동id>.webp (없으면 그냥 색 배경). 위에 어두운 막을 씌워서 글씨가 읽히게
@@ -48,7 +50,7 @@
       (invChips ? '<div style="position:absolute;top:10px;left:10px;display:flex;flex-direction:column;gap:4px;align-items:flex-start;z-index:2;">' + invChips + '</div>' : '') +
       '<div style="position:absolute;top:7%;left:0;right:0;text-align:center;"><img src="grp-' + res.act.id + '.png" width="84" height="84" style="width:84px;height:84px;object-fit:contain;" onerror="this.remove()"><div style="font-size:16px;font-weight:900;margin-top:4px;text-shadow:0 2px 8px #000;">' + esc(res.act.name) + '</div></div>' +
       (function () { try { return window.__groupMagic ? window.__groupMagic.html({ act: res.act.id, size: 320, fast: !!res.big, dim: bad, css: 'left:50%;top:calc(34% - 122px);margin-left:-160px;' }) : ''; } catch (e) { return ''; } })() +
-      '<div id="gst-row" style="position:absolute;top:34%;left:0;right:0;display:flex;justify-content:center;gap:10px;flex-wrap:wrap;padding:0 14px;">' + mh + '</div>' +
+      '<div id="gst-row" style="position:absolute;top:31%;left:0;right:0;display:flex;justify-content:center;align-items:flex-end;gap:4px;padding:0 10px;">' + mh + '</div>' +
       '<div id="gst-cap" style="position:absolute;top:56%;left:16px;right:16px;min-height:70px;text-align:center;font-size:14.5px;font-weight:700;line-height:1.6;text-shadow:0 2px 8px #000;"></div>' +
       '<div id="gst-stamp" style="position:absolute;left:0;right:0;bottom:12%;text-align:center;opacity:0;"></div>' +
       '<div style="position:absolute;bottom:14px;left:0;right:0;text-align:center;font-size:11px;color:rgba(255,255,255,.55);">화면을 누르면 건너뛰어요</div>';
@@ -65,8 +67,8 @@
         Array.prototype.forEach.call(ov.querySelectorAll('#gst-row [data-c]'), function (el) {
           var me = el.getAttribute('data-c') === l.c;
           var im = el.firstChild; if (!im) return;   // 등장 애니메이션이 바깥 칸의 transform/opacity 를 잡고 있어서 안쪽 그림에 적용
-          im.style.transition = 'transform .25s, opacity .25s'; im.style.transform = me ? 'scale(1.3) translateY(-6px)' : 'scale(.92)'; im.style.opacity = me ? '1' : '.55';
-          if (im) { im.style.animation = me ? (l.tone === 'bad' || l.tone === 'low' ? 'gstShake .5s' : l.tone === 'top' ? 'gstGlow 1s' : '') : ''; }
+          im.style.transition = 'transform .25s, opacity .25s'; im.style.transform = me ? 'scale(1.15)' : 'scale(.92)'; im.style.opacity = me ? '1' : '.55';
+          if (im) { im.style.animation = me ? (l.tone === 'bad' || l.tone === 'low' ? 'gstShake .5s' : l.tone === 'top' ? 'gstGlowSd 1s' : '') : ''; }
         });
         sfx(l.tone === 'bad' || l.tone === 'low' ? 'miss' : 'pick');
       });
