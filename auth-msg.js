@@ -17,7 +17,9 @@
   var orig = window.checkNicknameUnique;
   if (typeof orig !== 'function' || orig.__timed) return;
   var w = function () {
-    var p = orig.apply(this, arguments);
+    var a = [].slice.call(arguments);
+    if (a[1] === undefined && window.pocaLoggedInUid) a[1] = window.pocaLoggedInUid;   // 로그인한 본인의 옛 닉네임은 '중복' 으로 안 치게 (본인 계정에 저장된 같은 닉네임)
+    var p = orig.apply(this, a);
     var t = new Promise(function (res) { setTimeout(function () { res(false); }, 6000); });
     return Promise.race([p, t]);
   };
