@@ -26,3 +26,23 @@
   w.__timed = true;
   window.checkNicknameUnique = w;
 })();
+
+// 🛟 서버에서 불러오기 직전에 이 폰의 ph_ 데이터를 통째로 백업해 둠 (ph_prerestore_backup) — 서버 저장이 더 옛날 거라 코인이 줄어드는 사고가 나도 되돌릴 수 있게
+(function () {
+  'use strict';
+  var orig = window.restorePocaDataFromServer;
+  if (typeof orig !== 'function' || orig.__bk) return;
+  var w = function (data) {
+    try {
+      var snap = {}, n = 0;
+      for (var i = 0; i < localStorage.length; i++) {
+        var k = localStorage.key(i);
+        if (k && k.indexOf('ph_') === 0 && k !== 'ph_prerestore_backup') { snap[k] = localStorage.getItem(k); n++; }
+      }
+      localStorage.setItem('ph_prerestore_backup', JSON.stringify({ at: Date.now(), coins: snap.ph_coins, lv: snap.ph_playerLevel, data: snap }));
+    } catch (e) {}
+    return orig.apply(this, arguments);
+  };
+  w.__bk = true;
+  window.restorePocaDataFromServer = w;
+})();
