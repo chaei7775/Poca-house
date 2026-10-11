@@ -271,7 +271,7 @@
     var pct = nextAt ? Math.min(100, Math.floor((s.fame - curAt) / (nextAt - curAt) * 100)) : 100;
     var live = liveMembers(s), ok = live.length >= MIN_MEMBERS, gs = ok ? groupStats(live) : null;
     var mem = g.members.map(function (cid) {
-      return '<div style="text-align:center;flex:1;min-width:0;"><div>' + face(cid, 54) + '</div><div style="font-size:11.5px;font-weight:900;margin-top:2px;">' + esc(name(cid)) + '</div><div style="font-size:10px;color:#9fb0d0;">인연 Lv.' + bond(cid) + '</div></div>';
+      return '<div style="position:relative;text-align:center;flex:1;min-width:0;"><div>' + face(cid, 54) + '</div><div style="font-size:11.5px;font-weight:900;margin-top:2px;">' + esc(name(cid)) + '</div><div style="font-size:10px;color:#9fb0d0;">인연 Lv.' + bond(cid) + '</div></div>';
     }).join('');
     var bars = gs ? STATS.map(function (st) {
       var v = Math.round(gs[st.k]);
@@ -298,7 +298,7 @@
       '<div style="text-align:center;margin-bottom:2px;">' + pimg('lv' + lv, 72) + '</div>' +
       '<div style="text-align:center;font-size:19px;font-weight:900;">' + esc(g.name) + '</div>' +
       '<div style="text-align:center;font-size:11.5px;color:#ffe08a;margin:3px 0 2px;">⭐ ' + esc(LEVELS[lv][1]) + ' (Lv.' + (lv + 1) + ')' + (gs ? ' · <span style="color:#9fd8ff;">' + esc(concept(gs)) + '</span>' : '') + '</div>' +
-      '<div style="display:flex;gap:6px;margin:10px 0;">' + mem + '</div>' + bars +
+      '<div style="position:relative;display:flex;gap:6px;margin:10px 0;">' + (function () { try { return window.__groupMagic ? window.__groupMagic.html({ size: 250, css: 'left:50%;top:-62px;margin-left:-125px;' }) : ''; } catch (e) { return ''; } })() + mem + '</div>' + bars +
       '<div style="height:8px;border-radius:6px;background:rgba(255,255,255,0.12);overflow:hidden;margin-top:12px;"><div style="width:' + pct + '%;height:100%;background:linear-gradient(90deg,#4aa8ff,#c084fc);"></div></div>' +
       '<div style="font-size:10.5px;color:#9fb0d0;margin-top:4px;text-align:center;">인기도 ' + fmt(s.fame) + (nextAt ? ' / ' + fmt(nextAt) + ' (다음: ' + esc(LEVELS[lv + 1][1]) + ')' : ' (최고 레벨!)') + '</div>' +
       (window.__groupLinkTest && g.members.length ? (function () { var pc = window.__groupLinkTest.bonusPct(g.members[0]); return '<div style="font-size:10.5px;color:#9dffb0;margin-top:3px;text-align:center;">🚌 그룹 멤버가 팬덤 원정에 나가면 보상 ' + (pc > 0 ? '+' + pc + '%' : '보너스 (그룹 레벨이 오르면 생겨요)') + '</div>'; })() : '') + '</div>' +
