@@ -4,12 +4,14 @@
 //  · 보통 바이럴: 코인 ×1.5 · 인기도 +50% / 초대박(바이럴 중 25%): 코인 ×3 · 인기도 +150%
 //  · 연출: 활동 연출 뒤, 결과창 전에 SNS 화면(트렌드 순위·직캠 조회수·팬 댓글)이 한 번 뜬다
 //  · group.js 가 doActivity 에서 roll() 을, 결과창 전에 show() 를 부른다 (없으면 그냥 넘어감)
-// ✏️ 고치는 법: BASE/CAP/MUL 숫자만
+//  · A급(좋음) 이상일 때만 터짐 (MIN_TIER)
+// ✏️ 고치는 법: BASE/CAP/MUL/MIN_TIER 숫자만
 // ════════════════════════════════
 (function () {
   'use strict';
   var BASE = 0.06, CAP = 0.5, BIG_ADD = 0.25, TIER_ADD = 0.04, INV_ADD = 0.004, LV_ADD = 0.01;
   var MEGA_RATE = 0.25, MUL = [1.5, 3], FAME_MUL = [0.5, 1.5];
+  var MIN_TIER = 2;   // 바이럴은 이 등급 이상에서만 (0 C아쉬움 · 1 B보통 · 2 A좋음 · 3 S훌륭 · 4 SS최고)
   var KIND = {
     stage:   { ic: '🎥', t: '직캠', tag: '직캠' },
     dance:   { ic: '💃', t: '챌린지 영상', tag: '챌린지' },
@@ -30,6 +32,7 @@
   function roll(act, members, opt) {
     opt = opt || {};
     if (opt.ng) return null;
+    if ((opt.tier || 0) < MIN_TIER) return null;   // A급 미만은 바이럴 없음
     var p = BASE + (opt.big ? BIG_ADD : 0) + Math.max(0, opt.tier || 0) * TIER_ADD;
     try { if (window.__groupInvest) p += window.__groupInvest.total() * INV_ADD; } catch (e) {}
     try { var lv = 0; if (typeof opt.lv === 'number') lv = opt.lv; p += lv * LV_ADD; } catch (e) {}
