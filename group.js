@@ -25,6 +25,7 @@
   var MEMBER_BONUS = 0.25;             // 멤버 1명 늘 때마다 +25% (활동마다 따로 정한 게 있으면 그걸 씀)
   var BOND_BONUS = 0.5;                // 평균 인연(1~20) 만점이면 +50%
   var LEVEL_BONUS = 0.05;              // 그룹 레벨 1당 +5%
+  var MIN_BIG_TIER = 1;                // 🌟 대성공은 이 등급 이상에서만 (0 아쉬움 · 1 보통 · 2 좋음 …). 아쉬움(C)에서는 대성공이 안 뜸
   var BIG_BASE = 0.08, BIG_PER_POWER = 0.003, BIG_MAX = 0.4, BIG_MULT = 1.8;   // 대성공 확률 = 8% + 능력치×0.3% (최대 40%)
   var FAME_PER_MEMBER = 3;             // 활동 1번 인기도 = 활동 기본 + 멤버수×3 (대성공이면 ×1.5)
   var EV_CHANCE = 0.15, EV_DAILY = 2;   // 🎲 돌발 이벤트: 활동 끝날 때 15% 확률, 하루 최대 2번 (코인 변동은 그 활동 보상의 약 -25%~+45% 안)
@@ -192,7 +193,7 @@
     var cEgg = window.__comboEgg || null, cBig = 0, cNg = 0;
     try { if (cEgg) { cBig = cEgg.bigBonus(live, id); cNg = cEgg.ng(live, id); } } catch (e) {}
     var bd = null; try { if (window.__groupBond) { bd = window.__groupBond.effect(live); cNg = Math.min(0.5, cNg + bd.ng); } } catch (e) {}   // 멤버 친밀도 (group-bond.js)
-    var big = Math.random() < r0.bigChance + cBig;
+    var big = r0.tier >= MIN_BIG_TIER && Math.random() < r0.bigChance + cBig;
     var ngHit = !big && cNg > 0 && Math.random() < cNg;   // 숨은 조합 NG (combo-egg.js)
     var r = big ? reward(act, live, s.fame, true) : r0;
     var wish = (act.wish && Math.random() < r.wishChance) ? (big ? 2 : 1) : 0;
@@ -200,6 +201,7 @@
     var coinGain = r.coin, fameGain = r.fame;
     var rl = null, effTier = r.tier;
     try { if (!ngHit && window.__groupReport) { rl = window.__groupReport.roll(id, live); coinGain = Math.floor(coinGain * rl.mul * (bd ? bd.mul : 1)); fameGain = Math.floor(fameGain * rl.mul * (bd ? bd.mul : 1)); effTier = Math.max(0, Math.min(TIERS.length - 1, r.tier + rl.shift)); } } catch (e) {}   // 멤버별 랜덤 변수 (컨디션/사고)
+    if (big && effTier < MIN_BIG_TIER) effTier = MIN_BIG_TIER;   // 대성공이면 표시 등급이 아쉬움으로 떨어지지 않게
     if (ngHit) { coinGain = 0; fameGain = Math.floor(r.fame * 0.3); wish = 0; ev = null; }
     if (ev && ev.kind !== 'choice') {
       if (ev.coinMul) coinGain = Math.max(0, Math.floor(r.coin * (1 + ev.coinMul)));
