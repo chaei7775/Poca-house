@@ -13,6 +13,15 @@
 
   var EXTRA_COUPONS = {
     // 쿠폰코드는 대문자로 적기
+    // 🧪 테스트용: 재료 25종 × 100개 (가방 자리 25칸 필요, 이미 가진 재료는 자리를 안 씀). 홍보 전에 지워도 됨
+    'MAT100': {
+      message: '🧪 재료 25종을 100개씩 받았어요!',
+      get items() {
+        var out = [];
+        try { Object.keys(MATERIAL_EMOJI_MAP).forEach(function (n) { out.push({ emoji: MATERIAL_EMOJI_MAP[n], name: n, type: 'material', qty: 100, desc: '' }); }); } catch (e) {}
+        return out;
+      }
+    }
   };
 
   // 쿠폰 아이템이 가방에 다 들어갈 자리가 있는지 (이미 같은 아이템이 있으면 자리를 더 안 씀)
