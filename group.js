@@ -469,12 +469,13 @@
         if (id0 === 'variety' && window.__groupVariety && !b.__varDone) {   // 🎪 단체 예능은 토크쇼를 먼저 직접 플레이 (group-variety.js)
           var er0 = precheck(id0); if (er0) { toast(er0); return; }
           sceneBusy = true; sceneAt = Date.now();
-          try { window.__groupVariety.play(liveMembers(load()), function (p) { sceneBusy = false; if (typeof p !== 'number') return; b.__varDone = true; b.__perf = p; b.onclick(); }); }
+          try { window.__groupVariety.play(liveMembers(load()), function (p, lg) { sceneBusy = false; if (typeof p !== 'number') return; b.__varDone = true; b.__perf = p; b.__vlog = lg; b.onclick(); }); }
           catch (e) { sceneBusy = false; }
           return;
         }
-        if (b.__varDone) { perf0 = b.__perf; b.__varDone = false; }
-        var res = doActivity(id0, perf0); if (!res) return; if (res.err) { toast(res.err); return; } sfx('grpStart'); sceneBusy = true; sceneAt = Date.now(); scene(res, function () { var fin = function () { sceneBusy = false; var go = function () { popup(res); }; if (res.viral && window.__groupViral) { try { window.__groupViral.show(res, go); } catch (e) { go(); } } else go(); }; if (window.__groupStage) { try { window.__groupStage.play(res, fin); } catch (e) { fin(); } } else fin(); }); };
+        var vlog0 = null; if (b.__varDone) { perf0 = b.__perf; vlog0 = b.__vlog; b.__varDone = false; }
+        var res = doActivity(id0, perf0); if (!res) return;
+        if (vlog0 && !res.err) res.varLog = vlog0; /* 🎪 내가 고른 코너 결과를 방송 연출에서 보여줌 */ if (res.err) { toast(res.err); return; } sfx('grpStart'); sceneBusy = true; sceneAt = Date.now(); scene(res, function () { var fin = function () { sceneBusy = false; var go = function () { popup(res); }; if (res.viral && window.__groupViral) { try { window.__groupViral.show(res, go); } catch (e) { go(); } } else go(); }; if (window.__groupStage) { try { window.__groupStage.play(res, fin); } catch (e) { fin(); } } else fin(); }); };
     });
   }
 

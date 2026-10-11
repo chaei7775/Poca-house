@@ -32,6 +32,12 @@
   }
   function play(res, done) {
     var rep = res && res.report;
+    if (res && res.varLog && res.varLog.length) {   // 🎪 단체 예능: 내가 직접 고른 코너 결과를 방송 장면 맨 앞에 먼저 보여줌 (group-variety.js)
+      var vn = function (c) { try { return CHARS[c].name; } catch (e) { return c; } };
+      var TXT = ['{n}의 {t}, 스튜디오가 뒤집어졌어요! 😂', '{n}의 {t}에 방청객이 빵 터졌어요!', '{n}의 {t}, 반응은 그럭저럭…', '{n}의 {t}… 스튜디오가 조용해졌어요.'];
+      var vl = res.varLog.map(function (e) { return { c: e.c, text: TXT[e.lvl].replace('{n}', vn(e.c)).replace('{t}', e.t), tone: e.lvl === 0 ? 'top' : e.lvl === 3 ? 'bad' : 'mid' }; });
+      rep = { grade: rep ? rep.grade : (res.tier || ''), color: rep ? rep.color : '#ffd54a', lines: vl.concat((rep && rep.lines) || []) };
+    }
     if (!rep || !rep.lines || !rep.lines.length) { done(); return; }
     css();
     var ov = document.createElement('div'), finished = false, timers = [];

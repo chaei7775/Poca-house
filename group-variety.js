@@ -48,7 +48,7 @@
 
   function play(members, done) {
     members = (members || []).slice(); if (members.length < 2) { done(null); return; }
-    var maxUse = Math.ceil(ROUNDS / members.length), used = {}, pts = 0, round = 0, finished = false, timers = [];
+    var maxUse = Math.ceil(ROUNDS / members.length), used = {}, pts = 0, round = 0, finished = false, timers = [], log = [];
     var corners = shuffle(CORNERS).slice(0, ROUNDS);
     members.forEach(function (c) { used[c] = 0; });
 
@@ -57,7 +57,7 @@
     ov.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;width:100vw;height:100vh;height:100dvh;z-index:99997;background:linear-gradient(180deg,#2b1250 0%,#0d0818 80%);color:#fff;display:flex;flex-direction:column;align-items:center;padding:14px;box-sizing:border-box;overflow:auto;-webkit-overflow-scrolling:touch;';
     document.body.appendChild(ov);
     function later(fn, ms) { timers.push(setTimeout(fn, ms)); }
-    function close(perf) { if (finished) return; finished = true; timers.forEach(clearTimeout); ov.remove(); done(perf); }
+    function close(perf) { if (finished) return; finished = true; timers.forEach(clearTimeout); ov.remove(); done(perf, perf == null ? null : log); }
 
     function head(sub) {
       return '<div style="width:100%;max-width:420px;display:flex;justify-content:space-between;align-items:center;">' +
@@ -97,7 +97,7 @@
       var bonus = cr.animal && animalOn(c);
       var score = weighted(c, cr.w) + (bonus ? ANIMAL_PLUS : 0) + gauss() * NOISE;
       var lvl = score >= CUT[0] ? 0 : score >= CUT[1] ? 1 : score >= CUT[2] ? 2 : 3, r = REACT[lvl];
-      pts += 3 - lvl;
+      pts += 3 - lvl; log.push({ c: c, t: cr.t, lvl: lvl });   // 방송 연출(group-stage.js)에서 내 선택을 다시 보여줌
       sfx(r.s);
       ov.innerHTML = head() +
         '<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;">' +
