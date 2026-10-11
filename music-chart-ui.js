@@ -149,7 +149,7 @@
       '<polyline points="' + pts.join(' ') + '" fill="none" stroke="' + ACC + '" stroke-width="2.2" stroke-linejoin="round"/>' +
       '<circle cx="' + x(h).toFixed(1) + '" cy="' + y(vals[h]).toFixed(1) + '" r="4.5" fill="#fff" stroke="' + ACC + '" stroke-width="2"/>' + lbl + '</svg>';
   }
-  var PART_LABELS = [['base', '앨범 기본'], ['note', '작곡 완성도'], ['trend', '트렌드 장르'], ['fans', '팬덤'], ['fame', '인지도'], ['hidden', '히든카드'], ['burst', '신곡 버스트'], ['boost', '스밍 총공'], ['mods', '사건'], ['age', '시간 경과']];
+  var PART_LABELS = [['base', '앨범 기본'], ['note', '작곡 완성도'], ['trend', '트렌드 장르'], ['fans', '팬덤'], ['fame', '인지도'], ['catalog', '발매곡 수'], ['hidden', '히든카드'], ['burst', '신곡 버스트'], ['boost', '스밍 총공'], ['mods', '사건'], ['age', '시간 경과']];
   function mineHtml(s) {
     var day = C().gameDay(), h = C().nowHour(), live = s.songs.filter(function (x) { return !x.over; });
     var out = '';

@@ -23,6 +23,7 @@
   var NOTE_PER = 0.25, NOTE_MAX = 10;  // 작곡 도감 한 칸당 점수 / 최대
   var TREND_BONUS = 6;                 // 이번 주 트렌드 장르와 같으면
   var FAN_MAX = 28, FAN_LOG = 3.2;     // 팬 수 점수 (멤버 수 10^3.2 ≈ 1600명이면 만점)
+  var CAT_EACH = 0.8, CAT_MAX = 16;    // 📀 발매한 곡이 쌓일수록 올라가는 점수 (곡 하나당 / 최대)
   var FAME_MAX = 10;                   // 인지도 100 = 10점
   var HID_EACH = 1.5, HID_ENH = 0.8, HID_MAX = 8;   // 히든카드 한 장당 / 강화 배율 가산 / 최대 (14 → 8로 낮춤)
   var BURST = 14, BURST_DECAY = 0.65;  // 신곡 버스트
@@ -123,6 +124,7 @@
   function trendGenre(day) {
     try { var G = window.__albumTest.GENRES, wk = Math.floor((Math.max(1, day) - 1) / 7); return G[(wk * 5 + 3) % G.length]; } catch (e) { return null; }
   }
+  function catalogBonus() { var s = load(); var n = Math.max((s.stats && s.stats.released) || 0, (s.songs || []).length); return Math.min(CAT_MAX, n * CAT_EACH); }
   function parts(song, day) {
     var age = Math.max(0, day - song.rel);
     var trend = trendGenre(day);
@@ -132,13 +134,14 @@
       trend: (trend && song.genre === trend.id) ? TREND_BONUS : 0,
       fans: FAN_MAX * clamp(Math.log(Math.max(1, members(song.cid))) / Math.LN10 / FAN_LOG, 0, 1),
       fame: FAME_MAX * fameOf(song.cid) / 100,
+      catalog: catalogBonus(),
       hidden: hiddenBonus(song.cid),
       burst: BURST * Math.pow(BURST_DECAY, age),
       boost: clamp(song.boost || 0, 0, BOOST_MAX),
       mods: (song.mods || []).reduce(function (a, m) { return a + m.v * Math.min(1, m.d / Math.max(1, m.d0 || m.d)); }, 0),
       age: -AGE_DECAY * Math.max(0, age - 2)
     };
-    p.total = Math.max(1, p.base + p.note + p.trend + p.fans + p.fame + p.hidden + p.burst + p.boost + p.mods + p.age);
+    p.total = Math.max(1, p.base + p.note + p.trend + p.fans + p.fame + p.catalog + p.hidden + p.burst + p.boost + p.mods + p.age);
     return p;
   }
   function powerOf(song, day) { return parts(song, day).total; }
@@ -186,6 +189,7 @@
       if (s.songs.some(function (x) { return x.id === id; })) return;
       var q = Math.min(NOTE_MAX, Object.keys(albumNote()).length * NOTE_PER);
       s.songs.push({ id: id, cid: sl.cid, title: sl.title, genre: genreOfRelease(sl.start, sl.title), tier: 'full', rel: day, q: r1(q), boost: 0, mods: [], hist: [], peak: 101, rank: null, prev: null, inv: 0, streamedDay: -1, ones: 0 });
+      s.stats.released = Math.max((s.stats.released || 0), s.songs.length - 1) + 1;
       s.news.push({ type: 'release', id: id });
       changed = true;
     });
