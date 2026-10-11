@@ -30,10 +30,10 @@
     { t: '매력 어필 타임', q: '팬들이 뽑은 나의 매력 포인트 소개!', w: { charm: .6, fun: .4 }, animal: true }
   ];
   var REACT = [                                // 점수 3 → 0
-    { n: '대폭소!!', c: '#ffd54a', e: '😂😂😂', s: 'grpBig' },
-    { n: '빵 터졌어요', c: '#6ee7a0', e: '😆', s: 'coin' },
-    { n: '그럭저럭…', c: '#9ec5ff', e: '🙂', s: 'pop' },
-    { n: '썰렁…', c: '#fca5a5', e: '🥶', s: 'grpBad' }
+    { n: '대폭소!!', c: '#ffd54a', e: gi('grp-react3.png', 52), s: 'grpBig' },
+    { n: '빵 터졌어요', c: '#6ee7a0', e: gi('grp-react2.png', 52), s: 'coin' },
+    { n: '그럭저럭…', c: '#9ec5ff', e: gi('grp-react1.png', 52), s: 'pop' },
+    { n: '썰렁…', c: '#fca5a5', e: gi('grp-react0.png', 52), s: 'grpBad' }
   ];
   var ACC = '#ff5d8f', GOLD = '#ffd54a';
 
