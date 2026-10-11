@@ -2844,13 +2844,20 @@ function renderSchoolHome() {
 function renderSchoolSelect() {
   const ov = ensureSchoolOverlay();
   const cards = getSchoolOwnedCards();
+  normalizeSchoolDaily();
+  // 오늘 수업 상태: 세 과목 다 마친 포카는 등교 불가(내일 가능), 일부만 한 포카는 진행 중 표시
+  const schoolState = (id) => {
+    const cd = (schoolDaily.cards && schoolDaily.cards[id]) || { done: {}, report: false };
+    const n = ['korean', 'memory', 'pe'].filter(k => cd.done && cd.done[k]).length;
+    return { n, finished: n >= 3 };
+  };
   ov.innerHTML = schoolHeader('🎒 등교시킬 포카 선택') + `
     <div style="padding:18px 16px 120px;display:flex;flex-direction:column;gap:10px;">
-      ${cards.map(c => `<button onclick="selectSchoolCard('${c.id}')" style="width:100%;padding:12px;background:#fff;border:2px solid ${c.id === schoolSelectedCardId ? '#60a5fa' : '#fbcfe8'};border-radius:18px;display:flex;align-items:center;gap:12px;text-align:left;font-family:'Noto Sans KR',sans-serif;cursor:pointer;box-shadow:0 3px 12px #00000010;">
+      ${cards.map(c => { const st = schoolState(c.id); return `<button ${st.finished && c.id !== schoolSelectedCardId ? 'disabled' : `onclick="selectSchoolCard('${c.id}')"`} style="width:100%;padding:12px;background:${st.finished ? '#f1f5f9' : '#fff'};border:2px solid ${c.id === schoolSelectedCardId ? '#60a5fa' : '#fbcfe8'};border-radius:18px;display:flex;align-items:center;gap:12px;text-align:left;font-family:'Noto Sans KR',sans-serif;cursor:${st.finished && c.id !== schoolSelectedCardId ? 'not-allowed' : 'pointer'};box-shadow:0 3px 12px #00000010;${st.finished && c.id !== schoolSelectedCardId ? 'opacity:.6;' : ''}">
         <img class="school-card-img" src="${c.img}" style="width:44px;height:58px;object-fit:cover;border-radius:8px;background:#eee;flex-shrink:0;" onerror="this.style.display='none'">
-        <div style="flex:1;"><div style="font-size:15px;font-weight:900;color:#111;">${c.name}</div><div style="font-size:12px;color:#777;margin-top:2px;">${c.grade} · 연성고등학교 등교 가능</div></div>
-        <div style="font-size:20px;">${c.id === schoolSelectedCardId ? '✅' : '🎒'}</div>
-      </button>`).join('')}
+        <div style="flex:1;"><div style="font-size:15px;font-weight:900;color:#111;">${c.name}</div><div style="font-size:12px;color:#777;margin-top:2px;">${c.grade} · ${st.finished ? '오늘 수업 완료 · 내일 등교 가능' : st.n > 0 ? '오늘 수업 중 (' + st.n + '/3) · 등교 가능' : '연성고등학교 등교 가능'}</div></div>
+        <div style="font-size:20px;">${c.id === schoolSelectedCardId ? '✅' : st.finished ? '🏠' : '🎒'}</div>
+      </button>`; }).join('')}
     </div>`;
   ov.style.display = 'block';
 }
