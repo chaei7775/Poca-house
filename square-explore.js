@@ -27,7 +27,8 @@
   var HINT_REMOVE = 3;        // 힌트 한 번에 흐려지는 가짜 수
   var ZOOMS = [1, 1.6, 2.4];  // 확대 단계
   var BG_FILE = 'map-square.webp';
-  var IMG_W = 1672, IMG_H = 941;
+  var IMG_W = 1672, IMG_H = 941;      // 실제 그림 크기 (그림을 불러오면 맞춰짐 — 확대/이동 계산용)
+  var SPOT_W = 1672, SPOT_H = 941;    // SPOTS 좌표의 기준 크기 (고정!). 그림 파일 크기가 달라도 팬 위치 계산은 이 값으로 해야 함
 
   // 팬이 설 수 있는 자리 [x, y, 근처 장소 이름]  (그림 좌표)
   var SPOTS = [
@@ -35,14 +36,14 @@
     [520, 640, '벤치'], [1255, 570, '벤치'],
     [330, 640, '환영 간판'], [250, 760, '환영 간판'],
     [1250, 735, '풍선 가판대'], [1340, 800, '풍선 가판대'], [1520, 690, '풍선 가판대'],
-    [330, 480, '아이스크림 카트'], [540, 470, '아이스크림 카트'],
+    [330, 480, '줄무늬 천막'], [540, 470, '줄무늬 천막'],
     [1180, 440, '회전목마'], [1370, 445, '회전목마'],
     [1090, 405, '시계탑'], [1230, 395, '시계탑'],
     [1400, 540, '가로등'], [120, 560, '가로등'],
     [330, 830, '꽃밭'], [470, 870, '꽃밭'], [150, 860, '꽃밭'],
     [240, 440, '파라솔'], [1600, 470, '파라솔'], [680, 440, '파라솔'],
     [800, 810, '산책로'], [1010, 840, '산책로'], [650, 730, '산책로'], [1120, 745, '산책로'],
-    [900, 485, '나무 그늘'], [1050, 470, '나무 그늘']
+    [900, 485, '분수 뒤쪽'], [1050, 470, '분수 뒤쪽']
   ];
 
   var OUTFITS = [
@@ -278,7 +279,7 @@
       var el = document.createElement('div');
       el.className = 'sq-fan';
       el.setAttribute('data-i', i);
-      el.style.cssText = 'position:absolute;left:' + (f.spot[0] / IMG_W * 100) + '%;top:' + (f.spot[1] / IMG_H * 100) + '%;width:' + (sz * 1.5 / IMG_W * 100) + '%;transform:translate(-50%,-92%);cursor:pointer;touch-action:none;';
+      el.style.cssText = 'position:absolute;left:' + (f.spot[0] / SPOT_W * 100) + '%;top:' + (f.spot[1] / SPOT_H * 100) + '%;width:' + (sz * 1.5 / SPOT_W * 100) + '%;transform:translate(-50%,-92%);cursor:pointer;touch-action:none;';
       el.innerHTML = fanSvg(f);
       f.el = el;
       S.fansEl.appendChild(el);
