@@ -38,6 +38,10 @@
         return window.__mailTest.load().inbox.some(function (m) { return !m.read; });
       }
     } catch (e) {}
+    try {   // 다른 파일이 등록한 알림 (more-alerts.js 의 window.__moreAlerts: [{ re: 칸 이름 정규식, fn: 알림이 있으면 true }])
+      var al = window.__moreAlerts || [], lb = label(t);
+      for (var i = 0; i < al.length; i++) if (al[i].re.test(lb) && al[i].fn()) return true;
+    } catch (e) {}
     return false;
   }
   function tileDot(t) {
