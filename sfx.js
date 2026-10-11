@@ -447,6 +447,16 @@
   SYNTH.fsCombo3 = function () { arp([659, 784, 988, 1319, 1760, 2349], 0.055, 0.16, 'triangle', 0.36); tone(3136, 0.35, 0.5, 'sine', 0.22); tone(392, 0, 0.45, 'square', 0.12); };
   SYNTH.fsPerfect = function () { tone(1760, 0, 0.08, 'sine', 0.26); tone(2637, 0.07, 0.25, 'sine', 0.26); };
   SYNTH.wishPick = function () { arp([1047, 1319, 1568, 2093, 2637], 0.07, 0.2, 'sine', 0.22); tone(3136, 0.4, 0.5, 'sine', 0.1); };
+  // ════════ 그룹 활동 (group.js · group-stage.js · group-viral.js) ════════
+  SYNTH.grpStart = function () { noise(0, 0.28, 0.22, 'bandpass', 1400); arp([392, 523, 659, 784], 0.07, 0.16, 'triangle', 0.22); };   // 활동 시작: 조명 휙 + 올라가는 종소리
+  SYNTH.grpLine = function () { tone(988, 0, 0.09, 'triangle', 0.2); tone(1319, 0.07, 0.15, 'triangle', 0.2); };   // 멤버 평가 한 줄: 맑은 '띠링'
+  SYNTH.grpBad = function () { tone(294, 0, 0.16, 'triangle', 0.2, 220); tone(220, 0.14, 0.26, 'triangle', 0.2, 147); };   // 아쉬운 평가·NG: 낮게 내려감
+  SYNTH.grpBig = function () {   // 대성공: 팡파르 + 반짝이
+    arp([523, 659, 784, 1047, 1319, 1568], 0.075, 0.24, 'triangle', 0.28);
+    noise(0.05, 0.55, 0.16, 'highpass', 5000); tone(2093, 0.5, 0.5, 'sine', 0.16); tone(2637, 0.58, 0.55, 'sine', 0.12);
+  };
+  SYNTH.grpViral = function () { tone(1568, 0, 0.06, 'sine', 0.22); tone(2093, 0.09, 0.07, 'sine', 0.22); tone(1568, 0.2, 0.06, 'sine', 0.2); tone(2637, 0.29, 0.14, 'sine', 0.24); };   // SNS 알림 '톡톡톡 띵'
+  GAPS.grpLine = 160;
   wrap('collectExploreItem', function (idx, item) {
     if (item && item.isWish) play('wishPick');
     else if (item && item.isRare) play('rarePick');

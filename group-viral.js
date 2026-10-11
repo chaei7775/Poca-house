@@ -45,6 +45,7 @@
   function show(res, done) {
     var v = res && res.viral, ov = document.getElementById('grp-ov');
     if (!v || !ov) { done && done(); return; }
+    try { if (window.pocaSfx) { window.pocaSfx.play('grpViral'); if (v.mega) setTimeout(function () { window.pocaSfx.play('grpBig'); }, 500); } } catch (e) {}
     var K = KIND[v.kind] || KIND.stage, mem = res.members || [], star = pick(mem) || mem[0];
     var gname = ''; try { gname = window.__groupTest.load().group.name; } catch (e) {}
     var views = rnd(18, 260) * (v.mega ? 6 : 1), shares = rnd(2, 40) * (v.mega ? 5 : 1), rank = v.mega ? 1 : rnd(2, 9);

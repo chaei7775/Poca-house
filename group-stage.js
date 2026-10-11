@@ -70,7 +70,7 @@
           im.style.transition = 'transform .25s, opacity .25s'; im.style.transform = me ? 'scale(1.15)' : 'scale(.92)'; im.style.opacity = me ? '1' : '.55';
           if (im) { im.style.animation = me ? (l.tone === 'bad' || l.tone === 'low' ? 'gstShake .5s' : l.tone === 'top' ? 'gstGlowSd 1s' : '') : ''; }
         });
-        sfx(l.tone === 'bad' || l.tone === 'low' ? 'miss' : 'pick');
+        sfx(l.tone === 'bad' || l.tone === 'low' ? 'grpBad' : 'grpLine');
       });
     });
     var ts = t0 + rep.lines.length * LINE_MS;
@@ -80,11 +80,11 @@
       var st = ov.querySelector('#gst-stamp');
       st.style.opacity = '1';
       st.innerHTML = '<div style="display:inline-block;padding:8px 26px;border:5px solid ' + rep.color + ';border-radius:16px;font-size:34px;font-weight:900;color:' + rep.color + ';background:rgba(0,0,0,.45);text-shadow:0 0 14px ' + rep.color + ';animation:gstStamp .45s ease-out forwards;">' + esc(rep.grade) + '</div>';
-      if (bad) { ov.style.animation = 'gstShake .5s'; sfx('miss'); }
+      if (bad) { ov.style.animation = 'gstShake .5s'; sfx('stamp'); at(ts + 160, function () { sfx('grpBad'); }); }
       else if (res.big) {
         var f = ''; for (var i = 0; i < 26; i++) f += '<span style="position:absolute;top:0;left:' + Math.round(Math.random() * 100) + '%;font-size:' + (14 + Math.round(Math.random() * 14)) + 'px;animation:gstFall ' + (1.8 + Math.random() * 1.6) + 's linear ' + (Math.random() * 0.8).toFixed(2) + 's forwards;">' + ['✨', '🎉', '⭐', '💖'][i % 4] + '</span>';
-        var c = document.createElement('div'); c.style.cssText = 'position:absolute;inset:0;pointer-events:none;'; c.innerHTML = f; ov.appendChild(c); sfx('rarePick');
-      } else sfx('coin');
+        var c = document.createElement('div'); c.style.cssText = 'position:absolute;inset:0;pointer-events:none;'; c.innerHTML = f; ov.appendChild(c); sfx('stamp'); at(ts + 180, function () { sfx('grpBig'); });
+      } else sfx('stamp');
     });
     at(ts + STAMP_MS + 600, end);
   }

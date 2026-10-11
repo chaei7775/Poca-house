@@ -59,6 +59,7 @@
   function name(cid) { try { return CHARS[cid].name; } catch (e) { return cid; } }
   function face(cid, px) { return '<img src="face-' + esc(cid) + '.png" alt="' + esc(name(cid)) + '" width="' + px + '" height="' + px + '" loading="lazy" decoding="async" style="width:' + px + 'px;height:' + px + 'px;border-radius:50%;object-fit:cover;vertical-align:middle;border:2px solid rgba(255,255,255,0.55);background:#243357;">'; }
   function sd(cid, h, delay) { return '<img src="group-assets/sd/' + esc(cid) + '.png" alt="' + esc(name(cid)) + '" height="' + h + '" decoding="async" style="height:' + h + 'px;width:auto;margin:0 -5px;filter:drop-shadow(0 3px 5px rgba(0,0,0,.5));' + (delay === null ? '' : 'animation:grpBob .9s ease-in-out infinite;animation-delay:' + (delay || 0) + 's;') + 'transform-origin:50% 100%;" onerror="this.onerror=null;this.src=\'face-' + esc(cid) + '.png\';this.style.cssText=\'height:52px;width:52px;border-radius:50%;object-fit:cover;\'">'; }   // 👗 단체복 SD 전신
+  function sfx(n) { try { if (window.pocaSfx && window.pocaSfx.play) window.pocaSfx.play(n); } catch (e) {} }
   function emoji(cid) { try { return CHARS[cid].emoji; } catch (e) { return '⭐'; } }
   function pick(a) { return a[Math.floor(Math.random() * a.length)]; }
 
@@ -337,6 +338,7 @@
   }
   function popup(res) {
     var ov = document.getElementById('grp-ov'); if (!ov) return;
+    sfx(res.ng ? 'fail' : 'coin'); if (res.levelUp) setTimeout(function () { sfx('levelup'); }, 500);
     var m = res.members.map(function (c) { return face(c, 50); }).join(' ');
     var p = document.createElement('div');
     p.style.cssText = 'position:absolute;inset:0;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;padding:18px;z-index:2;';
@@ -446,7 +448,7 @@
       };
     });
     Array.prototype.forEach.call(ov.querySelectorAll('[data-act]'), function (b) {
-      b.onclick = function () { if (sceneBusy && Date.now() - sceneAt < 15000) return; var res = doActivity(b.getAttribute('data-act')); if (!res) return; if (res.err) { toast(res.err); return; } sceneBusy = true; sceneAt = Date.now(); scene(res, function () { var fin = function () { sceneBusy = false; var go = function () { popup(res); }; if (res.viral && window.__groupViral) { try { window.__groupViral.show(res, go); } catch (e) { go(); } } else go(); }; if (window.__groupStage) { try { window.__groupStage.play(res, fin); } catch (e) { fin(); } } else fin(); }); };
+      b.onclick = function () { if (sceneBusy && Date.now() - sceneAt < 15000) return; var res = doActivity(b.getAttribute('data-act')); if (!res) return; if (res.err) { toast(res.err); return; } sfx('grpStart'); sceneBusy = true; sceneAt = Date.now(); scene(res, function () { var fin = function () { sceneBusy = false; var go = function () { popup(res); }; if (res.viral && window.__groupViral) { try { window.__groupViral.show(res, go); } catch (e) { go(); } } else go(); }; if (window.__groupStage) { try { window.__groupStage.play(res, fin); } catch (e) { fin(); } } else fin(); }); };
     });
   }
 
