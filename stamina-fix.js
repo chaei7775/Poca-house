@@ -21,9 +21,26 @@
     }
     return false;
   }
+  // 홈 화면에서는 배너 왼쪽 위에 작은 칩으로 보여준다 (아래 퀘스트 카드를 가리지 않게)
+  function homeChip() {
+    var banner = document.querySelector('#screen-home .home-banner'); if (!banner) return;
+    var chip = document.getElementById('stamina-home-chip');
+    if (!chip) {
+      chip = document.createElement('div'); chip.id = 'stamina-home-chip';
+      chip.style.cssText = 'position:absolute;top:10px;left:10px;z-index:3;padding:7px 11px;border-radius:14px;background:rgba(40,20,70,.72);box-shadow:0 2px 8px #0003;backdrop-filter:blur(4px);color:#fff;font-size:11px;font-weight:900;white-space:nowrap;pointer-events:none;font-family:"Noto Sans KR",sans-serif;';
+      banner.appendChild(chip);
+    }
+    var cur = null, max = 3000;
+    try { if (typeof stamina === 'number') cur = Math.floor(stamina); } catch (e) {}
+    try { if (typeof STAMINA_MAX === 'number') max = STAMINA_MAX; } catch (e) {}
+    if (cur == null) { var v = parseFloat(localStorage.getItem('ph_stamina')); cur = isNaN(v) ? 0 : Math.floor(v); }
+    var t = '⚡ ' + cur + '/' + max;
+    if (chip.textContent !== t) chip.textContent = t;
+  }
   setInterval(function () {
     var el = document.getElementById('stamina-floating'); if (!el) return;
     var home = document.getElementById('screen-home'), onHome = !!(home && home.classList.contains('active'));   // 홈 화면은 아래 퀘스트 카드(모두 받기 등)를 가려서 숨김
     el.classList.toggle('sf-hide', onHome || overlayOpen());
+    if (onHome) homeChip();
   }, 400);
 })();
