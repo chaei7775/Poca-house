@@ -38,7 +38,7 @@
     var bg = BG[res.act.id] || BG.stage, bad = !!res.ng;
     ov.style.cssText = 'position:fixed;inset:0;max-width:460px;margin:0 auto;box-shadow:0 0 0 100vmax #000;z-index:985;overflow:hidden;color:#fff;cursor:pointer;background:linear-gradient(180deg,' + bg[0] + ',' + bg[1] + ');' + FONT;
     var members = res.members, mh = members.map(function (c, i) {
-      return '<div data-c="' + c + '" style="opacity:0;animation:gstPop .5s ease-out forwards;animation-delay:' + (0.2 + i * 0.28) + 's;transition:transform .25s;">' + sd(c, members.length > 3 ? 150 : 175) + '</div>';
+      return '<div data-c="' + c + '" style="opacity:0;animation:gstPop .5s ease-out forwards;animation-delay:' + (0.2 + i * 0.28) + 's;transition:transform .25s;">' + sd(c, members.length > 3 ? 120 : 175) + '</div>';
     }).join('');
     var beam = function (rot, delay) { return '<div style="position:absolute;left:50%;top:-10%;width:90px;height:90%;margin-left:-45px;transform-origin:50% 0;background:linear-gradient(180deg,' + bg[2] + 'aa,transparent 85%);filter:blur(6px);opacity:.55;animation:gstSweep 3.2s ease-in-out infinite;animation-delay:' + delay + 's;"></div>'; };
     // 배경 일러스트: grp-bg-<활동id>.webp (없으면 그냥 색 배경). 위에 어두운 막을 씌워서 글씨가 읽히게

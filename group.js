@@ -391,7 +391,7 @@
     p.innerHTML = '<div style="position:relative;text-align:center;color:#fff;width:100%;max-width:300px;padding:10px;">' + sp +
       '<div style="animation:grpBob 1s ease-in-out infinite;">' + aicon(res.act, 110) + '</div>' +
       '<div style="font-size:15px;font-weight:900;margin-top:6px;">' + esc(res.act.name) + '</div>' +
-      '<div style="margin-top:8px;display:flex;justify-content:center;align-items:flex-end;">' + res.members.map(function (c, i) { return sd(c, res.members.length > 3 ? 100 : 118, i * 0.15); }).join('') + '</div>' +
+      '<div style="margin-top:8px;display:flex;justify-content:center;align-items:flex-end;">' + res.members.map(function (c, i) { return sd(c, res.members.length > 3 ? 84 : 118, i * 0.15); }).join('') + '</div>' +
       '<div id="grp-scene-txt" style="font-size:12.5px;color:#bcd8ff;margin-top:10px;min-height:18px;">' + esc(lines[0]) + '</div>' +
       '<div style="height:8px;border-radius:6px;background:rgba(255,255,255,0.14);overflow:hidden;margin:12px 10px 0;"><div style="height:100%;border-radius:6px;background:linear-gradient(90deg,#4aa8ff,#c084fc);animation:grpFill ' + SCENE_MS + 'ms linear forwards;"></div></div></div>';
     ov.appendChild(p);
