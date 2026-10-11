@@ -23,6 +23,7 @@
   }
   setInterval(function () {
     var el = document.getElementById('stamina-floating'); if (!el) return;
-    el.classList.toggle('sf-hide', overlayOpen());
+    var home = document.getElementById('screen-home'), onHome = !!(home && home.classList.contains('active'));   // 홈 화면은 아래 퀘스트 카드(모두 받기 등)를 가려서 숨김
+    el.classList.toggle('sf-hide', onHome || overlayOpen());
   }, 400);
 })();
