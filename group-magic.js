@@ -9,7 +9,7 @@
 (function () {
   'use strict';
   var COL = { studio: '#ff6bd6', practice: '#4aa8ff', shoot: '#ffd76a', setpark: '#7dffb0', dorm: '#ffa86b', tour: '#c084fc' };
-  var IMG = 'grp-magic.webp';
+  var IMG = 'grp-magic-img.webp';   // 채이가 준 금빛 마법진 원본 그림 (색 안 바꾸고 그대로 씀)
   function css() {
     if (document.getElementById('gm-css')) return;
     var st = document.createElement('style'); st.id = 'gm-css';
@@ -34,7 +34,7 @@
   function tinted(col) {
     if (tints[col]) return tints[col];
     var S = 128, cv = document.createElement('canvas'); cv.width = cv.height = S;
-    var g = cv.getContext('2d'); g.drawImage(im, 0, 0, S, S); g.globalCompositeOperation = 'source-in'; g.fillStyle = col; g.fillRect(0, 0, S, S);
+    var g = cv.getContext('2d'); g.drawImage(im, 0, 0, S, S); 
     return (tints[col] = cv);
   }
   // c: 캔버스 ctx / x,y: 플레이어 중심 / R: 플레이어 반지름 / t: 시간(초)
@@ -65,10 +65,9 @@
     var SC = [1, 0.72, 0.5], T = [26, 17, 11], layers = '';
     for (var i = 0; i < n; i++) {
       var c1 = cols[i % cols.length], c2 = cols[(i + 1) % cols.length];
-      var bg = mixed(c1 === c2 ? [c1] : [c1, c2]);
-      layers += '<div style="position:absolute;inset:0;transform:scale(' + SC[i] + ');filter:drop-shadow(0 0 ' + glow + 'px ' + c1 + ');">' +
-        '<div style="width:100%;height:100%;background:' + bg + ';-webkit-mask-image:url(' + IMG + ');mask-image:url(' + IMG + ');-webkit-mask-size:100% 100%;mask-size:100% 100%;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;' +
-        'animation:gmSpin ' + (T[i] * sp).toFixed(1) + 's linear infinite' + (i % 2 ? ' reverse' : '') + ';"></div></div>';
+      layers += '<div style="position:absolute;inset:0;transform:scale(' + SC[i] + ');filter:drop-shadow(0 0 ' + glow + 'px #ffc860);">' +
+        '<img src="' + IMG + '" alt="" decoding="async" style="width:100%;height:100%;display:block;' +
+        'animation:gmSpin ' + (T[i] * sp).toFixed(1) + 's linear infinite' + (i % 2 ? ' reverse' : '') + ';"></div>';
     }
     var tilt = o.flat === false ? '' : 'transform:perspective(' + Math.round(S * 2) + 'px) rotateX(64deg);';
     return '<div class="gm-wrap" style="position:absolute;width:' + S + 'px;height:' + S + 'px;pointer-events:none;' + tilt + 'opacity:' + (o.dim ? 0.4 : 0.9) + ';' + (o.dim ? 'filter:grayscale(.9);' : 'animation:gmPulse 3s ease-in-out infinite;') + (o.css || '') + '">' + layers + '</div>';
