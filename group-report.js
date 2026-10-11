@@ -59,5 +59,43 @@
     });
     return { grade: head.label, color: head.color, lines: lines };
   }
-  window.__groupReport = { make: make, T: T };
+  // ── 멤버별 랜덤 변수 (전날 발목을 삐끗하는 것처럼 능력치와 무관한 운) ──
+  //  멤버마다 사고(HURT) 또는 컨디션 최고(LUCK)가 걸릴 수 있음. 체력/기분이 낮으면 사고 확률 ↑ (식사·관리가 의미 있어짐)
+  //  결과: 코인·인기도 배율 (사고 1명당 ×0.8, 컨디션 최고 1명당 ×1.12, 전체 0.55~1.3)
+  var HURT_P = 0.10, HURT_P_LOW = 0.28, LUCK_P = 0.07, HURT_MUL = 0.8, LUCK_MUL = 1.12;
+  var H = {
+    stage:   ['{n}은 전날 목이 잠겨서 고음이 불안했어요.', '{n}은 어제 무리해서 목소리가 갈라졌어요.', '{n}은 감기 기운으로 컨디션이 좋지 않았어요.'],
+    album:   ['{n}은 목이 부어 평소 음색이 안 나왔어요.', '{n}은 전날 늦게 자서 집중력이 흐트러졌어요.'],
+    dance:   ['{n}은 전날 발목을 삐끗해서 동작이 무뎠어요.', '{n}은 어제 연습하다 무릎이 욱신거렸어요.', '{n}은 다리에 쥐가 나서 중간에 동작이 끊겼어요.'],
+    variety: ['{n}은 잠을 못 자 평소 텐션이 안 나왔어요.', '{n}은 전날 체해서 웃음이 어색했어요.'],
+    photo:   ['{n}은 얼굴이 퉁퉁 부어서 평소 비주얼이 아니었어요.', '{n}은 눈에 다래끼가 나서 컷이 제한됐어요.'],
+    drama:   ['{n}은 감기에 걸려 목소리가 갈라졌어요.', '{n}은 전날 밤샘 촬영으로 눈 밑이 어두웠어요.']
+  };
+  var L = {
+    stage:   ['{n}은 오늘따라 목 상태가 최고였어요!'], album: ['{n}은 오늘 컨디션이 최고라 한 번에 녹음을 끝냈어요!'],
+    dance:   ['{n}은 몸이 가벼워서 평소보다 날아다녔어요!'], variety: ['{n}은 오늘 텐션이 하늘을 찔렀어요!'],
+    photo:   ['{n}은 오늘 피부 컨디션이 역대급이었어요!'], drama: ['{n}은 오늘 감정이 제대로 올라왔어요!']
+  };
+  function statOfMeal(cid) { try { var st = (JSON.parse(localStorage.getItem('ph_meal') || '{}') || {}).stat || {}; return st[cid] || {}; } catch (e) { return {}; } }
+  function roll(actId, members) {
+    var items = [], mul = 1;
+    members.forEach(function (c) {
+      var st = statOfMeal(c), low = (typeof st.s === 'number' && st.s < 40) || (typeof st.m === 'number' && st.m < 40);
+      var r = Math.random();
+      if (r < (low ? HURT_P_LOW : HURT_P)) { items.push({ c: c, type: 'hurt', tpl: pick(H[actId] || H.stage) }); mul *= HURT_MUL; }
+      else if (r > 1 - LUCK_P) { items.push({ c: c, type: 'luck', tpl: pick(L[actId] || L.stage) }); mul *= LUCK_MUL; }
+    });
+    return { mul: Math.max(0.55, Math.min(1.3, mul)), items: items };
+  }
+  // 리포트에 랜덤 변수 줄을 덮어씌움 (해당 멤버의 기본 줄 대신)
+  function overlay(rep, rl, nameOf) {
+    if (!rep || !rl || !rl.items.length) return rep;
+    rl.items.forEach(function (it) {
+      var line = { c: it.c, text: fillName(it.tpl, nameOf(it.c)), tone: it.type === 'hurt' ? 'bad' : 'top' }, k = -1;
+      rep.lines.forEach(function (l, i) { if (l.c === it.c) k = i; });
+      if (k >= 0) rep.lines[k] = line; else rep.lines.push(line);
+    });
+    return rep;
+  }
+  window.__groupReport = { make: make, roll: roll, overlay: overlay, T: T };
 })();
