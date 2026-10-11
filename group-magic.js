@@ -17,20 +17,50 @@
     document.head.appendChild(st);
   }
   function mixed(list) { return list.length > 1 ? 'linear-gradient(135deg,' + list.join(',') + ')' : list[0]; }
-  function html(o) {
-    o = o || {};
-    var gi = window.__groupInvest; if (!gi || !gi.FAC) return '';
-    var total = gi.total(); if (total <= 0) return '';
-    css();
-    // 투자한 시설 색: 이 활동에 붙는 시설을 먼저, 그 다음 레벨 높은 순
+  // 투자 정보: 겹 수 / 색 목록 / 번짐 크기 (html·draw 가 같이 씀)
+  function info(o) {
+    var gi = window.__groupInvest; if (!gi || !gi.FAC) return null;
+    var total = gi.total(); if (total <= 0) return null;
     var fl = gi.FAC.filter(function (f) { return gi.lvOf(f.id) > 0; });
     fl.sort(function (a, b) {
       var ra = (!a.acts || (o.act && a.acts.indexOf(o.act) !== -1)) ? 1 : 0, rb = (!b.acts || (o.act && b.acts.indexOf(o.act) !== -1)) ? 1 : 0;
       return (rb - ra) || (gi.lvOf(b.id) - gi.lvOf(a.id));
     });
-    var cols = fl.map(function (f) { return COL[f.id] || '#fff'; });
-    var n = total >= 16 ? 3 : total >= 8 ? 2 : 1;
-    var glow = 5 + Math.round(total * 0.5), S = o.size || 260, sp = o.fast ? 0.6 : 1;
+    return { total: total, cols: fl.map(function (f) { return COL[f.id] || '#fff'; }), n: total >= 16 ? 3 : total >= 8 ? 2 : 1, glow: 5 + Math.round(total * 0.5) };
+  }
+
+  // ── 캔버스 맵용 (공항 입국장·VIP 게이트·월드투어 스타디움): 플레이어 발밑에 눕혀서 돌려 그린다 ──
+  var im = null, imOk = false, tints = {};
+  function tinted(col) {
+    if (tints[col]) return tints[col];
+    var S = 128, cv = document.createElement('canvas'); cv.width = cv.height = S;
+    var g = cv.getContext('2d'); g.drawImage(im, 0, 0, S, S); g.globalCompositeOperation = 'source-in'; g.fillStyle = col; g.fillRect(0, 0, S, S);
+    return (tints[col] = cv);
+  }
+  // c: 캔버스 ctx / x,y: 플레이어 중심 / R: 플레이어 반지름 / t: 시간(초)
+  function draw(c, x, y, R, t) {
+    var f = info({}); if (!f) return;
+    if (!im) { im = new Image(); im.onload = function () { imOk = true; }; im.src = IMG; return; }
+    if (!imOk) return;
+    var SC = [1, 0.72, 0.5], SP = [0.35, -0.55, 0.9];
+    c.save();
+    c.translate(x, y + R * 0.9); c.scale(1, 0.5);
+    c.globalCompositeOperation = 'lighter';
+    for (var i = 0; i < f.n; i++) {
+      var col = f.cols[i % f.cols.length], rr = R * 4.4 * SC[i];
+      c.save(); c.rotate((t || 0) * SP[i]); c.globalAlpha = 1;
+      c.drawImage(tinted(col), -rr, -rr, rr * 2, rr * 2);
+      c.restore();
+    }
+    c.restore();
+  }
+
+  function html(o) {
+    o = o || {};
+    var f = info(o); if (!f) return '';
+    css();
+    var cols = f.cols, n = f.n;
+    var glow = f.glow, S = o.size || 260, sp = o.fast ? 0.6 : 1;
     var SC = [1, 0.72, 0.5], T = [26, 17, 11], layers = '';
     for (var i = 0; i < n; i++) {
       var c1 = cols[i % cols.length], c2 = cols[(i + 1) % cols.length];
@@ -42,5 +72,5 @@
     var tilt = o.flat === false ? '' : 'transform:perspective(' + Math.round(S * 2) + 'px) rotateX(64deg);';
     return '<div class="gm-wrap" style="position:absolute;width:' + S + 'px;height:' + S + 'px;pointer-events:none;' + tilt + 'opacity:' + (o.dim ? 0.4 : 0.9) + ';' + (o.dim ? 'filter:grayscale(.9);' : 'animation:gmPulse 3s ease-in-out infinite;') + (o.css || '') + '">' + layers + '</div>';
   }
-  window.__groupMagic = { html: html };
+  window.__groupMagic = { html: html, draw: draw };
 })();

@@ -720,6 +720,7 @@
 
   function drawPlayer(c) {
     var x = G.px, y = G.py, R = 20;
+    try { if (window.__groupMagic) window.__groupMagic.draw(c, x, y, R, G.time); } catch (e) {}   // 🔮 그룹 투자 마법진 (group-magic.js)
     c.fillStyle = 'rgba(0,0,0,.4)'; c.beginPath(); c.ellipse(x, y + R * 0.85, R, R * 0.4, 0, 0, 7); c.fill();
     if (G.shield > 0) { c.strokeStyle = 'rgba(255,215,106,' + (0.5 + 0.4 * Math.sin(G.time * 18)) + ')'; c.lineWidth = 5; c.beginPath(); c.arc(x, y, R + 9, 0, 7); c.stroke(); }
     if (G.inv > 0 && Math.floor(G.time * 20) % 2 === 0) c.globalAlpha = 0.45;
