@@ -35,6 +35,7 @@
   var FIRST_ONE_WISH = 5;              // 처음 1위 했을 때 소원의 조각
   var INVEST_BUMP = 1.3, INVEST_MAX_DAYS = 3;
   var EVENT_CHANCE = 0.35, EVENT_GAP = 2;
+  var RIVAL_DROP = 8;                  // 📉 라이벌 곡 점수를 전부 이만큼 낮춤 (콘크리트 1위 99점 → 91점). 클수록 1위 하기 쉬움
   var SHOW_DAYS = [5, 6, 0];
   var SHOW_RANK = 50;                  // 🎤 음악방송 출전 가능 순위 (이 순위 안이면 출전)
   var SHOW_UP = [8, 13], SHOW_DOWN = [5, 9];   // 📈 대결 결과 점수 가감 [보통, 크게] — 이기면 올라가고 지면 내려감 (3일간)
@@ -76,6 +77,7 @@
       var r = out.length;
       out.push({ title: TITLES_A[(i * 3) % 20] + VARIANT[Math.floor(i / 20) % 5], artist: ARTISTS[(i * 7) % 20], base: 93 - (r - 2) * 0.8 });
     }
+    out.forEach(function (x) { x.base = r1(x.base - RIVAL_DROP); });
     // 같은 이름 중복 방지
     var seen = {};
     out.forEach(function (x, i) { var k = x.title + '|' + x.artist; if (seen[k]) x.title += ' ' + (i % 9 + 2); seen[k] = 1; x.id = 'rv' + i; });
@@ -89,6 +91,7 @@
     s.v = 1;
     if (!Array.isArray(s.songs)) s.songs = [];
     if (!s.rv || typeof s.rv !== 'object') s.rv = {};          // 라이벌 현재 점수
+    if (s.rvv !== RIVAL_DROP) { s.rv = {}; s.rvv = RIVAL_DROP; }   // 라이벌 점수 기준이 바뀌면 처음 값으로 되돌림
     if (!Array.isArray(s.guests)) s.guests = [];               // 임시 라이벌 (기습 컴백)
     if (!s.last) s.last = {};                                  // 어제 순위 { id: rank }
     if (typeof s.pending !== 'number') s.pending = 0;          // 아직 안 받은 정산 코인
@@ -215,7 +218,7 @@
     s.lastEv = day;
     var ev = { type: type, sid: song.id, cid: song.cid, day: day, name: EVENTS[type].name, text: EVENTS[type].text(nameOf(song.cid)), done: false };
     if (type === 'viral') { song.mods.push({ v: 25, d: 5, d0: 5, n: '역주행' }); try { if (window.__fancafeViral) { var vr = window.__fancafeViral(song.cid); ev.gain = vr && vr.gain; } } catch (e) {} ev.done = true; }
-    else if (type === 'comeback') { s.guests.push({ title: '기습 컴백 신곡', artist: '국민가수 한소리', power: 104, daysLeft: 5 }); ev.done = true; }
+    else if (type === 'comeback') { s.guests.push({ title: '기습 컴백 신곡', artist: '국민가수 한소리', power: 104 - RIVAL_DROP, daysLeft: 5 }); ev.done = true; }
     else if (type === 'fanstream') { song.mods.push({ v: 12, d: 3, d0: 3, n: '팬덤 총공' }); ev.done = true; }
     else { ev.expire = day + 2; }
     s.ev = ev;
