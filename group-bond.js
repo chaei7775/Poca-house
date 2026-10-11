@@ -48,8 +48,8 @@
     if (avg >= 75) mul = 1.10; else if (avg >= 60) mul = 1.05; else if (avg < 25) mul = 0.85; else if (avg < 40) mul = 0.92;
     ng = Math.min(0.2, low.length * 0.08 + (avg < 40 ? 0.05 : 0));
     var line = null;
-    if (low.length) { var l = low.sort(function (a, b) { return a.v - b.v; })[0].p; line = { c: l[0], tone: 'bad', text: nm(l[0]) + jo(nm(l[0])) + ' ' + nm(l[1]) + '은(는) 말없이 서로 다른 쪽만 봤어요.' }; }
-    else if (high.length && Math.random() < 0.6) { var h = high[Math.floor(Math.random() * high.length)].p; line = { c: h[0], tone: 'top', text: nm(h[0]) + jo(nm(h[0])) + ' ' + nm(h[1]) + '은(는) 눈빛만 봐도 호흡이 척척 맞았어요.' }; }
+    if (low.length) { var l = low.sort(function (a, b) { return a.v - b.v; })[0].p; line = { c: l[0], tone: 'bad', text: nm(l[0]) + jo(nm(l[0])) + ' ' + nm(l[1]) + ', 두 사람은 말없이 서로 다른 쪽만 봤어요.' }; }
+    else if (high.length && Math.random() < 0.6) { var h = high[Math.floor(Math.random() * high.length)].p; line = { c: h[0], tone: 'top', text: nm(h[0]) + jo(nm(h[0])) + ' ' + nm(h[1]) + ', 두 사람은 눈빛만 봐도 호흡이 척척 맞았어요.' }; }
     return { mul: mul, ng: ng, line: line, avg: Math.round(avg) };
   }
   // 활동이 끝난 뒤 친밀도 변화
