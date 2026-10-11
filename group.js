@@ -180,7 +180,8 @@
   function doActivity(id) {
     var s = load(); if (!s.group) return null;
     var act = actById(id); if (!act) return null;
-    if ((s.used[id] || 0) >= act.per) return { err: '오늘 ' + act.name + '은(는) 다 했어요 (하루 ' + act.per + '번). 내일 또 해요!' };
+    var capped = (s.used[id] || 0) >= act.per;   // 하루 횟수를 다 채웠으면 🥤 체력 음료로 추가 활동 가능
+    if (capped && s.potion < 1) return { err: '오늘 ' + act.name + '은(는) 다 했어요 (하루 ' + act.per + '번). 🥤 체력 음료가 있으면 더 할 수 있어요. 내일도 또 해요!' };
     if (s.free + s.potion < 1) return { err: '그룹 체력이 없어요. 체력 음료를 사거나 내일 다시 해요!' };
     var live = liveMembers(s);
     if (live.length < MIN_MEMBERS) return { err: '데뷔한 멤버가 ' + MIN_MEMBERS + '명 이상이어야 해요. 멤버를 바꿔주세요' };
@@ -207,7 +208,7 @@
     var lv0 = levelOf(s.fame);
     addCoins(coinGain);
     if (wish) { try { if (typeof wishFragments !== 'undefined') { wishFragments += wish; localStorage.setItem('ph_wish', wishFragments); } if (typeof addToBag === 'function') addToBag('🧩', '소원의 조각', 'wish', wish, '100개 모으면 소원의 결정! (현재: ' + (typeof wishFragments !== 'undefined' ? wishFragments : '?') + '개)'); } catch (e) {} }
-    if (s.free > 0) s.free--; else s.potion--;
+    if (s.free > 0 && !capped) s.free--; else s.potion--;
     if (ev && ev.stamina) { if (ev.stamina > 0) s.free += ev.stamina; else if (s.free > 0) s.free--; else if (s.potion > 0) s.potion--; }
     s.fame += fameGain; s.total += 1; s.used[id] = (s.used[id] || 0) + 1;
     var lv1 = levelOf(s.fame);
@@ -284,13 +285,13 @@
       var used = s.used[a.id] || 0, left = a.per - used;
       var r = ok ? reward(a, live, s.fame, false) : null;
       var need = Object.keys(a.w).map(function (k) { var st = STATS.filter(function (x) { return x.k === k; })[0]; return sicon(st, 13) + st.name; }).join(' · ');
-      var can = ok && left > 0 && sta > 0;
+      var extra = left <= 0 && s.potion > 0, can = ok && (left > 0 ? sta > 0 : s.potion > 0);
       return '<div style="display:flex;align-items:center;gap:10px;padding:10px 11px;margin-bottom:7px;border-radius:13px;background:rgba(255,255,255,0.06);border:1.5px solid ' + (best && best.id === a.id ? '#ffd76a' : 'rgba(255,255,255,0.12)') + ';">' +
         '<div style="width:46px;height:46px;flex-shrink:0;display:flex;align-items:center;justify-content:center;">' + aicon(a, 46) + '</div><div style="flex:1;min-width:0;">' +
         '<div style="font-size:13px;font-weight:900;">' + esc(a.name) + (best && best.id === a.id ? ' <span style="font-size:10px;color:#ffd76a;">⭐ 우리 그룹 강점</span>' : '') + '</div>' +
         '<div style="font-size:10.5px;color:#9fb0d0;margin-top:1px;">' + esc(a.desc) + '</div>' +
         '<div style="font-size:10.5px;color:#c9d6f0;margin-top:3px;">필요: ' + need + (r ? ' · 예상 <b style="color:#ffe08a;">' + TIERS[r.tier][1] + '</b> · 약 ' + fmt(r.coin) + ' 코인' + (a.wish ? ' · 🧩' : '') : '') + '</div></div>' +
-        '<button data-act="' + a.id + '" style="flex-shrink:0;padding:9px 11px;border:none;border-radius:11px;color:#fff;font-size:12px;font-weight:900;cursor:pointer;background:' + (can ? 'linear-gradient(135deg,#ff6b9d,#c084fc)' : 'rgba(255,255,255,0.12)') + ';' + (can ? '' : 'opacity:0.6;') + FONT + '">' + (left <= 0 ? '완료' : sta < 1 ? '체력 없음' : '하기 ' + used + '/' + a.per) + '</button></div>';
+        '<button data-act="' + a.id + '" style="flex-shrink:0;padding:9px 11px;border:none;border-radius:11px;color:#fff;font-size:12px;font-weight:900;cursor:pointer;background:' + (can ? 'linear-gradient(135deg,#ff6b9d,#c084fc)' : 'rgba(255,255,255,0.12)') + ';' + (can ? '' : 'opacity:0.6;') + FONT + '">' + (left <= 0 ? (extra ? '🥤 추가 하기' : '완료') : sta < 1 ? '체력 없음' : '하기 ' + used + '/' + a.per) + '</button></div>';
     }).join('');
     var logs = s.log.slice(0, 5).map(function (l) { return '<div style="padding:6px 0;border-top:1px solid rgba(255,255,255,0.08);font-size:11.5px;color:#dbe6ff;">' + esc(l.m) + '</div>'; }).join('');
     return '<div style="background:linear-gradient(135deg,rgba(74,168,255,0.18),rgba(124,92,255,0.18));border:1.5px solid rgba(124,196,255,0.5);border-radius:16px;padding:14px;margin-bottom:12px;">' +
