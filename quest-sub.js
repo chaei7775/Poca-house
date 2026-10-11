@@ -27,6 +27,17 @@
     sub_spa: { title: '컨디션 관리 받기', desc: '🏖 뷰티 살롱 → 컨디션 관리 (또는 스케줄·식사 화면)에서 에스테틱·헬스장·요가·필라테스를 받아봐. 데뷔 후에 열려.',
       condition: 'q3_spa', rewardCoins: 1000,
       detect: function () { return F.spa || (sum((J('ph_spa', {}) || {}).total) > 0 && flag('spa')); } },
+    sub_sched: { title: '아이돌 일정 잡기', desc: '📅 기획사 → 스케줄·식사에서 아이돌을 고르고 드라마 촬영·컴백 무대·휴식 일정 날짜를 눌러 잡아봐. 일정 날이 되면 컨디션에 따라 정산금을 받아.',
+      condition: 'q3_sched', rewardCoins: 500,
+      detect: function () {
+        if (F.sched) return true;
+        var ms = J('ph_meal', {}) || {};
+        var has = Object.keys(ms.sched || {}).length > 0 || localStorage.getItem('ph_schedBooked') === '1' || localStorage.getItem('ph_musicBooked') === '1';
+        return has && flag('sched');
+      } },
+    sub_day: { title: '하루 보내기', desc: '📅 스케줄·식사에서 끼니를 다 챙기고 🌙 하루 보내기를 눌러봐. 일정 날이 오면 정산받고, 컨디션도 조금씩 원래대로 돌아와.',
+      condition: 'q3_day', rewardCoins: 500,
+      detect: function () { return F.day || ((Number((J('ph_meal', {}) || {}).day) || 1) > 1 && flag('day')); } },
     sub_gift: { title: '친구에게 선물하기', desc: '👥 더보기 → 친구 → 친구 옆 🎁 선물 버튼으로 재료나 코인을 보내봐. (카드는 못 보내요)',
       condition: 'q3_gift', rewardCoins: 500,
       detect: function () { return F.gift || (!!(J('ph_gift', {}) || {}).sentEver && flag('gift')); } },
