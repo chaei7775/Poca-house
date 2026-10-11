@@ -44,5 +44,24 @@
     st.textContent = '#nav-shop.has-alert{position:relative;} #nav-shop.has-alert::after{content:"";position:absolute;top:3px;left:calc(50% + 8px);width:10px;height:10px;border-radius:50%;background:#ff4d6d;border:1.5px solid #fff;}';
     document.head.appendChild(st);
   })();
+
+  // 💓 설렘 이벤트를 열 수 있는 아이돌의 인연 카드(.bond-card)에 빨간 점 — 더보기 점만 있고 안에는 없어서 어디서 열지 몰랐음
+  function bondDots() {
+    try {
+      var R = window.PhRomance; if (!R) return;
+      var cards = document.querySelectorAll('.bond-card');
+      for (var i = 0; i < cards.length; i++) {
+        var c = cards[i], m = /openBondDetail\('([^']+)'\)/.exec(c.getAttribute('onclick') || ''), d = c.querySelector('.rom-dot');
+        var on = false; if (m) { try { on = !!(R.status(m[1]) && R.status(m[1]).ready); } catch (e) {} }
+        if (on && !d) {
+          if (getComputedStyle(c).position === 'static') c.style.position = 'relative';
+          d = document.createElement('span'); d.className = 'rom-dot';
+          d.style.cssText = 'position:absolute;top:6px;right:6px;width:13px;height:13px;border-radius:50%;background:#ff3b5c;border:2px solid #fff;pointer-events:none;z-index:3;';
+          c.appendChild(d);
+        } else if (!on && d) d.remove();
+      }
+    } catch (e) {}
+  }
+  setInterval(bondDots, 1500);
   setInterval(function () { var nav = document.getElementById('nav-shop'); if (nav) nav.classList.toggle('has-alert', any()); }, 1500);
 })();
