@@ -151,6 +151,14 @@
   function nameOfC(c) { try { return CHARS[c].name; } catch (e) { return c; } }
   function costTxt(id) { try { var c = window.__groupCond && window.__groupCond.COST[id]; if (c) return ' · ' + pimgU('meal-assets/ui/stamina.png', 13) + ' -' + c[0] + ' ' + pimgU('meal-assets/ui/mood.png', 13) + (c[1] < 0 ? ' ' + c[1] : ' +' + c[1]); } catch (e) {} return ''; }   // 멤버 체력·기분 소모 표시 (그림)
   function pimgU(src, px) { return '<img src="' + src + '" alt="" width="' + px + '" height="' + px + '" loading="lazy" decoding="async" style="width:' + px + 'px;height:' + px + 'px;object-fit:contain;vertical-align:-2px;">'; }
+  function condBars(cid) {   // 😴 멤버 체력·기분 막대 (관리탭 값, group-cond.js)
+    try {
+      var g = window.__groupCond && window.__groupCond.get(cid); if (!g) return '';
+      var ex = g.s < window.__groupCond.EXHAUST_S;
+      function bar(src, v, col) { return '<div style="display:flex;align-items:center;gap:3px;margin-top:2px;">' + pimgU(src, 11) + '<div style="flex:1;height:5px;border-radius:3px;background:rgba(255,255,255,0.15);overflow:hidden;"><div style="width:' + Math.max(0, Math.min(100, v)) + '%;height:100%;background:' + col + ';"></div></div></div>'; }
+      return '<div style="margin:3px auto 0;width:86%;max-width:84px;">' + bar('meal-assets/ui/stamina.png', g.s, g.s < 35 ? '#ff7b7b' : '#7fe8b0') + bar('meal-assets/ui/mood.png', g.m, g.m < 30 ? '#ff7b7b' : '#ffd76a') + (ex ? '<div style="font-size:9.5px;color:#ff9b9b;font-weight:900;margin-top:2px;">지쳐서 못 나와요</div>' : '') + '</div>';
+    } catch (e) { return ''; }
+  }
   function fitMembers(s) { var l = liveMembers(s); try { if (window.__groupCond) return l.filter(window.__groupCond.ok); } catch (e) {} return l; }   // 😴 체력이 바닥난 멤버는 활동에 못 나옴 (group-cond.js)
   function tiredMsg(s) { try { var t = window.__groupCond ? window.__groupCond.tired(liveMembers(s)) : []; if (t.length) return '😵 ' + t.map(nameOfC).join(', ') + ' 체력이 너무 낮아서 못 나와요. 관리탭에서 식사·휴식으로 채워주세요'; } catch (e) {} return '데뷔한 멤버가 ' + MIN_MEMBERS + '명 이상이어야 해요. 멤버를 바꿔주세요'; }
   function liveMembers(s) { return s.group.members.filter(function (c) { return debutedIds().indexOf(c) !== -1; }); }
@@ -303,7 +311,7 @@
     var live = liveMembers(s), ok = live.length >= MIN_MEMBERS, gs = ok ? groupStats(live) : null;
     var mh = g.members.length > 3 ? 108 : 130;   // 메인 화면 SD 전신 높이 (4명이면 작게)
     var mem = g.members.map(function (cid) {
-      return '<div style="position:relative;text-align:center;flex:1;min-width:0;"><div style="display:flex;justify-content:center;align-items:flex-end;height:' + mh + 'px;">' + sd(cid, mh - 4, null) + '</div><div style="font-size:11.5px;font-weight:900;margin-top:2px;">' + esc(name(cid)) + '</div><div style="font-size:10px;color:#9fb0d0;">인연 Lv.' + bond(cid) + '</div></div>';
+      return '<div style="position:relative;text-align:center;flex:1;min-width:0;"><div style="display:flex;justify-content:center;align-items:flex-end;height:' + mh + 'px;">' + sd(cid, mh - 4, null) + '</div><div style="font-size:11.5px;font-weight:900;margin-top:2px;">' + esc(name(cid)) + '</div><div style="font-size:10px;color:#9fb0d0;">인연 Lv.' + bond(cid) + '</div>' + condBars(cid) + '</div>';
     }).join('');
     var bars = gs ? STATS.map(function (st) {
       var v = Math.round(gs[st.k]);
