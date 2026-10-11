@@ -77,16 +77,17 @@
     photo:   ['{n}은 오늘 피부 컨디션이 역대급이었어요!'], drama: ['{n}은 오늘 감정이 제대로 올라왔어요!']
   };
   function statOfMeal(cid) { try { var st = (JSON.parse(localStorage.getItem('ph_meal') || '{}') || {}).stat || {}; return st[cid] || {}; } catch (e) { return {}; } }
-  function roll(actId, members) {
-    var items = [], mul = 1;
+  function roll(actId, members, perf) {   // perf: 직접 플레이 점수 0~1 (잘할수록 사고 확률·피해가 줄어든다. 아예 없어지진 않음)
+    var items = [], mul = 1, has = typeof perf === 'number';
+    var fP = has ? Math.max(0.3, Math.min(1.3, 1.3 - perf)) : 1, fM = has ? Math.max(0.2, Math.min(1, 1.2 - perf)) : 1, hw = !has ? 1 : perf >= 0.85 ? 0 : perf >= 0.6 ? 0.5 : 1;   // 사고 확률 배율 / 피해 배율 / 등급 하락 비중
     members.forEach(function (c) {
       var st = statOfMeal(c), low = (typeof st.s === 'number' && st.s < 40) || (typeof st.m === 'number' && st.m < 40);
       var r = Math.random();
-      if (r < (low ? HURT_P_LOW : HURT_P)) { items.push({ c: c, type: 'hurt', tpl: pick(H[actId] || H.stage) }); mul *= HURT_MUL; }
+      if (r < (low ? HURT_P_LOW : HURT_P) * fP) { items.push({ c: c, type: 'hurt', tpl: pick(H[actId] || H.stage) }); mul *= 1 - (1 - HURT_MUL) * fM; }
       else if (r > 1 - LUCK_P) { items.push({ c: c, type: 'luck', tpl: pick(L[actId] || L.stage) }); mul *= LUCK_MUL; }
     });
-    var net = 0; items.forEach(function (it) { net += it.type === 'luck' ? 1 : -1; });
-    return { mul: Math.max(0.55, Math.min(1.3, mul)), items: items, shift: Math.max(-2, Math.min(1, net)) };   // shift: 등급 변화 (사고 1명당 -1단계 최대 -2, 컨디션 최고 +1단계 최대 +1)
+    var net = 0; items.forEach(function (it) { net += it.type === 'luck' ? 1 : -hw; });
+    return { mul: Math.max(0.55, Math.min(1.3, mul)), items: items, shift: Math.max(-2, Math.min(1, Math.round(net))) };   // shift: 등급 변화 (사고 1명당 -1단계 최대 -2, 컨디션 최고 +1단계 최대 +1)
   }
   // 리포트에 랜덤 변수 줄을 덮어씌움 (해당 멤버의 기본 줄 대신)
   function overlay(rep, rl, nameOf) {

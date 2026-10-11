@@ -218,7 +218,7 @@
     var cEgg = window.__comboEgg || null, cBig = 0, cNg = 0;
     try { if (cEgg) { cBig = cEgg.bigBonus(live, id); cNg = cEgg.ng(live, id); } } catch (e) {}
     var bd = null; try { if (window.__groupBond) { bd = window.__groupBond.effect(live); cNg = Math.min(0.5, cNg + bd.ng); } } catch (e) {}   // 멤버 친밀도 (group-bond.js)
-    var rlPre = null; try { if (window.__groupReport) rlPre = window.__groupReport.roll(id, live); } catch (e) {}   // 멤버별 사고/컨디션을 먼저 굴림 (사고가 난 날엔 대성공이 안 뜨게)
+    var rlPre = null; try { if (window.__groupReport) rlPre = window.__groupReport.roll(id, live, pf); } catch (e) {}   // 멤버별 사고/컨디션을 먼저 굴림 (사고가 난 날엔 대성공이 안 뜨게)
     var hurt = !!(rlPre && rlPre.items && rlPre.items.some(function (it) { return it.type === 'hurt'; }));
     var big = !hurt && r0.tier >= MIN_BIG_TIER && (pf == null || pf >= BIG_MIN_PERF) && Math.random() < r0.bigChance + cBig + (pf != null ? (pf - 0.5) * 0.3 : 0);
     var ngHit = !big && cNg > 0 && Math.random() < cNg;   // 숨은 조합 NG (combo-egg.js)
