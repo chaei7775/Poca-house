@@ -9,7 +9,7 @@
 // ════════════════════════════════
 (function () {
   'use strict';
-  var KEY = 'ph_gbond', START = 50, DECAY_PER_DAY = 3, Z = 992;
+  var KEY = 'ph_gbond', START = 50, DECAY_PER_DAY = 3, GRACE_DAYS = 1, Z = 992;   // 챙긴 뒤 1일은 유지, 그다음부터 하루 DECAY 씩 하락
   var MEAL = { cost: 8000000, add: 6 }, TALK = { cost: 5000000, add: 12, per: 2 }, MEDI = { cost: 20000000, add: 25, below: 40 };
   var FONT = "font-family:'Noto Sans KR',sans-serif;";
   var NAMES = { minjun: '민준', sion: '시온', doyun: '도윤', harin: '하린', yuna: '윤아', ara: '아라' };
@@ -30,11 +30,22 @@
   function key(a, b) { return a < b ? a + '|' + b : b + '|' + a; }
   function cur(s, a, b) {
     var o = s.p[key(a, b)]; if (!o) return START;
-    var days = (Date.now() - o.t) / 86400000, dec = (window.__idolMgr && window.__idolMgr.decay) ? window.__idolMgr.decay() : DECAY_PER_DAY;
+    var days = Math.max(0, (Date.now() - o.t) / 86400000 - GRACE_DAYS), dec = (window.__idolMgr && window.__idolMgr.decay) ? window.__idolMgr.decay() : DECAY_PER_DAY;
     return Math.max(0, Math.min(100, Math.round(o.v - dec * days)));
   }
   function setv(s, a, b, v) { s.p[key(a, b)] = { v: Math.max(0, Math.min(100, v)), t: Date.now() }; }
-  function add(s, a, b, d) { setv(s, a, b, cur(s, a, b) + d); }
+  function add(s, a, b, d, keepT) {   // keepT=true: 활동 결과(사고/무사)는 값만 바꾸고 '챙긴 시각'은 그대로 → 활동만 해선 하락을 못 막는다
+    var k = key(a, b), o = s.p[k];
+    if (keepT) {
+      var v = cur(s, a, b) + d;
+      if (!o) { setv(s, a, b, v); s.p[k].t = Date.now() - GRACE_DAYS * 86400000; }   // 아직 한 번도 안 챙긴 짝: 이미 유예가 끝난 상태로 시작
+      else { o.v = Math.max(0, Math.min(100, o.v + d)); }
+      return;
+    }
+    setv(s, a, b, cur(s, a, b) + d);
+  }
+  // 마지막으로 챙긴 뒤 하락이 시작되기까지 남은 시간(ms). 0 이하면 이미 떨어지는 중
+  function graceLeft(s, a, b) { var o = s.p[key(a, b)]; if (!o) return GRACE_DAYS * 86400000; return o.t + GRACE_DAYS * 86400000 - Date.now(); }
   function pairs(ms) { var o = []; for (var i = 0; i < ms.length; i++) for (var j = i + 1; j < ms.length; j++) o.push([ms[i], ms[j]]); return o; }
   function members() { try { var g = (JSON.parse(localStorage.getItem('ph_group') || '{}') || {}).group; return g && Array.isArray(g.members) ? g.members : []; } catch (e) { return []; } }
   function money() { try { return Math.floor(coins); } catch (e) { return 0; } }
@@ -59,7 +70,7 @@
   // 활동이 끝난 뒤 친밀도 변화
   function after(live, rl, ngHit) {
     var s = load();
-    if (ngHit) pairs(live).forEach(function (p) { add(s, p[0], p[1], -3); });
+    if (ngHit) pairs(live).forEach(function (p) { add(s, p[0], p[1], -3, true); });
     else {
       var hurt = [], luck = [];
       ((rl && rl.items) || []).forEach(function (it) { (it.type === 'hurt' ? hurt : luck).push(it.c); });
@@ -67,7 +78,7 @@
         var d = 1;
         if (hurt.indexOf(p[0]) !== -1 || hurt.indexOf(p[1]) !== -1) d = -4;
         else if (luck.indexOf(p[0]) !== -1 || luck.indexOf(p[1]) !== -1) d = 2;
-        add(s, p[0], p[1], d);
+        add(s, p[0], p[1], d, true);
       });
     }
     save(s);
@@ -86,6 +97,7 @@
       var on = sel.length === 2 && key(sel[0], sel[1]) === key(o.p[0], o.p[1]);
       return '<div data-pair="' + o.p[0] + ',' + o.p[1] + '" style="display:flex;align-items:center;gap:8px;padding:7px 9px;margin-bottom:6px;border-radius:12px;cursor:pointer;background:' + (on ? 'rgba(255,215,106,.18)' : 'rgba(255,255,255,.06)') + ';border:1.5px solid ' + (on ? '#ffd76a' : 'rgba(255,255,255,.12)') + ';">' +
         face(o.p[0], 30) + face(o.p[1], 30) + '<div style="flex:1;min-width:0;"><div style="font-size:11.5px;font-weight:900;">' + esc(nm(o.p[0])) + ' ♥ ' + esc(nm(o.p[1])) + '</div>' +
+        '<div style="font-size:9.5px;margin-top:1px;color:' + (graceLeft(s, o.p[0], o.p[1]) > 0 ? '#9fb0d0' : '#ff9a9a') + ';">' + (graceLeft(s, o.p[0], o.p[1]) > 0 ? '챙김 유지 중 · ' + Math.ceil(graceLeft(s, o.p[0], o.p[1]) / 3600000) + '시간 뒤부터 하락' : '⚠️ 안 챙겨서 떨어지는 중!') + '</div>' +
         '<div style="height:6px;border-radius:4px;background:rgba(255,255,255,.12);margin-top:4px;overflow:hidden;"><div style="width:' + o.v + '%;height:100%;background:' + barColor(o.v) + ';"></div></div></div>' +
         '<div style="width:46px;text-align:right;font-size:12px;font-weight:900;color:' + barColor(o.v) + ';">' + heart(o.v) + ' ' + o.v + '</div></div>';
     }).join('');
@@ -94,7 +106,7 @@
     ov.innerHTML = '<div style="background:#14213d;border:1.5px solid #ff9ecb;border-radius:18px;width:100%;max-width:380px;max-height:90vh;display:flex;flex-direction:column;color:#fff;' + FONT + '">' +
       '<div style="padding:14px 16px 8px;display:flex;align-items:center;"><div style="font-size:16px;font-weight:900;">💞 멤버 친밀도</div><button id="gb-x" style="margin-left:auto;border:none;border-radius:10px;background:rgba(255,255,255,.1);color:#fff;padding:6px 12px;font-size:12px;font-weight:900;cursor:pointer;' + FONT + '">닫기</button></div>' +
       '<div style="padding:0 14px 16px;overflow-y:auto;-webkit-overflow-scrolling:touch;">' +
-      '<div style="font-size:11px;color:#cfd8f0;line-height:1.6;margin-bottom:8px;">친밀도가 높으면 활동 보상이 오르고, 낮으면 NG가 늘어요. <b>안 챙기면 하루에 ' + DECAY_PER_DAY + '씩 떨어져요.</b> 활동 중 사고가 나도 떨어져요. 짝을 눌러 고른 뒤 아래에서 챙겨요.<br>내 코인: <b style="color:#ffe08a;">🍔 ' + fmt(money()) + '</b></div>' + rows +
+      '<div style="font-size:11px;color:#cfd8f0;line-height:1.6;margin-bottom:8px;">친밀도가 높으면 활동 보상이 오르고, 낮으면 NG가 늘어요. <b>단체 식사나 둘이서 시간으로 챙기지 않으면 하루 ' + (window.__idolMgr && window.__idolMgr.decay ? window.__idolMgr.decay() : DECAY_PER_DAY) + '씩 떨어져요.</b> (챙긴 뒤 24시간은 유지) 활동만 해서는 못 막아요. 사고가 나도 떨어져요. 짝을 눌러 고른 뒤 아래에서 챙겨요.<br>내 코인: <b style="color:#ffe08a;">🍔 ' + fmt(money()) + '</b></div>' + rows +
       ab('gb-meal', '🍽️ 단체 식사 (🍔 ' + fmt(MEAL.cost) + ')', !s.meal, '모든 짝 +' + MEAL.add + ' · 하루 1번 ' + (s.meal ? '(완료)' : '')) +
       ab('gb-talk', '💬 둘이서 시간 (🍔 ' + fmt(TALK.cost) + ')', haveSel && s.talk < TALK.per, '고른 짝 +' + TALK.add + ' · 하루 ' + TALK.per + '번 (오늘 ' + s.talk + '/' + TALK.per + ')' + (haveSel ? '' : ' · 짝을 먼저 골라요')) +
       ab('gb-medi', '🕊️ 매니저 중재 (🍔 ' + fmt(mediCost()) + ')', haveSel && v < MEDI.below && !s.medi, '친밀도 ' + MEDI.below + ' 미만 짝 +' + mediAdd() + ' · 하루 1번 (매니저를 더 만날수록 강해지고 싸져요) ' + (s.medi ? '(완료)' : haveSel && v >= MEDI.below ? '· 이 짝은 아직 괜찮아요' : '')) +
