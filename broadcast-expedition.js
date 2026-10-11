@@ -493,7 +493,7 @@
     autoPotion();            // 🔄 자동 회복이 켜져 있으면 여기서 약을 마신다 (HP 0이 돼도 쓰러지기 전에 막을 수 있음)
     return dmg;
   }
-  // 쓰러지면 이번 원정에서 얻은 코인 · 아이템 · 등교권을 전부 잃고 맵에서 쫓겨난다 (카드 EXP는 되돌릴 수 없어 그대로)
+  // 쓰러지면 이번 원정에서 얻은 코인 · 아이템 · 등교권을 잃고 (회복약·프리미엄 조각은 제외) 맵에서 쫓겨난다 (카드 EXP는 되돌릴 수 없어 그대로)
   function faint() {
     if (!S || S.fainted) return;
     S.fainted = true; S.paused = true; S.moving = false;
@@ -504,6 +504,7 @@
       var snap = S.snap ? S.snap.items : {};
       bagItems.slice().forEach(function (i) {
         if (POTIONS.some(function (po) { return po.name === i.name; })) return;       // 회복약은 안 사라짐
+        if (i.name === PIECE_NAME || i.name === OLD_PIECE_NAME) return;                // 🖼️ 프리미엄 조각도 안 사라짐 (상자에서 나온 조각이 쓰러질 때 같이 날아가던 문제)
         var gained = (Number(i.qty) || 0) - (snap[i.name] || 0);
         if (gained > 0) {
           if (typeof useFromBag === 'function') useFromBag(i.name, gained);
