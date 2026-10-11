@@ -94,9 +94,9 @@
         '<div style="width:100%;max-width:420px;position:relative;height:34px;border-radius:17px;background:rgba(255,255,255,.14);overflow:hidden;">' +
         '<div style="position:absolute;top:0;bottom:0;left:' + ((mid - half) * 100) + '%;width:' + (half * 200) + '%;background:rgba(110,231,160,.55);"></div>' +
         '<div id="gd-fill" style="position:absolute;top:0;bottom:0;left:0;width:0;border-radius:17px;background:linear-gradient(90deg,#ff8fb8,' + ACC + ');opacity:.85;"></div></div>' +
-        '<div style="width:100%;max-width:420px;display:flex;justify-content:space-between;font-size:11px;color:#c9b8c2;margin-top:4px;"><span>담담</span><span>🟩 초록에서 손 떼기</span><span>과잉</span></div>' +
+        '<div style="width:100%;max-width:420px;display:flex;justify-content:space-between;font-size:11px;color:#c9b8c2;margin-top:4px;"><span>담담</span><span>'+gi('grp-ok.png', 13)+' 초록에서 손 떼기</span><span>과잉</span></div>' +
         '<div style="flex:1;min-height:12px;"></div>' +
-        '<button id="gd-hold" style="width:100%;max-width:420px;padding:26px;border:0;border-radius:18px;font-size:19px;font-weight:900;color:#fff;background:linear-gradient(135deg,' + ACC + ',#a855f7);touch-action:none;-webkit-touch-callout:none;">🎬 감정 꾹 누르기</button>';
+        '<button id="gd-hold" style="width:100%;max-width:420px;padding:26px;border:0;border-radius:18px;font-size:19px;font-weight:900;color:#fff;background:linear-gradient(135deg,' + ACC + ',#a855f7);touch-action:none;-webkit-touch-callout:none;">'+gi('grp-clap.png', 22)+' 감정 꾹 누르기</button>';
       bindX();
       var fill = ov.querySelector('#gd-fill'), btn = ov.querySelector('#gd-hold'), t0 = 0, holding = false;
       function tick(now) {
@@ -115,7 +115,7 @@
       if (phase !== 'act' || finished) return;
       phase = 'result'; cancelAnimationFrame(raf);
       var z = cur.zone, take = cur.take, msg, s, ng = false;
-      if (v >= 0.999) { ng = true; s = 0.05; msg = '💥 감정 과잉! NG!'; }
+      if (v >= 0.999) { ng = true; s = 0.05; msg = gi('grp-ng.png', 20) + ' 감정 과잉! NG!'; }
       else {
         var d = Math.abs(v - z.mid), tm = d <= z.half / 3 ? 1 : d <= z.half ? 0.75 : d <= z.half * 2 ? 0.4 : 0.1;
         s = tm; msg = tm === 1 ? '✨ 완벽한 연기! 컷, OK!' : tm === 0.75 ? '좋아요! 한 번에 OK' : tm === 0.4 ? '조금 아쉬운 연기…' : (v < z.mid ? '감정이 너무 약했어요…' : '감정이 너무 셌어요…');

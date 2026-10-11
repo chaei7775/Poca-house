@@ -76,7 +76,7 @@
         return '<button data-c="' + c + '" ' + (left <= 0 ? 'disabled' : '') + ' style="width:calc(50% - 5px);box-sizing:border-box;border-radius:16px;border:2px solid ' + (left > 0 ? 'rgba(255,255,255,.28)' : 'rgba(255,255,255,.08)') + ';background:' + (left > 0 ? 'rgba(255,255,255,.1)' : 'rgba(255,255,255,.04)') + ';color:#fff;padding:8px 4px 10px;opacity:' + (left > 0 ? 1 : .4) + ';touch-action:manipulation;">' +
           '<img src="' + sdSrc(c) + '" alt="" height="92" style="height:92px;width:auto;display:block;margin:0 auto 4px;" onerror="this.onerror=null;this.src=\'group-assets/sd/' + c + '.png\'">' +
           '<div style="font-size:14px;font-weight:900;">' + nameOf(c) + '</div>' +
-          '<div style="font-size:12px;color:' + GOLD + ';margin-top:2px;">' + wLabel(cr.w) + ' ' + s + (bonus ? ' <span style="color:#ffb3cb;">🐾+' + ANIMAL_PLUS + '</span>' : '') + '</div>' +
+          '<div style="font-size:12px;color:' + GOLD + ';margin-top:2px;">' + wLabel(cr.w) + ' ' + s + (bonus ? ' <span style="color:#ffb3cb;">' + gi('grp-paw.png', 13) + '+' + ANIMAL_PLUS + '</span>' : '') + '</div>' +
           '<div style="font-size:11px;color:#c9c2e0;margin-top:2px;">' + (left > 0 ? '출연 가능 ' + left + '번' : '쉬는 중') + '</div></button>';
       }).join('');
       ov.innerHTML = head() +
