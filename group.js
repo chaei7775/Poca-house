@@ -112,9 +112,11 @@
     var gs = groupStats(members), p = powerOf(act, gs), ti = tierOf(p), lv = levelOf(fame);
     var mb = (act.mb != null ? act.mb : MEMBER_BONUS);
     var mult = (1 + mb * (n - 1)) * (1 + BOND_BONUS * (avgBond / 20)) * (1 + LEVEL_BONUS * lv) * TIERS[ti][2];
+    var cm = 1; try { if (window.__comboEgg) cm = window.__comboEgg.mult(members, act.id); } catch (e) {}   // 숨은 조합 효과 (combo-egg.js)
+    mult *= cm;
     return {
       coin: Math.floor(act.coin * PAY_MULT * mult * (big ? BIG_MULT : 1)),
-      fame: Math.floor((act.fame + FAME_PER_MEMBER * n) * (big ? 1.5 : 1)),
+      fame: Math.floor((act.fame + FAME_PER_MEMBER * n) * (big ? 1.5 : 1) * cm),
       power: p, tier: ti, bigChance: Math.min(BIG_MAX, BIG_BASE + p * BIG_PER_POWER), wishChance: act.wish ? Math.min(0.9, 0.25 + p / 150) : 0
     };
   }
@@ -201,6 +203,7 @@
     s.fame += fameGain; s.total += 1; s.used[id] = (s.used[id] || 0) + 1;
     var lv1 = levelOf(s.fame);
     var line = pick(LINES[id]).replace(/\{m\}/g, names(live)).replace(/\{g\}/g, s.group.name) + (big ? ' ' + pick(BIG_LINE) : '');
+    try { if (window.__comboEgg) { var ch = window.__comboEgg.hint(live, id); if (ch) line += ' ' + ch; } } catch (e) {}
     s.log.unshift({ t: Date.now(), m: act.icon + ' ' + act.name + ' (' + TIERS[r.tier][1] + (big ? '·대성공' : '') + ') +' + fmt(coinGain) + ' 코인' + (wish ? ' · 🧩' + wish : '') + (ev && ev.kind !== 'choice' ? ' · ' + ev.t.split(' ')[0] : '') });
     save(s);
     return { act: act, big: big, ev: ev, coin: coinGain, fame: fameGain, wish: wish, tier: TIERS[r.tier][1], line: line, levelUp: lv1 > lv0 ? LEVELS[lv1][1] : '', members: live };
