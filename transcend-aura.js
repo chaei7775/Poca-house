@@ -70,11 +70,7 @@
     if (n <= 0) return;
     ensureStyle();
     p.style.setProperty('--tr-c', COLORS[n]);
-    p.classList.add('tr-aura', 'tr-s' + n);
-    var circle = document.createElement('div');
-    circle.className = 'tr-circle';
-    circle.innerHTML = '<div class="tr-ring1"></div><div class="tr-ring2"></div>';
-    p.insertBefore(circle, p.firstChild);
+    p.classList.add('tr-s' + n);   // 파란 점선 원·테두리 빛은 뺌 (그룹 투자 마법진 그림이 안 보여서) — ★ 표시만 남김
     var mark = document.createElement('div');
     mark.className = 'tr-mark';
     mark.textContent = new Array(n + 1).join('★');
