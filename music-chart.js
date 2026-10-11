@@ -41,7 +41,8 @@
   var SHOW_RANK = 50;                  // 🎤 음악방송 출전 가능 순위 (이 순위 안이면 출전)
   var SHOW_UP = [8, 13], SHOW_DOWN = [5, 9];   // 📈 대결 결과 점수 가감 [보통, 크게] — 이기면 올라가고 지면 내려감 (3일간)
   var SHOW_PAY = [[1, 1], [3, 0.7], [10, 0.4], [30, 0.2], [50, 0.1]];   // 이긴 뒤 순위별 코인 비율 (WIN_PAY 기준)
-  var WIN_PAY = 500000 * PAY_MULT, SHOW_WISH = 3;
+  var SHOW_MULT = 3;                   // 💰 음악방송 보상 배율 (이긴 뒤 코인 · 앵콜 코인에 곱함)
+  var WIN_PAY = 500000 * PAY_MULT * SHOW_MULT, SHOW_WISH = 3;
 
   // ════════ 도우미 ════════
   function J(k, d) { try { var v = JSON.parse(localStorage.getItem(k) || 'null'); return v === null ? d : v; } catch (e) { return d; } }
@@ -376,7 +377,7 @@
     if (!s.show || !s.show.res || !(s.show.res.first === undefined ? s.show.res.win : s.show.res.first) || s.show.enc) return null;
     s.show.enc = hits;
     var out = { hits: hits, coins: 0, card: false };
-    if (hits >= 1) { out.coins = hits * 100000 * PAY_MULT; addCoins(out.coins); }
+    if (hits >= 1) { out.coins = hits * 100000 * PAY_MULT * SHOW_MULT; addCoins(out.coins); }
     if (hits >= 3) { out.card = true; try { if (typeof addToBag === 'function') addToBag('🏆', '1위 기념 트로피 포토카드', 'material', 1, '음악방송 1위 앵콜 대성공 기념 포토카드'); } catch (e) {} }
     save(s); return out;
   }
