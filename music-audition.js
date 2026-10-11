@@ -28,7 +28,7 @@
     var cid = opt.cid, ended = false, timers = [];
     var ov = document.createElement('div');
     ov.id = 'aud-ov';
-    ov.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;width:100vw;height:100vh;height:100dvh;z-index:99998;background:radial-gradient(circle at 50% 30%,#3a1b5e 0%,#0b0714 78%);color:#fff;font-family:inherit;display:flex;flex-direction:column;align-items:center;padding:14px 14px 18px;box-sizing:border-box;touch-action:manipulation;user-select:none;-webkit-user-select:none;';
+    ov.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;width:100vw;height:100vh;height:100dvh;z-index:99998;background:radial-gradient(circle at 50% 30%,#3a1b5e 0%,#0b0714 78%);color:#fff;font-family:inherit;display:flex;flex-direction:column;align-items:center;padding:14px 14px 18px;box-sizing:border-box;touch-action:none;user-select:none;-webkit-user-select:none;';
     document.body.appendChild(ov);
 
     var stage = 0, seq = [], pos = 0, combo = 0, bestCombo = 0, total = 0, tStart = 0, tLimit = 0, raf = 0, phase = 'intro';
@@ -64,10 +64,20 @@
       var a = ARROWS.filter(function (x) { return x.k === k; })[0];
       b.textContent = a.s;
       b.style.cssText = 'width:84px;height:84px;border-radius:20px;border:2px solid rgba(255,255,255,.25);background:rgba(255,255,255,.1);font-size:34px;touch-action:manipulation;';
-      b.addEventListener('pointerdown', function (e) { e.preventDefault(); press(k); });
+      b.setAttribute('data-k', k);
       $('aud-pad').appendChild(b);
     });
     $('aud-pose').addEventListener('pointerdown', function (e) { e.preventDefault(); pose(); });
+    // 👆 터치 입력: 패드 버튼을 톡 누르거나, 화면 아무 데서나 상하좌우로 밀면(스와이프) 입력됨
+    var sx = 0, sy = 0, sTarget = null, SWIPE = 28, TAP = 16;
+    ov.addEventListener('pointerdown', function (e) { sx = e.clientX; sy = e.clientY; sTarget = e.target; });
+    ov.addEventListener('pointerup', function (e) {
+      if (!sTarget || sTarget.closest('#aud-pose') || sTarget.closest('#aud-x') || sTarget.closest('#aud-seq button')) { sTarget = null; return; }
+      var dx = e.clientX - sx, dy = e.clientY - sy, d = Math.sqrt(dx * dx + dy * dy), btn = sTarget.closest('[data-k]');
+      sTarget = null;
+      if (d <= TAP && btn) press(btn.getAttribute('data-k'));
+      else if (d >= SWIPE) press(Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'R' : 'L') : (dy > 0 ? 'D' : 'U'));
+    });
 
     function setMsg(h, c) { var m = $('aud-msg'); if (m) { m.innerHTML = h || ''; m.style.color = c || GOLD; } }
     function setCombo() { var c = $('aud-combo'); if (c) c.textContent = combo >= 2 ? combo + ' COMBO!' : ''; }
@@ -75,7 +85,7 @@
     // ── 인트로 ──
     function intro() {
       phase = 'intro';
-      $('aud-seq').innerHTML = '<div style="font-size:14px;line-height:1.7;text-align:center;color:#e8e8f4;">나오는 <b>화살표 순서대로</b><br>제한시간 안에 눌러요!<br>다 누르면 <b>💃 포즈</b> 타이밍을 맞춰요.<br><span style="color:#ffb3cb;font-size:12px;">틀리면 그 스테이지는 MISS · 연속 성공하면 콤보 보너스</span></div>';
+      $('aud-seq').innerHTML = '<div style="font-size:14px;line-height:1.7;text-align:center;color:#e8e8f4;">나오는 <b>화살표 순서대로</b><br>아래 버튼을 톡 누르거나, <b>화면에서 그 방향으로 밀어요</b>!<br>제한시간 안에 끝내요!<br>다 누르면 <b>💃 포즈</b> 타이밍을 맞춰요.<br><span style="color:#ffb3cb;font-size:12px;">틀리면 그 스테이지는 MISS · 연속 성공하면 콤보 보너스</span></div>';
       var go = document.createElement('button');
       go.textContent = '🎶 무대 시작!';
       go.style.cssText = 'margin-top:8px;padding:12px 26px;border:0;border-radius:14px;font-size:16px;font-weight:900;color:#fff;background:linear-gradient(135deg,' + ACC + ',#a855f7);';
