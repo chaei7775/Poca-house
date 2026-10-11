@@ -85,7 +85,8 @@
       if (r < (low ? HURT_P_LOW : HURT_P)) { items.push({ c: c, type: 'hurt', tpl: pick(H[actId] || H.stage) }); mul *= HURT_MUL; }
       else if (r > 1 - LUCK_P) { items.push({ c: c, type: 'luck', tpl: pick(L[actId] || L.stage) }); mul *= LUCK_MUL; }
     });
-    return { mul: Math.max(0.55, Math.min(1.3, mul)), items: items };
+    var net = 0; items.forEach(function (it) { net += it.type === 'luck' ? 1 : -1; });
+    return { mul: Math.max(0.55, Math.min(1.3, mul)), items: items, shift: Math.max(-2, Math.min(1, net)) };   // shift: 등급 변화 (사고 1명당 -1단계 최대 -2, 컨디션 최고 +1단계 최대 +1)
   }
   // 리포트에 랜덤 변수 줄을 덮어씌움 (해당 멤버의 기본 줄 대신)
   function overlay(rep, rl, nameOf) {

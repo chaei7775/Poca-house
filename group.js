@@ -192,8 +192,8 @@
     var wish = (act.wish && Math.random() < r.wishChance) ? (big ? 2 : 1) : 0;
     var ev = null; if (s.ev < EV_DAILY && Math.random() < EV_CHANCE) { ev = rollEvent(r.tier); s.ev++; }
     var coinGain = r.coin, fameGain = r.fame;
-    var rl = null;
-    try { if (!ngHit && window.__groupReport) { rl = window.__groupReport.roll(id, live); coinGain = Math.floor(coinGain * rl.mul); fameGain = Math.floor(fameGain * rl.mul); } } catch (e) {}   // 멤버별 랜덤 변수 (컨디션/사고)
+    var rl = null, effTier = r.tier;
+    try { if (!ngHit && window.__groupReport) { rl = window.__groupReport.roll(id, live); coinGain = Math.floor(coinGain * rl.mul); fameGain = Math.floor(fameGain * rl.mul); effTier = Math.max(0, Math.min(TIERS.length - 1, r.tier + rl.shift)); } } catch (e) {}   // 멤버별 랜덤 변수 (컨디션/사고)
     if (ngHit) { coinGain = 0; fameGain = Math.floor(r.fame * 0.3); wish = 0; ev = null; }
     if (ev && ev.kind !== 'choice') {
       if (ev.coinMul) coinGain = Math.max(0, Math.floor(r.coin * (1 + ev.coinMul)));
@@ -213,11 +213,11 @@
     if (ngHit) { try { line = cEgg.ngLine(); } catch (e) {} }
     try { if (window.__comboEgg) { var ch = ngHit ? '' : window.__comboEgg.hint(live, id); if (ch) line += ' ' + ch; } } catch (e) {}
     var report = null;
-    try { if (window.__groupReport) report = window.__groupReport.make(id, live, name, function (c) { return powerOf(act, { vocal: statOf(c, 'vocal'), dance: statOf(c, 'dance'), act: statOf(c, 'act'), fun: statOf(c, 'fun'), charm: statOf(c, 'charm') }); }, r.tier, big, ngHit); } catch (e) {}
+    try { if (window.__groupReport) report = window.__groupReport.make(id, live, name, function (c) { return powerOf(act, { vocal: statOf(c, 'vocal'), dance: statOf(c, 'dance'), act: statOf(c, 'act'), fun: statOf(c, 'fun'), charm: statOf(c, 'charm') }); }, effTier, big, ngHit); } catch (e) {}
     try { if (rl && report) window.__groupReport.overlay(report, rl, name); } catch (e) {}
-    s.log.unshift({ t: Date.now(), m: act.icon + ' ' + act.name + ' (' + TIERS[r.tier][1] + (big ? '·대성공' : '') + (ngHit ? '·NG' : '') + ') +' + fmt(coinGain) + ' 코인' + (wish ? ' · 🧩' + wish : '') + (ev && ev.kind !== 'choice' ? ' · ' + ev.t.split(' ')[0] : '') });
+    s.log.unshift({ t: Date.now(), m: act.icon + ' ' + act.name + ' (' + TIERS[effTier][1] + (big ? '·대성공' : '') + (ngHit ? '·NG' : '') + ') +' + fmt(coinGain) + ' 코인' + (wish ? ' · 🧩' + wish : '') + (ev && ev.kind !== 'choice' ? ' · ' + ev.t.split(' ')[0] : '') });
     save(s);
-    return { act: act, big: big, ev: ev, coin: coinGain, fame: fameGain, wish: wish, tier: TIERS[r.tier][1], line: line, levelUp: lv1 > lv0 ? LEVELS[lv1][1] : '', members: live, report: report, ng: ngHit };
+    return { act: act, big: big, ev: ev, coin: coinGain, fame: fameGain, wish: wish, tier: TIERS[effTier][1], line: line, levelUp: lv1 > lv0 ? LEVELS[lv1][1] : '', members: live, report: report, ng: ngHit };
   }
 
   // ── 화면 ──
