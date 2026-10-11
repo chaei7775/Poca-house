@@ -15,7 +15,7 @@
   var NAMES = { minjun: '민준', sion: '시온', doyun: '도윤', harin: '하린', yuna: '윤아', ara: '아라' };
   // 매니저 스킬: 만난 전담 매니저가 많을수록 중재가 강하고 싸진다 (ph_manager: actMet 배우 / topMet 탑스타)
   function mgrTier() { try { var m = JSON.parse(localStorage.getItem('ph_manager') || '{}') || {}; return (m.topMet ? 1 : 0) + (m.actMet ? 1 : 0); } catch (e) { return 0; } }
-  function mediCost() { return Math.floor(MEDI.cost * [1, 0.8, 0.6][mgrTier()] / 100000) * 100000; }
+  function mediCost() { var d = (window.__idolMgr && window.__idolMgr.mediDiscount) ? window.__idolMgr.mediDiscount() : 1; return Math.floor(MEDI.cost * [1, 0.8, 0.6][mgrTier()] * d / 100000) * 100000; }
   function mediAdd() { return MEDI.add + 5 * mgrTier(); }
   function nm(c) { try { return CHARS[c].name; } catch (e) { return NAMES[c] || c; } }
   function today() { var d = new Date(); return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate(); }
@@ -30,8 +30,8 @@
   function key(a, b) { return a < b ? a + '|' + b : b + '|' + a; }
   function cur(s, a, b) {
     var o = s.p[key(a, b)]; if (!o) return START;
-    var days = (Date.now() - o.t) / 86400000;
-    return Math.max(0, Math.min(100, Math.round(o.v - DECAY_PER_DAY * days)));
+    var days = (Date.now() - o.t) / 86400000, dec = (window.__idolMgr && window.__idolMgr.decay) ? window.__idolMgr.decay() : DECAY_PER_DAY;
+    return Math.max(0, Math.min(100, Math.round(o.v - dec * days)));
   }
   function setv(s, a, b, v) { s.p[key(a, b)] = { v: Math.max(0, Math.min(100, v)), t: Date.now() }; }
   function add(s, a, b, d) { setv(s, a, b, cur(s, a, b) + d); }
