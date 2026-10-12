@@ -44,7 +44,7 @@
   var im = null, imOk = false, tints = {}, dimg = null, dOk = false;
   function tinted(col) {
     if (tints[col]) return tints[col];
-    var S = 128, cv = document.createElement('canvas'); cv.width = cv.height = S;
+    var S = 256, cv = document.createElement('canvas'); cv.width = cv.height = S;
     var g = cv.getContext('2d'); g.drawImage(im, 0, 0, S, S); 
     return (tints[col] = cv);
   }
@@ -56,12 +56,11 @@
     var SC = [1, 0.72, 0.5], SP = [0.35, -0.55, 0.9];
     c.save();
     c.translate(x, y + R * 0.85); c.scale(1, 0.62);
-    c.globalCompositeOperation = 'lighter';
+    c.globalCompositeOperation = 'source-over';   // 'lighter' 는 밝은 배경에서 하얗게 번져 선이 두꺼워 보임
     for (var i = 0; f && i < f.n; i++) {
       var col = f.cols[i % f.cols.length], rr = R * 5.2 * SC[i];
-      c.save(); c.rotate((t || 0) * SP[i]); c.globalAlpha = 1;
-      c.drawImage(tinted(col), -rr, -rr, rr * 2, rr * 2);
-      c.drawImage(tinted(col), -rr, -rr, rr * 2, rr * 2);   // 두 번 겹쳐 그려서 더 진하고 또렷하게
+      c.save(); c.rotate((t || 0) * SP[i]); c.globalAlpha = 0.85;
+      c.drawImage(tinted(col), -rr, -rr, rr * 2, rr * 2);   // 한 번만 (두 번 겹치면 선이 두꺼워 보임)
       c.restore();
     }
     // 🌑 은백색 마법진(초월): 금빛의 0.6배 크기, 반대 방향으로 빠르게 + 반짝이
