@@ -24,7 +24,7 @@
   var WORLD_W = 2.1, WORLD_H = 1.6;     // 무대 크기 (화면 대비)
   var SPEED = [95, 140];        // 멤버 걷는 속도 범위(px/초)
   var W_TRACK = 0.35, W_SHOT = 0.65;    // 점수 비중
-  var MISS_LOCK = 0.7;          // 헛찍 뒤 셔터 잠기는 시간(초)
+  var MISS_LOCK = 0.7;          // MISS 뒤 셔터 잠기는 시간(초)
   var BGS = ['drama/bg/paris.jpg', 'drama/bg/hollywood.jpg'];
   var POSES = ['smile', 'cry', 'fist'];
   var POSE_TXT = { smile: '환한 미소!', cry: '눈물 연기!', fist: '결의의 주먹!' };
@@ -87,7 +87,7 @@
     intro.innerHTML = '<div style="width:100%;max-width:330px;text-align:center;">' +
       '<div style="font-size:46px;">🎥</div><div style="font-size:20px;font-weight:900;margin:4px 0;">카메라 시점 촬영</div>' +
       '<div style="text-align:left;background:rgba(255,255,255,.09);border-radius:14px;padding:12px 14px;font-size:13px;line-height:1.8;color:#f1e9ff;">' +
-      '· 화면을 <b>끌어서</b> 카메라를 움직여요<br>· 걸어 다니는 멤버를 <b>파인더 안에</b> 담아요<br>· <b style="color:#ffd76a">✨ 결정적 포즈</b>가 뜨는 순간 <b>📸 셔터</b>!<br>· 가운데에 담고 빨리 찍을수록 <b>PERFECT</b><br>· 아무 때나 찍으면 헛찍! 잠깐 못 찍어요</div>' +
+      '· 화면을 <b>끌어서</b> 카메라를 움직여요<br>· 걸어 다니는 멤버를 <b>파인더 안에</b> 담아요<br>· <b style="color:#ffd76a">✨ 결정적 포즈</b>가 뜨는 순간 <b>📸 셔터</b>!<br>· 가운데에 담고 빨리 찍을수록 <b>PERFECT</b><br>· 아무 때나 찍으면 MISS! 잠깐 못 찍어요</div>' +
       '<button id="wcam-go" style="width:100%;margin-top:14px;padding:14px;border:none;border-radius:13px;background:linear-gradient(135deg,#f43f5e,#a855f7);color:#fff;font-size:16px;font-weight:900;cursor:pointer;">촬영 시작!</button></div>';
     ov.appendChild(intro);
     intro.querySelector('#wcam-go').onclick = function () { intro.remove(); S.started = true; shutter.style.display = 'block'; last = performance.now(); };
@@ -101,7 +101,7 @@
       if (S.moment >= 0 && S.momentT > 0 && S.shot) return;   // 이미 찍은 순간에 또 누르면 무시 (헛찍 아님)
       S.flash = 0.25; sfx('shutter');
       var inMoment = S.moment >= 0 && S.momentT > 0 && !S.shot;
-      if (!inMoment) { S.lock = MISS_LOCK; pop('헛찍!', '#ff8fa3', W / 2, fy + fh + 30); return; }
+      if (!inMoment) { S.lock = MISS_LOCK; pop('MISS', '#ff8fa3', W / 2, fy + fh + 30); return; }
       S.shot = true;
       var sx = A.x - cam.x, sy = A.y - A.h * 0.45 - cam.y;
       var inside = sx > fx && sx < fx + fw && sy > fy && sy < fy + fh;
