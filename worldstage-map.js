@@ -58,6 +58,7 @@ var TYPES = ['cam', 'react', 'cam', 'tour', 'react', 'cam', 'cam'];   // 이벤�
     var cv = wrap.querySelector('canvas'), g = cv.getContext('2d');
     function q(c) { return wrap.querySelector('.' + c); }
     function load(src, fb) { var i = new Image(); i.onerror = function () { if (fb && !i.__fb) { i.__fb = 1; i.src = fb; } }; i.src = src; return i; }
+    var SPI = {}; ['cam', 'tour', 'react', 'npc'].forEach(function (k) { SPI[k] = load(imgBase + 'wspot-' + k + '.png'); });
     var IM = { bg: load(imgBase + 'special-world_stage.jpg', imgBase + 'special-world_tour.jpg'), face: load(ctx.face || (imgBase + 'face-' + cid + '.png')) };
     function okI(i) { return i && i.complete && i.naturalWidth > 0; }
 
@@ -143,7 +144,7 @@ var TYPES = ['cam', 'react', 'cam', 'tour', 'react', 'cam', 'cam'];   // 이벤�
         var bob = e.done ? 0 : Math.sin(S.t * 3 + e.x) * 4;
         g.beginPath(); g.arc(x, y + 6, 26, 0, 7); g.fillStyle = e.done ? 'rgba(0,0,0,.4)' : 'rgba(255,215,0,.28)'; g.fill();
         g.font = '30px sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillStyle = '#fff';
-        g.fillText(e.done ? '✅' : ICON[e.t], x, y + bob);
+        if (!e.done && okI(SPI[e.t])) g.drawImage(SPI[e.t], x - 30, y + bob - 30, 60, 60); else g.fillText(e.done ? '✅' : ICON[e.t], x, y + bob);
         if (!e.done) { g.font = '900 13px "Noto Sans KR",sans-serif'; g.lineWidth = 3; g.strokeStyle = '#000'; g.strokeText('❗ ' + LABEL[e.t], x, y - 34 + bob); g.fillStyle = '#ffe27a'; g.fillText('❗ ' + LABEL[e.t], x, y - 34 + bob); }
         g.globalAlpha = 1;
       });
