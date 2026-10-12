@@ -27,6 +27,7 @@
   ];
   var RARE = { 4: 1, 2: 1 };   // 이 가중치(방지권·에픽)는 '대박' 연출
   var IMG_BASE = 'https://raw.githubusercontent.com/chaei7775/Poca-house/main/';
+  var BIG_CHANCE = 0.10, BIG_MUL = 3;   // ✨ 대성공: 이 확률로 나온 개수가 BIG_MUL 배
   var MAX_ROLLS = 20;   // 한 번에 최대 몇 번 돌릴 수 있는지
 
   function $(id) { return document.getElementById(id); }
@@ -38,6 +39,11 @@
     var r = Math.random() * t;
     for (var i = 0; i < POOL.length; i++) { if (r < POOL[i].w) return POOL[i]; r -= POOL[i].w; }
     return POOL[0];
+  }
+  function roll() {   // 한 번 돌리기: 기본 결과 + 10% 확률로 3배
+    var p = pick();
+    if (Math.random() < BIG_CHANCE) { var n = p.n * BIG_MUL; p = Object.assign({}, p, { n: n, big: true, txt: p.txt.replace(/×\d+/, '×' + n) + ' ✨' + BIG_MUL + '배!' }); }
+    return p;
   }
   function give(res) {   // 결과 지급 (돌린 결과 목록)
     var stone = 0, protect = 0, wish = 0, items = {};
@@ -127,7 +133,7 @@
     }, t1);
     // ③ 펑! 아이템이 튀어나옴
     T(function () {
-      pot.style.animation = ''; say.style.animation = ''; say.textContent = rare ? '🎉 대박이 나왔어요!' : '완성!'; sfx(rare ? 'levelup' : 'reward');
+      pot.style.animation = ''; say.style.animation = ''; say.textContent = outs.some(function (p) { return p.big; }) ? '✨ 3배 대성공!' : rare ? '🎉 대박이 나왔어요!' : '완성!'; sfx(rare ? 'levelup' : 'reward');
       var fl = document.createElement('div'); fl.style.cssText = 'position:absolute;inset:0;background:' + (rare ? 'radial-gradient(circle,#fff6c2,#ffd24a 50%,transparent 80%)' : 'radial-gradient(circle,#fff,transparent 70%)') + ';pointer-events:none;animation:mxFlash .6s ease-out forwards;';
       ov.appendChild(fl); setTimeout(function () { fl.remove(); }, 650);
       var seen = {}, uniq = []; outs.forEach(function (p) { if (!seen[p.txt]) { seen[p.txt] = 1; uniq.push(p); } });
@@ -135,7 +141,7 @@
       uniq.forEach(function (p, i) {
         var ang = (-160 + (140 * (uniq.length === 1 ? 0.5 : i / (uniq.length - 1)))) * Math.PI / 180, R = 95 + (i % 2) * 22;
         var el = document.createElement('div');
-        el.style.cssText = 'position:absolute;left:' + (PX - 26) + 'px;top:' + (PY - 40) + 'px;width:52px;height:52px;display:flex;align-items:center;justify-content:center;pointer-events:none;filter:drop-shadow(0 0 10px ' + (RARE[p.w] ? '#ffe27a' : '#fff') + ');';
+        el.style.cssText = 'position:absolute;left:' + (PX - 26) + 'px;top:' + (PY - 40) + 'px;width:52px;height:52px;display:flex;align-items:center;justify-content:center;pointer-events:none;filter:drop-shadow(0 0 10px ' + (RARE[p.w] || p.big ? '#ffe27a' : '#fff') + ');';
         el.innerHTML = outIcon(p, 48); box.appendChild(el);
         var dx = Math.cos(ang) * R, dy = Math.sin(ang) * R - 40;
         var a = el.animate([{ transform: 'translate(0,0) scale(.2)', opacity: 0 }, { transform: 'translate(' + dx + 'px,' + (dy - 26) + 'px) scale(1.25)', opacity: 1, offset: .55 }, { transform: 'translate(' + dx + 'px,' + dy + 'px) scale(1)', opacity: 1 }], { duration: 650, easing: 'ease-out', fill: 'forwards', delay: i * 70 });
@@ -178,7 +184,7 @@
         '<div style="display:flex;gap:8px;"><button id="mx-auto" style="flex:1;border:none;border-radius:12px;padding:12px;font-size:13px;font-weight:900;background:rgba(255,255,255,.12);color:#fff;cursor:pointer;font-family:inherit;">가진 만큼 넣기</button>' +
         '<button id="mx-go" style="flex:2;border:none;border-radius:12px;padding:12px;font-size:15px;font-weight:900;background:linear-gradient(135deg,#FFD700,#F59E0B);color:#2a1a00;cursor:pointer;font-family:inherit;' + (rolls > 0 && t % COST === 0 ? '' : 'opacity:.4;') + '">🎰 돌리기</button></div>' +
         (resultHtml || '') +
-        '<div style="font-size:10.5px;color:#9a8cc0;line-height:1.7;margin-top:16px;">나올 수 있는 것: ' + info + '<br>한 번에 최대 ' + MAX_ROLLS + '번까지 돌려요.</div></div>';
+        '<div style="font-size:10.5px;color:#9a8cc0;line-height:1.7;margin-top:16px;">나올 수 있는 것: ' + info + '<br>✨ 돌릴 때마다 ' + Math.round(BIG_CHANCE * 100) + '% 확률로 개수가 ' + BIG_MUL + '배!<br>한 번에 최대 ' + MAX_ROLLS + '번까지 돌려요.</div></div>';
       $('mx-x').onclick = function () { ov.remove(); };
       ov.querySelectorAll('[data-m]').forEach(function (b) {
         b.onclick = function () {
@@ -201,15 +207,15 @@
       var ok = true; INPUTS.forEach(function (x) { if (sel[x[0]] > have(x[0])) ok = false; });
       if (!ok) { toast('재료가 모자라요'); render(); return; }
       var ins = []; INPUTS.forEach(function (x) { if (sel[x[0]] > 0) { ins.push({ name: x[0], emoji: x[1], n: sel[x[0]] }); try { useFromBag(x[0], sel[x[0]]); } catch (e) {} } });
-      var res = []; for (var i = 0; i < t / COST; i++) res.push(pick());
+      var res = []; for (var i = 0; i < t / COST; i++) res.push(roll());
       var lost = give(res);
       var cnt = {}, order = [];
       res.forEach(function (p) { if (!cnt[p.txt]) { cnt[p.txt] = 0; order.push(p); } cnt[p.txt]++; });
-      var rare = res.some(function (p) { return RARE[p.w]; });
+      var rare = res.some(function (p) { return RARE[p.w] || p.big; });
       INPUTS.forEach(function (x) { sel[x[0]] = 0; });
       var html = '<div style="margin-top:14px;background:rgba(255,215,0,.12);border:1.5px solid ' + (rare ? '#ffe27a' : 'rgba(255,215,0,.5)') + ';border-radius:16px;padding:12px 14px;">' +
         '<div style="font-size:13px;font-weight:900;margin-bottom:6px;">' + (rare ? '🎉 대박! ' : '🎁 ') + res.length + '번 돌린 결과</div>' +
-        order.map(function (p) { return '<div style="font-size:13.5px;line-height:1.8;' + (RARE[p.w] ? 'color:#ffe27a;font-weight:900;' : '') + '">' + esc(p.txt) + (cnt[p.txt] > 1 ? ' <b>× ' + cnt[p.txt] + '번</b>' : '') + '</div>'; }).join('') +
+        order.map(function (p) { return '<div style="font-size:13.5px;line-height:1.8;' + (RARE[p.w] || p.big ? 'color:#ffe27a;font-weight:900;' : '') + '">' + esc(p.txt) + (cnt[p.txt] > 1 ? ' <b>× ' + cnt[p.txt] + '번</b>' : '') + '</div>'; }).join('') +
         (lost.length ? '<div style="font-size:11px;color:#ff9aa8;margin-top:6px;">가방이 가득 차서 못 받은 것: ' + esc(lost.join(', ')) + '</div>' : '') + '</div>';
       render();   // 아래 화면은 가마솥 연출 동안 새 재료 수로 갱신해 두고, 연출이 끝나면 결과 표시
       brew(ins, res, rare, function () { render(html); });
@@ -217,7 +223,7 @@
     render();
   }
   window.openMaterialExchange = open;
-  window.__materialExchange = { open: open, POOL: POOL, pick: pick, COST: COST };
+  window.__materialExchange = { open: open, POOL: POOL, pick: pick, roll: roll, COST: COST };
 
   // ── 더보기 메뉴 칸 ──
   function whenReady(cond, fn) { if (cond()) fn(); else setTimeout(function () { whenReady(cond, fn); }, 150); }
