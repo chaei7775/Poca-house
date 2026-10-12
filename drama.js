@@ -542,7 +542,7 @@ const POSE_OF={sob:'cry',tears:'cry',dead:'cry',smile:'smile',laugh:'smile',adli
 const BGS={};
 function bgKey(sc){return sc&&BG_SRC[sc.id]?sc.id:(GENRE_KEY[sc&&sc.genre]||'romance')}
 function bgFor(sc){const k=bgKey(sc);if(!BGS[k]){const i=new Image();i.src=BG_SRC[k];BGS[k]=i}return BGS[k]}
-const FAME_GOAL=400;   /* 탑스타 승급에 필요한 인지도 (촬영 1번에 시청률×2 만큼 오름). 저장값(S.fame)은 계속 0~100% 로 두어서 다른 시스템(투자·음악차트)과 호환 */
+const FAME_GOAL=1500;   /* 탑스타 승급에 필요한 인지도 (촬영 1번에 시청률×2 만큼 오름). 저장값(S.fame)은 계속 0~100% 로 두어서 다른 시스템(투자·음악차트)과 호환 */
 const RPTS=[[0,.4],[43,2.1],[67,5.8],[89,11.7],[100,15]];
 function rating(g){for(let i=1;i<RPTS.length;i++){const[a,b]=RPTS[i-1],[c,d]=RPTS[i];if(g<=c)return b+(d-b)*(g-a)/(c-a)}return 15}
 

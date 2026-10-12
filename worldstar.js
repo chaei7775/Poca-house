@@ -4,7 +4,7 @@
 //   목표(이야기): 기획사를 일으켜 전원 월드스타가 되면 카드 세상으로 돌아갈 수 있다.
 //   멤버마다 4단계 → 전부 채우면 '월드스타 선언' 가능 (선언하면 보상 코인 + 월드스타 표시)
 //     1) 🎤 데뷔        — 기획사 데뷔 성공 (agency.js)
-//     2) ⭐ 탑스타       — 드라마 인지도 400 (drama.js)
+//     2) ⭐ 탑스타       — 드라마 인지도 1500 (drama.js)
 //     3) 🎓 실력         — 능력치 5개 합계 GOAL_SKILL 이상 (lesson.js)
 //     4) 💞 인연         — 호감 단계(인연 Lv) GOAL_BOND 이상 (game.js)
 //   각 칸에는 "지금 하러 가기" 버튼이 붙어 해당 화면으로 바로 이동한다.
@@ -20,7 +20,7 @@
   // ════════ 설정 ════════
   var KEY = 'ph_worldstar';
   var IDS = ['minjun', 'sion', 'doyun', 'harin', 'yuna', 'ara'];
-  var GOAL_FAME = 400;        // drama.js FAME_GOAL 과 같은 값
+  var GOAL_FAME = 1500;       // drama.js FAME_GOAL 과 같은 값
   var GOAL_SKILL = 400;       // 능력치 5개 합계 (만점 500)
   var GOAL_BOND = 10;         // 인연 Lv (최대 20)
   var REWARD_COIN = 50000000; // 월드스타 선언 보상 (하루 수입 기준)
