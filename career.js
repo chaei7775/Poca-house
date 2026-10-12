@@ -140,8 +140,30 @@
     var tl = TALENT[cid], big = Math.random() < TAL_BIG, gain = big ? 2 : 1;
     T.n++; T.xp = (T.xp || 0) + gain; save(o);
     var line = tl.lines[Math.floor(Math.random() * tl.lines.length)];
-    try { if (window.pocaSfx) window.pocaSfx.play(big ? 'levelup' : 'pop'); } catch (e) {}
-    toast((big ? '🌟 대성공! ' : '') + nameOf(cid) + ' · ' + tl.icon + ' ' + line + ' (경험치 +' + gain + ')'); render();
+    scene(cid, line, big, gain);
+  }
+  // 🖼️ 연습 장면 팝업(로딩 화면): 특기 하는 모습 그림 + 진행 바 → 결과. 그림 파일: talent/<멤버>.jpg (없으면 이모지)
+  var IMG_BASE = 'https://raw.githubusercontent.com/chaei7775/Poca-house/main/', SCENE_MS = 1900;
+  function scene(cid, line, big, gain) {
+    var old = $('cr-scene'); if (old) old.remove();
+    var tl = TALENT[cid], ov = document.createElement('div'); ov.id = 'cr-scene';
+    ov.style.cssText = 'position:fixed;inset:0;z-index:1300;background:rgba(6,3,14,.9);display:flex;align-items:center;justify-content:center;padding:18px;font-family:\'Noto Sans KR\',sans-serif;color:#fff;';
+    ov.innerHTML = '<style>@keyframes crBar{from{width:0}to{width:100%}}</style><div style="width:100%;max-width:320px;text-align:center;">' +
+      '<div style="position:relative;width:100%;aspect-ratio:3/4;border-radius:20px;overflow:hidden;background:linear-gradient(160deg,#3b2a6e,#1a1030);border:2px solid ' + ACC + ';box-shadow:0 8px 30px rgba(0,0,0,.6);">' +
+      '<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:90px;">' + tl.icon + '</div>' +
+      '<img src="' + IMG_BASE + 'talent/' + cid + '.jpg" alt="" loading="lazy" decoding="async" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;" onerror="this.remove()">' +
+      '<div style="position:absolute;left:0;right:0;bottom:0;padding:26px 12px 10px;background:linear-gradient(transparent,rgba(0,0,0,.75));font-size:14px;font-weight:900;">' + esc(nameOf(cid)) + ' · ' + tl.icon + ' ' + esc(tl.name) + ' 연습 중…</div></div>' +
+      '<div id="cr-sc-bar" style="height:8px;border-radius:5px;background:rgba(255,255,255,.14);overflow:hidden;margin-top:14px;"><div style="height:100%;background:linear-gradient(90deg,#a78bfa,#fbbf24);animation:crBar ' + SCENE_MS + 'ms linear forwards;"></div></div>' +
+      '<div id="cr-sc-res" style="min-height:92px;margin-top:12px;"></div></div>';
+    document.body.appendChild(ov);
+    setTimeout(function () {
+      var r = $('cr-sc-res'); if (!r) return;
+      try { if (window.pocaSfx) window.pocaSfx.play(big ? 'levelup' : 'pop'); } catch (e) {}
+      r.innerHTML = '<div style="font-size:13.5px;line-height:1.6;">' + (big ? '<b style="color:#ffe27a;">🌟 대성공!</b> ' : '') + esc(line) + '</div>' +
+        '<div style="font-size:14px;font-weight:900;color:#ffe08a;margin-top:6px;">경험치 +' + gain + '</div>' +
+        '<button id="cr-sc-ok" style="width:100%;margin-top:10px;border:none;border-radius:12px;padding:12px;font-size:14px;font-weight:900;font-family:inherit;cursor:pointer;background:linear-gradient(135deg,#FFD700,#F59E0B);color:#2a1a00;">확인</button>';
+      $('cr-sc-ok').onclick = function () { ov.remove(); render(); };
+    }, SCENE_MS);
   }
 
   // ── 화면 ──
