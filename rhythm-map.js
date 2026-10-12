@@ -17,10 +17,10 @@
   var DAILY = 5;              // 하루 보상 100% 횟수 (넘으면 30%)
   var BOX_CHANCE = 0.75;      // 스테이지를 성공할 때 팬이 상자를 떨어뜨릴 확률
   var RANK = [['S', 0.85], ['A', 0.70], ['B', 0.50]];   // 점수(0~1) 이상이면 해당 랭크, 못 넘으면 C
-  var COIN = { S: 140000, A: 105000, B: 72000, C: 36000 };
-  var EXP = { S: 2000, A: 1450, B: 950, C: 460 };
-  var MATS_N = { S: 15, A: 12, B: 8, C: 4 };   // 작곡 재료 개수
-  var STONE_N = { S: 5, A: 3, B: 2, C: 1 }, FILM_N = { S: 6, A: 4, B: 3, C: 2 };   // 재조합석 / 필름
+  var COIN = { S: 280000, A: 210000, B: 144000, C: 72000 };
+  var EXP = { S: 4000, A: 2900, B: 1900, C: 920 };
+  var MATS_N = { S: 30, A: 24, B: 16, C: 8 };   // 작곡 재료 개수
+  var STONE_N = { S: 10, A: 6, B: 4, C: 2 }, FILM_N = { S: 12, A: 8, B: 6, C: 4 };   // 재조합석 / 필름
   var FONT = "font-family:'Noto Sans KR',sans-serif;";
 
   function rollKinds(n, luck) {
