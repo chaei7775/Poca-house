@@ -37,7 +37,8 @@
   window.__moreAlerts = (window.__moreAlerts || []).concat(ALERTS);
 
   function mailUnread() { try { return window.__mailTest.load().inbox.some(function (m) { return !m.read; }); } catch (e) { return false; } }
-  function any() { return mailUnread() || window.__moreAlerts.some(function (a) { try { return a.fn(); } catch (e) { return false; } }); }
+  function newTile() { try { return !!document.querySelector('.mm-new'); } catch (e) { return false; } }   // 새로 열린 칸(NEW 표시)도 더보기 점으로
+  function any() { return mailUnread() || newTile() || window.__moreAlerts.some(function (a) { try { return a.fn(); } catch (e) { return false; } }); }
 
   (function css() {
     var st = document.createElement('style');
