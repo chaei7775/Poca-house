@@ -12,11 +12,11 @@
   'use strict';
   // ── 설정 ──
   var NEED_LEVEL = 40, STAMINA = 150, DAILY = 3;
-  var WORLD_MUL_W = 2.0, WORLD_MUL_H = 2.3;     // 맵 크기 (화면 크기의 몇 배)
+  var WORLD_MUL_W = 2.4;     // 맵 가로 크기 (화면 가로의 몇 배). 세로는 그림 비율(2:3)에 맞춤
   var SPEED = 190, PLAYER_R = 20, TRIGGER_R = 44;
-  var SPOTS = [[.18, .14], [.78, .12], [.50, .26], [.12, .38], [.86, .40], [.34, .52], [.68, .56], [.20, .70], [.82, .72], [.50, .80], [.30, .90], [.72, .90]];
-  var NPC_SPOT = [.5, .09];                      // 감독 NPC 자리
-  var TYPES = ['cam', 'react', 'cam', 'tour', 'react', 'cam', 'cam'];   // 이벤트 7개 (+ 감독 1개)
+  var SPOTS = [[.24, .31], [.76, .31], [.12, .50], [.88, .50], [.32, .43], [.68, .43], [.50, .53], [.30, .68], [.70, .68], [.50, .74], [.36, .86], [.64, .86]];   // 그림 위 걷는 자리 (가로,세로 비율)
+  var NPC_SPOT = [.5, .245];                     // 감독 NPC 자리 (붉은 카펫 위 무대 앞)
+var TYPES = ['cam', 'react', 'cam', 'tour', 'react', 'cam', 'cam'];   // 이벤트 7개 (+ 감독 1개)
   // 성적별 보상 [코인, 강화석, 소원의 조각, 경험치]
   var RANK = { S: [300000, 2, 1, 3000], A: [200000, 1, 1, 2000], B: [120000, 1, 0, 1200], C: [50000, 0, 0, 500] };
   var TOUR_WIN = [300000, 2, 1, 3500], REACT_BIG = [150000, 0, 1, 1500], REACT_SMALL = [60000, 0, 0, 600], FILM_DONE = [250000, 1, 1, 3000];
@@ -32,7 +32,7 @@
   function play(ctx) {
     var root = ctx.root, cid = ctx.charId, imgBase = ctx.imgBase;
     var W = Math.max(320, ctx.W || root.clientWidth || 390), H = Math.max(520, ctx.H || root.clientHeight || 700);
-    var WW = Math.round(W * WORLD_MUL_W), WH = Math.round(H * WORLD_MUL_H);
+    var WW = Math.round(W * WORLD_MUL_W), WH = Math.round(WW * 1.5);
     var ws = api(), base = false; try { base = !!(ws && ws.baseDone(cid)); } catch (e) {}
     var P0 = {}; try { P0 = ws.progOf(cid); } catch (e) {}
 
@@ -45,7 +45,7 @@
       ev.push({ t: t, x: spots[i][0] * WW, y: spots[i][1] * WH, done: false, r: 0 });
     });
     ev.push({ t: 'npc', x: NPC_SPOT[0] * WW, y: NPC_SPOT[1] * WH, done: false, r: 0 });
-    var S = { px: WW / 2, py: WH - 120, tx: null, ty: null, paused: false, over: false, loot: [], coin: 0, exp: 0, stone: 0, wish: 0, log: [], t: 0, cx: 0, cy: 0, said: '' };
+    var S = { px: WW / 2, py: WH * .95, tx: null, ty: null, paused: false, over: false, loot: [], coin: 0, exp: 0, stone: 0, wish: 0, log: [], t: 0, cx: 0, cy: 0, said: '' };
 
     var wrap = document.createElement('div');
     wrap.style.cssText = 'position:absolute;inset:0;overflow:hidden;background:#0b0716;font-family:\'Noto Sans KR\',sans-serif;touch-action:none;user-select:none;-webkit-user-select:none;';
@@ -179,7 +179,7 @@
   function reg() {
     if (!window.ExpKit) { setTimeout(reg, 100); return; }
     window.ExpKit.register({
-      id: 'world_stage', bg: 'special-world_tour.jpg', name: '월드스타 스테이지', emoji: '🌏', color: '#fbbf24', needLevel: NEED_LEVEL, stamina: STAMINA, daily: DAILY,
+      id: 'world_stage', bg: 'special-world_stage.jpg', name: '월드스타 스테이지', emoji: '🌏', color: '#fbbf24', needLevel: NEED_LEVEL, stamina: STAMINA, daily: DAILY,
       tagline: '해외 영화 촬영 · 월드 투어 · 세계 반응을 한 맵에서!', gearChance: 0.4, gearMin: 'great',
       gate: function () { return anyOpen() ? '' : '월드스타 로드맵의 기본 4단계를 마친 멤버가 있어야 열려요'; }, gateTag: '월드스타 도전 후',
       intro: ['<b>월드스타 스테이지</b>! 화면을 <b>누르면</b> 멤버가 걸어가요. <b>❗ 표시</b>에 다가가면 이벤트가 시작돼요.', '🎥 <b>카메라 촬영</b> · 🌍 <b>월드 투어</b> · 🌐 <b>세계 반응</b> · 🎬 <b>영화 감독</b>(말을 걸면 해외 영화 촬영). 투어·반응·영화는 로드맵 진행에도 반영돼요.', '다 못 해도 <b>마치기</b>로 끝내면 해낸 만큼 보상을 받아요.'],
