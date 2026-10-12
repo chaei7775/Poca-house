@@ -339,7 +339,7 @@
       '<div style="text-align:center;margin-bottom:2px;">' + pimg('lv' + lv, 72) + '</div>' +
       '<div style="text-align:center;font-size:19px;font-weight:900;">' + esc(g.name) + '</div>' +
       '<div style="text-align:center;font-size:11.5px;color:#ffe08a;margin:3px 0 2px;">⭐ ' + esc(LEVELS[lv][1]) + ' (Lv.' + (lv + 1) + ')' + (gs ? ' · <span style="color:#9fd8ff;">' + esc(concept(gs)) + '</span>' : '') + '</div>' +
-      '<div style="position:relative;display:flex;gap:6px;margin:10px 0;">' + (function () { try { return window.__groupMagic ? window.__groupMagic.html({ size: 250, css: 'left:50%;top:-18px;margin-left:-125px;' }) : ''; } catch (e) { return ''; } })() + mem + '</div>' + bars +
+      '<div style="position:relative;display:flex;gap:6px;margin:10px 0;">' + (function () { try { return window.__groupMagic ? window.__groupMagic.html({ members: live, size: 250, css: 'left:50%;top:-18px;margin-left:-125px;' }) : ''; } catch (e) { return ''; } })() + mem + '</div>' + bars +
       '<div style="height:8px;border-radius:6px;background:rgba(255,255,255,0.12);overflow:hidden;margin-top:12px;"><div style="width:' + pct + '%;height:100%;background:linear-gradient(90deg,#4aa8ff,#c084fc);"></div></div>' +
       '<div style="font-size:10.5px;color:#9fb0d0;margin-top:4px;text-align:center;">인기도 ' + fmt(s.fame) + (nextAt ? ' / ' + fmt(nextAt) + ' (다음: ' + esc(LEVELS[lv + 1][1]) + ')' : ' (최고 레벨!)') + '</div>' +
       (window.__groupLinkTest && g.members.length ? (function () { var pc = window.__groupLinkTest.bonusPct(g.members[0]); return '<div style="font-size:10.5px;color:#9dffb0;margin-top:3px;text-align:center;">🚌 그룹 멤버가 팬덤 원정에 나가면 보상 ' + (pc > 0 ? '+' + pc + '%' : '보너스 (그룹 레벨이 오르면 생겨요)') + '</div>'; })() : '') + '</div>' +

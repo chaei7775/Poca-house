@@ -381,7 +381,7 @@
       // 플레이어
       var blink = S.inv > 0 && Math.floor(S.inv * 12) % 2 === 0;
       g.save(); g.globalAlpha = blink ? 0.4 : 1;
-      try { if (window.__groupMagic) window.__groupMagic.draw(g, S.px, S.py, PLAYER_R, performance.now() / 1000); } catch (e) {}   // 🔮 그룹 투자 마법진
+      try { if (window.__groupMagic) window.__groupMagic.draw(g, S.px, S.py, PLAYER_R, performance.now() / 1000, S.charId); } catch (e) {}   // 🔮 그룹 투자 마법진
       g.beginPath(); g.arc(S.px, S.py, PLAYER_R + 3, 0, 7); g.fillStyle = '#fff'; g.fill();
       g.beginPath(); g.arc(S.px, S.py, PLAYER_R, 0, 7); g.save(); g.clip();
       if (ok(IM.face)) g.drawImage(IM.face, S.px - PLAYER_R, S.py - PLAYER_R, PLAYER_R * 2, PLAYER_R * 2); else { g.fillStyle = '#c084fc'; g.fillRect(S.px - PLAYER_R, S.py - PLAYER_R, PLAYER_R * 2, PLAYER_R * 2); }

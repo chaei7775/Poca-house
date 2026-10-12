@@ -349,7 +349,7 @@
     // 🔮 그룹 투자 마법진: 걷는 캐릭터 발밑에 깔려서 돌아간다 (투자 0이면 안 그림 · group-magic.js)
     try {
       var gm = window.__groupMagic;
-      var mh = gm ? gm.html({ size: 150, css: 'left:50%;top:50%;margin-left:-75px;margin-top:-47px;z-index:-1;' }) : '';
+      var mh = gm ? gm.html({ cid: ch.id, size: 150, css: 'left:50%;top:50%;margin-left:-75px;margin-top:-47px;z-index:-1;' }) : '';
       if (mh) { var mg = document.createElement('div'); mg.innerHTML = mh; if (mg.firstChild) wrap.appendChild(mg.firstChild); }
     } catch (e) {}
     wrap.appendChild(face);
