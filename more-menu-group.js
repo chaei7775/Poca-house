@@ -114,10 +114,20 @@
       cats.forEach(function (c) {
         var on = c.g[0] === sel;
         c.tiles.forEach(function (t) { if (t.__d === undefined) t.__d = (t.style.display === 'none' ? '' : t.style.display); t.style.display = on ? t.__d : 'none'; });   // 원래 display(flex 등)를 기억했다가 되돌림
-        if (on) c.tiles.forEach(function (t) { if (!isLocked(t)) seen[label(t)] = 1; });
       });
       jset(K_SEEN, seen);
       cats.forEach(function (c) { c.tiles.forEach(tileDot); });
+      // 🆕 새로 열린 칸에 NEW 표시 (그 칸을 직접 눌러야 사라짐 → 어느 칸이 새건지 바로 보임)
+      cats.forEach(function (c) { c.tiles.forEach(function (t) {
+        var nb = t.querySelector('.mm-new'), isNew = !firstTime && !isLocked(t) && !seen[label(t)];
+        if (isNew && !nb) {
+          if (getComputedStyle(t).position === 'static') t.style.position = 'relative';
+          nb = document.createElement('span'); nb.className = 'mm-new'; nb.textContent = 'NEW';
+          nb.style.cssText = 'position:absolute;top:4px;left:6px;font-size:9px;font-weight:900;color:#fff;background:#ff3b5c;border-radius:6px;padding:1px 5px;pointer-events:none;';
+          t.appendChild(nb);
+        } else if (!isNew && nb) nb.remove();
+        if (!t.__nw) { t.__nw = 1; t.addEventListener('click', function () { var sn = jget(K_SEEN, {}); sn[label(t)] = 1; jset(K_SEEN, sn); var x = t.querySelector('.mm-new'); if (x) x.remove(); }, true); }
+      }); });
       // 고른 카테고리 안내 줄
       var old = grid.querySelector('.mm-h'); if (old) old.remove();
       var cur = cats.filter(function (c) { return c.g[0] === sel; })[0];
