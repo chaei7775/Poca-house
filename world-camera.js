@@ -92,6 +92,10 @@
     ov.appendChild(intro);
     intro.querySelector('#wcam-go').onclick = function () { intro.remove(); S.started = true; shutter.style.display = 'block'; last = performance.now(); };
 
+    function inFrame() {   // 멤버 몸(대략 직사각형)이 파인더와 조금이라도 겹치면 '프레임 안' (가운데 점만 보면 억울한 MISS가 나서 보정)
+      var ax = A.x - cam.x, ay = A.y - cam.y, hw = A.h * 0.28;
+      return ax + hw > fx && ax - hw < fx + fw && ay > fy && ay - A.h < fy + fh;
+    }
     function pop(txt, col, x, y) { S.pops.push({ t: 0, txt: txt, col: col, x: x, y: y }); }
 
     shutter.addEventListener('pointerdown', function (e) {
@@ -104,7 +108,7 @@
       if (!inMoment) { S.lock = MISS_LOCK; pop('MISS', '#ff8fa3', W / 2, fy + fh + 30); return; }
       S.shot = true;
       var sx = A.x - cam.x, sy = A.y - A.h * 0.45 - cam.y;
-      var inside = sx > fx && sx < fx + fw && sy > fy && sy < fy + fh;
+      var inside = inFrame();
       var el = WINDOW - S.momentT;   // 결정적 순간이 시작된 뒤 지난 시간
       if (!inside) { S.shots.push(0); pop('MISS…', '#ff8fa3', W / 2, fy + fh + 30); return; }
       var dx = (sx - (fx + fw / 2)) / (fw / 2), dy = (sy - (fy + fh / 2)) / (fh / 2), dist = Math.sqrt(dx * dx + dy * dy);
@@ -130,7 +134,7 @@
       }
       // 프레임 추적
       var sx = A.x - cam.x, sy = A.y - A.h * 0.45 - cam.y;
-      var inside = sx > fx && sx < fx + fw && sy > fy && sy < fy + fh;
+      var inside = inFrame();
       if (inside) S.track += dt;
       S.inside = inside;
       // 결정적 순간
