@@ -117,7 +117,7 @@
     fanmeeting: {
       id: 'fanmeeting', name: '팬미팅장', emoji: '💜', color: '#F472B6',
       bg: 'https://raw.githubusercontent.com/chaei7775/Poca-house/main/special-fanmeeting.webp',
-      desc: '강화석·방지권·초월석 파밍', pieces: false, coinMult: 80,
+      desc: '강화석·방지권·초월석 파밍 · 🧹 소탕 가능', pieces: false, coinMult: 80, sweep: true,
       start: { x: 0.51, y: 0.82 },
       normal: [
         { x: 0.16, y: 0.38 },  // 굿즈 부스 앞
@@ -1101,6 +1101,57 @@
     } catch (e) {}
   }
 
+
+  // ════════ 🧹 소탕 (팬미팅장) ════════
+  //  이벤트 SWEEP_N 번을 한꺼번에 처리. 스태미나는 그대로(이벤트 1번 × N), 보상은 직접 한 것의 SWEEP_RATE (코인·경험치 ×0.8, 드랍은 80% 확률로 인정)
+  var SWEEP_N = 10, SWEEP_RATE = 0.8;
+  function sweepRun() {
+    if (!S || !MAP || !MAP.sweep) return;
+    if (S.paused || S.current) { toast('이벤트 중에는 소탕할 수 없어요. 끝내고 눌러주세요'); return; }
+    var cost = staminaCost() * SWEEP_N;
+    if (typeof stamina === 'undefined' || stamina < cost) { toast('스태미나가 부족해요! 소탕 ' + SWEEP_N + '번에 ⚡ ' + cost + ' 필요'); return; }
+    stamina -= cost; if (typeof saveStamina === 'function') saveStamina();
+    var tot = { coins: 0, exp: 0 }, got = {}, special = null, i;
+    function add(icon, text, qty) { var k = icon + '|' + text; if (!got[k]) got[k] = { icon: icon, text: text, n: 0 }; got[k].n += qty; }
+    for (i = 0; i < SWEEP_N; i++) {
+      var type = special || pickNormal(); special = null;
+      var grade = (type === 'letter' || type === 'goods') ? 'OPEN' : pickGrade(GRADE_DIST[type], Math.random);
+      var success = !(grade === 'MISS' || grade === 'FAIL');
+      var r = rewardFor(type, grade, Math.random);
+      tot.coins += (r.coins || 0) * (MAP.coinMult || 1) * Math.max(0.1, 1 + engB('coin'));
+      tot.exp += (r.exp || 0) * Math.max(0.1, 1 + engB('exp'));
+      for (var m = 0; m < (r.mats || 0); m++) {
+        if (Math.random() >= SWEEP_RATE || typeof SPECIAL_JAPTEM === 'undefined') continue;
+        var mt = SPECIAL_JAPTEM[Math.floor(Math.random() * SPECIAL_JAPTEM.length)];
+        if (typeof addToBag === 'function' && addToBag(mt.emoji, mt.name, 'material', 1, '특별탐험 재료')) add(mt.emoji, mt.name, 1);
+      }
+      if (success) {   // 강화 재료·필름·스킬북은 80% 확률로 인정 (기존 드랍 함수를 그대로 써서 가방/임시보관 처리도 같게)
+        if (Math.random() < SWEEP_RATE) enhDrop(type, true).forEach(function (l) { var q = (String(l.text).match(/\+(\d+)/) || [0, 1])[1]; add(l.icon, String(l.text).replace(/\s*\+\d+.*/, ''), +q); });
+        if (Math.random() < SWEEP_RATE) filmDrop(type, true).concat(devDrop(type, true)).concat(bookDrop(type, true)).forEach(function (l) { var q = (String(l.text).match(/\+(\d+)/) || [0, 1])[1]; add(l.icon, String(l.text).replace(/\s*\+\d+.*/, ''), +q); });
+        if (Math.random() < SWEEP_RATE) { var tk = ticketDrop(type); if (tk) add(tk.icon, String(tk.text).replace(/\s*\+\d+.*/, ''), 1); }
+      }
+      var rr = Math.random();
+      if (rr < LEGEND_CHANCE) special = 'legend'; else if (rr < LEGEND_CHANCE + RARE_CHANCE) special = 'golden';
+    }
+    var coin = Math.round(tot.coins * SWEEP_RATE), exp = Math.round(tot.exp * SWEEP_RATE);
+    try { if (coin > 0) { coins += coin; S.lootCoins = (S.lootCoins || 0) + coin; } } catch (e) {}
+    try { if (exp > 0) giveCardExp(S.charId, exp); } catch (e) {}
+    try { if (typeof updateCoinsDisplay === 'function') updateCoinsDisplay(); if (typeof saveAll === 'function') saveAll(); } catch (e) {}
+    try { hud(); } catch (e) {}
+    try { if (window.pocaSfx && pocaSfx.play) pocaSfx.play('reward'); } catch (e) {}
+    var rows = Object.keys(got).map(function (k) { var g = got[k]; return '<div style="display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.1);border:1.5px solid #fbbf24;border-radius:999px;padding:6px 12px;font-size:13px;font-weight:900;margin:3px;"><span>' + (window.rewardIcon ? window.rewardIcon(g.icon, g.text, 20) : g.icon) + '</span>' + g.text + ' ×' + g.n + '</div>'; }).join('');
+    var ov = document.createElement('div'); ov.id = 'bc-sweep-res';
+    ov.style.cssText = 'position:absolute;inset:0;z-index:60;background:rgba(8,4,20,.88);display:flex;align-items:center;justify-content:center;padding:18px;';
+    ov.innerHTML = '<div style="width:100%;max-width:340px;background:linear-gradient(180deg,#2d1b4e,#1a1a2e);border:2px solid #fbbf24;border-radius:20px;padding:20px 16px;text-align:center;color:#fff;font-family:\'Noto Sans KR\',sans-serif;max-height:90%;overflow-y:auto;">' +
+      '<div style="font-size:19px;font-weight:900;">🧹 소탕 완료!</div><div style="font-size:11.5px;color:#c9bbee;margin:4px 0 12px;">이벤트 ' + SWEEP_N + '번 · 직접 한 것의 ' + Math.round(SWEEP_RATE * 100) + '% · ⚡ ' + cost + '</div>' +
+      '<div style="margin-bottom:8px;">' + (coin > 0 ? '<div style="display:inline-flex;gap:6px;background:rgba(255,255,255,.1);border:1.5px solid #FFD700;border-radius:999px;padding:6px 12px;font-size:13px;font-weight:900;margin:3px;">🍔 코인 +' + coin.toLocaleString() + '</div>' : '') +
+      (exp > 0 ? '<div style="display:inline-flex;gap:6px;background:rgba(255,255,255,.1);border:1.5px solid #FFD700;border-radius:999px;padding:6px 12px;font-size:13px;font-weight:900;margin:3px;">⭐ 경험치 +' + exp.toLocaleString() + '</div>' : '') + rows + '</div>' +
+      '<button id="bc-sweep-ok" style="' + BTN + '">확인</button></div>';
+    var view = $('bc-view'); (view || document.body).appendChild(ov);
+    $('bc-sweep-ok').onclick = function () { ov.remove(); };
+  }
+  window.__bcSweep = sweepRun;
+
   function closeEvent(ev) {
     if (!S) return;
     closePanel();
@@ -1410,6 +1461,7 @@
       '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 14px;background:rgba(0,0,0,.6);position:relative;z-index:50;">' +
       '<div style="color:#fff;font-size:15px;font-weight:900;white-space:nowrap;">' + MAP.emoji + ' ' + MAP.name + '</div>' +
       '<div id="bc-stam" style="color:#FFE27A;font-size:11px;font-weight:900;text-align:center;flex:1;"></div>' +
+      (MAP.sweep ? '<button onclick="window.__bcSweep()" style="background:linear-gradient(135deg,#34d399,#10b981);border:none;border-radius:10px;color:#fff;font-weight:900;padding:7px 10px;cursor:pointer;white-space:nowrap;font-size:12px;">🧹 소탕 ×' + SWEEP_N + '</button>' : '') +
       '<button onclick="document.getElementById(\'special-overlay\').remove()" style="background:rgba(255,255,255,.15);border:none;border-radius:10px;color:#fff;padding:7px 12px;cursor:pointer;white-space:nowrap;">나가기</button></div>' +
       '<div id="bc-view" style="position:relative;flex:1;min-height:0;overflow:hidden;background:#0d0820;touch-action:manipulation;user-select:none;-webkit-user-select:none;">' +
       '<div id="bc-world" style="position:absolute;">' +
@@ -1626,7 +1678,7 @@
     }
   };
 
-  window.__bcTest = { rewardFor: rewardFor, pickNormal: pickNormal, simulate: simulate,
+  window.__bcTest = { start: startBroadcast, sweep: sweepRun, rewardFor: rewardFor, pickNormal: pickNormal, simulate: simulate,
     spawnNpc: function () { if (S) spawnSpecial('legend'); } };   // 테스트용: 원정 화면에서 콘솔에 __bcTest.spawnNpc() 입력하면 특별 NPC가 바로 나옴
   install();
 })();
