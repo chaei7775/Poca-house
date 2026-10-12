@@ -9,9 +9,9 @@
 //     3) 🎓 실력         — 능력치 5개 합계 GOAL_SKILL 이상 (lesson.js)
 //     4) 💞 인연         — 호감 단계(인연 Lv) GOAL_BOND 이상 (game.js)
 //   [월드 도전 4단계 — 기본 4단계를 다 채워야 열림]
-//     5) 🎬 해외 영화    — 드라마 촬영에서 '할리우드 블록버스터' 대본을 히든 카드로 시청률 10% 이상
+//     5) 🎬 해외 영화    — 드라마 촬영에서 '할리우드 블록버스터' 대본을 히든 카드로 시청률 13% 이상
 //     6) 🌍 월드 투어    — 도쿄·파리·뉴욕 3개 도시 무대(오디션 게임)를 차례로 통과 (체력 소모)
-//     7) 👑 전용 조건    — 그룹이 '국민 그룹' 이상 + 이 멤버가 초월 1단계 이상
+//     7) 👑 전용 조건    — 그룹이 '국민 그룹' 이상 + 이 멤버가 초월 2단계 이상
 //     8) 🌐 세계 반응    — 하루 1번 해외 상황 이벤트에서 선택해 반응 포인트 100 모으기
 //   각 칸에는 "지금 하러 가기" 버튼이 붙어 해당 화면으로 바로 이동한다.
 //   위쪽 "오늘의 추천"은 가장 완성에 가까운 멤버의 다음 할 일을 하나 골라 알려준다.
@@ -30,11 +30,11 @@
   var GOAL_SKILL = 400;       // 능력치 5개 합계 (만점 500)
   var GOAL_BOND = 10;         // 인연 Lv (최대 20)
   var REWARD_COIN = 50000000; // 월드스타 선언 보상 (하루 수입 기준)
-  var FILM_ID = 'hollywood', FILM_RATING = 10;     // 해외 영화 대본 id / 필요한 시청률(%)
-  var CITIES = [ { n: '도쿄', need: 0.55, spd: 1 }, { n: '파리', need: 0.65, spd: 1.15 }, { n: '뉴욕', need: 0.75, spd: 1.3 } ];   // 월드 투어 도시 / 통과 점수 / 게이지 속도
+  var FILM_ID = 'hollywood', FILM_RATING = 13;     // 해외 영화 대본 id / 필요한 시청률(%)
+  var CITIES = [ { n: '도쿄', need: 0.7, spd: 1.1 }, { n: '파리', need: 0.82, spd: 1.3 }, { n: '뉴욕', need: 0.92, spd: 1.5 } ];   // 월드 투어 도시 / 통과 점수 / 게이지 속도
   var TOUR_COST = 10, TOUR_MIN_STA = 15;           // 투어 한 번에 깎이는 체력 / 이 체력 미만이면 못 나감
   var GROUP_LV = 4;                                // 그룹 등급 (0신인 1라이징 2인기 3대세 4국민 5월드) — 4 = 국민 그룹 이상
-  var REACT_GOAL = 100;                            // 세계 반응 목표 포인트
+  var REACT_GOAL = 300;                            // 세계 반응 목표 포인트
   var ACC = '#FFD700';
 
   // ════════ 데이터 읽기 (읽기만 함) ════════
@@ -78,11 +78,11 @@
     ];
     base.forEach(function (x) { x.done = x.now >= x.goal; x.ratio = Math.min(1, x.now / x.goal); x.world = false; });
     var baseDone = base.every(function (x) { return x.done; });
-    var gl = groupLv(), tr = transcendOf(cid), exNow = (gl >= GROUP_LV ? 1 : 0) + (tr >= 1 ? 1 : 0);
+    var gl = groupLv(), tr = transcendOf(cid), exNow = (gl >= GROUP_LV ? 1 : 0) + (tr >= 2 ? 1 : 0);
     var world = [
       { k: 'film', icon: '🎬', name: '해외 영화', now: P.film ? 1 : 0, goal: 1, text: P.film ? '촬영 완료' : '드라마 촬영 → 할리우드 블록버스터 (시청률 ' + FILM_RATING + '%+)', go: '촬영하기', fn: 'openDrama' },
       { k: 'tour', icon: '🌍', name: '월드 투어', now: Math.min(P.tour || 0, CITIES.length), goal: CITIES.length, text: (P.tour || 0) + ' / ' + CITIES.length + ' 도시 (' + CITIES.map(function (c) { return c.n; }).join('·') + ')', go: '투어 가기', fn: 'tour' },
-      { k: 'ex', icon: '👑', name: '전용 조건', now: exNow, goal: 2, text: (gl >= GROUP_LV ? '✔' : '✖') + ' 국민 그룹 이상 · ' + (tr >= 1 ? '✔' : '✖') + ' 초월 1단계', go: gl >= GROUP_LV ? '초월하러' : '그룹 가기', fn: gl >= GROUP_LV ? 'openEnhance' : 'openGroup' },
+      { k: 'ex', icon: '👑', name: '전용 조건', now: exNow, goal: 2, text: (gl >= GROUP_LV ? '✔' : '✖') + ' 국민 그룹 이상 · ' + (tr >= 2 ? '✔' : '✖') + ' 초월 2단계', go: gl >= GROUP_LV ? '초월하러' : '그룹 가기', fn: gl >= GROUP_LV ? 'openEnhance' : 'openGroup' },
       { k: 'react', icon: '🌐', name: '세계 반응', now: Math.min(P.react || 0, REACT_GOAL), goal: REACT_GOAL, text: (P.react || 0) + ' / ' + REACT_GOAL + ' 포인트', go: P.reactDay === todayStr() ? '내일 또' : '반응 보기', fn: 'react' }
     ];
     world.forEach(function (x) { x.done = x.now >= x.goal; x.ratio = Math.min(1, x.now / x.goal); x.world = true; x.locked = !baseDone; });
@@ -292,7 +292,7 @@
     if (P.reactDay === todayStr()) { toast('오늘의 해외 반응은 이미 봤어요. 내일 또 와요!'); return; }
     var ev = REACT[Math.floor(Math.random() * REACT.length)];
     var btns = ev.o.map(function (x, i) {
-      var tag = x[1] ? '<span style="font-size:10.5px;opacity:.8;">' + STAT_NAME[x[1]] + ' ' + statVal(cid, x[1]) + ' · 성공률 ' + Math.round(chance(cid, x[1]) * 100) + '%</span>' : '<span style="font-size:10.5px;opacity:.8;">안전 · +10</span>';
+      var tag = x[1] ? '<span style="font-size:10.5px;opacity:.8;">' + STAT_NAME[x[1]] + ' ' + statVal(cid, x[1]) + ' · 성공률 ' + Math.round(chance(cid, x[1]) * 100) + '%</span>' : '<span style="font-size:10.5px;opacity:.8;">안전 · +8</span>';
       return '<button data-i="' + i + '" style="' + BTN + 'width:100%;text-align:left;margin-top:8px;background:rgba(255,255,255,.1);color:#fff;"><div>' + esc(x[0]) + '</div>' + tag + '</button>';
     }).join('');
     var o = panel('<div style="font-size:12px;font-weight:900;color:#ffd7ec;">🌐 오늘의 세계 반응 · ' + esc(nameOf(cid)) + '</div>' +
@@ -302,12 +302,12 @@
     o.querySelectorAll('[data-i]').forEach(function (b) {
       b.onclick = function () {
         var x = ev.o[+b.getAttribute('data-i')], pts, txt;
-        if (!x[1]) { pts = 10; txt = x[2]; }
-        else if (Math.random() < chance(cid, x[1])) { pts = 30; txt = x[2]; }
-        else { pts = 5; txt = x[3]; }
+        if (!x[1]) { pts = 8; txt = x[2]; }
+        else if (Math.random() < chance(cid, x[1])) { pts = 25; txt = x[2]; }
+        else { pts = 0; txt = x[3]; }
         var now = Math.min(REACT_GOAL, (progOf(cid).react || 0) + pts);
         setProg(cid, { react: now, reactDay: todayStr() });
-        var o2 = panel('<div style="text-align:center;"><div style="font-size:34px;">' + (pts >= 30 ? '🌟' : pts >= 10 ? '🙂' : '😅') + '</div>' +
+        var o2 = panel('<div style="text-align:center;"><div style="font-size:34px;">' + (pts >= 25 ? '🌟' : pts >= 8 ? '🙂' : '😅') + '</div>' +
           '<div style="font-size:14px;font-weight:900;line-height:1.6;margin:8px 0;">' + esc(txt) + '</div>' +
           '<div style="font-size:15px;font-weight:900;color:' + ACC + ';">세계 반응 +' + pts + ' (' + now + ' / ' + REACT_GOAL + ')</div>' +
           '<button id="ws-ok" style="' + BTN + 'width:100%;margin-top:14px;background:linear-gradient(135deg,#FFD700,#F59E0B);color:#2a1a00;">확인</button></div>');
@@ -315,7 +315,7 @@
       };
     });
   }
-  function chance(cid, k) { return Math.max(0.25, Math.min(0.85, 0.3 + 0.55 * (statVal(cid, k) / 100))); }
+  function chance(cid, k) { return Math.max(0.2, Math.min(0.75, 0.15 + 0.6 * (statVal(cid, k) / 100))); }
 
   // ── 🎬 해외 영화: 드라마 촬영 대본 추가 + 결과 감지 ──
   function addFilmScript() {
