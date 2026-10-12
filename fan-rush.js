@@ -598,9 +598,6 @@
     var gr = c.createRadialGradient(mid, mid, 20, mid, mid, 260);
     gr.addColorStop(0, 'rgba(255,140,200,.38)'); gr.addColorStop(1, 'rgba(255,140,200,0)');
     c.fillStyle = gr; c.beginPath(); c.arc(mid, mid, 260, 0, 7); c.fill();
-    c.strokeStyle = 'rgba(255,215,106,.5)'; c.lineWidth = 3;
-    c.beginPath(); c.arc(mid, mid, 110, 0, 7); c.stroke();
-    c.strokeStyle = 'rgba(255,255,255,.18)'; c.beginPath(); c.arc(mid, mid, 200, 0, 7); c.stroke();
     // 네 귀퉁이 조명
     [[0.12, 0.12, 'rgba(120,180,255,.25)'], [0.88, 0.12, 'rgba(255,120,200,.25)'], [0.12, 0.88, 'rgba(255,215,106,.22)'], [0.88, 0.88, 'rgba(160,255,200,.2)']].forEach(function (L) {
       var lx = L[0] * WORLD, ly = L[1] * WORLD, g2 = c.createRadialGradient(lx, ly, 10, lx, ly, 240);
