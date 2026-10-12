@@ -21,7 +21,7 @@
   function jget(k, d) { try { return JSON.parse(localStorage.getItem(k) || 'null') || d; } catch (e) { return d; } }
   function jset(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
   function label(btn) {
-    return String(btn.textContent || '').replace(/🔒\s*Lv\.\d+/g, '').replace(/[^\u0000-\u007F가-힣\s]/g, ' ').replace(/\s+/g, ' ').trim();
+    return String(btn.textContent || '').replace(/🔒\s*Lv\.\d+/g, '').replace(/\bNEW\b/g, '').replace(/\bD-\d+\b/g, '').replace(/[^\u0000-\u007F가-힣\s]/g, ' ').replace(/\s+/g, ' ').trim();   // NEW 표시·D-day 숫자는 이름에서 뺌 (안 빼면 '봤다' 기록이 어긋남)
   }
   function isLocked(btn) {   // 잠금 글자는 늦게 붙으니, 레벨표로 직접 판단 (없으면 글자로)
     try {
