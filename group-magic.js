@@ -69,7 +69,7 @@
     if (!dOk) { c.restore(); return; }
     var dr = R * 5.2 * DARK_SC, tt = (t || 0) * (ts >= 3 ? 1.3 : 1), spN = ts === 1 ? 4 : ts === 2 ? 6 : 8;
     c.globalCompositeOperation = 'source-over';
-    c.save(); c.rotate(-tt * 1.5); c.globalAlpha = 0.95; c.drawImage(dimg, -dr, -dr, dr * 2, dr * 2); c.restore();
+    c.save(); c.rotate(-tt * 1.5); c.globalAlpha = 1; c.drawImage(dimg, -dr, -dr, dr * 2, dr * 2); c.restore();
     c.globalCompositeOperation = 'lighter';
     for (var k = 0; k < spN; k++) {
       var an = -tt * 0.9 + k * Math.PI / 4 + (k % 2 ? 0.2 : 0), rd = dr * (0.9 + (k % 3) * 0.12), tw = 0.5 + 0.5 * Math.sin(tt * (3 + k % 4) + k * 1.7), sz = R * (k % 2 ? 0.14 : 0.2) * (0.4 + tw);
