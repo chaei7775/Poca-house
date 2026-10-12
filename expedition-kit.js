@@ -2,7 +2,7 @@
 // 🧰 팬덤 원정 새 맵 공통 틀 (expedition-kit.js)
 // 새 원정 맵(리듬 리허설장 · 파파라치 탈출 · 월드투어 스타디움)이 같이 쓰는 입장·보상·결과 화면.
 //  · 팬덤 원정 목록에 칸을 끼우고, 입장 조건(플레이어 레벨·스태미나·히든카드)을 확인한다.
-//  · 하루 보상 횟수 제한: 하루 daily 번까지는 보상 100%, 그다음부턴 EXTRA_RATE(30%).
+//  · 하루 보상 횟수 제한: 하루 daily 번까지는 보상 100%, 그다음부턴 EXTRA_RATE(50%).
 //  · 맵 파일은 window.ExpKit.register({...}) 로 자기 정보와 play(ctx) 만 넘기면 된다.
 // ✏️ 값 바꾸는 곳: 각 맵 파일 맨 위 설정 (레벨 / 스태미나 / 하루 횟수 / 보상)
 // ════════════════════════════════════════════════════════════
@@ -10,7 +10,7 @@
   'use strict';
   var IMG_BASE = 'https://raw.githubusercontent.com/chaei7775/Poca-house/main/';
   var LOCKED = false;                 // true = 새 맵 3개를 전부 잠가 둠 (🔒 준비 중). false = 각 맵의 레벨(25/30/35)에 맞춰 열림
-  var EXTRA_RATE = 0.3;               // 하루 횟수를 넘긴 뒤 보상 비율
+  var EXTRA_RATE = 0.5;               // 하루 횟수를 넘긴 뒤 보상 비율
   var REG = {}, ORDER = [];
   var FONT = "font-family:'Noto Sans KR',sans-serif;";
 
