@@ -77,9 +77,10 @@
     ov.appendChild(shutter);
     var xb = document.createElement('button');
     xb.textContent = '✕'; xb.setAttribute('aria-label', '그만두기');
-    xb.style.cssText = 'position:absolute;top:12px;right:12px;width:36px;height:36px;border-radius:50%;border:none;background:rgba(0,0,0,.55);color:#fff;font-size:17px;font-weight:900;cursor:pointer;z-index:3;';
+    xb.style.cssText = 'position:absolute;top:8px;right:8px;width:46px;height:46px;border-radius:50%;border:none;background:rgba(0,0,0,.55);color:#fff;font-size:17px;font-weight:900;cursor:pointer;z-index:9;touch-action:manipulation;';
     ov.appendChild(xb);
-    xb.onclick = function () { if (ended) return; cleanup(); if (opt.onCancel) opt.onCancel(); };
+    var quit = function (e) { if (e) { e.preventDefault(); e.stopPropagation(); } if (ended) return; cleanup(); if (opt.onCancel) opt.onCancel(); };
+    xb.addEventListener('pointerdown', quit); xb.onclick = quit;
 
     var intro = document.createElement('div');
     intro.style.cssText = 'position:absolute;inset:0;z-index:2;background:rgba(5,3,12,.86);display:flex;align-items:center;justify-content:center;padding:18px;';
