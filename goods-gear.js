@@ -17,6 +17,12 @@
     var P_FAIL = 0.15, P_RARE = 0.04, P_GOOD = 0.18;
   var P_EPIC = 0.015, P_UNIQUE = 0.005;                // 제작 성공했을 때 에픽 1.5% / 유니크 0.5% (신등급)
   var EPIC_WISH = [0.5, 0.9];                          // 에픽: 탐험 소원의 조각 확률 +%p (고정 효과)
+  var P_LIVE = 0.006;                                  // 제작 성공했을 때 '실시간 체력 회복' 전설 굿즈 0.6% (유니크 등급)
+  var LIVE_ITEMS = {
+    hat:  ['⏳', '모래시계 월계관'],
+    hand: ['🕰️', '태엽 시계 응원봉'],
+    acc:  ['💧', '생명의 샘 목걸이']
+  };
   var UNIQUE_RECOMB = [1.5, 2.5];                      // 유니크: 카드 재조합 '등급 상승' 확률 +%p (고정 효과)
   var EXTRA = {                                        // 에픽·유니크 전용 굿즈 (그림 파일이 없으면 이모지로 표시)
     hat:  { epic: ['🌠', '소원의 별 왕관', 'goods-epic-hat.png'],   unique: ['💎', '재조합 수정 왕관', 'goods-unique-hat.png'] },
@@ -46,9 +52,10 @@
     wish:   { label: '탐험 소원의 조각 확률(샘 성공도 ×10)', icon: '🧩', unit: '%p', dec: 2, scope: 'all', cap: 1.5, r: [[0.05, 0.12], [0.12, 0.25], [0.25, 0.5]] },
     recomb: { label: '재조합 등급 상승 확률', icon: '🔮', unit: '%p', dec: 1, scope: 'all', cap: 6, r: [[1.5, 2.5], [1.5, 2.5], [1.5, 2.5]] },   // 유니크 전용
     rest:   { label: '체력 회복 (하루 보내기마다 아이돌 체력)', icon: '💤', unit: '', dec: 0, scope: 'char', cap: 20, r: [[2, 3], [4, 5], [6, 8]] },
+    live:   { label: '실시간 체력 회복 (켜둔 동안 계속 차오름)', icon: '⏳', unit: '/시간', dec: 0, scope: 'char', cap: 24, r: [[5, 7], [5, 7], [5, 7]] },
     honor:  { label: '우등생조각 획득',   icon: '✨', unit: '%',  dec: 0, scope: 'all',  cap: 60,  r: [[5, 10],  [10, 20], [20, 40]] }
   };
-  var STAT_KEYS = ['coin', 'exp', 'piece', 'ticket', 'wish', 'honor', 'recomb', 'rest'];
+  var STAT_KEYS = ['coin', 'exp', 'piece', 'ticket', 'wish', 'honor', 'recomb', 'rest', 'live'];
   var RAND_KEYS = ['coin', 'exp', 'piece', 'ticket', 'honor'];   // 일반·고급·레어 굿즈에 랜덤으로 붙는 능력치 (🧩소원의 조각은 에픽, 🔮재조합은 유니크 전용)
   var GRADES = {
     normal: { label: '일반', color: '#cbd5e1', n: 1, i: 0 },
@@ -109,6 +116,12 @@
 
   // ── 제작 ──
   function rollGear(slot) {
+    if (Math.random() < P_LIVE) {      // ⏳ 전설: 실시간 체력 회복 + 랜덤 능력치 1개(레어 범위)
+      var lb = LIVE_ITEMS[slot], ls = { live: rnum(STATS.live.r[2][0], STATS.live.r[2][1], 0) };
+      var lk = RAND_KEYS[Math.floor(Math.random() * RAND_KEYS.length)], lr = STATS[lk].r[2];
+      ls[lk] = rnum(lr[0], lr[1], STATS[lk].dec);
+      return { slot: slot, grade: 'unique', emoji: lb[0], base: lb[1], stats: ls };
+    }
     var r = Math.random(), g = r < P_UNIQUE ? 'unique' : r < P_UNIQUE + P_EPIC ? 'epic' : r < P_UNIQUE + P_EPIC + P_RARE ? 'rare' : r < P_UNIQUE + P_EPIC + P_RARE + P_GOOD ? 'good' : 'normal';
     if (g === 'epic' || g === 'unique') {      // 신등급: 고정 효과 1개 + 랜덤 능력치 1개(레어 범위)
       var xb = EXTRA[slot][g], fk = g === 'epic' ? 'wish' : 'recomb', fr = g === 'epic' ? EPIC_WISH : UNIQUE_RECOMB, st = {};
@@ -205,6 +218,37 @@
     STAT_KEYS.forEach(function (k) { if (STATS[k].scope === 'all') t[k] = sumStat(k, ids); });
     return t;
   }
+
+  // ── ⏳ 실시간 체력 회복: 굿즈를 끼고 있는 아이돌 체력(관리탭)이 시간이 지날수록 차오른다 ──
+  // 앱을 꺼둔 시간도 다시 켜면 흐른 만큼 계산. 소수점은 모아뒀다가 정수가 되면 올림. 체력 100까지.
+  var LIVE_KEY = 'ph_gg_live';       // { cid: { t: 마지막 계산 시각, f: 모인 소수점 } }
+  function liveTick() {
+    try {
+      var M = window.__mealTest; if (!M || !M.load) return;
+      var d = load(), now = Date.now(), lv = {};
+      try { lv = JSON.parse(localStorage.getItem(LIVE_KEY) || '{}') || {}; } catch (e) {}
+      var st = null, changed = false, lvChanged = false, gained = 0;
+      Object.keys(d).forEach(function (cid) {
+        var rate = sumStat('live', [cid]);
+        if (rate <= 0) { if (lv[cid]) { delete lv[cid]; lvChanged = true; } return; }
+        var e = lv[cid];
+        if (!e || !(e.t > 0) || e.t > now) { lv[cid] = { t: now, f: 0 }; lvChanged = true; return; }
+        var add = rate * (now - e.t) / 3600000 + (e.f || 0), n = Math.floor(add);
+        e.t = now; e.f = add - n; lvChanged = true;
+        if (n > 0) {
+          if (!st) st = M.load();
+          var s = M.statOf(st, cid);
+          if (s.s < 100) { s.s = Math.min(100, s.s + n); changed = true; gained += n; }
+          else e.f = 0;
+        }
+      });
+      if (changed) { M.save(st); if (document.getElementById('meal-stats') && window.__mealRefresh) window.__mealRefresh(); }
+      if (lvChanged) localStorage.setItem(LIVE_KEY, JSON.stringify(lv));
+    } catch (e) {}
+  }
+  setInterval(liveTick, 20000);
+  document.addEventListener('visibilitychange', function () { if (!document.hidden) liveTick(); });
+  setTimeout(liveTick, 3000);
 
   // ── 팬덤 원정 보너스 연결: getEngraveBonus(charId) 에 더해줌 ──
   function bonusOf(charId) {
@@ -399,7 +443,7 @@
       var S = STATS[k];
       return '<tr style="border-top:1px solid rgba(255,255,255,.08);"><td style="padding:5px 4px 5px 0;white-space:nowrap;">' + S.icon + ' ' + S.label.replace(/\(.*\)/, '') + '</td><td>' + rg(k, 0) + '</td><td>' + rg(k, 1) + '</td><td>' + rg(k, 2) + '</td><td style="color:#FFD700;">' + S.cap + S.unit + '</td></tr>';
     }).join('');
-    var scopeNote = RAND_KEYS.concat(['rest', 'wish', 'recomb']).map(function (k) { return STATS[k].icon + ' ' + STATS[k].label.replace(/\(.*\)/, '') + ': ' + (k === 'rest' ? '💤 전용 굿즈(구름 머리띠 등)에만 붙어요. 장착한 아이돌의 🌙하루 보내기마다 체력이 더 회복 (체력 50까지)' : STATS[k].scope === 'char' ? '장착한 그 아이돌의 원정에만' : '장착한 모든 굿즈 합산 (아이돌 상관없음)'); }).join('<br>');
+    var scopeNote = RAND_KEYS.concat(['rest', 'live', 'wish', 'recomb']).map(function (k) { return STATS[k].icon + ' ' + STATS[k].label.replace(/\(.*\)/, '') + ': ' + (k === 'live' ? '⏳ 전설 굿즈(0.6%)에만 붙어요. 장착한 아이돌의 관리탭 체력이 시간이 지날수록 계속 차올라요 (앱을 꺼둬도 계산, 체력 100까지)' : k === 'rest' ? '💤 전용 굿즈(구름 머리띠 등)에만 붙어요. 장착한 아이돌의 🌙하루 보내기마다 체력이 더 회복 (체력 50까지)' : STATS[k].scope === 'char' ? '장착한 그 아이돌의 원정에만' : '장착한 모든 굿즈 합산 (아이돌 상관없음)'); }).join('<br>');
     body.innerHTML =
       '<div style="' + box + '"><div style="font-weight:900;font-size:13px;margin-bottom:6px;">🔨 제작하면 이렇게 나와요</div>' +
         '<div style="margin-bottom:6px;">실패 <b>' + pc(P_FAIL) + '</b> (재료만 사라져요) · 성공하면 아래 등급 중 하나!</div>' + gradeRows + '</div>' +
@@ -413,7 +457,7 @@
           var S = SLOTS[sl];
           function cell(emo, name, color) { return '<div style="width:72px;text-align:center;">' + icon({ slot: sl, base: name, emoji: emo }, 44) + '<div style="font-size:10px;line-height:1.3;margin-top:2px;color:' + (color || '#dde') + ';">' + name + '</div></div>'; }
           return '<div style="margin-bottom:10px;"><div style="font-weight:900;margin-bottom:4px;">' + S.label + '</div><div style="display:flex;flex-wrap:wrap;gap:6px;">' +
-            S.items.concat(REST_ITEMS[sl]).map(function (it) { return cell(it[0], it[1]); }).join('') + cell(EXTRA[sl].epic[0], EXTRA[sl].epic[1], GRADES.epic.color) + cell(EXTRA[sl].unique[0], EXTRA[sl].unique[1], GRADES.unique.color) + '</div></div>';
+            S.items.concat(REST_ITEMS[sl]).map(function (it) { return cell(it[0], it[1]); }).join('') + cell(EXTRA[sl].epic[0], EXTRA[sl].epic[1], GRADES.epic.color) + cell(EXTRA[sl].unique[0], EXTRA[sl].unique[1], GRADES.unique.color) + cell(LIVE_ITEMS[sl][0], LIVE_ITEMS[sl][1], GRADES.unique.color) + '</div></div>';
         }).join('') + '</div>';
   }
 
@@ -597,7 +641,7 @@
     install();   // 한 번만 감쌈 (bag-delete.js 처럼 주기적으로 다시 감싸는 파일과 서로 겹겹이 감싸지 않도록)
   })();
 
-  window.__goodsGear = { icon: icon, globalTotals: globalTotals, craft: craft, rollGear: rollGear, totals: totals, bonusOf: bonusOf, equip: equip, unequip: unequip };
+  window.__goodsGear = { icon: icon, globalTotals: globalTotals, craft: craft, rollGear: rollGear, totals: totals, bonusOf: bonusOf, equip: equip, unequip: unequip, liveTick: liveTick };
 
   // ── 맵: 🛍️ 상점거리 에 "🎁 굿즈 공방" 버튼 ──
   var BTN_ID = 'btn-goods-gear';
