@@ -353,7 +353,7 @@
     } catch (e) {}
   }, 800);
 
-  window.__dailyQuest = { claim: claim, claimAll: claimAll, bump: bump, watch: watchTick };
+  window.__dailyQuest = { claimable: claimableCount, claim: claim, claimAll: claimAll, bump: bump, watch: watchTick };
   ensureDay();
   setTimeout(render, 1000);
   setTimeout(render, 2200);
