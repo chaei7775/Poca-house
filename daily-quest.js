@@ -18,7 +18,7 @@
   // 퀘스트 목록: need=목표 횟수, w=경험치 비중(합 1.0), coins=코인(고정, 약간)
   var ALLQ = [
     { id: 'login',   icon: '👋', title: '오늘도 출석!',      desc: '접속하면 자동 완료',          need: 1, w: 0.10, coins: 1000 },
-    { id: 'alba',    icon: '🍔', title: '알바 2판 하기',      desc: '🍔 알바하기에서 2번 완료',     need: 2, w: 0.15, coins: 1500 },
+    { id: 'alba',    icon: '🍔', title: '알바 2판 하기',      desc: '🍔 알바하기에서 2번 완료',     need: 2, w: 0.15, coins: 1500, stone: 3, item: { emoji: '🔶', name: '공방의 원석', type: 'material', qty: 2, desc: '굿즈 공방 제작 재료 · 탐험·원정에서 나와요' } },
     { id: 'explore', icon: '🚐', title: '스케줄 2번 나가기',  desc: '🚐 스케줄 가기 / 낚시 2번',    need: 2, w: 0.15, coins: 1000 },
     { id: 'gift',    icon: '💝', title: '선물 1번 하기',      desc: '🛍️ 잡화점에서 사서 💞 인연에서 선물',  need: 1, w: 0.15, coins: 1000 },
     { id: 'school',  icon: '🏫', title: '학교 1번 가기',      desc: '맵 → 연성고등학교 미니게임',   need: 1, w: 0.15, coins: 1000 },
@@ -85,6 +85,10 @@
       coins += def.coins;
       if (typeof saveAll === 'function') saveAll();
       if (typeof updateCoinsDisplay === 'function') updateCoinsDisplay();
+    } catch (e) {}
+    try {   // 알바 퀘스트: 강화석 + 재료도 같이
+      if (def.stone) { var en = JSON.parse(localStorage.getItem('ph_enhance') || '{}') || {}; en.stone = Math.floor(Number(en.stone) || 0) + def.stone; localStorage.setItem('ph_enhance', JSON.stringify(en)); }
+      if (def.item && typeof addToBag === 'function') addToBag(def.item.emoji, def.item.name, def.item.type, def.item.qty, def.item.desc);
     } catch (e) {}
     try { if (typeof addPlayerExp === 'function') addPlayerExp(exp); } catch (e) {}
     return exp;
@@ -261,7 +265,7 @@
       h += '<div class="dq-row' + (got ? ' dq-done' : '') + '"><div class="dq-ico">' + q.icon + '</div><div class="dq-mid">' +
         '<div class="dq-title">' + q.title + ' <span style="font-size:11px;color:#888;">(' + p + '/' + q.need + ')</span></div>' +
         '<div class="dq-desc">' + q.desc + '</div>' +
-        '<div class="dq-rw">⭐ +' + expOf(q) + ' EXP · 🍔 +' + q.coins + '</div>' +
+        '<div class="dq-rw">⭐ +' + expOf(q) + ' EXP · 🍔 +' + q.coins + (q.stone ? ' · 🔨 강화석 ×' + q.stone : '') + (q.item ? ' · ' + q.item.emoji + ' ' + q.item.name + ' ×' + q.item.qty : '') + '</div>' +
         '<div class="dq-bar"><div style="width:' + Math.round(p / q.need * 100) + '%"></div></div></div>' +
         '<button class="dq-btn" data-dq-id="' + q.id + '"' + (ready ? '' : ' disabled') + '>' + (got ? '완료' : (ready ? '받기' : '진행중')) + '</button></div>';
     });
