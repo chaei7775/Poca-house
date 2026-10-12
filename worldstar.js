@@ -217,7 +217,7 @@
     render();
   }
   // ════════ 월드 도전 ════════
-  function baseDone(cid) { return stepsOf(cid).filter(function (x) { return !x.world; }).every(function (x) { return x.done; }); }
+  function baseDone(cid) { if (testOn()) return true; return stepsOf(cid).filter(function (x) { return !x.world; }).every(function (x) { return x.done; }); }
   function panel(html) {   // 로드맵 위에 얹는 작은 창
     var old = $('ws-pop'); if (old) old.remove();
     var o = document.createElement('div'); o.id = 'ws-pop';
