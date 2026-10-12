@@ -220,27 +220,28 @@
   // ── 🌍 월드 투어 (오디션 게임 재활용) ──
   function staminaOf(cid) { try { var M = window.__mealTest, st = M.load(); return M.statOf(st, cid).s; } catch (e) { return 100; } }
   function spendStamina(cid, n) { try { var M = window.__mealTest, st = M.load(); var x = M.statOf(st, cid); x.s = Math.max(0, x.s - n); M.save(st); } catch (e) {} }
-  function openTour(cid) {
-    if (!baseDone(cid)) { toast('기본 4단계를 먼저 채워야 해요'); return; }
+  function openTour(cid, opt) {
+    opt = opt || {}; var endCb = function (ok) { if (opt.onEnd) { var f = opt.onEnd; opt.onEnd = null; try { f(ok); } catch (e) {} } };
+    if (!baseDone(cid)) { toast('기본 4단계를 먼저 채워야 해요'); endCb(false); return; }
     var P = progOf(cid), n = P.tour || 0;
-    if (n >= CITIES.length) { toast('월드 투어를 모두 마쳤어요!'); return; }
+    if (n >= CITIES.length) { toast('월드 투어를 모두 마쳤어요!'); endCb(false); return; }
     var c = CITIES[n], sta = staminaOf(cid), can = sta >= TOUR_MIN_STA && typeof window.openAuditionShow === 'function';
     var rows = CITIES.map(function (x, i) { return '<div style="display:flex;justify-content:space-between;padding:6px 0;font-size:13px;' + (i < n ? 'color:' + ACC + ';' : i === n ? 'font-weight:900;' : 'opacity:.5;') + '"><span>' + (i < n ? '✔ ' : i === n ? '▶ ' : '🔒 ') + x.n + ' 공연 <span style="font-size:10.5px;opacity:.85;">· 🎁 ' + x.skn + '</span></span><span>통과 ' + Math.round(x.need * 100) + '점</span></div>'; }).join('');
     var o = panel('<div style="font-size:17px;font-weight:900;margin-bottom:4px;">🌍 월드 투어 · ' + esc(nameOf(cid)) + '</div>' +
       '<div style="font-size:12px;color:#c9b8e8;line-height:1.6;margin-bottom:8px;">도시마다 오디션 무대를 직접 해내면 다음 도시가 열려요. 공연 한 번에 체력 ' + TOUR_COST + '이 줄어요.</div>' + rows +
       '<div style="font-size:12px;margin:8px 0;color:' + (can ? '#9ee7b5' : '#ff9aa8') + ';">체력 ' + sta + (can ? '' : ' (' + TOUR_MIN_STA + ' 이상이어야 해요 · 스케줄·식사에서 회복)') + '</div>' +
       '<div style="display:flex;gap:8px;"><button id="ws-tgo" style="' + BTN + 'flex:2;background:linear-gradient(135deg,#FFD700,#F59E0B);color:#2a1a00;' + (can ? '' : 'opacity:.4;') + '">' + c.n + ' 공연 시작!</button><button id="ws-tx" style="' + BTN + 'flex:1;background:rgba(255,255,255,.12);color:#fff;">닫기</button></div>');
-    o.querySelector('#ws-tx').onclick = popClose;
+    o.querySelector('#ws-tx').onclick = function () { popClose(); endCb(false); };
     o.querySelector('#ws-tgo').onclick = function () {
       if (!can) { toast(sta < TOUR_MIN_STA ? '체력이 모자라요' : '무대를 열 수 없어요'); return; }
       popClose(); var over = false;
-      window.openAuditionShow({ cid: cid, embed: true, title: '🌍 월드 투어 · ' + c.n, gaugeMul: c.spd, onCancel: function () { render(); } }, function (perf, info) {
+      window.openAuditionShow({ cid: cid, embed: true, title: '🌍 월드 투어 · ' + c.n, gaugeMul: c.spd, onCancel: function () { render(); endCb(false); } }, function (perf, info) {
         if (over) return; over = true;
         spendStamina(cid, TOUR_COST);
         var ok = perf != null && perf >= c.need, pct = Math.round((perf || 0) * 100);
         if (ok) { setProg(cid, { tour: n + 1 }); var got = false; try { got = !!(window.__dramaWorld && window.__dramaWorld.give(c.sk)); } catch (e) {} toast('🌍 ' + c.n + ' 공연 성공! (' + pct + '점)' + (got ? ' · 드라마 스킬 [' + c.skn + '] 획득!' : '')); try { if (typeof sfx === 'function') sfx('levelup'); } catch (e) {} }
         else toast('아쉬워요… ' + pct + '점 · ' + Math.round(c.need * 100) + '점이 필요해요');
-        render();
+        render(); endCb(ok);
       });
     };
   }
@@ -285,11 +286,12 @@
     return typeof o[k] === 'number' ? o[k] : 10;
   }
   var STAT_NAME = { fun: '예능', charm: '매력', vocal: '보컬', dance: '댄스', act: '연기' };
-  function openReact(cid) {
-    if (!baseDone(cid)) { toast('기본 4단계를 먼저 채워야 해요'); return; }
+  function openReact(cid, opt) {
+    opt = opt || {}; var endCb = function (ok) { if (opt.onEnd) { var f = opt.onEnd; opt.onEnd = null; try { f(ok); } catch (e) {} } };
+    if (!baseDone(cid)) { toast('기본 4단계를 먼저 채워야 해요'); endCb(false); return; }
     var P = progOf(cid);
-    if ((P.react || 0) >= REACT_GOAL) { toast('세계 반응을 모두 채웠어요!'); return; }
-    if (P.reactDay === todayStr()) { toast('오늘의 해외 반응은 이미 봤어요. 내일 또 와요!'); return; }
+    if ((P.react || 0) >= REACT_GOAL) { toast('세계 반응을 모두 채웠어요!'); endCb(false); return; }
+    if (!opt.anyDay && P.reactDay === todayStr()) { toast('오늘의 해외 반응은 이미 봤어요. 내일 또 와요!'); endCb(false); return; }
     var ev = REACT[Math.floor(Math.random() * REACT.length)];
     var btns = ev.o.map(function (x, i) {
       var tag = x[1] ? '<span style="font-size:10.5px;opacity:.8;">' + STAT_NAME[x[1]] + ' ' + statVal(cid, x[1]) + ' · 성공률 ' + Math.round(chance(cid, x[1]) * 100) + '%</span>' : '<span style="font-size:10.5px;opacity:.8;">안전 · +8</span>';
@@ -298,7 +300,7 @@
     var o = panel('<div style="font-size:12px;font-weight:900;color:#ffd7ec;">🌐 오늘의 세계 반응 · ' + esc(nameOf(cid)) + '</div>' +
       '<div style="font-size:14px;font-weight:900;line-height:1.55;margin:7px 0 4px;">' + esc(ev.h) + '</div>' + btns +
       '<button id="ws-rx" style="' + BTN + 'width:100%;margin-top:10px;background:transparent;color:#aaa;">나중에 할래요</button>');
-    o.querySelector('#ws-rx').onclick = popClose;
+    o.querySelector('#ws-rx').onclick = function () { popClose(); endCb(false); };
     o.querySelectorAll('[data-i]').forEach(function (b) {
       b.onclick = function () {
         var x = ev.o[+b.getAttribute('data-i')], pts, txt;
@@ -306,12 +308,12 @@
         else if (Math.random() < chance(cid, x[1])) { pts = 25; txt = x[2]; }
         else { pts = 0; txt = x[3]; }
         var now = Math.min(REACT_GOAL, (progOf(cid).react || 0) + pts);
-        setProg(cid, { react: now, reactDay: todayStr() });
+        setProg(cid, opt.anyDay ? { react: now } : { react: now, reactDay: todayStr() });
         var o2 = panel('<div style="text-align:center;"><div style="font-size:34px;">' + (pts >= 25 ? '🌟' : pts >= 8 ? '🙂' : '😅') + '</div>' +
           '<div style="font-size:14px;font-weight:900;line-height:1.6;margin:8px 0;">' + esc(txt) + '</div>' +
           '<div style="font-size:15px;font-weight:900;color:' + ACC + ';">세계 반응 +' + pts + ' (' + now + ' / ' + REACT_GOAL + ')</div>' +
           '<button id="ws-ok" style="' + BTN + 'width:100%;margin-top:14px;background:linear-gradient(135deg,#FFD700,#F59E0B);color:#2a1a00;">확인</button></div>');
-        o2.querySelector('#ws-ok').onclick = function () { popClose(); render(); };
+        o2.querySelector('#ws-ok').onclick = function () { popClose(); render(); endCb(pts); };
       };
     });
   }
@@ -329,7 +331,8 @@
   });
 
   window.openWorldStar = open;
-  window.__worldstar = { status: statusOf, all: allStatus, declare: declare, openTour: openTour, openReact: openReact, setProg: setProg, GOAL: { fame: GOAL_FAME, skill: GOAL_SKILL, bond: GOAL_BOND } };
+  function anyOpen() { return allStatus().some(function (s) { try { return baseDone(s.cid || s.id); } catch (e) { return false; } }); }
+  window.__worldstar = { anyOpen: anyOpen, baseDone: baseDone, progOf: progOf, status: statusOf, all: allStatus, declare: declare, openTour: openTour, openReact: openReact, setProg: setProg, GOAL: { fame: GOAL_FAME, skill: GOAL_SKILL, bond: GOAL_BOND } };
 
   // ── 더보기 메뉴 타일 + 알림 점 (선언할 수 있는 멤버가 있을 때) ──
   function whenReady(cond, fn) { if (cond()) fn(); else setTimeout(function () { whenReady(cond, fn); }, 150); }

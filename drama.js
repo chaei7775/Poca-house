@@ -338,9 +338,9 @@ const DIRS=[
   wrong:{plain:'감정이 안 실렸어.',funny:'분위기 깨지잖아.'}},
  {id:'fun',name:'오지호 감독',style:'유머파',hint:'현장 분위기가 늘 가벼운 편이에요.',tone:'funny',
   wrong:{plain:'너무 심심한데?',emotional:'너무 무거워. 좀 풀어봐.'}},
- {id:'james',name:'제임스 카터 감독',style:'블록버스터파',hint:'할리우드 대작을 찍어 온 감독. 스케일 큰 장면에서 담백하고 시원한 연기를 좋아해요.',tone:'plain',
+ {id:'james',worldOnly:true,name:'제임스 카터 감독',style:'블록버스터파',hint:'할리우드 대작을 찍어 온 감독. 스케일 큰 장면에서 담백하고 시원한 연기를 좋아해요.',tone:'plain',
   wrong:{emotional:'대사가 늘어져. 템포가 죽잖아!',funny:'여긴 코미디 현장이 아니야.'}},
- {id:'elena',name:'엘레나 로시 감독',style:'아트하우스파',hint:'영화제에서 상을 받은 감독. 말보다 진심이 보이는 섬세한 감정 연기를 원해요.',tone:'emotional',
+ {id:'elena',worldOnly:true,name:'엘레나 로시 감독',style:'아트하우스파',hint:'영화제에서 상을 받은 감독. 말보다 진심이 보이는 섬세한 감정 연기를 원해요.',tone:'emotional',
   wrong:{plain:'It feels empty… 더 깊이.',funny:'지금은 웃을 순간이 아니야.'}}
 ];
 const RIGHT_LINES=['좋아! 그대로 가!','그거야, 바로 그거!','오케이, 느낌 온다!'];
@@ -515,7 +515,7 @@ const SCRIPTS=[
   {t:55,type:'choice',cue:'(마지막 대사)',o:{plain:'다신 안 와.',emotional:'모두 무사해서 다행이야.',funny:'이 학교, 별점 한 개.'}}
  ]}
  /* 🌟 해외 대본 (world:true): 월드스타 로드맵 '해외 영화' 도전용. 월드 스킬(영어 대사·블록버스터 액션·글로벌 스타 오라)이 특히 강함 */
- ,{id:'hollywood',title:'할리우드 블록버스터',genre:'액션',cast:1,world:true,desc:'🌟 월드스타 도전 · 해외 대작 영화 촬영! 히든 카드로 시청률 13% 이상이면 성공 · 월드 스킬이 큰 도움이 돼요',
+ ,{id:'hollywood',title:'할리우드 블록버스터',genre:'액션',cast:1,world:true,worldOnly:true,desc:'🌟 월드스타 도전 · 해외 대작 영화 촬영! 히든 카드로 시청률 13% 이상이면 성공 · 월드 스킬이 큰 도움이 돼요',
   ev:[
   {t:4,type:'tap',line:"Let's go. 시간이 없어."},
   {t:8,type:'choice',cue:'(폭발 직전의 다리 위에서)',o:{plain:'지금 건너면 돼.',emotional:'약속해, 돌아올게.',funny:'보험은 들어 놨겠지?'}},
@@ -531,7 +531,7 @@ const SCRIPTS=[
   {t:52,type:'chance',kind:'adlib',line:'(카메라가 클로즈업한다)'},
   {t:56,type:'choice',cue:'(엔딩 대사)',o:{plain:"It's over.",emotional:'세상이 널 기억할 거야.',funny:'속편은 없는 걸로 하자.'}}
  ]}
- ,{id:'paris',title:'파리의 마지막 밤',genre:'로맨스',cast:1,world:true,desc:'🌟 해외 로맨스 영화 · 에펠탑이 보이는 강변에서 벌어지는 이별과 재회',
+ ,{id:'paris',title:'파리의 마지막 밤',genre:'로맨스',cast:1,world:true,worldOnly:true,desc:'🌟 해외 로맨스 영화 · 에펠탑이 보이는 강변에서 벌어지는 이별과 재회',
   ev:[
   {t:4,type:'tap',line:'파리의 밤은 언제나 이래.'},
   {t:8,type:'choice',cue:'(강변에서 그를 마주치며)',o:{plain:'오랜만이야.',emotional:'네가 올 줄 알았어.',funny:'여기서 만날 확률이 얼마나 될까?'}},
@@ -646,8 +646,8 @@ function pickDefault(){const ok=CHARS.find(c=>isDebut(c.id)&&cardsOf(c.id).lengt
 const CAST_LOCK_LV=25;   // 2인·3인 대본은 이 레벨부터 (그 전엔 1인 대본만)
 const plv_=()=>{try{return Number(window.playerLevel!==undefined?window.playerLevel:(typeof playerLevel!=='undefined'?playerLevel:99))||1}catch(e){return 99}};
 const castLocked=sc=>!!sc&&(sc.cast||1)>1&&plv_()<CAST_LOCK_LV;
-const script=()=>{const sc=SCRIPTS.find(s=>s.id===S.sel.script);if(castLocked(sc)){S.sel.script='letter';return SCRIPTS.find(s=>s.id==='letter')}return sc};
-const dir=()=>DIRS.find(d=>d.id===S.sel.dir);
+const script=()=>{const sc=SCRIPTS.find(s=>s.id===S.sel.script);if(sc&&sc.worldOnly&&!WM){S.sel.script='letter';return SCRIPTS.find(s=>s.id==='letter')}if(castLocked(sc)){S.sel.script='letter';return SCRIPTS.find(s=>s.id==='letter')}return sc};
+const dir=()=>{const d=DIRS.find(d=>d.id===S.sel.dir);if(d&&d.worldOnly&&!WM){S.sel.dir='calm';return DIRS.find(x=>x.id==='calm')}return d};
 const eq=cid=>(S.equip[cid]||[]).map(u=>S.inv.find(i=>i.u===u)).filter(Boolean);
 /* 스킬 세트: 카드마다 1·2·3번 세트를 저장해 두고 한 번에 갈아끼운다. 장착을 바꾸면 쓰는 세트에도 자동 저장 */
 const SET_N=3;
@@ -666,7 +666,8 @@ function scriptInfo(s){
 }
 /* 책 팝업: 대본/감독을 한 장씩 보여주고, 페이지를 탭하면 다음 장으로 넘어간다 */
 let bookK='script',bookI=0;
-function bookList(){return bookK==='script'?SCRIPTS:DIRS}
+let WM=false;   /* 월드스타 맵(worldstage-map.js)에서 열었을 때만 true → worldOnly 대본·감독이 보임 */
+function bookList(){return bookK==='script'?SCRIPTS.filter(s=>!s.worldOnly||WM):DIRS.filter(d=>!d.worldOnly||WM)}
 function openBookPop(k){
   bookK=k;const cur=k==='script'?S.sel.script:S.sel.dir;
   bookI=Math.max(0,bookList().findIndex(x=>x.id===cur));
@@ -1144,7 +1145,7 @@ $('#dr-result').addEventListener('click',e=>{const b=e.target.closest('[data-r]'
 });
 
 function openDrama(){load();renderPrep();{const s_=$('#dr-prep .scroll');if(s_)s_.scrollTop=0}R.hidden=false;$('#dr-prep').hidden=false;$('#dr-shoot').hidden=true;$('#dr-result').hidden=true}
-function closeDrama(){if(G)return;R.hidden=true}
+function closeDrama(){if(G)return;R.hidden=true;WM=false}
 window.openDrama=openDrama;
 /* 🏪 거래소 연결: 촬영에서 드랍된 스킬(장착 안 한 것만)을 거래소에 올리고 살 수 있게 함. 키 'bk_sk_<스킬id>' → 거래소 규칙 'bk_.*' 에 포함 */
 const equippedSet=()=>{const st=new Set();Object.keys(S.equip||{}).forEach(c=>(S.equip[c]||[]).forEach(u=>st.add(u)));return st};
@@ -1165,7 +1166,10 @@ window.__dramaSkillTrade={
     T.SK_ORDER.push(k);
   });
 })(0);
-window.__dramaWorld={give:function(id){try{if(!SKILLS[id])return false;load();giveSkill(id);save();return true}catch(e){return false}}};   /* worldstar.js 월드 투어 보상 지급용 */
+window.__dramaWorld={give:function(id){try{if(!SKILLS[id])return false;load();giveSkill(id);save();return true}catch(e){return false}},
+  /* 월드스타 맵에서 영화 촬영 화면 열기: 대본·감독·멤버를 미리 골라 둠. 닫으면 WM 이 꺼져서 월드 대본은 다시 숨음 */
+  open:function(cid,scriptId,dirId){try{load();WM=true;S.sel.script=scriptId||'hollywood';S.sel.dir=dirId||'james';if(cid&&charOf(cid)){S.sel.char=cid;S.sel.card=''}save();openDrama();return true}catch(e){return false}},
+  isOpen:function(){return !R.hidden}};   /* worldstar.js 월드 투어 보상 지급용 */
 window.__dramaTest={rating,SKILLS,SCRIPTS,CFG,MAST:{BOOK_XP,BOOKS,XP:MAST_XP,MAX:MAST_MAX,lv:mastLv,mult:mastMult,cd:mastCd,add:addMast,xp:mastXp,dtext}};
 /* 광장 메뉴 버튼 (CF 촬영 버튼 아래) */
 let tries=0;

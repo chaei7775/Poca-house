@@ -35,6 +35,7 @@
 
   // ── 입장 ──
   function enter(cfg, charId, again) {
+    if (cfg.gate) { var gm = cfg.gate(); if (gm) { toast(gm); return false; } }   // 🔒 특별 입장 조건 (월드 스테이지: 월드스타 도전 단계 진입 등)
     if (plv() < cfg.needLevel) { toast(cfg.emoji + ' ' + cfg.name + '은(는) 플레이어 Lv.' + cfg.needLevel + '부터 열려요 (지금 Lv.' + plv() + ')'); return false; }
     var ov = $('special-overlay'); if (!ov) return false;
     if (stam() < cfg.stamina) { toast('스태미나가 부족해요! ⚡ 음료를 마셔봐요 (입장 ' + cfg.stamina + ')'); return false; }
@@ -171,6 +172,7 @@
       window.openSpecialCardSelect = function (id) {
         var c = REG[id];
         if (c && plv() < c.needLevel) { toast('🔒 ' + c.name + '은(는) 플레이어 Lv.' + c.needLevel + '부터 열려요 (지금 Lv.' + plv() + ')'); return; }
+        if (c && c.gate) { var g2 = c.gate(); if (g2) { toast('🔒 ' + g2); return; } }
         return origSel.apply(this, arguments);
       };
     }
@@ -193,10 +195,11 @@
       }
       var bb = $(bid);
       if (bb) {
-        var lock = !isOpen() || plv() < cfg.needLevel;
+        var gt = cfg.gate ? cfg.gate() : null;
+        var lock = !isOpen() || plv() < cfg.needLevel || !!gt;
         bb.style.opacity = lock ? '.55' : '1';
         var dy = bb.querySelector('.xk-day'); if (dy) { var dd0 = daily(cfg), pc = Math.round(EXTRA_RATE * 100); dy.textContent = dd0.left > 0 ? '📅 하루 ' + cfg.daily + '번까지 보상 100% · 오늘 ' + dd0.left + '번 남음 (넘으면 ' + pc + '%)' : '📅 오늘 보상 100%는 다 썼어요 · 지금부턴 ' + pc + '%만 받아요'; }   // 입장 화면을 건너뛰는 사람도 보게 배너에 표시
-        var tag = bb.querySelector('.xk-tag'); if (tag) tag.textContent = !isOpen() ? '🔒 준비 중' : lock ? '🔒 Lv.' + cfg.needLevel : 'NEW · Lv.' + cfg.needLevel;
+        var tag = bb.querySelector('.xk-tag'); if (tag) tag.textContent = !isOpen() ? '🔒 준비 중' : gt ? '🔒 ' + (cfg.gateTag || '조건 필요') : lock ? '🔒 Lv.' + cfg.needLevel : 'NEW · Lv.' + cfg.needLevel;
       }
       setTimeout(addBtn, 600);
     })();
