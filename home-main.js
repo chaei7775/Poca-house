@@ -105,7 +105,13 @@
     if (!build()) return;
     var c = mainCard(), sig = c ? c.id : '-';
     if (!force && sig === cur && document.getElementById('hm-card')) { attach(); return; }
-    cur = sig; document.getElementById('hm-hero').innerHTML = heroHtml(); attach();
+    cur = sig;
+    var hero = document.getElementById('hm-hero');
+    var chip = document.getElementById('hm-stam'), badge = document.getElementById('home-title-badge');   // 그림을 바꿀 때 같이 지워지지 않게 잠깐 빼 둠
+    [chip, badge].forEach(function (n) { if (n && n.parentNode === hero) hero.removeChild(n); });
+    hero.innerHTML = heroHtml();
+    [chip, badge].forEach(function (n) { if (n) hero.appendChild(n); });
+    attach();
     clearTimeout(window.__hmSayT); window.__hmSayT = setTimeout(function () { var e = document.getElementById('hm-say'); if (e) e.classList.add('off'); }, 4500);   // 말풍선은 잠깐 보였다가 사라져서 카드를 가리지 않음
   }
 
