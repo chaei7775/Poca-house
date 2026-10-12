@@ -115,10 +115,10 @@
     var ov = document.createElement('div'); ov.id = 'hm-picker';
     ov.style.cssText = 'position:fixed;inset:0;z-index:100000;background:rgba(10,6,24,.88);display:flex;flex-direction:column;font-family:"Noto Sans KR",sans-serif;';
     ov.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:center;padding:14px 16px;color:#fff;font-weight:900;"><span>⭐ 대표 아이돌 고르기</span><button id="hm-pk-x" style="border:none;background:rgba(255,255,255,.18);color:#fff;border-radius:50%;width:34px;height:34px;font-size:16px;">✕</button></div>' +
-      '<div style="flex:1;overflow-y:auto;padding:0 12px 24px;display:grid;grid-template-columns:repeat(3,1fr);gap:10px;align-content:start;">' +
+      '<div style="flex:1;overflow-y:auto;padding:0 12px 24px;display:grid;grid-template-columns:repeat(3,1fr);gap:10px;grid-auto-rows:max-content;align-content:start;">' +
       all.map(function (c) {
-        return '<div data-id="' + esc(c.id) + '" style="position:relative;border-radius:12px;overflow:hidden;aspect-ratio:2/3;background:#1a1a2e;border:3px solid ' + (c.id === sel ? ACC : 'transparent') + ';">' +
-          '<img src="' + esc(thumb(c.img)) + '" loading="lazy" decoding="async" style="width:100%;height:100%;object-fit:cover;display:block;pointer-events:none;">' +
+        return '<div data-id="' + esc(c.id) + '" style="position:relative;border-radius:12px;overflow:hidden;height:0;padding-top:150%;background:#1a1a2e;box-shadow:0 0 0 3px ' + (c.id === sel ? ACC : 'transparent') + ';">' +
+          '<img src="' + esc(thumb(c.img)) + '" loading="lazy" decoding="async" style="position:absolute;left:0;top:0;width:100%;height:100%;object-fit:cover;display:block;pointer-events:none;">' +
           '<span style="position:absolute;left:4px;top:4px;font-size:10px;font-weight:900;color:#fff;background:' + c.color + ';border-radius:6px;padding:1px 5px;">' + esc(c.grade) + '</span></div>';
       }).join('') + (all.length ? '' : '<div style="grid-column:1/-1;color:#fff;text-align:center;padding:40px 0;">고를 카드가 없어요. 카드를 뽑아봐요!</div>') + '</div>';
     document.body.appendChild(ov);
