@@ -150,8 +150,8 @@
     ov.style.cssText = 'position:fixed;inset:0;z-index:1300;background:rgba(6,3,14,.9);display:flex;align-items:center;justify-content:center;padding:18px;font-family:\'Noto Sans KR\',sans-serif;color:#fff;';
     ov.innerHTML = '<style>@keyframes crBar{from{width:0}to{width:100%}}@keyframes crHop{0%,100%{transform:translateY(0) scale(1,1)}40%{transform:translateY(-16px) scale(.97,1.04)}70%{transform:translateY(0) scale(1.04,.96)}}</style><div style="width:100%;max-width:320px;text-align:center;">' +
       '<div style="position:relative;width:100%;aspect-ratio:1/1;border-radius:20px;overflow:hidden;background:radial-gradient(circle at 50% 40%,#5b3f9e,#1a1030 75%);border:2px solid ' + ACC + ';box-shadow:0 8px 30px rgba(0,0,0,.6);">' +
-      '<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:90px;">' + tl.icon + '</div>' +
-      '<img src="' + IMG_BASE + 'talent/' + cid + '.png" alt="" loading="lazy" decoding="async" style="position:absolute;left:10%;top:6%;width:80%;height:80%;object-fit:contain;animation:crHop 1.1s ease-in-out infinite;" onerror="this.remove()">' +
+      '<div id="cr-sc-emo" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:90px;">' + tl.icon + '</div>' +
+      '<img src="' + IMG_BASE + 'talent/' + cid + '.png" alt="" loading="lazy" decoding="async" style="position:absolute;left:10%;top:6%;width:80%;height:80%;object-fit:contain;animation:crHop 1.1s ease-in-out infinite;" onload="var e=document.getElementById(\'cr-sc-emo\');if(e)e.remove()" onerror="this.remove()">' +
       '<div style="position:absolute;left:0;right:0;bottom:0;padding:26px 12px 10px;background:linear-gradient(transparent,rgba(0,0,0,.75));font-size:14px;font-weight:900;">' + esc(nameOf(cid)) + ' · ' + tl.icon + ' ' + esc(tl.name) + ' 연습 중…</div></div>' +
       '<div id="cr-sc-bar" style="height:8px;border-radius:5px;background:rgba(255,255,255,.14);overflow:hidden;margin-top:14px;"><div style="height:100%;background:linear-gradient(90deg,#a78bfa,#fbbf24);animation:crBar ' + SCENE_MS + 'ms linear forwards;"></div></div>' +
       '<div id="cr-sc-res" style="min-height:92px;margin-top:12px;"></div></div>';
@@ -176,8 +176,13 @@
     document.body.appendChild(ov); render();
   }
   function bar(p, col) { return '<div style="height:7px;border-radius:5px;background:rgba(255,255,255,.12);overflow:hidden;margin-top:5px;"><div style="width:' + Math.round(Math.max(0, Math.min(1, p)) * 100) + '%;height:100%;background:' + col + ';"></div></div>'; }
+  var pre = {};
+  function preload() {   // 특기 탭을 열면 SD 그림을 미리 받아 둠 (한꺼번에 말고 조금씩)
+    members().forEach(function (c, i) { if (pre[c]) return; pre[c] = 1; setTimeout(function () { try { new Image().src = IMG_BASE + 'talent/' + c + '.png'; } catch (e) {} }, i * 350); });
+  }
   function render() {
     var ov = $('cr-ov'); if (!ov) return;
+    if (curTab === 's') preload();
     var th = theme(), cnt = Math.min(WEEK_NEED, weekCount()), wk = ensureWeek().week, done = !!wk.claimed, can = !done && cnt >= WEEK_NEED;
     var weekHtml = '<div style="background:rgba(251,191,36,.12);border:1.5px solid ' + ACC + ';border-radius:16px;padding:13px 14px;margin-bottom:14px;">' +
       '<div style="display:flex;justify-content:space-between;align-items:center;"><div style="font-size:14px;font-weight:900;">' + th.icon + ' 이번 주 테마 · ' + th.name + '</div><div style="font-size:11px;color:#ffe08a;">' + (th.map ? '보상 ×' + BONUS : '') + '</div></div>' +
