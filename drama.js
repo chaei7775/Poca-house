@@ -336,9 +336,9 @@ const DIRS=[
   wrong:{plain:'감정이 안 실렸어.',funny:'분위기 깨지잖아.'}},
  {id:'fun',name:'오지호 감독',style:'유머파',hint:'현장 분위기가 늘 가벼운 편이에요.',tone:'funny',
   wrong:{plain:'너무 심심한데?',emotional:'너무 무거워. 좀 풀어봐.'}},
- {id:'james',name:'제임스 윤 감독',style:'블록버스터파',hint:'할리우드 대작을 찍어 온 감독. 스케일 큰 장면에서 담백하고 시원한 연기를 좋아해요.',tone:'plain',
+ {id:'james',name:'제임스 카터 감독',style:'블록버스터파',hint:'할리우드 대작을 찍어 온 감독. 스케일 큰 장면에서 담백하고 시원한 연기를 좋아해요.',tone:'plain',
   wrong:{emotional:'대사가 늘어져. 템포가 죽잖아!',funny:'여긴 코미디 현장이 아니야.'}},
- {id:'elena',name:'엘레나 리 감독',style:'아트하우스파',hint:'영화제에서 상을 받은 감독. 말보다 진심이 보이는 섬세한 감정 연기를 원해요.',tone:'emotional',
+ {id:'elena',name:'엘레나 로시 감독',style:'아트하우스파',hint:'영화제에서 상을 받은 감독. 말보다 진심이 보이는 섬세한 감정 연기를 원해요.',tone:'emotional',
   wrong:{plain:'It feels empty… 더 깊이.',funny:'지금은 웃을 순간이 아니야.'}}
 ];
 const RIGHT_LINES=['좋아! 그대로 가!','그거야, 바로 그거!','오케이, 느낌 온다!'];
