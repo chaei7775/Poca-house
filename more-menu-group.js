@@ -16,7 +16,7 @@
     ['계정', 'account', '#B4BCD0', [/^계정/]]
   ];
   var ETC = ['기타', null, '#FBBF24'];
-  var K_LAST = 'ph_moreCat', K_SEEN = 'ph_moreSeen';
+  var K_LAST = 'ph_moreCat', K_SEEN = 'ph_moreSeen', K_ALL = 'ph_moreAll';
 
   function jget(k, d) { try { return JSON.parse(localStorage.getItem(k) || 'null') || d; } catch (e) { return d; } }
   function jset(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
@@ -116,6 +116,7 @@
         c.tiles.forEach(function (t) { if (t.__d === undefined) t.__d = (t.style.display === 'none' ? '' : t.style.display); t.style.display = on ? t.__d : 'none'; });   // 원래 display(flex 등)를 기억했다가 되돌림
       });
       jset(K_SEEN, seen);
+      var allRec = {}; cats.forEach(function (c) { c.tiles.forEach(function (t) { allRec[label(t)] = 1; }); }); jset(K_ALL, allRec);   // 마지막으로 열었을 때의 칸 목록 (더보기를 열기 전에도 새 칸 점을 띄우려고)
       cats.forEach(function (c) { c.tiles.forEach(tileDot); });
       // 🆕 새로 열린 칸에 NEW 표시 (그 칸을 직접 눌러야 사라짐 → 어느 칸이 새건지 바로 보임)
       cats.forEach(function (c) { c.tiles.forEach(function (t) {
@@ -165,5 +166,17 @@
     return true;
   }
   if (!install()) { var n = 0, iv = setInterval(function () { if (install() || ++n > 40) clearInterval(iv); }, 500); }
+  // 더보기를 열기 전에도 '새로 열린 칸'이 있는지 (마지막 목록 + 레벨표로 판단)
+  window.__moreFreshAny = function () {
+    try {
+      var seen = jget(K_SEEN, null), all = jget(K_ALL, null); if (!seen || !all) return false;
+      var g = window.__unlockGate;
+      return Object.keys(all).some(function (k) {
+        if (seen[k]) return false;
+        try { var r = g && g.ruleFor && g.ruleFor(k); if (r && r.lv > Number(playerLevel)) return false; } catch (e) {}
+        return true;
+      });
+    } catch (e) { return false; }
+  };
   window.__moreGroupTest = { GROUPS: GROUPS };
 })();
