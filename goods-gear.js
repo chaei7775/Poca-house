@@ -19,9 +19,9 @@
   var EPIC_WISH = [0.5, 0.9];                          // 에픽: 탐험 소원의 조각 확률 +%p (고정 효과)
   var P_LIVE = 0.006;                                  // 제작 성공했을 때 '실시간 체력 회복' 전설 굿즈 0.6% (유니크 등급)
   var LIVE_ITEMS = {
-    hat:  ['⏳', '모래시계 월계관'],
-    hand: ['🕰️', '태엽 시계 응원봉'],
-    acc:  ['💧', '생명의 샘 목걸이']
+    hat:  ['⏳', '모래시계 월계관', 'goods-legend-hat.png'],
+    hand: ['🕰️', '태엽 시계 응원봉', 'goods-legend-hand.png'],
+    acc:  ['💧', '생명의 샘 목걸이', 'goods-legend-acc.png']
   };
   var UNIQUE_RECOMB = [1.5, 2.5];                      // 유니크: 카드 재조합 '등급 상승' 확률 +%p (고정 효과)
   var EXTRA = {                                        // 에픽·유니크 전용 굿즈 (그림 파일이 없으면 이모지로 표시)
@@ -62,7 +62,8 @@
     good:   { label: '고급', color: '#4ade80', n: 1, i: 1 },
     rare:   { label: '레어', color: '#FFD700', n: 2, i: 2 },
     epic:   { label: '에픽', color: '#c084fc', n: 2, i: 3 },
-    unique: { label: '유니크', color: '#ff9f1c', n: 2, i: 4 }
+    unique: { label: '유니크', color: '#ff9f1c', n: 2, i: 4 },
+    legend: { label: '레전드', color: '#ff4d8d', n: 2, i: 4 }
   };
 
 
@@ -71,6 +72,7 @@
   function fileOf(g) {
     var its = SLOTS[g.slot] ? SLOTS[g.slot].items.concat(REST_ITEMS[g.slot] || []) : [];
     for (var i = 0; i < its.length; i++) if (its[i][1] === g.base) return its[i][2];
+    var lv = LIVE_ITEMS[g.slot]; if (lv && lv[1] === g.base) return lv[2];
     var ex = EXTRA[g.slot]; if (ex) { if (ex.epic[1] === g.base) return ex.epic[2]; if (ex.unique[1] === g.base) return ex.unique[2]; }
     return null;
   }
@@ -120,7 +122,7 @@
       var lb = LIVE_ITEMS[slot], ls = { live: rnum(STATS.live.r[2][0], STATS.live.r[2][1], 0) };
       var lk = RAND_KEYS[Math.floor(Math.random() * RAND_KEYS.length)], lr = STATS[lk].r[2];
       ls[lk] = rnum(lr[0], lr[1], STATS[lk].dec);
-      return { slot: slot, grade: 'unique', emoji: lb[0], base: lb[1], stats: ls };
+      return { slot: slot, grade: 'legend', emoji: lb[0], base: lb[1], stats: ls };
     }
     var r = Math.random(), g = r < P_UNIQUE ? 'unique' : r < P_UNIQUE + P_EPIC ? 'epic' : r < P_UNIQUE + P_EPIC + P_RARE ? 'rare' : r < P_UNIQUE + P_EPIC + P_RARE + P_GOOD ? 'good' : 'normal';
     if (g === 'epic' || g === 'unique') {      // 신등급: 고정 효과 1개 + 랜덤 능력치 1개(레어 범위)
@@ -157,7 +159,7 @@
         name: '[' + GRADES[g.grade].label + '] ' + g.base, emoji: g.emoji, type: 'goods_gear', qty: 1, affExp: 1,
         desc: '굿즈 · ' + S.label + ' · ' + statText(g.stats), gear: g
       });
-      setFlag('crafted'); if (g.grade === 'rare' || g.grade === 'epic' || g.grade === 'unique') setFlag('rare');
+      setFlag('crafted'); if (g.grade === 'rare' || g.grade === 'epic' || g.grade === 'unique' || g.grade === 'legend') setFlag('rare');
       res = { gear: g };
     }
     if (typeof saveBag === 'function') saveBag();
@@ -433,7 +435,8 @@
     var gradeRows = [
       ['normal', pN, '능력치 1개 (랜덤)'], ['good', P_GOOD, '능력치 1개 (랜덤, 수치↑)'], ['rare', P_RARE, '능력치 2개 (랜덤, 수치↑↑)'],
       ['epic', P_EPIC, '💜 소원의 조각 확률 ' + EPIC_WISH[0] + ' ~ ' + EPIC_WISH[1] + '%p (고정) + 랜덤 1개'],
-      ['unique', P_UNIQUE, '👑 재조합 등급 상승 확률 ' + UNIQUE_RECOMB[0] + ' ~ ' + UNIQUE_RECOMB[1] + '%p (고정) + 랜덤 1개']
+      ['unique', P_UNIQUE, '👑 재조합 등급 상승 확률 ' + UNIQUE_RECOMB[0] + ' ~ ' + UNIQUE_RECOMB[1] + '%p (고정) + 랜덤 1개'],
+      ['legend', P_LIVE, '⏳ 실시간 체력 회복 시간당 ' + STATS.live.r[2][0] + ' ~ ' + STATS.live.r[2][1] + ' (고정) + 랜덤 1개']
     ].map(function (r) {
       var G = GRADES[r[0]];
       return '<div style="display:flex;gap:8px;align-items:flex-start;margin-bottom:6px;"><div style="min-width:48px;font-weight:900;color:' + G.color + ';">' + G.label + '</div><div style="flex:1;">' + r[2] + '<div style="color:#9ab;font-size:11px;">제작 성공 중 ' + pc(r[1]) + ' · 제작 1번당 ' + pc(ok * r[1]) + '</div></div></div>';
@@ -443,7 +446,7 @@
       var S = STATS[k];
       return '<tr style="border-top:1px solid rgba(255,255,255,.08);"><td style="padding:5px 4px 5px 0;white-space:nowrap;">' + S.icon + ' ' + S.label.replace(/\(.*\)/, '') + '</td><td>' + rg(k, 0) + '</td><td>' + rg(k, 1) + '</td><td>' + rg(k, 2) + '</td><td style="color:#FFD700;">' + S.cap + S.unit + '</td></tr>';
     }).join('');
-    var scopeNote = RAND_KEYS.concat(['rest', 'live', 'wish', 'recomb']).map(function (k) { return STATS[k].icon + ' ' + STATS[k].label.replace(/\(.*\)/, '') + ': ' + (k === 'live' ? '⏳ 전설 굿즈(0.6%)에만 붙어요. 장착한 아이돌의 관리탭 체력이 시간이 지날수록 계속 차올라요 (앱을 꺼둬도 계산, 체력 100까지)' : k === 'rest' ? '💤 전용 굿즈(구름 머리띠 등)에만 붙어요. 장착한 아이돌의 🌙하루 보내기마다 체력이 더 회복 (체력 50까지)' : STATS[k].scope === 'char' ? '장착한 그 아이돌의 원정에만' : '장착한 모든 굿즈 합산 (아이돌 상관없음)'); }).join('<br>');
+    var scopeNote = RAND_KEYS.concat(['rest', 'live', 'wish', 'recomb']).map(function (k) { return STATS[k].icon + ' ' + STATS[k].label.replace(/\(.*\)/, '') + ': ' + (k === 'live' ? '⏳ 레전드 굿즈(0.6%)에만 붙어요. 장착한 아이돌의 관리탭 체력이 시간이 지날수록 계속 차올라요 (앱을 꺼둬도 계산, 체력 100까지)' : k === 'rest' ? '💤 전용 굿즈(구름 머리띠 등)에만 붙어요. 장착한 아이돌의 🌙하루 보내기마다 체력이 더 회복 (체력 50까지)' : STATS[k].scope === 'char' ? '장착한 그 아이돌의 원정에만' : '장착한 모든 굿즈 합산 (아이돌 상관없음)'); }).join('<br>');
     body.innerHTML =
       '<div style="' + box + '"><div style="font-weight:900;font-size:13px;margin-bottom:6px;">🔨 제작하면 이렇게 나와요</div>' +
         '<div style="margin-bottom:6px;">실패 <b>' + pc(P_FAIL) + '</b> (재료만 사라져요) · 성공하면 아래 등급 중 하나!</div>' + gradeRows + '</div>' +
@@ -498,7 +501,7 @@
     if (lastResult) {
       res = lastResult.fail
         ? '<div style="background:rgba(239,68,68,.15);border:1.5px solid #ef4444;border-radius:14px;padding:14px;text-align:center;margin-bottom:12px;font-weight:900;">💥 제작 실패…<div style="font-size:11px;color:#fbb;font-weight:400;margin-top:3px;">재료와 코인이 사라졌어요</div></div>'
-        : '<div style="margin-bottom:6px;font-size:12px;font-weight:900;color:#FFD700;">' + (lastResult.gear.grade === 'unique' ? '👑 유니크 굿즈 탄생!!!' : lastResult.gear.grade === 'epic' ? '💜 에픽 굿즈 탄생!!' : lastResult.gear.grade === 'rare' ? '✨ 레어 굿즈 탄생!!' : '🎉 제작 성공!') + '</div>' + gearCard(lastResult.gear);
+        : '<div style="margin-bottom:6px;font-size:12px;font-weight:900;color:#FFD700;">' + (lastResult.gear.grade === 'legend' ? '🌟 레전드 굿즈 탄생!!!!' : lastResult.gear.grade === 'unique' ? '👑 유니크 굿즈 탄생!!!' : lastResult.gear.grade === 'epic' ? '💜 에픽 굿즈 탄생!!' : lastResult.gear.grade === 'rare' ? '✨ 레어 굿즈 탄생!!' : '🎉 제작 성공!') + '</div>' + gearCard(lastResult.gear);
     }
     body.innerHTML = res +
       '<div style="font-size:12px;color:#9ab;margin-bottom:6px;">만들 부위</div>' +
@@ -583,7 +586,7 @@
   window.openGoodsGear = open;
   // ── 🔧 분해: 안 쓰는 굿즈를 가방에서 분해하면 재료를 일부 돌려줌 (만들 때 쓴 재료의 일부) ──
   var DISMANTLE_STONE_CHANCE = 0.5;   // 분해할 때 🔶 공방의 원석이 돌아올 확률 (나머지 재료는 항상 돌려줌)
-  var DISMANTLE_RATIO = { normal: 0.25, good: 0.3, rare: 0.4, epic: 0.5, unique: 0.6 };   // 제작 재료 대비 돌려받는 비율
+  var DISMANTLE_RATIO = { normal: 0.25, good: 0.3, rare: 0.4, epic: 0.5, unique: 0.6, legend: 0.7 };   // 제작 재료 대비 돌려받는 비율
   function dismantleReturn(g) {
     var S = SLOTS[g.slot], ratio = DISMANTLE_RATIO[g.grade] || 0.25;
     return S.mats.map(function (m) { return [m[0], Math.max(1, Math.round(m[1] * ratio))]; });
