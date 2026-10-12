@@ -124,7 +124,30 @@
     var r = kind === 'a' ? AWARDS[i][2] : SIG_REWARD[i], title = kind === 'a' ? AWARDS[i][1] : TALENT[cid].titles[i];
     cl[kind].push(i); save(o); var t = give(r);
     try { if (window.pocaSfx) window.pocaSfx.play('levelup'); } catch (e) {}
-    toast(nameOf(cid) + ' · ' + title + '! ' + t); render();
+    if (kind === 'a') trophy(cid, i, title, t); else toast(nameOf(cid) + ' · ' + title + '! ' + t);
+    render();
+  }
+  // 시상식 트로피 팝업 (trophy/0~4.png, 없으면 이모지로 대신 보임)
+  function trophy(cid, i, title, got) {
+    try {
+      var old = document.getElementById('cr-trophy'); if (old) old.remove();
+      var parts = String(title).split(' '), emo = parts.shift(), nm = parts.join(' ');
+      var ov = document.createElement('div'); ov.id = 'cr-trophy';
+      ov.style.cssText = 'position:fixed;inset:0;z-index:100000;background:rgba(10,6,24,.82);display:flex;align-items:center;justify-content:center;animation:crTrIn .3s ease-out;';
+      ov.innerHTML = '<style>@keyframes crTrIn{from{opacity:0}to{opacity:1}}@keyframes crTrPop{0%{transform:scale(.3) rotate(-8deg);opacity:0}60%{transform:scale(1.12) rotate(3deg);opacity:1}100%{transform:scale(1) rotate(0)}}@keyframes crTrShine{0%,100%{opacity:.5}50%{opacity:1}}</style>' +
+        '<div style="text-align:center;color:#fff;padding:20px;max-width:340px;">' +
+        '<div style="font-size:15px;opacity:.85;margin-bottom:6px;">' + nameOf(cid) + '</div>' +
+        '<div style="position:relative;width:240px;height:240px;margin:0 auto;animation:crTrPop .7s cubic-bezier(.2,1.3,.4,1) both;">' +
+        '<div style="position:absolute;inset:-20px;border-radius:50%;background:radial-gradient(circle,rgba(255,220,120,.55),transparent 65%);animation:crTrShine 1.6s ease-in-out infinite;"></div>' +
+        '<div id="cr-tr-emo" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:120px;">' + emo + '</div>' +
+        '<img src="' + IMG_BASE + 'trophy/' + i + '.png" alt="" decoding="async" style="position:absolute;inset:0;width:100%;height:100%;object-fit:contain;" onload="var e=document.getElementById(\'cr-tr-emo\');if(e)e.remove()" onerror="this.remove()"></div>' +
+        '<div style="font-size:24px;font-weight:900;margin-top:10px;color:#ffe08a;text-shadow:0 2px 8px rgba(0,0,0,.5);">' + nm + '</div>' +
+        '<div style="font-size:14px;margin-top:8px;opacity:.95;">' + got + '</div>' +
+        '<button id="cr-tr-ok" style="margin-top:18px;padding:12px 36px;border:0;border-radius:24px;background:linear-gradient(135deg,#ffd45e,#ff9d3d);color:#4a2a00;font-weight:900;font-size:16px;">확인</button></div>';
+      document.body.appendChild(ov);
+      var cl = function () { ov.remove(); }; document.getElementById('cr-tr-ok').onclick = cl;
+      try { if (window.pocaSfx) window.pocaSfx.play('reward'); } catch (e) {}
+    } catch (e) { try { console.error('trophy', e.message); } catch (x) {} toast(nameOf(cid) + ' · ' + title + '! ' + got); }
   }
 
   // ── 특기 연습 ──
