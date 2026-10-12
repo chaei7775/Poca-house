@@ -132,6 +132,49 @@
     var w = function () { var r = o.apply(this, arguments); try { apply(); } catch (e) {} setTimeout(function () { try { apply(); } catch (e) {} }, 150); return r; };
     w.__qt = true; window.renderQuestList = w;
   })();
+  // ── 퀘스트 카드를 누르면 자세한 내용을 팝업으로 ──
+  function findQuest(card) {
+    var tx = card.textContent || '';
+    try {
+      var ids = Object.keys(QUESTS);
+      for (var i = 0; i < ids.length; i++) {
+        var q = QUESTS[ids[i]]; if (!q || !q.desc) continue;
+        if (tx.indexOf(q.title) >= 0 && tx.indexOf(String(q.desc).slice(0, 14)) >= 0) return { id: ids[i], q: q };
+      }
+    } catch (e) {}
+    return null;
+  }
+  function typeLabel(q) { return q.type === 'tutorial' ? '📋 튜토리얼' : q.type === 'main' ? '🌟 메인 퀘스트' : '🌿 서브 퀘스트'; }
+  function showDetail(f) {
+    var q = f.q, done = false; try { done = questProgress[f.id] === 'done'; } catch (e) {}
+    var old = document.getElementById('qt-pop'); if (old) old.remove();
+    var rw = [];
+    if (q.rewardCoins) rw.push('🍔 코인 ' + Number(q.rewardCoins).toLocaleString());
+    if (q.rewardExp) rw.push('⭐ 경험치 ' + q.rewardExp);
+    var lv = q.minLevel || q.reqLevel || q.unlockLevel || 0;
+    var ov = document.createElement('div'); ov.id = 'qt-pop';
+    ov.style.cssText = 'position:fixed;inset:0;z-index:100000;background:rgba(8,4,20,.78);display:flex;align-items:center;justify-content:center;padding:20px;font-family:"Noto Sans KR",sans-serif;';
+    ov.innerHTML = '<div style="width:100%;max-width:340px;background:linear-gradient(180deg,#2d1b4e,#1a1a2e);border:2px solid ' + ACC + ';border-radius:20px;padding:20px 18px;color:#fff;box-shadow:0 10px 40px rgba(0,0,0,.6);">' +
+      '<div style="font-size:11px;font-weight:900;color:' + ACC + ';margin-bottom:6px;">' + typeLabel(q) + (done ? ' · ✅ 완료' : ' · 진행 중') + '</div>' +
+      '<div style="font-size:18px;font-weight:900;margin-bottom:12px;">' + esc(q.title) + '</div>' +
+      '<div style="font-size:13.5px;line-height:1.65;color:#e8defa;white-space:pre-wrap;">' + esc(q.desc) + '</div>' +
+      (lv ? '<div style="margin-top:10px;font-size:12px;color:#c9bbee;">🔓 Lv.' + lv + ' 이상</div>' : '') +
+      (rw.length ? '<div style="margin-top:12px;padding:9px 12px;border-radius:12px;background:rgba(255,255,255,.08);font-size:12.5px;font-weight:900;color:#ffe08a;">🎁 보상 · ' + rw.join(' · ') + '</div>' : '') +
+      '<button id="qt-pop-x" style="width:100%;margin-top:16px;padding:12px;border:none;border-radius:14px;font-weight:900;font-size:14px;font-family:inherit;background:linear-gradient(135deg,#C084FC,#FF6B9D);color:#fff;">확인</button></div>';
+    document.body.appendChild(ov);
+    var cl = function () { ov.remove(); };
+    document.getElementById('qt-pop-x').onclick = cl;
+    ov.addEventListener('click', function (e) { if (e.target === ov) cl(); });
+  }
+  (function bindDetail() {
+    var l = document.getElementById('quest-list'); if (!l) { setTimeout(bindDetail, 300); return; }
+    l.addEventListener('click', function (e) {
+      if (e.target.closest('button,a,input,#qt-tabs,.qt-card,#dq-quest-card,#qg-quest-card,#story-quest-section,#story-section,#ql-lock')) return;
+      var card = e.target; while (card && card.parentNode !== l) card = card.parentNode;
+      if (!card || !card.getAttribute || !card.getAttribute('data-qt')) return;
+      var f = findQuest(card); if (f) showDetail(f);
+    });
+  })();
   setInterval(function () { try { apply(); } catch (e) {} }, 700);
   window.__questTabs = { apply: apply, setTab: function (t) { tab = t; set('ph_qtab', t); apply(); } };
 })();
