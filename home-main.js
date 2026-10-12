@@ -17,13 +17,16 @@
     '#hm-card{height:100%;max-height:100%;aspect-ratio:2/3;border-radius:18px;overflow:hidden;position:relative;box-shadow:0 8px 26px rgba(0,0,0,.35),0 0 0 3px rgba(255,255,255,.55);background:#1a1a2e;}' +
     '#hm-card img{width:100%;height:100%;object-fit:cover;display:block;}' +
     '#hm-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:#fff;font-weight:900;text-align:center;padding:16px;height:100%;}' +
-    '#hm-say{position:absolute;left:18px;right:18px;top:12px;background:rgba(255,255,255,.94);color:#3a2a44;border-radius:14px;padding:8px 12px;font-size:12.5px;line-height:1.4;box-shadow:0 3px 10px rgba(0,0,0,.2);z-index:2;pointer-events:none;font-family:"Noto Sans KR",sans-serif;}' +
+    '#hm-say{position:absolute;left:18px;right:18px;top:12px;background:rgba(255,255,255,.94);color:#3a2a44;border-radius:14px;padding:6px 10px;font-size:12px;line-height:1.35;box-shadow:0 3px 10px rgba(0,0,0,.2);z-index:2;pointer-events:none;font-family:"Noto Sans KR",sans-serif;}' +
     '#hm-say b{color:#e0457b;display:block;font-size:11px;}' +
     '#hm-pick{position:absolute;right:20px;bottom:6px;z-index:3;border:none;border-radius:16px;padding:7px 12px;font-size:11.5px;font-weight:900;background:rgba(0,0,0,.55);color:#fff;font-family:inherit;border:1.5px solid rgba(255,255,255,.5);}' +
     '#hm-btns{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:8px 14px 8px;}' +
     '#hm-btns button{border:none;border-radius:16px;padding:12px 6px;font-size:14px;font-weight:900;color:#fff;font-family:"Noto Sans KR",sans-serif;line-height:1.3;box-shadow:0 4px 12px rgba(0,0,0,.2);}' +
     '#hm-btns .a{background:linear-gradient(135deg,#ff6b9d,#c084fc);}#hm-btns .b{background:linear-gradient(135deg,#6366f1,#22d3ee);}' +
     '#screen-home #hg-home-card{margin:6px 14px 0 !important;}' +
+    '#screen-home #home-title-badge{margin:4px 16px 2px !important;}#screen-home #home-title-badge>div:first-child{display:none !important;}' +
+    '#screen-home .qg-card{margin:6px 14px !important;padding:8px 12px !important;}#screen-home .qg-hint{font-size:11px !important;line-height:1.4 !important;margin-bottom:6px !important;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}' +
+    '#hm-say{transition:opacity .6s;}#hm-say.off{opacity:0;}' +
     '.nav-dot{position:absolute;top:3px;right:calc(50% - 20px);min-width:16px;height:16px;border-radius:8px;background:#ef4444;color:#fff;font-size:10px;font-weight:900;display:flex;align-items:center;justify-content:center;padding:0 3px;box-shadow:0 0 0 2px #fff;}';
   var st = document.createElement('style'); st.id = 'hm-style'; st.textContent = css; document.head.appendChild(st);
 
@@ -86,6 +89,7 @@
     var c = mainCard(), sig = c ? c.id : '-';
     if (!force && sig === cur && document.getElementById('hm-card')) return;
     cur = sig; document.getElementById('hm-hero').innerHTML = heroHtml();
+    clearTimeout(window.__hmSayT); window.__hmSayT = setTimeout(function () { var e = document.getElementById('hm-say'); if (e) e.classList.add('off'); }, 4500);   // 말풍선은 잠깐 보였다가 사라져서 카드를 가리지 않음
   }
 
   // ── 대표 고르기 ──
