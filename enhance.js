@@ -280,8 +280,9 @@
   function matBar(st) {
     return '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;">' +
       [['🔨', '강화석', st.stone, ACC], ['🛡️', '방지권', st.protect, '#4ade80'], ['💎', '초월석', st.trans, '#60A5FA'], ['🍔', '코인', coinsNow(), '#FFD700']].map(function (m) {
-        return '<div style="flex:1;min-width:70px;background:rgba(255,255,255,0.07);border:1px solid ' + m[3] + '66;border-radius:12px;padding:6px 8px;text-align:center;">' +
-          '<div style="font-size:10px;color:#aaa;">' + m[0] + ' ' + m[1] + '</div><div style="font-size:13px;font-weight:900;color:' + m[3] + ';">' + fmt(m[2]) + '</div></div>';
+        var txt = fmt(m[2]), big = txt.length > 7;   // 코인처럼 숫자가 길면 칸을 넓히고 글씨를 줄여서 밖으로 안 튀어나가게
+        return '<div style="flex:' + (big ? '2.2' : '1') + ';min-width:' + (big ? '110' : '56') + 'px;box-sizing:border-box;background:rgba(255,255,255,0.07);border:1px solid ' + m[3] + '66;border-radius:12px;padding:6px 6px;text-align:center;overflow:hidden;">' +
+          '<div style="font-size:10px;color:#aaa;white-space:nowrap;">' + m[0] + ' ' + m[1] + '</div><div style="font-size:' + (big ? '12' : '13') + 'px;font-weight:900;color:' + m[3] + ';white-space:nowrap;">' + txt + '</div></div>';
       }).join('') + '</div>';
   }
   function stars(S) { var s = ''; for (var i = 0; i < TRANS_MAX; i++) s += i < S ? '★' : '☆'; return s; }
