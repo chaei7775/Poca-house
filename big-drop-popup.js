@@ -55,7 +55,8 @@
         'onerror="this.outerHTML=\'<div style=&quot;font-size:150px;line-height:1;animation:bdpIn 0.6s cubic-bezier(.2,.9,.3,1.2) both, ' + glow + ' 2s ease-in-out 0.6s infinite;&quot;>' + k.emoji + '</div>\'">' +
       '<div style="font-size:12px;color:#ddd;margin-top:16px;text-align:center;animation:bdpFade 0.5s ease-out 0.5s both;">' + k.sub + '</div>' +
       '<button style="margin-top:18px;padding:13px 34px;background:linear-gradient(135deg,#FF6B9D,#C084FC);border:none;border-radius:14px;color:#fff;font-size:14px;font-weight:900;cursor:pointer;font-family:inherit;animation:bdpFade 0.5s ease-out 0.7s both;">확인</button>';
-    ov.addEventListener('click', close);          // 버튼이든 바깥이든 어디를 눌러도 닫힘
+    var t0 = Date.now();
+    ov.addEventListener('click', function () { if (Date.now() - t0 < 1100) return; close(); });   // 버튼이든 바깥이든 어디를 눌러도 닫힘 (단, 뜨고 1.1초 동안은 빨리 누른 탭에 안 닫히게)
     document.body.appendChild(ov);
     try { if (window.pocaSfx && window.pocaSfx.play) window.pocaSfx.play(k.sfx); } catch (e) {}
   }
