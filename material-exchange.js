@@ -26,6 +26,7 @@
     { w: 2, kind: 'item', n: 1, name: '에픽 재조합석', emoji: '💠', cat: 'material', desc: 'SSR/UR 카드 재조합에 필요한 재료', txt: '💠 에픽 재조합석 ×1' }
   ];
   var RARE = { 4: 1, 2: 1 };   // 이 가중치(방지권·에픽)는 '대박' 연출
+  var IMG_BASE = 'https://raw.githubusercontent.com/chaei7775/Poca-house/main/';
   var MAX_ROLLS = 20;   // 한 번에 최대 몇 번 돌릴 수 있는지
 
   function $(id) { return document.getElementById(id); }
@@ -77,27 +78,22 @@
     ov.innerHTML = '<style>' +
       '@keyframes mxFlame{0%,100%{transform:scaleY(1) scaleX(1)}50%{transform:scaleY(1.25) scaleX(.9)}}' +
       '@keyframes mxWob{0%,100%{transform:rotate(0)}25%{transform:rotate(-2.5deg)}75%{transform:rotate(2.5deg)}}' +
-      '@keyframes mxLiq{0%{fill:#7c3aed}33%{fill:#22c55e}66%{fill:#f59e0b}100%{fill:#7c3aed}}' +
+      '@keyframes mxLiq{0%{background-color:#7c3aed}33%{background-color:#22c55e}66%{background-color:#f59e0b}100%{background-color:#7c3aed}}' +
       '@keyframes mxBub{0%{transform:translateY(0) scale(.5);opacity:.9}100%{transform:translateY(-120px) scale(1.2);opacity:0}}' +
       '@keyframes mxPulse{0%,100%{opacity:.6}50%{opacity:1}}' +
       '@keyframes mxFlash{0%{opacity:.95}100%{opacity:0}}' +
       '</style>' +
-      '<div id="mx-b-box" style="position:relative;width:320px;height:380px;">' +
-        '<div id="mx-b-pot" style="position:absolute;left:50px;top:170px;width:220px;height:190px;transform-origin:50% 90%;">' +
-          '<svg viewBox="0 0 220 190" width="220" height="190">' +
-          '<g style="transform-origin:110px 190px;animation:mxFlame .45s ease-in-out infinite;"><path d="M60 188 C55 160 75 150 70 128 C92 146 96 166 88 188Z" fill="#ff8a1f"/><path d="M95 188 C88 150 118 140 108 112 C136 138 140 164 128 188Z" fill="#ffb02e"/><path d="M132 188 C128 164 148 156 146 134 C166 152 168 172 160 188Z" fill="#ff8a1f"/></g>' +
-          '<path d="M40 70 C30 120 52 160 110 162 C168 160 190 120 180 70Z" fill="#2b2438" stroke="#0f0a18" stroke-width="4"/>' +
-          '<path d="M52 82 C48 112 60 140 86 150" fill="none" stroke="rgba(255,255,255,.18)" stroke-width="6" stroke-linecap="round"/>' +
-          '<ellipse cx="110" cy="70" rx="72" ry="17" fill="#3a3150" stroke="#0f0a18" stroke-width="4"/>' +
-          '<ellipse id="mx-b-liq" cx="110" cy="70" rx="62" ry="12" fill="#7c3aed" style="animation:mxLiq 1.6s linear infinite;"/>' +
-          '<path d="M44 84 C20 84 18 110 40 112" fill="none" stroke="#0f0a18" stroke-width="6" stroke-linecap="round"/><path d="M176 84 C200 84 202 110 180 112" fill="none" stroke="#0f0a18" stroke-width="6" stroke-linecap="round"/>' +
-          '<path d="M70 158 L62 176 M150 158 L158 176" stroke="#0f0a18" stroke-width="8" stroke-linecap="round"/></svg></div>' +
+      '<div id="mx-b-box" style="position:relative;width:320px;height:460px;">' +
+        '<div id="mx-b-pot" style="position:absolute;left:30px;top:110px;width:260px;height:340px;transform-origin:50% 60%;">' +
+          '<img src="' + IMG_BASE + 'cauldron-fire.png" alt="" decoding="async" style="position:absolute;left:65px;top:175px;width:130px;transform-origin:50% 100%;animation:mxFlame .45s ease-in-out infinite;z-index:1;">' +
+          '<img src="' + IMG_BASE + 'cauldron-pot.png" alt="" decoding="async" style="position:absolute;left:10px;top:10px;width:240px;z-index:2;">' +
+          '<div id="mx-b-liq" style="position:absolute;left:66px;top:32px;width:128px;height:28px;border-radius:50%;z-index:3;background:radial-gradient(ellipse,rgba(255,255,255,.55),transparent 55%),#7c3aed;animation:mxLiq 1.6s linear infinite;box-shadow:0 0 14px rgba(167,139,250,.8);"></div></div>' +
         '<div id="mx-b-say" style="position:absolute;left:0;right:0;top:6px;text-align:center;font-size:17px;font-weight:900;color:#ffe08a;text-shadow:0 2px 8px #000;">재료를 넣는 중…</div>' +
       '</div>' +
       '<button id="mx-b-skip" style="position:absolute;top:14px;right:14px;border:none;border-radius:10px;padding:8px 12px;font-size:12px;font-weight:900;font-family:inherit;background:rgba(255,255,255,.14);color:#fff;cursor:pointer;">건너뛰기</button>';
     document.body.appendChild(ov);
     var box = ov.querySelector('#mx-b-box'), pot = ov.querySelector('#mx-b-pot'), say = ov.querySelector('#mx-b-say'), timers = [], finished = false;
-    var PX = 160, PY = 215;   // 가마솥 입구 중심 (box 기준)
+    var PX = 160, PY = 158;   // 가마솥 입구 중심 (box 기준)
     function T(fn, ms) { timers.push(setTimeout(fn, ms)); }
     function sfx(n) { try { if (window.pocaSfx && window.pocaSfx.play) window.pocaSfx.play(n); } catch (e) {} }
     function finish() {
@@ -148,7 +144,9 @@
     }, t1 + BOIL_MS + 200);
   }
 
+  var preDone = false;
   function open() {
+    if (!preDone) { preDone = true; try { new Image().src = IMG_BASE + 'cauldron-pot.png'; setTimeout(function () { new Image().src = IMG_BASE + 'cauldron-fire.png'; }, 300); } catch (e) {} }
     var old = $('mx-ov'); if (old) old.remove();
     var sel = {};   // 넣을 재료 개수
     INPUTS.forEach(function (x) { sel[x[0]] = 0; });
