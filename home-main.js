@@ -24,7 +24,8 @@
     '#hm-btns button{border:none;border-radius:16px;padding:12px 6px;font-size:14px;font-weight:900;color:#fff;font-family:"Noto Sans KR",sans-serif;line-height:1.3;box-shadow:0 4px 12px rgba(0,0,0,.2);}' +
     '#hm-btns .a{background:linear-gradient(135deg,#ff6b9d,#c084fc);}#hm-btns .b{background:linear-gradient(135deg,#6366f1,#22d3ee);}' +
     '#screen-home #hg-home-card{margin:6px 14px 0 !important;}' +
-    '#screen-home #home-title-badge{margin:4px 16px 2px !important;}#screen-home #home-title-badge>div:first-child{display:none !important;}' +
+    '#hm-hero #home-title-badge{position:absolute !important;left:0;right:0;bottom:44px;margin:0 !important;text-align:center;transform:scale(.82);transform-origin:50% 100%;z-index:3;pointer-events:none;}#hm-hero #home-title-badge>div:first-child{display:none !important;}' +
+    '#hm-stam{position:absolute;left:12px;bottom:8px;z-index:3;padding:5px 9px;border-radius:12px;background:rgba(40,20,70,.78);color:#fff;font-size:11px;font-weight:900;box-shadow:0 2px 8px #0003;font-family:"Noto Sans KR",sans-serif;}' +
     '#screen-home .qg-card{margin:6px 14px !important;padding:8px 12px !important;}#screen-home .qg-hint{font-size:11px !important;line-height:1.4 !important;margin-bottom:6px !important;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}' +
     '#hm-say{transition:opacity .6s;}#hm-say.off{opacity:0;}' +
     '.nav-dot{position:absolute;top:3px;right:calc(50% - 20px);min-width:16px;height:16px;border-radius:8px;background:#ef4444;color:#fff;font-size:10px;font-weight:900;display:flex;align-items:center;justify-content:center;padding:0 3px;box-shadow:0 0 0 2px #fff;}';
@@ -84,11 +85,27 @@
     var gd = document.getElementById('qg-home-card'); if (gd && btns && gd.nextSibling !== btns && gd.parentNode === home) home.insertBefore(gd, btns);   // 길잡이 카드도 버튼 위로
     return true;
   }
+  function stamTxt() {
+    var cur = null, max = 3000;
+    try { if (typeof stamina === 'number') cur = Math.floor(stamina); } catch (e) {}
+    try { if (typeof STAMINA_MAX === 'number') max = STAMINA_MAX; } catch (e) {}
+    if (cur == null) { var v = parseFloat(localStorage.getItem('ph_stamina')); cur = isNaN(v) ? 0 : Math.floor(v); }
+    return '⚡ ' + cur + '/' + max;
+  }
+  function attach() {   // 칭호 배지(카드 아래 이름표)와 스태미나 칩을 카드 영역 안으로
+    var hero = document.getElementById('hm-hero'); if (!hero) return;
+    var chip = document.getElementById('hm-stam');
+    if (!chip) { chip = document.createElement('div'); chip.id = 'hm-stam'; }
+    if (chip.parentNode !== hero) hero.appendChild(chip);
+    var t = stamTxt(); if (chip.textContent !== t) chip.textContent = t;
+    var badge = document.getElementById('home-title-badge');
+    if (badge && badge.parentNode !== hero) hero.appendChild(badge);
+  }
   function refresh(force) {
     if (!build()) return;
     var c = mainCard(), sig = c ? c.id : '-';
-    if (!force && sig === cur && document.getElementById('hm-card')) return;
-    cur = sig; document.getElementById('hm-hero').innerHTML = heroHtml();
+    if (!force && sig === cur && document.getElementById('hm-card')) { attach(); return; }
+    cur = sig; document.getElementById('hm-hero').innerHTML = heroHtml(); attach();
     clearTimeout(window.__hmSayT); window.__hmSayT = setTimeout(function () { var e = document.getElementById('hm-say'); if (e) e.classList.add('off'); }, 4500);   // 말풍선은 잠깐 보였다가 사라져서 카드를 가리지 않음
   }
 
