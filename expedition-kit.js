@@ -187,7 +187,7 @@
         if (isOpen()) b.setAttribute('onclick', "openSpecialCardSelect('" + cfg.id + "')");
         else b.onclick = function () { toast('🔒 ' + cfg.name + '은(는) 준비 중이에요! 곧 열려요'); };
         b.style.cssText = 'width:100%;display:flex;align-items:center;gap:12px;padding:13px 14px;margin-bottom:9px;background:' + cfg.color + '1f;border:1.5px solid ' + cfg.color + ';border-radius:14px;color:#fff;font-size:14px;font-weight:900;cursor:pointer;font-family:\'Noto Sans KR\',sans-serif;text-align:left;';
-        b.innerHTML = '<span style="font-size:24px;">' + cfg.emoji + '</span><span>' + cfg.name + ' <span class="xk-tag" style="font-size:10px;color:#ffe;font-weight:700;">NEW · Lv.' + cfg.needLevel + '</span><br><span style="font-size:10px;font-weight:400;opacity:.85;">' + cfg.tagline + '</span></span>';
+        b.innerHTML = '<span style="font-size:24px;">' + cfg.emoji + '</span><span>' + cfg.name + ' <span class="xk-tag" style="font-size:10px;color:#ffe;font-weight:700;">NEW · Lv.' + cfg.needLevel + '</span><br><span style="font-size:10px;font-weight:400;opacity:.85;">' + cfg.tagline + '</span><br><span class="xk-day" style="font-size:10px;font-weight:900;color:#ffd76a;"></span></span>';
         var pad = sec.lastElementChild;
         sec.insertBefore(b, pad);
       }
@@ -195,6 +195,7 @@
       if (bb) {
         var lock = !isOpen() || plv() < cfg.needLevel;
         bb.style.opacity = lock ? '.55' : '1';
+        var dy = bb.querySelector('.xk-day'); if (dy) { var dd0 = daily(cfg), pc = Math.round(EXTRA_RATE * 100); dy.textContent = dd0.left > 0 ? '📅 하루 ' + cfg.daily + '번까지 보상 100% · 오늘 ' + dd0.left + '번 남음 (넘으면 ' + pc + '%)' : '📅 오늘 보상 100%는 다 썼어요 · 지금부턴 ' + pc + '%만 받아요'; }   // 입장 화면을 건너뛰는 사람도 보게 배너에 표시
         var tag = bb.querySelector('.xk-tag'); if (tag) tag.textContent = !isOpen() ? '🔒 준비 중' : lock ? '🔒 Lv.' + cfg.needLevel : 'NEW · Lv.' + cfg.needLevel;
       }
       setTimeout(addBtn, 600);
