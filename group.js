@@ -249,6 +249,7 @@
     if (s.free > 0 && !capped) s.free--; else s.potion--;
     if (ev && ev.stamina) { if (ev.stamina > 0) s.free += ev.stamina; else if (s.free > 0) s.free--; else if (s.potion > 0) s.potion--; }
     s.fame += fameGain; s.total += 1; s.used[id] = (s.used[id] || 0) + 1;
+    try { var qa = JSON.parse(localStorage.getItem('ph_groupActs') || '{}') || {}; qa[id] = 1; localStorage.setItem('ph_groupActs', JSON.stringify(qa)); if (viral) localStorage.setItem('ph_groupViralSeen', '1'); if (id === 'variety' && window.__groupAnimal && window.__groupAnimal.count(live, 'variety') > 0) localStorage.setItem('ph_animalVariety', '1'); } catch (e) {}   // 📜 서브퀘스트용 기록 (quest-sub.js)
     var lv1 = levelOf(s.fame);
     var cs = null; try { if (window.__groupCond) cs = window.__groupCond.spend(live, id, pf); } catch (e) {}   // 😴 참여 멤버 체력·기분 소모
     var line = pick(LINES[id]).replace(/\{m\}/g, names(live)).replace(/\{g\}/g, s.group.name) + (big ? ' ' + pick(BIG_LINE) : '') + (cs ? ' (멤버 체력 ' + cs.s + ' · 기분 ' + (cs.m > 0 ? '+' : '') + cs.m + ')' : '');

@@ -39,7 +39,7 @@
 
     function clearAll() { cancelAnimationFrame(raf); timers.forEach(clearTimeout); timers = []; }
     function later(fn, ms) { timers.push(setTimeout(fn, ms)); }
-    function close(cancel) { if (ended) return; ended = true; clearAll(); ov.remove(); if (cancel) { if (opt.onCancel) opt.onCancel(); return; } var pf = Math.max(0, Math.min(1, total / STAGES / 100)); if (opt.embed) done(pf, { cleared: okCount, stages: STAGES, bestCombo: bestCombo, scores: stageScores.slice() }); else done(pf); }
+    function close(cancel) { if (ended) return; ended = true; clearAll(); ov.remove(); if (cancel) { if (opt.onCancel) opt.onCancel(); return; } var pf = Math.max(0, Math.min(1, total / STAGES / 100)); if (!opt.embed) { try { localStorage.setItem('ph_audPlayed', '1'); } catch (e) {} } if (opt.embed) done(pf, { cleared: okCount, stages: STAGES, bestCombo: bestCombo, scores: stageScores.slice() }); else done(pf); }
 
     function frame() {
       return '<div style="width:100%;display:flex;justify-content:space-between;align-items:center;">' +
