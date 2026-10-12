@@ -19,13 +19,13 @@
     '#hm-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:#fff;font-weight:900;text-align:center;padding:16px;height:100%;}' +
     '#hm-say{position:absolute;left:18px;right:18px;top:12px;background:rgba(255,255,255,.94);color:#3a2a44;border-radius:14px;padding:6px 10px;font-size:12px;line-height:1.35;box-shadow:0 3px 10px rgba(0,0,0,.2);z-index:2;pointer-events:none;font-family:"Noto Sans KR",sans-serif;}' +
     '#hm-say b{color:#e0457b;display:block;font-size:11px;}' +
-    '#hm-pick{position:absolute;right:20px;bottom:6px;z-index:3;border:none;border-radius:16px;padding:7px 12px;font-size:11.5px;font-weight:900;background:rgba(0,0,0,.55);color:#fff;font-family:inherit;border:1.5px solid rgba(255,255,255,.5);}' +
+    '#hm-pick{position:absolute;right:8px;bottom:8px;z-index:3;width:62px;box-sizing:border-box;line-height:1.25;border:none;border-radius:12px;padding:5px 2px;font-size:10.5px;font-weight:900;background:rgba(0,0,0,.55);color:#fff;font-family:inherit;border:1.5px solid rgba(255,255,255,.5);}' +
     '#hm-btns{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:8px 14px 8px;}' +
     '#hm-btns button{border:none;border-radius:16px;padding:12px 6px;font-size:14px;font-weight:900;color:#fff;font-family:"Noto Sans KR",sans-serif;line-height:1.3;box-shadow:0 4px 12px rgba(0,0,0,.2);}' +
     '#hm-btns .a{background:linear-gradient(135deg,#ff6b9d,#c084fc);}#hm-btns .b{background:linear-gradient(135deg,#6366f1,#22d3ee);}' +
     '#screen-home #hg-home-card{margin:6px 14px 0 !important;}' +
     '#hm-hero #home-title-badge{position:absolute !important;left:0;right:0;bottom:44px;margin:0 !important;text-align:center;transform:scale(.82);transform-origin:50% 100%;z-index:3;pointer-events:none;}#hm-hero #home-title-badge>div:first-child{display:none !important;}' +
-    '#hm-stam{position:absolute;left:12px;bottom:8px;z-index:3;padding:5px 9px;border-radius:12px;background:rgba(40,20,70,.78);color:#fff;font-size:11px;font-weight:900;box-shadow:0 2px 8px #0003;font-family:"Noto Sans KR",sans-serif;}' +
+    '#hm-stam{position:absolute;left:8px;bottom:8px;z-index:3;width:62px;box-sizing:border-box;text-align:center;line-height:1.25;padding:5px 2px;border-radius:12px;background:rgba(40,20,70,.78);color:#fff;font-size:10.5px;font-weight:900;box-shadow:0 2px 8px #0003;font-family:"Noto Sans KR",sans-serif;}' +
     '#screen-home .qg-card{margin:6px 14px !important;padding:8px 12px !important;}#screen-home .qg-hint{font-size:11px !important;line-height:1.4 !important;margin-bottom:6px !important;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}' +
     '#hm-say{transition:opacity .6s;}#hm-say.off{opacity:0;}' +
     '.nav-dot{position:absolute;top:3px;right:calc(50% - 20px);min-width:16px;height:16px;border-radius:8px;background:#ef4444;color:#fff;font-size:10px;font-weight:900;display:flex;align-items:center;justify-content:center;padding:0 3px;box-shadow:0 0 0 2px #fff;}';
@@ -60,7 +60,7 @@
     var ln = lineOf(c.charId);
     return '<div id="hm-card"><img src="' + esc(thumb(c.img)) + '" alt="" decoding="async" onerror="this.style.opacity=.2"></div>' +
       '<div id="hm-say"><b>' + esc(ln.name) + '</b>' + esc(ln.text) + '</div>' +
-      '<button id="hm-pick">⭐ 대표 바꾸기</button>';
+      '<button id="hm-pick">⭐<br>대표 변경</button>';
   }
 
   function build() {
@@ -90,14 +90,14 @@
     try { if (typeof stamina === 'number') cur = Math.floor(stamina); } catch (e) {}
     try { if (typeof STAMINA_MAX === 'number') max = STAMINA_MAX; } catch (e) {}
     if (cur == null) { var v = parseFloat(localStorage.getItem('ph_stamina')); cur = isNaN(v) ? 0 : Math.floor(v); }
-    return '⚡ ' + cur + '/' + max;
+    return '⚡<br>' + cur + '/' + max;
   }
   function attach() {   // 칭호 배지(카드 아래 이름표)와 스태미나 칩을 카드 영역 안으로
     var hero = document.getElementById('hm-hero'); if (!hero) return;
     var chip = document.getElementById('hm-stam');
     if (!chip) { chip = document.createElement('div'); chip.id = 'hm-stam'; }
     if (chip.parentNode !== hero) hero.appendChild(chip);
-    var t = stamTxt(); if (chip.textContent !== t) chip.textContent = t;
+    var t = stamTxt(); if (chip.innerHTML !== t) chip.innerHTML = t;
     var badge = document.getElementById('home-title-badge');
     if (badge && badge.parentNode !== hero) hero.appendChild(badge);
   }
