@@ -184,6 +184,9 @@ const CSS=`#dr-root{position:fixed;inset:0;z-index:780;overflow:hidden;
 @media (prefers-reduced-motion:reduce){#dr-root .pop,#dr-root #dr-banner,#dr-root .slot.hot .orb,#dr-root .timebar.low i,#dr-root #dr-cut h2,#dr-root .stagewrap.shake{animation:none}}
 #dr-root .face{background-size:cover;background-position:center top}
 #dr-root .face.lockd{filter:grayscale(1) brightness(.55)}
+#dr-root .ic.ic-eng{background-image:url(drama/icons/eng.png)}
+#dr-root .ic.ic-blockbuster{background-image:url(drama/icons/blockbuster.png)}
+#dr-root .ic.ic-global{background-image:url(drama/icons/global.png)}
 #dr-root .ic.ic-smile{background-image:url(drama/icons/smile.png)}
 #dr-root .ic.ic-gaze{background-image:url(drama/icons/gaze.png)}
 #dr-root .ic.ic-sob{background-image:url(drama/icons/sob.png)}
@@ -211,6 +214,8 @@ const CSS=`#dr-root{position:fixed;inset:0;z-index:780;overflow:hidden;
 #dr-root .dr.dr-calm{background-image:url(drama/dir/calm.png)}
 #dr-root .dr.dr-feel{background-image:url(drama/dir/feel.png)}
 #dr-root .dr.dr-fun{background-image:url(drama/dir/fun.png)}
+#dr-root .dr.dr-james{background-image:url(drama/dir/james.png)}
+#dr-root .dr.dr-elena{background-image:url(drama/dir/elena.png)}
 #dr-root .bg-letter{background-image:url(drama/bg/thumb-letter.jpg)}
 #dr-root .bg-dawn{background-image:url(drama/bg/thumb-dawn.jpg)}
 #dr-root .bg-romance{background-image:url(drama/bg/thumb-letter.jpg)}
@@ -330,7 +335,11 @@ const DIRS=[
  {id:'feel',name:'서하늘 감독',style:'감정파',hint:'배우가 감정을 쏟아낼 때 눈이 반짝여요.',tone:'emotional',
   wrong:{plain:'감정이 안 실렸어.',funny:'분위기 깨지잖아.'}},
  {id:'fun',name:'오지호 감독',style:'유머파',hint:'현장 분위기가 늘 가벼운 편이에요.',tone:'funny',
-  wrong:{plain:'너무 심심한데?',emotional:'너무 무거워. 좀 풀어봐.'}}
+  wrong:{plain:'너무 심심한데?',emotional:'너무 무거워. 좀 풀어봐.'}},
+ {id:'james',name:'제임스 윤 감독',style:'블록버스터파',hint:'할리우드 대작을 찍어 온 감독. 스케일 큰 장면에서 담백하고 시원한 연기를 좋아해요.',tone:'plain',
+  wrong:{emotional:'대사가 늘어져. 템포가 죽잖아!',funny:'여긴 코미디 현장이 아니야.'}},
+ {id:'elena',name:'엘레나 리 감독',style:'아트하우스파',hint:'영화제에서 상을 받은 감독. 말보다 진심이 보이는 섬세한 감정 연기를 원해요.',tone:'emotional',
+  wrong:{plain:'It feels empty… 더 깊이.',funny:'지금은 웃을 순간이 아니야.'}}
 ];
 const RIGHT_LINES=['좋아! 그대로 가!','그거야, 바로 그거!','오케이, 느낌 온다!'];
 const SCRIPTS=[
@@ -503,6 +512,37 @@ const SCRIPTS=[
   {t:50,type:'chance',kind:'action',line:'(셋이 동시에 뛰기 시작한다)'},
   {t:55,type:'choice',cue:'(마지막 대사)',o:{plain:'다신 안 와.',emotional:'모두 무사해서 다행이야.',funny:'이 학교, 별점 한 개.'}}
  ]}
+ /* 🌟 해외 대본 (world:true): 월드스타 로드맵 '해외 영화' 도전용. 월드 스킬(영어 대사·블록버스터 액션·글로벌 스타 오라)이 특히 강함 */
+ ,{id:'hollywood',title:'할리우드 블록버스터',genre:'액션',cast:1,world:true,desc:'🌟 월드스타 도전 · 해외 대작 영화 촬영! 히든 카드로 시청률 13% 이상이면 성공 · 월드 스킬이 큰 도움이 돼요',
+  ev:[
+  {t:4,type:'tap',line:"Let's go. 시간이 없어."},
+  {t:8,type:'choice',cue:'(폭발 직전의 다리 위에서)',o:{plain:'지금 건너면 돼.',emotional:'약속해, 돌아올게.',funny:'보험은 들어 놨겠지?'}},
+  {t:13,type:'tap',line:'이 도시를 지켜야 해.'},
+  {t:17,type:'chance',kind:'action',line:'(헬기가 급강하한다)'},
+  {t:22,type:'tap',line:'엄호해! 지금이야!'},
+  {t:26,type:'choice',cue:'(무전기 너머로 들리는 목소리)',o:{plain:'작전대로 간다.',emotional:'너만은 꼭 살아.',funny:'이건 대본에 없었는데.'}},
+  {t:31,type:'tap',line:'마지막 열쇠는 내가 가졌어.'},
+  {t:35,type:'chance',kind:'emotion',line:'(오랜 동료와 마주한다)'},
+  {t:40,type:'choice',cue:'(손을 내밀며)',o:{plain:'같이 가자.',emotional:'네가 있어서 여기까지 왔어.',funny:'팝콘은 내가 살게.'}},
+  {t:45,type:'tap',line:'카운트다운이 시작됐어!'},
+  {t:49,type:'chance',kind:'action',line:'(마지막 액션 시퀀스)'},
+  {t:52,type:'chance',kind:'adlib',line:'(카메라가 클로즈업한다)'},
+  {t:56,type:'choice',cue:'(엔딩 대사)',o:{plain:"It's over.",emotional:'세상이 널 기억할 거야.',funny:'속편은 없는 걸로 하자.'}}
+ ]}
+ ,{id:'paris',title:'파리의 마지막 밤',genre:'로맨스',cast:1,world:true,desc:'🌟 해외 로맨스 영화 · 에펠탑이 보이는 강변에서 벌어지는 이별과 재회',
+  ev:[
+  {t:4,type:'tap',line:'파리의 밤은 언제나 이래.'},
+  {t:8,type:'choice',cue:'(강변에서 그를 마주치며)',o:{plain:'오랜만이야.',emotional:'네가 올 줄 알았어.',funny:'여기서 만날 확률이 얼마나 될까?'}},
+  {t:14,type:'tap',line:'비행기는 내일 아침이야.'},
+  {t:18,type:'chance',kind:'emotion',line:'(손을 놓지 못한다)'},
+  {t:24,type:'choice',cue:'(에펠탑 조명이 켜진다)',o:{plain:'예쁘다.',emotional:'이 순간을 기억하고 싶어.',funny:'조명 값이 꽤 나왔겠다.'}},
+  {t:30,type:'tap',line:'말하지 않으면 영영 몰라.'},
+  {t:34,type:'chance',kind:'adlib',line:'(그가 갑자기 노래를 흥얼거린다)'},
+  {t:40,type:'choice',cue:'(떠나기 직전)',o:{plain:'잘 가.',emotional:'가지 마. 한 번만 더.',funny:'크루아상은 내가 살게.'}},
+  {t:46,type:'tap',line:'아침이 오면 끝이야.'},
+  {t:50,type:'chance',kind:'emotion',line:'(마지막 포옹)'},
+  {t:55,type:'choice',cue:'(마지막 대사)',o:{plain:'또 만나.',emotional:'사랑했어, 정말.',funny:'다음엔 로마에서 보자.'}}
+ ]}
 ];
 
 /* skills: use(C) with C={chance,scene,mult} ; G helpers below */
@@ -530,7 +570,11 @@ const SKILLS={
  chemi:{n:'케미 부스트',cat:'보조',gr:'레어',cd:18,i:'케',multi:true,d:()=>'2인 이상 대본에서 다음 스킬 ×1.3',use:C=>{if(G.script.cast>1){G.nextMult=1+0.3*mastMult('chemi');popup(`케미 폭발! 다음 ×${fmt(G.nextMult)}`,'sm','var(--aux)')}else popup('1인 대본: 효과 없음','sm','var(--muted)')}},
  close:{n:'클로즈업',cat:'보조',gr:'히든',cd:25,i:'클',d:()=>`다음 스킬 효과 ×${fmt(1+0.5*MCTX)}`,use:C=>{G.nextMult=1+0.5*MM();popup(`클로즈업! 다음 ×${fmt(G.nextMult)}`,'sm','var(--aux)')}},
  memo:{n:'대본 암기',cat:'보조',gr:'일반',cd:0,i:'암',passive:true,d:()=>`판정 구간 +${fmt(0.5*MCTX)}초 (패시브)`,use:C=>{}},
- one:{n:'원테이크',cat:'보조',gr:'프리미엄',cd:40,i:'원',d:()=>`${fmt(10*MCTX)}초간 NG 무효, 게이지 상승 ×1.5`,use:C=>{G.oneUntil=G.t+10*MM();popup('원테이크!','','var(--slate)')}}
+ one:{n:'원테이크',cat:'보조',gr:'프리미엄',cd:40,i:'원',d:()=>`${fmt(10*MCTX)}초간 NG 무효, 게이지 상승 ×1.5`,use:C=>{G.oneUntil=G.t+10*MM();popup('원테이크!','','var(--slate)')}},
+ /* 🌟 월드 스킬: 월드스타 로드맵(worldstar.js) 월드 투어를 깨면 받음. 해외 대본(world:true)에서 특히 강함. 일반 드랍·거래소에는 안 나옴 */
+ eng:{n:'영어 대사',cat:'애드리브',gr:'프리미엄',world:true,cd:18,i:'영',d:()=>`해외 대본 +${sc(24)}%, 그 외 +${sc(6)}%`,use:C=>{const w=!!G.script.world;gain(w?24:6,C,'영어 대사');if(w)burstFx('#7fc8ff',22)}},
+ blockbuster:{n:'블록버스터 액션',cat:'액션',gr:'프리미엄',world:true,cd:24,i:'블',d:()=>`해외 대본 +${sc(30)}%, 화제성 +${bd(8)} / 그 외 +${sc(8)}%`,use:C=>{const w=!!G.script.world;gain(w?30:8,C,'블록버스터!');if(w){addBuzz(bu(8));shakeFx();burstFx('#ffcf4a',28)}}},
+ global:{n:'글로벌 스타 오라',cat:'보조',gr:'프리미엄',world:true,cd:26,i:'글',d:()=>`해외 대본: 다음 스킬 ×${fmt(1+0.6*MCTX)} / 그 외 ×${fmt(1+0.2*MCTX)}`,use:C=>{const w=!!G.script.world;const m=1+(w?0.6:0.2)*MM();G.nextMult=m;popup(`글로벌 오라! 다음 ×${fmt(m)}`,'sm','var(--aux)')}}
 };
 const DROP={low:{일반:65,레어:30,히든:5,프리미엄:0},high:{일반:40,레어:35,히든:20,프리미엄:5}};
 const BG_SRC={romance:'drama/bg/romance.jpg',action:'drama/bg/action.jpg',comedy:'drama/bg/comedy.jpg',horror:'drama/bg/horror.jpg',umbrella:'drama/bg/umbrella.jpg',warehouse:'drama/bg/warehouse.jpg',cafe:'drama/bg/cafe.jpg',elevator:'drama/bg/elevator.jpg',camp:'drama/bg/camp.jpg',school:'drama/bg/school.jpg'};
@@ -1035,7 +1079,7 @@ function frame(ts){
 function rollSkill(high){
   const tab=DROP[high?'high':'low'];let r=Math.random()*100,gr='일반';
   for(const k of ['일반','레어','히든','프리미엄']){r-=tab[k];if(r<0){gr=k;break}}
-  const pool=Object.keys(SKILLS).filter(k=>SKILLS[k].gr===gr&&!SKILLS[k].multi);
+  const pool=Object.keys(SKILLS).filter(k=>SKILLS[k].gr===gr&&!SKILLS[k].multi&&!SKILLS[k].world);
   return pool[Math.floor(Math.random()*pool.length)];
 }
 function giveSkill(id){S.inv.push({u:++S.uid,s:id})}
@@ -1113,12 +1157,13 @@ window.__dramaSkillTrade={
   if(!T||!T.ITEMS||!T.SK_ORDER){if(tries<40)setTimeout(()=>regTrade(tries+1),500);return}
   if(T.SK_ORDER.length)return;
   const gOrd={'프리미엄':0,'히든':1,'레어':2,'일반':3};
-  Object.keys(SKILLS).filter(k=>!SKILLS[k].multi).sort((a,b)=>gOrd[SKILLS[a].gr]-gOrd[SKILLS[b].gr]).forEach(id=>{
+  Object.keys(SKILLS).filter(k=>!SKILLS[k].multi&&!SKILLS[k].world).sort((a,b)=>gOrd[SKILLS[a].gr]-gOrd[SKILLS[b].gr]).forEach(id=>{
     const k='bk_sk_'+id;
     T.ITEMS[k]={name:SKILLS[id].n+' ('+SKILLS[id].gr+')',emoji:'🎬',kind:'dskill',sid:id,desc:'드라마 촬영 '+SKILLS[id].cat+' 스킬 · 장착 안 한 것만 거래돼요',min:2000,max:5000000};
     T.SK_ORDER.push(k);
   });
 })(0);
+window.__dramaWorld={give:function(id){try{if(!SKILLS[id])return false;load();giveSkill(id);save();return true}catch(e){return false}}};   /* worldstar.js 월드 투어 보상 지급용 */
 window.__dramaTest={rating,SKILLS,SCRIPTS,CFG,MAST:{BOOK_XP,BOOKS,XP:MAST_XP,MAX:MAST_MAX,lv:mastLv,mult:mastMult,cd:mastCd,add:addMast,xp:mastXp,dtext}};
 /* 광장 메뉴 버튼 (CF 촬영 버튼 아래) */
 let tries=0;

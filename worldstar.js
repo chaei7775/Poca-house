@@ -9,8 +9,8 @@
 //     3) 🎓 실력         — 능력치 5개 합계 GOAL_SKILL 이상 (lesson.js)
 //     4) 💞 인연         — 호감 단계(인연 Lv) GOAL_BOND 이상 (game.js)
 //   [월드 도전 4단계 — 기본 4단계를 다 채워야 열림]
-//     5) 🎬 해외 영화    — 드라마 촬영에서 '할리우드 블록버스터' 대본을 히든 카드로 시청률 13% 이상
-//     6) 🌍 월드 투어    — 도쿄·파리·뉴욕 3개 도시 무대(오디션 게임)를 차례로 통과 (체력 소모)
+//     5) 🎬 해외 영화    — 드라마 촬영에서 '할리우드 블록버스터' 대본(해외 감독 제임스 윤·엘레나 리)을 히든 카드로 시청률 13% 이상
+//     6) 🌍 월드 투어    — 도쿄·파리·뉴욕 3개 도시 무대(오디션 게임)를 차례로 통과 (체력 소모) → 도시마다 드라마 월드 스킬 1개씩 획득
 //     7) 👑 전용 조건    — 그룹이 '국민 그룹' 이상 + 이 멤버가 초월 2단계 이상
 //     8) 🌐 세계 반응    — 하루 1번 해외 상황 이벤트에서 선택해 반응 포인트 100 모으기
 //   각 칸에는 "지금 하러 가기" 버튼이 붙어 해당 화면으로 바로 이동한다.
@@ -31,7 +31,7 @@
   var GOAL_BOND = 10;         // 인연 Lv (최대 20)
   var REWARD_COIN = 50000000; // 월드스타 선언 보상 (하루 수입 기준)
   var FILM_ID = 'hollywood', FILM_RATING = 13;     // 해외 영화 대본 id / 필요한 시청률(%)
-  var CITIES = [ { n: '도쿄', need: 0.7, spd: 1.1 }, { n: '파리', need: 0.82, spd: 1.3 }, { n: '뉴욕', need: 0.92, spd: 1.5 } ];   // 월드 투어 도시 / 통과 점수 / 게이지 속도
+  var CITIES = [ { n: '도쿄', need: 0.7, spd: 1.1, sk: 'eng', skn: '영어 대사' }, { n: '파리', need: 0.82, spd: 1.3, sk: 'global', skn: '글로벌 스타 오라' }, { n: '뉴욕', need: 0.92, spd: 1.5, sk: 'blockbuster', skn: '블록버스터 액션' } ];   // 월드 투어 도시 / 통과 점수 / 게이지 속도
   var TOUR_COST = 10, TOUR_MIN_STA = 15;           // 투어 한 번에 깎이는 체력 / 이 체력 미만이면 못 나감
   var GROUP_LV = 4;                                // 그룹 등급 (0신인 1라이징 2인기 3대세 4국민 5월드) — 4 = 국민 그룹 이상
   var REACT_GOAL = 300;                            // 세계 반응 목표 포인트
@@ -80,7 +80,7 @@
     var baseDone = base.every(function (x) { return x.done; });
     var gl = groupLv(), tr = transcendOf(cid), exNow = (gl >= GROUP_LV ? 1 : 0) + (tr >= 2 ? 1 : 0);
     var world = [
-      { k: 'film', icon: '🎬', name: '해외 영화', now: P.film ? 1 : 0, goal: 1, text: P.film ? '촬영 완료' : '드라마 촬영 → 할리우드 블록버스터 (시청률 ' + FILM_RATING + '%+)', go: '촬영하기', fn: 'openDrama' },
+      { k: 'film', icon: '🎬', name: '해외 영화', now: P.film ? 1 : 0, goal: 1, text: P.film ? '촬영 완료' : '할리우드 블록버스터 시청률 ' + FILM_RATING + '%+ (월드 투어 스킬이 도움돼요)', go: '촬영하기', fn: 'openDrama' },
       { k: 'tour', icon: '🌍', name: '월드 투어', now: Math.min(P.tour || 0, CITIES.length), goal: CITIES.length, text: (P.tour || 0) + ' / ' + CITIES.length + ' 도시 (' + CITIES.map(function (c) { return c.n; }).join('·') + ')', go: '투어 가기', fn: 'tour' },
       { k: 'ex', icon: '👑', name: '전용 조건', now: exNow, goal: 2, text: (gl >= GROUP_LV ? '✔' : '✖') + ' 국민 그룹 이상 · ' + (tr >= 2 ? '✔' : '✖') + ' 초월 2단계', go: gl >= GROUP_LV ? '초월하러' : '그룹 가기', fn: gl >= GROUP_LV ? 'openEnhance' : 'openGroup' },
       { k: 'react', icon: '🌐', name: '세계 반응', now: Math.min(P.react || 0, REACT_GOAL), goal: REACT_GOAL, text: (P.react || 0) + ' / ' + REACT_GOAL + ' 포인트', go: P.reactDay === todayStr() ? '내일 또' : '반응 보기', fn: 'react' }
@@ -225,7 +225,7 @@
     var P = progOf(cid), n = P.tour || 0;
     if (n >= CITIES.length) { toast('월드 투어를 모두 마쳤어요!'); return; }
     var c = CITIES[n], sta = staminaOf(cid), can = sta >= TOUR_MIN_STA && typeof window.openAuditionShow === 'function';
-    var rows = CITIES.map(function (x, i) { return '<div style="display:flex;justify-content:space-between;padding:6px 0;font-size:13px;' + (i < n ? 'color:' + ACC + ';' : i === n ? 'font-weight:900;' : 'opacity:.5;') + '"><span>' + (i < n ? '✔ ' : i === n ? '▶ ' : '🔒 ') + x.n + ' 공연</span><span>통과 ' + Math.round(x.need * 100) + '점</span></div>'; }).join('');
+    var rows = CITIES.map(function (x, i) { return '<div style="display:flex;justify-content:space-between;padding:6px 0;font-size:13px;' + (i < n ? 'color:' + ACC + ';' : i === n ? 'font-weight:900;' : 'opacity:.5;') + '"><span>' + (i < n ? '✔ ' : i === n ? '▶ ' : '🔒 ') + x.n + ' 공연 <span style="font-size:10.5px;opacity:.85;">· 🎁 ' + x.skn + '</span></span><span>통과 ' + Math.round(x.need * 100) + '점</span></div>'; }).join('');
     var o = panel('<div style="font-size:17px;font-weight:900;margin-bottom:4px;">🌍 월드 투어 · ' + esc(nameOf(cid)) + '</div>' +
       '<div style="font-size:12px;color:#c9b8e8;line-height:1.6;margin-bottom:8px;">도시마다 오디션 무대를 직접 해내면 다음 도시가 열려요. 공연 한 번에 체력 ' + TOUR_COST + '이 줄어요.</div>' + rows +
       '<div style="font-size:12px;margin:8px 0;color:' + (can ? '#9ee7b5' : '#ff9aa8') + ';">체력 ' + sta + (can ? '' : ' (' + TOUR_MIN_STA + ' 이상이어야 해요 · 스케줄·식사에서 회복)') + '</div>' +
@@ -238,7 +238,7 @@
         if (over) return; over = true;
         spendStamina(cid, TOUR_COST);
         var ok = perf != null && perf >= c.need, pct = Math.round((perf || 0) * 100);
-        if (ok) { setProg(cid, { tour: n + 1 }); toast('🌍 ' + c.n + ' 공연 성공! (' + pct + '점)'); try { if (typeof sfx === 'function') sfx('levelup'); } catch (e) {} }
+        if (ok) { setProg(cid, { tour: n + 1 }); var got = false; try { got = !!(window.__dramaWorld && window.__dramaWorld.give(c.sk)); } catch (e) {} toast('🌍 ' + c.n + ' 공연 성공! (' + pct + '점)' + (got ? ' · 드라마 스킬 [' + c.skn + '] 획득!' : '')); try { if (typeof sfx === 'function') sfx('levelup'); } catch (e) {} }
         else toast('아쉬워요… ' + pct + '점 · ' + Math.round(c.need * 100) + '점이 필요해요');
         render();
       });
@@ -317,28 +317,7 @@
   }
   function chance(cid, k) { return Math.max(0.2, Math.min(0.75, 0.15 + 0.6 * (statVal(cid, k) / 100))); }
 
-  // ── 🎬 해외 영화: 드라마 촬영 대본 추가 + 결과 감지 ──
-  function addFilmScript() {
-    var T = window.__dramaTest;
-    if (!T || !T.SCRIPTS) { setTimeout(addFilmScript, 300); return; }
-    if (T.SCRIPTS.some(function (x) { return x.id === FILM_ID; })) return;
-    T.SCRIPTS.push({ id: FILM_ID, title: '할리우드 블록버스터', genre: '액션', cast: 1,
-      desc: '🌟 월드스타 도전 · 해외 대작 영화 촬영! 히든 카드로 시청률 ' + FILM_RATING + '% 이상이면 성공',
-      ev: [
-        { t: 4, type: 'tap', line: 'Let\'s go. 시간이 없어.' },
-        { t: 8, type: 'choice', cue: '(폭발 직전의 다리 위에서)', o: { plain: '지금 건너면 돼.', emotional: '약속해, 돌아올게.', funny: '보험은 들어 놨겠지?' } },
-        { t: 14, type: 'tap', line: '이 도시를 지켜야 해.' },
-        { t: 18, type: 'chance', kind: 'action', line: '(헬기가 급강하한다)' },
-        { t: 24, type: 'choice', cue: '(무전기 너머로 들리는 목소리)', o: { plain: '작전대로 간다.', emotional: '너만은 꼭 살아.', funny: '이건 대본에 없었는데.' } },
-        { t: 30, type: 'tap', line: '마지막 열쇠는 내가 가졌어.' },
-        { t: 34, type: 'chance', kind: 'emotion', line: '(오랜 동료와 마주한다)' },
-        { t: 40, type: 'choice', cue: '(손을 내밀며)', o: { plain: '같이 가자.', emotional: '네가 있어서 여기까지 왔어.', funny: '팝콘은 내가 살게.' } },
-        { t: 46, type: 'tap', line: '카운트다운이 시작됐어!' },
-        { t: 50, type: 'chance', kind: 'action', line: '(마지막 액션 시퀀스)' },
-        { t: 55, type: 'choice', cue: '(엔딩 대사)', o: { plain: 'It\'s over.', emotional: '세상이 널 기억할 거야.', funny: '속편은 없는 걸로 하자.' } }
-      ] });
-  }
-  addFilmScript();
+  // ── 🎬 해외 영화: 결과 감지 (대본·감독·월드 스킬은 drama.js 에 있음) ──
   window.addEventListener('ph-drama-shot', function (e) {
     try {
       var d = e.detail || {};
