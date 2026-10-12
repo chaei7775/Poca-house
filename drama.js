@@ -224,6 +224,8 @@ const CSS=`#dr-root{position:fixed;inset:0;z-index:780;overflow:hidden;
 #dr-root .bg-horror{background-image:url(drama/bg/thumb-horror.jpg)}
 #dr-root .bg-umbrella{background-image:url(drama/bg/thumb-umbrella.jpg)}
 #dr-root .bg-warehouse{background-image:url(drama/bg/thumb-warehouse.jpg)}
+#dr-root .bg-hollywood{background-image:url(drama/bg/thumb-hollywood.jpg)}
+#dr-root .bg-paris{background-image:url(drama/bg/thumb-paris.jpg)}
 #dr-root .bg-cafe{background-image:url(drama/bg/thumb-cafe.jpg)}
 #dr-root .bg-elevator{background-image:url(drama/bg/thumb-elevator.jpg)}
 #dr-root .bg-camp{background-image:url(drama/bg/thumb-camp.jpg)}
@@ -577,7 +579,7 @@ const SKILLS={
  global:{n:'글로벌 스타 오라',cat:'보조',gr:'프리미엄',world:true,cd:26,i:'글',d:()=>`해외 대본: 다음 스킬 ×${fmt(1+0.6*MCTX)} / 그 외 ×${fmt(1+0.2*MCTX)}`,use:C=>{const w=!!G.script.world;const m=1+(w?0.6:0.2)*MM();G.nextMult=m;popup(`글로벌 오라! 다음 ×${fmt(m)}`,'sm','var(--aux)')}}
 };
 const DROP={low:{일반:65,레어:30,히든:5,프리미엄:0},high:{일반:40,레어:35,히든:20,프리미엄:5}};
-const BG_SRC={romance:'drama/bg/romance.jpg',action:'drama/bg/action.jpg',comedy:'drama/bg/comedy.jpg',horror:'drama/bg/horror.jpg',umbrella:'drama/bg/umbrella.jpg',warehouse:'drama/bg/warehouse.jpg',cafe:'drama/bg/cafe.jpg',elevator:'drama/bg/elevator.jpg',camp:'drama/bg/camp.jpg',school:'drama/bg/school.jpg'};
+const BG_SRC={romance:'drama/bg/romance.jpg',action:'drama/bg/action.jpg',comedy:'drama/bg/comedy.jpg',horror:'drama/bg/horror.jpg',umbrella:'drama/bg/umbrella.jpg',warehouse:'drama/bg/warehouse.jpg',cafe:'drama/bg/cafe.jpg',elevator:'drama/bg/elevator.jpg',camp:'drama/bg/camp.jpg',school:'drama/bg/school.jpg',hollywood:'drama/bg/hollywood.jpg',paris:'drama/bg/paris.jpg'};
 const GENRE_KEY={'로맨스':'romance','액션':'action','코미디':'comedy','공포':'horror'};
 const SCENE_OF={'로맨스':'romance','액션':'action','코미디':'romance','공포':'action'}; // 스킬 보너스 판정용: 코미디=웃음·애드리브 계열, 공포=액션 계열
 const ACTS={};
