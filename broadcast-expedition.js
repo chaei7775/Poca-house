@@ -1155,6 +1155,11 @@
       '<button id="bc-sweep-ok" style="' + BTN + '">확인</button></div>';
     var view = $('bc-view'); (view || document.body).appendChild(ov);
     $('bc-sweep-ok').onclick = function () { ov.remove(); };
+    // 🎫💎 등교권 / 초월석은 직접 할 때처럼 큰 팝업도 띄움 (소탕 결과창 위)
+    try {
+      var gT = Object.keys(got).some(function (k) { return /^🎫\|등교권$/.test(k); }), gX = Object.keys(got).some(function (k) { return /\|초월석$/.test(k); });
+      if ((gT || gX) && window.showBigDrop) setTimeout(function () { if (gT) window.showBigDrop('ticket'); if (gX) window.showBigDrop('trans'); }, 500);
+    } catch (e) {}
   }
   window.__bcSweep = sweepRun;
 
