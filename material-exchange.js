@@ -58,6 +58,96 @@
     return lost;
   }
 
+
+  // ── 🧪 가마솥 연출: 재료가 날아 들어감 → 부글부글 → 펑! 아이템이 튀어나옴 ──
+  var FLY_MS = 650, FLY_GAP = 240, BOIL_MS = 1900, MAX_FLY = 7, MAX_OUT = 7;
+  function iconHtml(name, emoji, px) {
+    try { if (window.matIcon) { var h = window.matIcon(name, px, emoji); if (h) return h; } } catch (e) {}
+    return '<span style="font-size:' + Math.round(px * 0.85) + 'px;line-height:1;">' + emoji + '</span>';
+  }
+  function outIcon(p, px) {
+    if (p.kind === 'stone') return iconHtml('강화석', '🔨', px);
+    if (p.kind === 'wish') return iconHtml('소원의 조각', '🧩', px);
+    if (p.kind === 'protect') return iconHtml('방지권', '🛡️', px);
+    return iconHtml(p.name, p.emoji, px);
+  }
+  function brew(ins, outs, rare, done) {
+    var ov = document.createElement('div'); ov.id = 'mx-brew';
+    ov.style.cssText = 'position:fixed;inset:0;z-index:1400;background:radial-gradient(circle at 50% 70%,#2a1450,#07030f 70%);display:flex;align-items:center;justify-content:center;overflow:hidden;font-family:\'Noto Sans KR\',sans-serif;color:#fff;touch-action:manipulation;';
+    ov.innerHTML = '<style>' +
+      '@keyframes mxFlame{0%,100%{transform:scaleY(1) scaleX(1)}50%{transform:scaleY(1.25) scaleX(.9)}}' +
+      '@keyframes mxWob{0%,100%{transform:rotate(0)}25%{transform:rotate(-2.5deg)}75%{transform:rotate(2.5deg)}}' +
+      '@keyframes mxLiq{0%{fill:#7c3aed}33%{fill:#22c55e}66%{fill:#f59e0b}100%{fill:#7c3aed}}' +
+      '@keyframes mxBub{0%{transform:translateY(0) scale(.5);opacity:.9}100%{transform:translateY(-120px) scale(1.2);opacity:0}}' +
+      '@keyframes mxPulse{0%,100%{opacity:.6}50%{opacity:1}}' +
+      '@keyframes mxFlash{0%{opacity:.95}100%{opacity:0}}' +
+      '</style>' +
+      '<div id="mx-b-box" style="position:relative;width:320px;height:380px;">' +
+        '<div id="mx-b-pot" style="position:absolute;left:50px;top:170px;width:220px;height:190px;transform-origin:50% 90%;">' +
+          '<svg viewBox="0 0 220 190" width="220" height="190">' +
+          '<g style="transform-origin:110px 190px;animation:mxFlame .45s ease-in-out infinite;"><path d="M60 188 C55 160 75 150 70 128 C92 146 96 166 88 188Z" fill="#ff8a1f"/><path d="M95 188 C88 150 118 140 108 112 C136 138 140 164 128 188Z" fill="#ffb02e"/><path d="M132 188 C128 164 148 156 146 134 C166 152 168 172 160 188Z" fill="#ff8a1f"/></g>' +
+          '<path d="M40 70 C30 120 52 160 110 162 C168 160 190 120 180 70Z" fill="#2b2438" stroke="#0f0a18" stroke-width="4"/>' +
+          '<path d="M52 82 C48 112 60 140 86 150" fill="none" stroke="rgba(255,255,255,.18)" stroke-width="6" stroke-linecap="round"/>' +
+          '<ellipse cx="110" cy="70" rx="72" ry="17" fill="#3a3150" stroke="#0f0a18" stroke-width="4"/>' +
+          '<ellipse id="mx-b-liq" cx="110" cy="70" rx="62" ry="12" fill="#7c3aed" style="animation:mxLiq 1.6s linear infinite;"/>' +
+          '<path d="M44 84 C20 84 18 110 40 112" fill="none" stroke="#0f0a18" stroke-width="6" stroke-linecap="round"/><path d="M176 84 C200 84 202 110 180 112" fill="none" stroke="#0f0a18" stroke-width="6" stroke-linecap="round"/>' +
+          '<path d="M70 158 L62 176 M150 158 L158 176" stroke="#0f0a18" stroke-width="8" stroke-linecap="round"/></svg></div>' +
+        '<div id="mx-b-say" style="position:absolute;left:0;right:0;top:6px;text-align:center;font-size:17px;font-weight:900;color:#ffe08a;text-shadow:0 2px 8px #000;">재료를 넣는 중…</div>' +
+      '</div>' +
+      '<button id="mx-b-skip" style="position:absolute;top:14px;right:14px;border:none;border-radius:10px;padding:8px 12px;font-size:12px;font-weight:900;font-family:inherit;background:rgba(255,255,255,.14);color:#fff;cursor:pointer;">건너뛰기</button>';
+    document.body.appendChild(ov);
+    var box = ov.querySelector('#mx-b-box'), pot = ov.querySelector('#mx-b-pot'), say = ov.querySelector('#mx-b-say'), timers = [], finished = false;
+    var PX = 160, PY = 215;   // 가마솥 입구 중심 (box 기준)
+    function T(fn, ms) { timers.push(setTimeout(fn, ms)); }
+    function sfx(n) { try { if (window.pocaSfx && window.pocaSfx.play) window.pocaSfx.play(n); } catch (e) {} }
+    function finish() {
+      if (finished) return; finished = true; timers.forEach(clearTimeout);
+      ov.style.transition = 'opacity .25s'; ov.style.opacity = '0'; setTimeout(function () { ov.remove(); done(); }, 260);
+    }
+    ov.querySelector('#mx-b-skip').onclick = finish;
+    // ① 재료가 날아 들어옴
+    var list = []; ins.forEach(function (x) { var n = Math.min(x.n, 3); for (var i = 0; i < n; i++) list.push(x); });
+    while (list.length > MAX_FLY) list.splice(Math.floor(Math.random() * list.length), 1);
+    list.forEach(function (x, i) {
+      T(function () {
+        var el = document.createElement('div'), sx = 30 + Math.random() * 260, sy = 30 + Math.random() * 40;
+        el.style.cssText = 'position:absolute;left:' + (sx - 20) + 'px;top:' + sy + 'px;width:40px;height:40px;display:flex;align-items:center;justify-content:center;pointer-events:none;';
+        el.innerHTML = iconHtml(x.name, x.emoji, 38); box.appendChild(el);
+        var a = el.animate([{ transform: 'translate(0,0) scale(1) rotate(0)', opacity: 1 }, { transform: 'translate(' + (PX - sx) * 0.55 + 'px,' + (PY - sy - 70) + 'px) scale(1.1) rotate(160deg)', opacity: 1, offset: 0.55 }, { transform: 'translate(' + (PX - sx) + 'px,' + (PY - sy - 8) + 'px) scale(.3) rotate(320deg)', opacity: .2 }], { duration: FLY_MS, easing: 'ease-in' });
+        a.onfinish = function () { el.remove(); pot.animate([{ transform: 'scale(1,1)' }, { transform: 'scale(1.04,.95)' }, { transform: 'scale(1,1)' }], { duration: 180 }); sfx('pop'); };
+      }, i * FLY_GAP);
+    });
+    var t1 = list.length * FLY_GAP + FLY_MS + 150;
+    // ② 부글부글
+    T(function () {
+      say.textContent = '부글부글… 🫧'; say.style.animation = 'mxPulse .5s ease-in-out infinite'; pot.style.animation = 'mxWob .22s ease-in-out infinite';
+      var b = setInterval(function () {
+        if (finished) { clearInterval(b); return; }
+        var d = document.createElement('div'), sz = 8 + Math.random() * 16;
+        d.style.cssText = 'position:absolute;left:' + (PX - 62 + Math.random() * 124 - sz / 2) + 'px;top:' + (PY - 6) + 'px;width:' + sz + 'px;height:' + sz + 'px;border-radius:50%;background:rgba(255,255,255,.55);border:1.5px solid rgba(255,255,255,.8);pointer-events:none;animation:mxBub ' + (0.8 + Math.random() * 0.6) + 's ease-out forwards;';
+        box.appendChild(d); setTimeout(function () { d.remove(); }, 1500);
+      }, 70);
+      T(function () { clearInterval(b); }, BOIL_MS);
+    }, t1);
+    // ③ 펑! 아이템이 튀어나옴
+    T(function () {
+      pot.style.animation = ''; say.style.animation = ''; say.textContent = rare ? '🎉 대박이 나왔어요!' : '완성!'; sfx(rare ? 'levelup' : 'reward');
+      var fl = document.createElement('div'); fl.style.cssText = 'position:absolute;inset:0;background:' + (rare ? 'radial-gradient(circle,#fff6c2,#ffd24a 50%,transparent 80%)' : 'radial-gradient(circle,#fff,transparent 70%)') + ';pointer-events:none;animation:mxFlash .6s ease-out forwards;';
+      ov.appendChild(fl); setTimeout(function () { fl.remove(); }, 650);
+      var seen = {}, uniq = []; outs.forEach(function (p) { if (!seen[p.txt]) { seen[p.txt] = 1; uniq.push(p); } });
+      uniq = uniq.slice(0, MAX_OUT);
+      uniq.forEach(function (p, i) {
+        var ang = (-160 + (140 * (uniq.length === 1 ? 0.5 : i / (uniq.length - 1)))) * Math.PI / 180, R = 95 + (i % 2) * 22;
+        var el = document.createElement('div');
+        el.style.cssText = 'position:absolute;left:' + (PX - 26) + 'px;top:' + (PY - 40) + 'px;width:52px;height:52px;display:flex;align-items:center;justify-content:center;pointer-events:none;filter:drop-shadow(0 0 10px ' + (RARE[p.w] ? '#ffe27a' : '#fff') + ');';
+        el.innerHTML = outIcon(p, 48); box.appendChild(el);
+        var dx = Math.cos(ang) * R, dy = Math.sin(ang) * R - 40;
+        var a = el.animate([{ transform: 'translate(0,0) scale(.2)', opacity: 0 }, { transform: 'translate(' + dx + 'px,' + (dy - 26) + 'px) scale(1.25)', opacity: 1, offset: .55 }, { transform: 'translate(' + dx + 'px,' + dy + 'px) scale(1)', opacity: 1 }], { duration: 650, easing: 'ease-out', fill: 'forwards', delay: i * 70 });
+      });
+      T(finish, 1500 + uniq.length * 70);
+    }, t1 + BOIL_MS + 200);
+  }
+
   function open() {
     var old = $('mx-ov'); if (old) old.remove();
     var sel = {};   // 넣을 재료 개수
@@ -112,19 +202,19 @@
       var t = total(); if (t <= 0 || t % COST) { toast('재료를 ' + COST + '개 단위로 넣어주세요'); return; }
       var ok = true; INPUTS.forEach(function (x) { if (sel[x[0]] > have(x[0])) ok = false; });
       if (!ok) { toast('재료가 모자라요'); render(); return; }
-      INPUTS.forEach(function (x) { if (sel[x[0]] > 0) { try { useFromBag(x[0], sel[x[0]]); } catch (e) {} } });
+      var ins = []; INPUTS.forEach(function (x) { if (sel[x[0]] > 0) { ins.push({ name: x[0], emoji: x[1], n: sel[x[0]] }); try { useFromBag(x[0], sel[x[0]]); } catch (e) {} } });
       var res = []; for (var i = 0; i < t / COST; i++) res.push(pick());
       var lost = give(res);
       var cnt = {}, order = [];
       res.forEach(function (p) { if (!cnt[p.txt]) { cnt[p.txt] = 0; order.push(p); } cnt[p.txt]++; });
       var rare = res.some(function (p) { return RARE[p.w]; });
-      try { if (window.pocaSfx && window.pocaSfx.play) window.pocaSfx.play(rare ? 'levelup' : 'reward'); } catch (e) {}
       INPUTS.forEach(function (x) { sel[x[0]] = 0; });
       var html = '<div style="margin-top:14px;background:rgba(255,215,0,.12);border:1.5px solid ' + (rare ? '#ffe27a' : 'rgba(255,215,0,.5)') + ';border-radius:16px;padding:12px 14px;">' +
         '<div style="font-size:13px;font-weight:900;margin-bottom:6px;">' + (rare ? '🎉 대박! ' : '🎁 ') + res.length + '번 돌린 결과</div>' +
         order.map(function (p) { return '<div style="font-size:13.5px;line-height:1.8;' + (RARE[p.w] ? 'color:#ffe27a;font-weight:900;' : '') + '">' + esc(p.txt) + (cnt[p.txt] > 1 ? ' <b>× ' + cnt[p.txt] + '번</b>' : '') + '</div>'; }).join('') +
         (lost.length ? '<div style="font-size:11px;color:#ff9aa8;margin-top:6px;">가방이 가득 차서 못 받은 것: ' + esc(lost.join(', ')) + '</div>' : '') + '</div>';
-      render(html);
+      render();   // 아래 화면은 가마솥 연출 동안 새 재료 수로 갱신해 두고, 연출이 끝나면 결과 표시
+      brew(ins, res, rare, function () { render(html); });
     }
     render();
   }
