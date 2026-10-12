@@ -18,8 +18,8 @@
   var MOMENTS = 9;              // 결정적 순간 횟수
   var FIRST_AT = 4.5;           // 첫 결정적 순간 시각(초)
   var GAP = 4.6;                // 결정적 순간 간격(초)
-  var WINDOW = 1.5;             // 결정적 순간이 유지되는 시간(초)
-  var PERFECT_T = 0.75;         // 이 시간 안에 찍으면 타이밍 만점(초)
+  var WINDOW = 2.4;             // 결정적 순간이 유지되는 시간(초)
+  var PERFECT_T = 1.4;         // 이 시간 안에 찍으면 타이밍 만점(초)
   var FRAME_W = 0.64, FRAME_H = 0.40;   // 파인더 크기 (화면 대비)
   var WORLD_W = 2.1, WORLD_H = 1.6;     // 무대 크기 (화면 대비)
   var SPEED = [95, 140];        // 멤버 걷는 속도 범위(px/초)
@@ -97,6 +97,7 @@
       e.preventDefault(); e.stopPropagation();
       if (!S.started || S.over) return;
       if (S.lock > 0) return;
+      if (S.moment >= 0 && S.momentT > 0 && S.shot) return;   // 이미 찍은 순간에 또 누르면 무시 (헛찍 아님)
       S.flash = 0.25; sfx('shutter');
       var inMoment = S.moment >= 0 && S.momentT > 0 && !S.shot;
       if (!inMoment) { S.lock = MISS_LOCK; pop('헛찍!', '#ff8fa3', W / 2, fy + fh + 30); return; }

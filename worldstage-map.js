@@ -82,7 +82,7 @@ var TYPES = ['cam', 'react', 'cam', 'tour', 'react', 'cam', 'cam'];   // 이벤�
     }
     function resume(e, finished) {
       S.paused = false; S.tx = null; S.ty = null;
-      if (finished) e.done = true;
+      if (finished) e.done = true; else e.away = true;   // 안 끝낸 이벤트는 그 자리를 벗어난 뒤에야 다시 시작 (그만두기가 무한 재시작되던 문제)
       hud();
       if (ev.every(function (x) { return x.done; })) setTimeout(end, 500);
     }
@@ -126,7 +126,9 @@ var TYPES = ['cam', 'react', 'cam', 'tour', 'react', 'cam', 'cam'];   // 이벤�
       S.cx = Math.max(0, Math.min(WW - W, S.px - W / 2)); S.cy = Math.max(0, Math.min(WH - H, S.py - H / 2));
       for (var i = 0; i < ev.length; i++) {
         var e = ev[i]; if (e.done) continue;
-        if (Math.hypot(e.x - S.px, e.y - S.py) < TRIGGER_R) { trigger(e); break; }
+        var dd = Math.hypot(e.x - S.px, e.y - S.py);
+        if (e.away) { if (dd > TRIGGER_R * 1.8) e.away = false; continue; }
+        if (dd < TRIGGER_R) { trigger(e); break; }
       }
     }
     function draw() {
