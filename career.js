@@ -142,16 +142,16 @@
     var line = tl.lines[Math.floor(Math.random() * tl.lines.length)];
     scene(cid, line, big, gain);
   }
-  // 🖼️ 연습 장면 팝업(로딩 화면): 특기 하는 모습 그림 + 진행 바 → 결과. 그림 파일: talent/<멤버>.jpg (없으면 이모지)
+  // 🖼️ 연습 장면 팝업(로딩 화면): 특기 하는 모습 그림 + 진행 바 → 결과. 그림 파일: talent/<멤버>.png (SD 캐릭터, 배경 투명, 256px 안팎 / 없으면 이모지)
   var IMG_BASE = 'https://raw.githubusercontent.com/chaei7775/Poca-house/main/', SCENE_MS = 1900;
   function scene(cid, line, big, gain) {
     var old = $('cr-scene'); if (old) old.remove();
     var tl = TALENT[cid], ov = document.createElement('div'); ov.id = 'cr-scene';
     ov.style.cssText = 'position:fixed;inset:0;z-index:1300;background:rgba(6,3,14,.9);display:flex;align-items:center;justify-content:center;padding:18px;font-family:\'Noto Sans KR\',sans-serif;color:#fff;';
-    ov.innerHTML = '<style>@keyframes crBar{from{width:0}to{width:100%}}</style><div style="width:100%;max-width:320px;text-align:center;">' +
-      '<div style="position:relative;width:100%;aspect-ratio:3/4;border-radius:20px;overflow:hidden;background:linear-gradient(160deg,#3b2a6e,#1a1030);border:2px solid ' + ACC + ';box-shadow:0 8px 30px rgba(0,0,0,.6);">' +
+    ov.innerHTML = '<style>@keyframes crBar{from{width:0}to{width:100%}}@keyframes crHop{0%,100%{transform:translateY(0) scale(1,1)}40%{transform:translateY(-16px) scale(.97,1.04)}70%{transform:translateY(0) scale(1.04,.96)}}</style><div style="width:100%;max-width:320px;text-align:center;">' +
+      '<div style="position:relative;width:100%;aspect-ratio:1/1;border-radius:20px;overflow:hidden;background:radial-gradient(circle at 50% 40%,#5b3f9e,#1a1030 75%);border:2px solid ' + ACC + ';box-shadow:0 8px 30px rgba(0,0,0,.6);">' +
       '<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:90px;">' + tl.icon + '</div>' +
-      '<img src="' + IMG_BASE + 'talent/' + cid + '.jpg" alt="" loading="lazy" decoding="async" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;" onerror="this.remove()">' +
+      '<img src="' + IMG_BASE + 'talent/' + cid + '.png" alt="" loading="lazy" decoding="async" style="position:absolute;left:10%;top:6%;width:80%;height:80%;object-fit:contain;animation:crHop 1.1s ease-in-out infinite;" onerror="this.remove()">' +
       '<div style="position:absolute;left:0;right:0;bottom:0;padding:26px 12px 10px;background:linear-gradient(transparent,rgba(0,0,0,.75));font-size:14px;font-weight:900;">' + esc(nameOf(cid)) + ' · ' + tl.icon + ' ' + esc(tl.name) + ' 연습 중…</div></div>' +
       '<div id="cr-sc-bar" style="height:8px;border-radius:5px;background:rgba(255,255,255,.14);overflow:hidden;margin-top:14px;"><div style="height:100%;background:linear-gradient(90deg,#a78bfa,#fbbf24);animation:crBar ' + SCENE_MS + 'ms linear forwards;"></div></div>' +
       '<div id="cr-sc-res" style="min-height:92px;margin-top:12px;"></div></div>';
