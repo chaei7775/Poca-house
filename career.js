@@ -167,6 +167,10 @@
   }
   // 🖼️ 연습 장면 팝업(로딩 화면): 특기 하는 모습 그림 + 진행 바 → 결과. 그림 파일: talent/<멤버>.png (SD 캐릭터, 배경 투명, 256px 안팎 / 없으면 이모지)
   var IMG_BASE = 'https://raw.githubusercontent.com/chaei7775/Poca-house/main/', SCENE_MS = 1900;
+  function ticon(c, px) {   // 특기 아이콘 그림 (없으면 이모지)
+    var t = TALENT[c]; if (!t) return '';
+    return '<img src="' + IMG_BASE + 'tal-' + c + '.png" alt="" loading="lazy" decoding="async" style="width:' + px + 'px;height:' + px + 'px;object-fit:contain;vertical-align:middle;" onerror="this.outerHTML=\'' + t.icon + '\'">';
+  }
   function scene(cid, line, big, gain) {
     var old = $('cr-scene'); if (old) old.remove();
     var tl = TALENT[cid], ov = document.createElement('div'); ov.id = 'cr-scene';
@@ -175,7 +179,7 @@
       '<div style="position:relative;width:100%;aspect-ratio:1/1;border-radius:20px;overflow:hidden;background:radial-gradient(circle at 50% 40%,#5b3f9e,#1a1030 75%);border:2px solid ' + ACC + ';box-shadow:0 8px 30px rgba(0,0,0,.6);">' +
       '<div id="cr-sc-emo" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:90px;">' + tl.icon + '</div>' +
       '<img src="' + IMG_BASE + 'talent/' + cid + '.png" alt="" loading="lazy" decoding="async" style="position:absolute;left:10%;top:6%;width:80%;height:80%;object-fit:contain;animation:crHop 1.1s ease-in-out infinite;" onload="var e=document.getElementById(\'cr-sc-emo\');if(e)e.remove()" onerror="this.remove()">' +
-      '<div style="position:absolute;left:0;right:0;bottom:0;padding:26px 12px 10px;background:linear-gradient(transparent,rgba(0,0,0,.75));font-size:14px;font-weight:900;">' + esc(nameOf(cid)) + ' · ' + tl.icon + ' ' + esc(tl.name) + ' 연습 중…</div></div>' +
+      '<div style="position:absolute;left:0;right:0;bottom:0;padding:26px 12px 10px;background:linear-gradient(transparent,rgba(0,0,0,.75));font-size:14px;font-weight:900;">' + esc(nameOf(cid)) + ' · ' + ticon(cid, 20) + ' ' + esc(tl.name) + ' 연습 중…</div></div>' +
       '<div id="cr-sc-bar" style="height:8px;border-radius:5px;background:rgba(255,255,255,.14);overflow:hidden;margin-top:14px;"><div style="height:100%;background:linear-gradient(90deg,#a78bfa,#fbbf24);animation:crBar ' + SCENE_MS + 'ms linear forwards;"></div></div>' +
       '<div id="cr-sc-res" style="min-height:92px;margin-top:12px;"></div></div>';
     document.body.appendChild(ov);
@@ -223,14 +227,14 @@
         }).join('');
       } else {
         var tl = TALENT[c], T = (o.talent[c] || {}), xp = T.xp || 0, used = T.d === today() ? (T.n || 0) : 0;
-        rows = '<div style="display:flex;align-items:center;gap:8px;padding:4px 0 8px;"><div style="flex:1;font-size:11.5px;color:#d9ccff;line-height:1.5;">' + tl.icon + ' ' + tl.name + ' 연습 · 오늘 ' + used + ' / ' + TAL_DAY + '번 · ⚡' + TAL_COST + '</div>' +
+        rows = '<div style="display:flex;align-items:center;gap:8px;padding:4px 0 8px;"><div style="flex:1;font-size:11.5px;color:#d9ccff;line-height:1.5;">' + ticon(c, 22) + ' ' + tl.name + ' 연습 · 오늘 ' + used + ' / ' + TAL_DAY + '번 · ⚡' + TAL_COST + '</div>' +
           '<button data-act="' + c + '" style="border:none;border-radius:10px;padding:8px 14px;font-size:12px;font-weight:900;font-family:inherit;cursor:pointer;' + (deb && used < TAL_DAY ? 'background:linear-gradient(135deg,#a78bfa,#7c3aed);color:#fff;' : 'background:rgba(255,255,255,.12);color:#999;') + '">' + (used >= TAL_DAY ? '내일 또' : '연습하기') + '</button></div>' +
           TAL_AT.map(function (n, i) {
             var ok = xp >= n, got = cl.s.indexOf(i) >= 0;
             return '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-top:1px solid rgba(255,255,255,.07);"><div style="flex:1;"><div style="font-size:13px;font-weight:900;' + (ok ? '' : 'opacity:.55;') + '">「' + tl.titles[i] + '」</div><div style="font-size:10.5px;color:#c9b8e8;">경험치 ' + n + ' · ' + rewardText(SIG_REWARD[i]) + '</div></div>' + btn(c, 's', i, ok && deb, got) + '</div>';
           }).join('');
       }
-      var head = curTab === 'a' ? ('인지도 ' + f + ' / ' + FAME_MAX) : (TALENT[c].icon + ' ' + TALENT[c].name + ' · 경험치 ' + (((o.talent[c] || {}).xp) || 0) + ' / ' + TAL_AT[TAL_AT.length - 1]);
+      var head = curTab === 'a' ? ('인지도 ' + f + ' / ' + FAME_MAX) : (ticon(c, 22) + ' ' + TALENT[c].name + ' · 경험치 ' + (((o.talent[c] || {}).xp) || 0) + ' / ' + TAL_AT[TAL_AT.length - 1]);
       return '<div style="background:rgba(255,255,255,.07);border-radius:16px;padding:12px 14px;margin-bottom:11px;' + (deb ? '' : 'opacity:.6;') + '"><div style="display:flex;justify-content:space-between;font-size:14px;font-weight:900;"><span>' + esc(nameOf(c)) + (deb ? '' : ' <span style="font-size:10.5px;color:#aaa;">데뷔 후 가능</span>') + '</span><span style="font-size:11px;color:#ffe08a;">' + head + '</span></div>' +
         bar(curTab === 'a' ? f / FAME_MAX : (((o.talent[c] || {}).xp) || 0) / TAL_AT[TAL_AT.length - 1], '#a78bfa') + '<div style="margin-top:6px;">' + rows + '</div></div>';
     }).join('');
