@@ -88,9 +88,11 @@
     world.forEach(function (x) { x.done = x.now >= x.goal; x.ratio = Math.min(1, x.now / x.goal); x.world = true; x.locked = !baseDone; });
     return base.concat(world);
   }
+  function testOn() { try { return localStorage.getItem('ph_ws_test') === '1'; } catch (e) { return false; } }
   function statusOf(cid) {
     var st = stepsOf(cid), done = st.filter(function (s) { return s.done; }).length;
     var ws = loadWS();
+    if (testOn() && !ws[cid]) { st.forEach(function (x) { x.done = true; x.ratio = 1; x.locked = false; }); done = st.length; }
     return { cid: cid, steps: st, done: done, total: st.length, ready: done === st.length && !ws[cid], world: !!ws[cid],
       score: st.reduce(function (a, s) { return a + s.ratio; }, 0) / st.length };
   }
@@ -168,7 +170,7 @@
     var end = worlds >= total ? '<div style="background:rgba(255,215,0,.16);border:1.5px solid #FFD700;border-radius:16px;padding:14px;margin-bottom:14px;text-align:center;font-size:13px;font-weight:900;line-height:1.6;">🎉 전원 월드스타!<br><span style="font-weight:600;color:#ffe9a8;">카드 세상으로 돌아가는 이야기는 정식 오픈 때 공개돼요.</span></div>' : '';
     ov.innerHTML =
       '<div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px 6px;">' +
-      '<div style="font-size:18px;font-weight:900;">🌟 월드스타 로드맵</div>' +
+      '<div id="ws-title" style="font-size:18px;font-weight:900;">🌟 월드스타 로드맵' + (testOn() ? ' <span style="font-size:11px;color:#ff9aa8;">[테스트]</span>' : '') + '</div>' +
       '<button id="ws-close" aria-label="닫기" style="width:34px;height:34px;border:none;border-radius:50%;background:rgba(255,255,255,.14);color:#fff;font-size:17px;font-weight:900;cursor:pointer;">✕</button></div>' +
       '<div style="padding:0 16px 90px;">' +
       '<div style="font-size:12px;color:#c9b8e8;line-height:1.6;margin-bottom:12px;">기획사를 일으켜 <b style="color:#ffe08a;">전원 월드스타</b>가 되면, 카드 속 세상으로 돌아갈 수 있어요. 멤버마다 기본 4단계 + 월드 도전 4단계를 채우면 월드스타 선언!</div>' +
@@ -176,16 +178,25 @@
       '<div style="height:10px;border-radius:6px;background:rgba(255,255,255,.12);margin-top:7px;overflow:hidden;"><div style="width:' + Math.round(worlds / total * 100) + '%;height:100%;background:linear-gradient(90deg,#FFD700,#ff9f1c);"></div></div></div>' +
       recHtml + end + list.map(card).join('') + '</div>';
     $('ws-close').onclick = close;
+    var tapN = 0, tapT = 0;   // 🧪 제목을 5번 연속 누르면 테스트 모드 켜기/끄기 (끄면 테스트로 한 선언도 같이 지워짐)
+    $('ws-title').onclick = function () {
+      var now = Date.now(); tapN = now - tapT < 700 ? tapN + 1 : 1; tapT = now;
+      if (tapN < 5) return; tapN = 0;
+      var on = !testOn();
+      try { localStorage.setItem('ph_ws_test', on ? '1' : '0'); } catch (e) {}
+      if (!on) { var w = loadWS(); Object.keys(w).forEach(function (k) { if (w[k] < 0) delete w[k]; }); saveWS(w); }
+      toast(on ? '🧪 테스트 모드 ON — 선언 버튼이 열려요' : '🧪 테스트 모드 OFF — 원래대로 복구됐어요'); render();
+    };
     ov.querySelectorAll('[data-go]').forEach(function (b) { b.onclick = function () { go(b.getAttribute('data-go'), b.getAttribute('data-cid') || (rec && rec.cid)); }; });
     ov.querySelectorAll('[data-declare]').forEach(function (b) { b.onclick = function () { declare(b.getAttribute('data-declare')); }; });
   }
 
   function declare(cid) {
     var s = statusOf(cid); if (!s.ready) return;
-    var ws = loadWS(); ws[cid] = Date.now(); saveWS(ws);
-    try { coins += REWARD_COIN; if (typeof saveAll === 'function') saveAll(); } catch (e) {}
+    var tst = testOn(), ws = loadWS(); ws[cid] = tst ? -Date.now() : Date.now(); saveWS(ws);   // 테스트 선언은 음수 시각으로 저장 (나중에 지워짐)
+    if (!tst) try { coins += REWARD_COIN; if (typeof saveAll === 'function') saveAll(); } catch (e) {}
     try { if (typeof sfx === 'function') sfx('levelup'); } catch (e) {}
-    try { localStorage.setItem('ph_worldstarAny', '1'); } catch (e) {}
+    if (!tst) try { localStorage.setItem('ph_worldstarAny', '1'); } catch (e) {}
     var o = document.createElement('div');
     o.style.cssText = 'position:fixed;inset:0;z-index:1500;background:radial-gradient(circle,rgba(255,215,0,.35),rgba(10,6,30,.96) 70%);display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;text-align:center;animation:wsIn .5s ease;';
     o.innerHTML = '<style>@keyframes wsIn{from{opacity:0}to{opacity:1}}@keyframes wsPop{0%{transform:scale(.4);opacity:0}60%{transform:scale(1.15)}100%{transform:scale(1);opacity:1}}</style>' +
