@@ -10,6 +10,7 @@
   'use strict';
   var IMG_BASE = 'https://raw.githubusercontent.com/chaei7775/Poca-house/main/';
   var LOCKED = false;                 // true = 새 맵 3개를 전부 잠가 둠 (🔒 준비 중). false = 각 맵의 레벨(25/30/35)에 맞춰 열림
+  var SWEEP_N = 3, SWEEP_RATE = 0.8;   // 🧹 소탕: 한 번에 몇 판 / 직접 깬 최고 기록의 몇 %
   var EXTRA_RATE = 0.5;               // 하루 횟수를 넘긴 뒤 보상 비율
   var REG = {}, ORDER = [];
   var FONT = "font-family:'Noto Sans KR',sans-serif;";
@@ -33,6 +34,36 @@
     return it.emoji || '🎁';
   }
 
+  // ── 🧹 소탕: 직접 깬 최고 기록(보상)을 저장해 두고, 체력만 내면 그 기록의 80%로 여러 판을 한꺼번에 처리 ──
+  function bestKey(cfg) { return 'ph_xk_best_' + cfg.id; }
+  function score(r) { var n = 0; (r.items || []).forEach(function (i) { n += (i.qty || 0) * 20; }); return (r.coin || 0) / 1000 + (r.exp || 0) / 10 + (r.stone || 0) * 50 + (r.wish || 0) * 100 + (r.protect || 0) * 150 + n; }
+  function loadBest(cfg) { try { return JSON.parse(localStorage.getItem(bestKey(cfg)) || 'null'); } catch (e) { return null; } }
+  function saveBest(cfg, res) {
+    try {
+      var r = { coin: res.coin || 0, exp: res.exp || 0, stone: res.stone || 0, protect: res.protect || 0, wish: res.wish || 0,
+        items: (res.items || []).filter(function (i) { return i && !i.gear && i.name && i.cat !== 'gear' && !i.grade; }).map(function (i) { return { emoji: i.emoji, name: i.name, cat: i.cat || 'material', qty: i.qty || 0, desc: i.desc || '' }; }) };
+      var old = loadBest(cfg); if (!old || score(r) > score(old)) localStorage.setItem(bestKey(cfg), JSON.stringify(r));
+    } catch (e) {}
+  }
+  function rr(x) { var f = Math.floor(x); return f + (Math.random() < x - f ? 1 : 0); }
+  function sweep(cfg, root, charId, best) {
+    var cost = cfg.stamina * SWEEP_N;
+    if (stam() < cost) { toast('스태미나가 부족해요! 소탕 ' + SWEEP_N + '번에 ⚡ ' + cost + ' 필요'); return; }
+    try { stamina -= cost; if (typeof saveStamina === 'function') saveStamina(); } catch (e) {}
+    var dd = daily(cfg), left = dd.left, tot = { coin: 0, exp: 0, stone: 0, protect: 0, wish: 0 }, map = {}, order = [];
+    for (var i = 0; i < SWEEP_N; i++) {
+      var k = (i < left ? 1 : EXTRA_RATE) * SWEEP_RATE;   // 하루 횟수를 넘긴 판은 일반 판처럼 반만
+      tot.coin += (best.coin || 0) * k; tot.exp += (best.exp || 0) * k;
+      tot.stone += rr((best.stone || 0) * k); tot.protect += rr((best.protect || 0) * k); tot.wish += rr((best.wish || 0) * k);
+      (best.items || []).forEach(function (it) { var q = rr((it.qty || 0) * k); if (q <= 0) return; if (!map[it.name]) { map[it.name] = { emoji: it.emoji, name: it.name, cat: it.cat, qty: 0, desc: it.desc }; order.push(it.name); } map[it.name].qty += q; });
+    }
+    dd.o.n += SWEEP_N; try { localStorage.setItem(dd.k, JSON.stringify(dd.o)); } catch (e) {}
+    var res = { win: true, title: '소탕 완료!', coin: Math.round(tot.coin), exp: Math.round(tot.exp), stone: tot.stone, protect: tot.protect, wish: tot.wish,
+      items: order.map(function (n) { return map[n]; }), summary: '🧹 ' + SWEEP_N + '판 소탕 · 직접 깬 최고 기록의 ' + Math.round(SWEEP_RATE * 100) + '%', __n: SWEEP_N, __sweep: 1 };
+    var o = $('xk-intro'); if (o) o.remove();
+    settle(cfg, root, charId, res, 1);
+  }
+
   // ── 입장 ──
   function enter(cfg, charId, again) {
     if (cfg.gate) { var gm = cfg.gate(); if (gm) { toast(gm); return false; } }   // 🔒 특별 입장 조건 (월드 스테이지: 월드스타 도전 단계 진입 등)
@@ -43,8 +74,8 @@
     var root = document.createElement('div'); root.id = 'xk-root';
     root.style.cssText = 'position:absolute;inset:0;z-index:95;background:#0b0716;color:#fff;overflow:hidden;' + FONT;
     ov.appendChild(root);
-    var d = daily(cfg);
-    var intro = document.createElement('div');
+    var d = daily(cfg), best = loadBest(cfg);
+    var intro = document.createElement('div'); intro.id = 'xk-intro';
     intro.style.cssText = 'position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:16px;overflow:auto;background:linear-gradient(rgba(8,4,18,.78),rgba(8,4,18,.9)),url(' + IMG_BASE + (cfg.bg || 'map-fanrush.webp') + ') center/cover;';
     intro.innerHTML = '<div style="width:100%;max-width:340px;text-align:center;">' +
       '<div style="font-size:46px;">' + cfg.emoji + '</div>' +
@@ -53,10 +84,12 @@
       '<div style="text-align:left;background:rgba(255,255,255,.08);border-radius:14px;padding:12px 14px;font-size:12.5px;line-height:1.75;color:#f1e9ff;">' + cfg.intro.map(function (l) { return '· ' + l; }).join('<br>') + '</div>' +
       '<div style="font-size:11.5px;color:#ffd76a;margin:10px 0;">오늘 보상 ' + (d.left > 0 ? '<b>' + d.left + '번</b> 남음 (넘으면 ' + Math.round(EXTRA_RATE * 100) + '%)' : '<b>다 썼어요</b> · 지금부턴 ' + Math.round(EXTRA_RATE * 100) + '%만 받아요') + ' · ⚡ ' + cfg.stamina + '</div>' +
       '<button id="xk-go" style="width:100%;padding:14px;border:none;border-radius:13px;background:linear-gradient(135deg,' + cfg.color + ',#8b5cf6);color:#fff;font-size:15px;font-weight:900;cursor:pointer;' + FONT + '">시작하기</button>' +
+ (best ? '<button id="xk-sweep" style="width:100%;margin-top:8px;padding:12px;border:none;border-radius:12px;background:rgba(125,255,168,.18);border:1.5px solid #7dffa8;color:#fff;font-size:13px;font-weight:900;cursor:pointer;' + FONT + '">🧹 소탕 ×' + SWEEP_N + ' (⚡ ' + (cfg.stamina * SWEEP_N) + ') · 최고 기록의 ' + Math.round(SWEEP_RATE * 100) + '%</button>' : '') +
       '<button id="xk-gear" style="width:100%;margin-top:8px;padding:11px;border:none;border-radius:12px;background:rgba(192,132,252,.25);border:1.5px solid #C084FC;color:#fff;font-size:13px;font-weight:900;cursor:pointer;' + FONT + '">🎀 소품 장착</button>' +
       '<button id="xk-back" style="width:100%;margin-top:8px;padding:11px;border:none;border-radius:12px;background:rgba(255,255,255,.1);color:#ccc;font-size:13px;cursor:pointer;' + FONT + '">나가기</button></div>';
     root.appendChild(intro);
     $('xk-back').onclick = function () { root.remove(); };
+    if ($('xk-sweep')) $('xk-sweep').onclick = function () { sweep(cfg, root, charId, best); };
     $('xk-gear').onclick = function () { try { if (window.FanGear) window.FanGear.open(charId); } catch (e) {} };
     $('xk-go').onclick = function () {
       if (stam() < cfg.stamina) { toast('스태미나가 부족해요!'); return; }
@@ -76,12 +109,13 @@
 
   // ── 보상 지급 + 결과 화면 ──
   function settle(cfg, root, charId, res, rate) {
-    try { var cl = JSON.parse(localStorage.getItem('ph_xk_clears') || '{}') || {}; cl[cfg.id] = (cl[cfg.id] || 0) + 1; localStorage.setItem('ph_xk_clears', JSON.stringify(cl)); } catch (e) {}   // 퀘스트용 클리어 기록
+    try { var cl = JSON.parse(localStorage.getItem('ph_xk_clears') || '{}') || {}; cl[cfg.id] = (cl[cfg.id] || 0) + (res.__n || 1); localStorage.setItem('ph_xk_clears', JSON.stringify(cl)); } catch (e) {}   // 퀘스트용 클리어 기록
+    if (res.win && !res.__sweep) saveBest(cfg, res);   // 🧹 소탕 기준 기록
     var gmR = 1; try { if (window.FanGear) gmR = window.FanGear.mult(charId, 'reward'); } catch (e) {}   // 🎀 소품 보상 증가
     var coin = Math.round((res.coin || 0) * rate * gmR), exp = Math.round((res.exp || 0) * rate * gmR);
     var items = [];
     try {   // 🎀 소품 드랍 (클리어했을 때만, cfg.gearChance)
-      if (res.win && cfg.gearChance && Math.random() < cfg.gearChance && window.FanGear) { var gi = window.FanGear.roll(cfg.gearMin); if (gi) { res.items = (res.items || []).concat([gi]); } }
+      if (res.win && cfg.gearChance && window.FanGear) { for (var gn = 0; gn < (res.__n || 1); gn++) { if (Math.random() >= cfg.gearChance) continue; var gi = window.FanGear.roll(cfg.gearMin); if (gi) { res.items = (res.items || []).concat([gi]); } } }
     } catch (e) {}
     (res.items || []).forEach(function (it) {
       var q = Math.max(0, Math.round((it.qty || 0) * rate));
