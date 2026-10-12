@@ -5,6 +5,7 @@
 //  · 다 누르면 포즈 게이지: 움직이는 바가 가운데에 올 때 💃 포즈! (퍼펙트 / 쿨 / 굿 / 배드)
 //  · 5스테이지(화살표 4→8개). 틀리면 그 스테이지는 MISS + 콤보 끊김. 콤보가 쌓이면 점수 보너스
 //  결과 0~1(perf)을 music-chart.js 의 runShow(perf) 가 받아서 내 곡 점수에 +-로 반영한다.
+//  · 다른 화면(🎧 음악방송 리허설장 rhythm-map.js)도 쓸 수 있게 opt 로 제목·소품 효과·상자 떨어뜨리기·결과화면 생략을 받는다
 // ✏️ 고치는 법: 아래 [설정]
 // ════════════════════════════════════════════════════════════
 (function () {
@@ -26,6 +27,8 @@
 
   function open(opt, done) {
     var cid = opt.cid, ended = false, timers = [];
+    var PM = Math.max(0.5, opt.poseMul || 1), PP = Math.min(45, POSE_PERFECT * PM), PC = Math.min(46, POSE_COOL * PM), PG = Math.min(48, POSE_GOOD * PM);   // 🎀 포즈 구간 배율 (소품: 사거리)
+    var GSPD = GAUGE_SPEED * (opt.gaugeMul || 1), forgive = opt.forgive || 0, okCount = 0;   // 🎀 게이지 속도 배율 (소품: 쿨타임) / 실수 방지 횟수
     var ov = document.createElement('div');
     ov.id = 'aud-ov';
     ov.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;width:100vw;height:100vh;height:100dvh;z-index:99998;background:radial-gradient(circle at 50% 30%,#3a1b5e 0%,#0b0714 78%);color:#fff;font-family:inherit;display:flex;flex-direction:column;align-items:center;padding:14px 14px 18px;box-sizing:border-box;touch-action:none;user-select:none;-webkit-user-select:none;';
@@ -36,11 +39,11 @@
 
     function clearAll() { cancelAnimationFrame(raf); timers.forEach(clearTimeout); timers = []; }
     function later(fn, ms) { timers.push(setTimeout(fn, ms)); }
-    function close(cancel) { if (ended) return; ended = true; clearAll(); ov.remove(); if (!cancel) done(Math.max(0, Math.min(1, total / STAGES / 100))); }
+    function close(cancel) { if (ended) return; ended = true; clearAll(); ov.remove(); if (cancel) { if (opt.onCancel) opt.onCancel(); return; } var pf = Math.max(0, Math.min(1, total / STAGES / 100)); if (opt.embed) done(pf, { cleared: okCount, stages: STAGES, bestCombo: bestCombo, scores: stageScores.slice() }); else done(pf); }
 
     function frame() {
       return '<div style="width:100%;display:flex;justify-content:space-between;align-items:center;">' +
-        '<div style="font-size:12px;color:#c4b5fd;">📺 음악방송 · 오디션 무대</div>' +
+        '<div style="font-size:12px;color:#c4b5fd;">' + (opt.title || '📺 음악방송 · 오디션 무대') + '</div>' +
         '<button id="aud-x" style="background:rgba(255,255,255,.12);border:0;color:#fff;border-radius:10px;padding:6px 12px;font-size:12px;">그만두기</button></div>' +
         '<div style="display:flex;align-items:center;gap:10px;margin:8px 0 2px;"><img src="face-' + cid + '.png" alt="" onerror="this.style.display=\'none\'" style="width:54px;height:54px;border-radius:50%;object-fit:cover;border:2px solid ' + ACC + ';"><div style="font-size:18px;font-weight:900;">' + nameOf(cid) + '의 무대</div></div>' +
         '<div style="display:flex;justify-content:space-between;width:100%;max-width:380px;font-size:13px;margin:4px 0;"><span id="aud-st">1/' + STAGES + '</span><span id="aud-combo" style="color:' + GOLD + ';font-weight:900;"></span></div>' +
@@ -125,7 +128,8 @@
       if (k === seq[pos]) {
         pos++; sfx('pop'); renderSeq();
         if (pos >= seq.length) { phase = 'pose'; cancelAnimationFrame(raf); startGauge(); }
-      } else { stageEnd(false, 0); }
+      } else if (forgive > 0) { forgive--; setMsg('🎀 소품이 실수를 막아줬어요!', '#6ee7a0'); }
+      else { stageEnd(false, 0); }
     }
 
     // ── 포즈 게이지 ──
@@ -134,14 +138,14 @@
       timeLeftRatio = Math.max(0, 1 - (performance.now() - tStart) / tLimit);
       $('aud-bar').parentNode.style.display = 'none'; $('aud-gauge').style.display = 'block';
       var z = function (id, w) { var e = $(id); e.style.left = (50 - w) + '%'; e.style.width = (w * 2) + '%'; };
-      z('aud-gz3', POSE_GOOD); z('aud-gz2', POSE_COOL); z('aud-gz1', POSE_PERFECT);
+      z('aud-gz3', PG); z('aud-gz2', PC); z('aud-gz1', PP);
       $('aud-pose').style.opacity = '1'; setMsg('지금이야! 💃 포즈!', '#fff');
       gpos = 0; gdir = 1; gT = performance.now(); gStartedAt = gT; gaugeTick();
     }
     function gaugeTick() {
       if (phase !== 'pose') return;
       var now = performance.now(), dt = (now - gT) / 1000; gT = now;
-      gpos += gdir * GAUGE_SPEED * dt;
+      gpos += gdir * GSPD * dt;
       if (gpos >= 100) { gpos = 100; gdir = -1; } if (gpos <= 0) { gpos = 0; gdir = 1; }
       $('aud-mk').style.left = 'calc(' + gpos + '% - 3px)';
       if (now - gStartedAt > 2600) return stageEnd(true, 'bad');
@@ -149,7 +153,7 @@
     }
     function pose() {
       if (phase !== 'pose') return;
-      var d = Math.abs(gpos - 50), g = d <= POSE_PERFECT ? 'perfect' : d <= POSE_COOL ? 'cool' : d <= POSE_GOOD ? 'good' : 'bad';
+      var d = Math.abs(gpos - 50), g = d <= PP ? 'perfect' : d <= PC ? 'cool' : d <= PG ? 'good' : 'bad';
       stageEnd(true, g);
     }
 
@@ -166,12 +170,15 @@
       } else {
         combo = 0; setMsg('MISS…', '#fca5a5'); sfx('fail');
       }
+      if (ok && grade !== 'bad') okCount++;
+      try { if (opt.onStage) opt.onStage(ov, ok && grade !== 'bad', stage); } catch (e) {}   // 🎁 리허설장: 스테이지 성공 시 팬이 상자를 떨어뜨림
       total += pts; stageScores.push(Math.round(pts)); setCombo();
       stage++; later(nextStage, 750);
     }
 
     function finish() {
       phase = 'end'; clearAll();
+      if (opt.embed) { close(false); return; }   // 결과화면은 부른 쪽(리허설장)이 보여준다
       var perf = Math.max(0, Math.min(1, total / STAGES / 100)), pct = Math.round(perf * 100);
       var g = pct >= 85 ? 'S' : pct >= 70 ? 'A' : pct >= 50 ? 'B' : 'C';
       ov.innerHTML = '<div style="flex:1;"></div><div style="text-align:center;">' +
