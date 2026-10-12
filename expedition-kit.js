@@ -111,6 +111,8 @@
   function settle(cfg, root, charId, res, rate) {
     try { var cl = JSON.parse(localStorage.getItem('ph_xk_clears') || '{}') || {}; cl[cfg.id] = (cl[cfg.id] || 0) + (res.__n || 1); localStorage.setItem('ph_xk_clears', JSON.stringify(cl)); } catch (e) {}   // 퀘스트용 클리어 기록
     if (res.win && !res.__sweep) saveBest(cfg, res);   // 🧹 소탕 기준 기록
+    var wkB = 1; try { if (window.__weekBonus) wkB = Number(window.__weekBonus(cfg.id)) || 1; } catch (e) {}   // 🏆 주간 테마 보너스 (career.js)
+    if (wkB > 1 && res.win) { rate = rate * wkB; res.summary = (res.summary || '') + '<br>🎉 주간 테마 보너스 ×' + wkB; }
     var gmR = 1; try { if (window.FanGear) gmR = window.FanGear.mult(charId, 'reward'); } catch (e) {}   // 🎀 소품 보상 증가
     var coin = Math.round((res.coin || 0) * rate * gmR), exp = Math.round((res.exp || 0) * rate * gmR);
     var items = [];
