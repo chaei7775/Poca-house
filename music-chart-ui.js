@@ -247,6 +247,9 @@
     function finish() {
       var power = Math.min(1, score / 70), r = C().applyStream(sid, power);
       ov.remove();
+      var shield = document.createElement('div'); shield.style.cssText = 'position:fixed;inset:0;z-index:99999;background:transparent;touch-action:none;';   // 연타하던 손가락이 결과 팝업·아래 화면을 건드리지 않게 잠깐 막음
+      ['pointerdown', 'pointerup', 'touchstart', 'touchend', 'mousedown', 'mouseup', 'click'].forEach(function (ev) { shield.addEventListener(ev, function (e) { e.preventDefault(); e.stopPropagation(); }, true); });
+      document.body.appendChild(shield); setTimeout(function () { shield.remove(); }, 900);
       if (!r) { toast('총공 결과를 저장하지 못했어요'); render(); return; }
       var grade = power >= 0.9 ? '대성공!' : power >= 0.5 ? '성공!' : '아쉬워요';
       bigPopup(ico('chart-stream.png', '📣', 80), '총공 ' + grade, '스밍 점수 <b style="color:#fff;">' + score + '</b> (' + taps + '번 터치)<br>차트 점수 <b style="color:' + GOLD + ';">+' + r.gain + '</b><br>순위 ' + (r.before > 100 ? '차트밖' : r.before + '위') + ' → <b style="color:' + GOLD + ';">' + (r.after > 100 ? '차트밖' : r.after + '위') + '</b><br><span style="color:#aab;font-size:11px;">(총공 점수는 하루마다 절반으로 식어요)</span>', '확인', render);

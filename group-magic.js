@@ -3,15 +3,15 @@
 //  · 그림: grp-magic.webp (512px, 투명 배경에 흰 선). 마스크로 쓰고 색은 시설 색으로 칠한다 (그림 한 장으로 여러 색)
 //  · 투자 합계 1~7: 1겹 / 8~15: 2겹 / 16이상: 3겹 (겹마다 반대 방향으로 돌아감). 합계가 클수록 빛이 강해짐
 //  · 색: 투자한 시설 색 (녹음실 분홍 · 연습실 파랑 · 촬영 금색 · 세트장 초록 · 숙소 주황 · 투어 보라). 활동에 맞는 시설 색이 먼저
-//  · 🌑 보라 흑마법진은 '초월' 효과: 히든카드를 초월한 멤버(window.getTranscendStage)에게만 금빛 마법진 위에 겹쳐 나온다 (초월 1~3단계: 반짝이 4/6/8개 · 3단계는 더 빠르게). 투자가 0이어도 초월했으면 보라 마법진만 나옴. 그룹 화면은 멤버 중 가장 높은 초월 단계
+//  · 🌑 은백색 마법진은 '초월' 효과: 히든카드를 초월한 멤버(window.getTranscendStage)에게만 금빛 마법진 위에 겹쳐 나온다 (초월 1~3단계: 반짝이 4/6/8개 · 3단계는 더 빠르게). 투자가 0이어도 초월했으면 은백색 마법진만 나옴. 그룹 화면은 멤버 중 가장 높은 초월 단계
 //  · 쓰는 곳: 활동 연출 화면(group-stage.js) / 그룹 화면의 멤버 줄(group.js)  — 투자가 0이면 아무것도 안 그린다
 //  · 호출: window.__groupMagic.html({ act, size, css, flat, fast, dim }) → 넣을 HTML 문자열
 // ════════════════════════════════
 (function () {
   'use strict';
   var COL = { studio: '#ff6bd6', practice: '#4aa8ff', shoot: '#ffd76a', setpark: '#7dffb0', dorm: '#ffa86b', tour: '#c084fc' };
-  var DARK = 'grp-magic-dark.webp';   // 🌑 금빛 마법진 위에 겹치는 작은 보라 흑마법진 (256px, 금빛 마법진의 절반 크기로 반대 방향으로 빠르게 돌고 반짝임)
-  var DARK_SC = 0.5, DARK_T = 6;       // 금빛 마법진 대비 크기 / html 판 회전 한 바퀴 시간(초) — 금빛은 11~26초
+  var DARK = 'grp-magic-dark.webp';   // 🌑 금빛 마법진 위에 겹치는 작은 은백색 마법진 (256px, 금빛 마법진의 0.6배 크기로 반대 방향으로 빠르게 돌고 반짝임)
+  var DARK_SC = 0.6, DARK_T = 6;       // 금빛 마법진 대비 크기 / html 판 회전 한 바퀴 시간(초) — 금빛은 11~26초
   var IMG = 'grp-magic-img.webp';   // 채이가 준 금빛 마법진 원본 그림 (색 안 바꾸고 그대로 씀)
   function css() {
     if (document.getElementById('gm-css')) return;
@@ -64,7 +64,7 @@
       c.drawImage(tinted(col), -rr, -rr, rr * 2, rr * 2);   // 두 번 겹쳐 그려서 더 진하고 또렷하게
       c.restore();
     }
-    // 🌑 보라 흑마법진(초월): 금빛의 절반 크기, 반대 방향으로 빠르게 + 반짝이
+    // 🌑 은백색 마법진(초월): 금빛의 0.6배 크기, 반대 방향으로 빠르게 + 반짝이
     if (!ts) { c.restore(); return; }
     if (!dOk) { c.restore(); return; }
     var dr = R * 5.2 * DARK_SC, tt = (t || 0) * (ts >= 3 ? 1.3 : 1), spN = ts === 1 ? 4 : ts === 2 ? 6 : 8;
@@ -73,7 +73,7 @@
     c.globalCompositeOperation = 'lighter';
     for (var k = 0; k < spN; k++) {
       var an = -tt * 0.9 + k * Math.PI / 4 + (k % 2 ? 0.2 : 0), rd = dr * (0.9 + (k % 3) * 0.12), tw = 0.5 + 0.5 * Math.sin(tt * (3 + k % 4) + k * 1.7), sz = R * (k % 2 ? 0.14 : 0.2) * (0.4 + tw);
-      c.globalAlpha = 0.25 + 0.75 * tw; c.fillStyle = '#efd6ff';
+      c.globalAlpha = 0.25 + 0.75 * tw; c.fillStyle = '#e6f2ff';
       var px = Math.cos(an) * rd, py = Math.sin(an) * rd;
       c.beginPath(); c.moveTo(px, py - sz * 1.6); c.lineTo(px + sz * 0.4, py - sz * 0.4); c.lineTo(px + sz * 1.6, py); c.lineTo(px + sz * 0.4, py + sz * 0.4);
       c.lineTo(px, py + sz * 1.6); c.lineTo(px - sz * 0.4, py + sz * 0.4); c.lineTo(px - sz * 1.6, py); c.lineTo(px - sz * 0.4, py - sz * 0.4); c.closePath(); c.fill();
@@ -94,9 +94,9 @@
         '<img src="' + IMG + '" alt="" decoding="async" style="width:100%;height:100%;display:block;' +
         'animation:gmSpin ' + (T[i] * sp).toFixed(1) + 's linear infinite' + (i % 2 ? ' reverse' : '') + ';"></div>';
     }
-    var dk = '<div style="position:absolute;inset:0;transform:scale(' + DARK_SC + ');filter:drop-shadow(0 0 ' + (glow + 2) + 'px #b05cff);"><img src="' + DARK + '" alt="" decoding="async" style="width:100%;height:100%;display:block;animation:gmSpin ' + (DARK_T * (ts >= 3 ? 0.75 : 1) * sp).toFixed(1) + 's linear infinite reverse;"></div>';
-    var spk = '';   // ✨ 보라 마법진 둘레를 도는 반짝이
-    for (var k = 0, spN = ts === 1 ? 4 : ts === 2 ? 6 : 8; k < spN; k++) { var ang = k * 45 + (k % 2 ? 12 : 0), rad = 24 + (k % 3) * 3; spk += '<span style="position:absolute;left:' + (50 + rad * Math.cos(ang * Math.PI / 180)).toFixed(1) + '%;top:' + (50 + rad * Math.sin(ang * Math.PI / 180)).toFixed(1) + '%;width:' + (k % 2 ? 7 : 10) + 'px;height:' + (k % 2 ? 7 : 10) + 'px;margin:-5px 0 0 -5px;background:radial-gradient(circle,#fff 0%,#e8c8ff 40%,transparent 70%);border-radius:50%;animation:gmTw ' + (1.1 + (k % 4) * 0.3).toFixed(1) + 's ease-in-out ' + (k * 0.17).toFixed(2) + 's infinite;"></span>'; }
+    var dk = '<div style="position:absolute;inset:0;transform:scale(' + DARK_SC + ');filter:drop-shadow(0 0 ' + (glow + 2) + 'px #bcd8ff);"><img src="' + DARK + '" alt="" decoding="async" style="width:100%;height:100%;display:block;animation:gmSpin ' + (DARK_T * (ts >= 3 ? 0.75 : 1) * sp).toFixed(1) + 's linear infinite reverse;"></div>';
+    var spk = '';   // ✨ 은백색 마법진 둘레를 도는 반짝이
+    for (var k = 0, spN = ts === 1 ? 4 : ts === 2 ? 6 : 8; k < spN; k++) { var ang = k * 45 + (k % 2 ? 12 : 0), rad = 24 + (k % 3) * 3; spk += '<span style="position:absolute;left:' + (50 + rad * Math.cos(ang * Math.PI / 180)).toFixed(1) + '%;top:' + (50 + rad * Math.sin(ang * Math.PI / 180)).toFixed(1) + '%;width:' + (k % 2 ? 7 : 10) + 'px;height:' + (k % 2 ? 7 : 10) + 'px;margin:-5px 0 0 -5px;background:radial-gradient(circle,#fff 0%,#cfe6ff 40%,transparent 70%);border-radius:50%;animation:gmTw ' + (1.1 + (k % 4) * 0.3).toFixed(1) + 's ease-in-out ' + (k * 0.17).toFixed(2) + 's infinite;"></span>'; }
     if (ts) layers += dk + '<div style="position:absolute;inset:0;animation:gmSpin ' + (14 * sp).toFixed(1) + 's linear infinite;">' + spk + '</div>';
     var tilt = o.flat === false ? '' : 'transform:perspective(' + Math.round(S * 2) + 'px) rotateX(64deg);';
     return '<div class="gm-wrap" style="position:absolute;width:' + S + 'px;height:' + S + 'px;pointer-events:none;' + tilt + 'opacity:' + (o.dim ? 0.4 : 0.9) + ';' + (o.dim ? 'filter:grayscale(.9);' : 'animation:gmPulse 3s ease-in-out infinite;') + (o.css || '') + '">' + layers + '</div>';
